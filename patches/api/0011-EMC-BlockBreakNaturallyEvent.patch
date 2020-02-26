@@ -1,0 +1,55 @@
+From 3d7a655162d7fc3ecd362eea82c9038eeb7b7a69 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Sun, 4 Dec 2016 01:14:52 -0500
+Subject: [PATCH] EMC BlockBreakNaturallyEvent
+
+---
+ .../BlockBreakNaturallyEvent.java             | 36 +++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+ create mode 100644 src/main/java/com/empireminecraft/customevents/BlockBreakNaturallyEvent.java
+
+diff --git a/src/main/java/com/empireminecraft/customevents/BlockBreakNaturallyEvent.java b/src/main/java/com/empireminecraft/customevents/BlockBreakNaturallyEvent.java
+new file mode 100644
+index 00000000..1fbf5b59
+--- /dev/null
++++ b/src/main/java/com/empireminecraft/customevents/BlockBreakNaturallyEvent.java
+@@ -0,0 +1,36 @@
++package com.empireminecraft.customevents;
++
++import org.bukkit.Location;
++import org.bukkit.entity.Item;
++import org.bukkit.event.HandlerList;
++import org.bukkit.event.block.BlockEvent;
++
++import java.util.Collection;
++import java.util.Collections;
++
++public class BlockBreakNaturallyEvent extends BlockEvent {
++    private final Collection<Item> items;
++
++    public BlockBreakNaturallyEvent(Location pos, Collection<Item> items) {
++        super(pos.getBlock());
++        this.items = items;
++    }
++
++    public BlockBreakNaturallyEvent(Location pos, Item item) {
++        this(pos, Collections.singleton(item));
++    }
++
++    public Collection<Item> getItems() {
++        return items;
++    }
++
++    private static final HandlerList handlers = new HandlerList();
++
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}
+-- 
+2.25.1.windows.1
+

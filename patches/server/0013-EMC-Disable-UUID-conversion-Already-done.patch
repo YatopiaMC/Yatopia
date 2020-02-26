@@ -1,0 +1,38 @@
+From 89df9d7ca41b413ae9c3ac8193d8cedc89d68541 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Mon, 14 Apr 2014 20:44:38 -0400
+Subject: [PATCH] EMC Disable UUID conversion - Already done
+
+---
+ src/main/java/net/minecraft/server/DedicatedServer.java         | 2 +-
+ .../java/net/minecraft/server/NameReferencingFileConverter.java | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index 349a0ea2..8a241c28 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -249,7 +249,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+             DedicatedServer.LOGGER.warn("To change this, set \"online-mode\" to \"true\" in the server.properties file.");
+         }
+ 
+-        if (this.convertNames()) {
++        if (false) { // EMC - disable UUID Conversion
+             this.getUserCache().c();
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/NameReferencingFileConverter.java b/src/main/java/net/minecraft/server/NameReferencingFileConverter.java
+index d3c2e1be..28656410 100644
+--- a/src/main/java/net/minecraft/server/NameReferencingFileConverter.java
++++ b/src/main/java/net/minecraft/server/NameReferencingFileConverter.java
+@@ -425,6 +425,7 @@ public class NameReferencingFileConverter {
+     }
+ 
+     public static boolean e(MinecraftServer minecraftserver) {
++        if (true) return true; // EMC - Disable UUID conversion
+         boolean flag = b();
+ 
+         flag = flag && f(minecraftserver);
+-- 
+2.25.1.windows.1
+

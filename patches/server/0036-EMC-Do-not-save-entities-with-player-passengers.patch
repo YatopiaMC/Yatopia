@@ -1,0 +1,46 @@
+From b04e7fb704af33ef186743d10d773b5826e850ba Mon Sep 17 00:00:00 2001
+From: chickeneer <emcchickeneer@gmail.com>
+Date: Wed, 22 Jan 2020 01:22:34 -0600
+Subject: [PATCH] EMC Do not save entities with player passengers
+
+---
+ .../net/minecraft/server/ChunkRegionLoader.java  | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
+index 4349d22c..669eb9eb 100644
+--- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
++++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
+@@ -444,7 +444,7 @@ public class ChunkRegionLoader {
+                         if (asyncsavedata == null) toUpdate.add(entity); // todo fix this broken code, entityJoinedWorld wont work in this case!
+                         continue;
+                     }
+-                    if (asyncsavedata == null && entity.dead) { // todo
++                    if (asyncsavedata == null && (entity.dead || hasPlayerPassenger(entity))) { // todo // Paper - Add hasPlayerPassenger continue
+                         continue;
+                     }
+                     // Paper end
+@@ -525,6 +525,20 @@ public class ChunkRegionLoader {
+         return nbttagcompound;
+     }
+ 
++    // Paper start
++    private static boolean hasPlayerPassenger(Entity entity) {
++        for (Entity passenger : entity.passengers) {
++            if (passenger instanceof EntityPlayer) {
++                return true;
++            }
++            if (hasPlayerPassenger(passenger)) {
++                return true;
++            }
++        }
++        return false;
++    }
++    // Paper end
++
+     // Paper start
+     public static ChunkStatus getStatus(NBTTagCompound compound) {
+         if (compound == null) {
+-- 
+2.25.1.windows.1
+
