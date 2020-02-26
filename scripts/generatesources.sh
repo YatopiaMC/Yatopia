@@ -41,4 +41,3 @@ cd $basedir/mc-dev
 git add . -A
 git commit . -m "mc-dev"
 git tag -a "$paperVer" -m "$paperVer" 2>/dev/null
-pushRepo . $MCDEV_REPO $paperVer
