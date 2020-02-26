@@ -21,6 +21,8 @@ Everything is licensed under the MIT license, and is free to be used in your own
 See [EMC](https://github.com/starlis/empirecraft) and [Purpur](https://github.com/pl3xgaming/Purpur)
 for the license of material used/modified by this project.
 
+**By using this project you accept the Mojang EULA! Starting the server-jar requires that you have read and accepted the EULA because of [this patch](https://github.com/tr7zw/YAPFA/blob/master/patches/server/0017-EMC-Accept-the-EULA.patch)!**
+
 ## OS Support / Scripts
 We only directly support Ubuntu 14.04 for the shell scripts. It may work elsewhere... but no promises. (This fork is developed under Windows with MINGW/WLS, and so far I don't intend to modify the scripts to any mojor point)
 
