@@ -1,0 +1,166 @@
+From 290c5a49d9a5f4d38e0cd8e227a042a053fa472e Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Thu, 5 Mar 2020 20:47:06 +0100
+Subject: [PATCH] Add MainThreadHandler to allow custom "MainThreads"
+
+---
+ .../de/tr7zw/yapfa/MainThreadHandler.java     | 24 +++++++++++++++++++
+ .../minecraft/server/IAsyncTaskHandler.java   |  5 +++-
+ .../java/net/minecraft/server/MCUtil.java     |  6 +++--
+ .../net/minecraft/server/MinecraftServer.java |  3 +++
+ .../org/bukkit/craftbukkit/CraftServer.java   |  4 +++-
+ src/main/java/org/spigotmc/AsyncCatcher.java  |  4 ++--
+ 6 files changed, 40 insertions(+), 6 deletions(-)
+ create mode 100644 src/main/java/de/tr7zw/yapfa/MainThreadHandler.java
+
+diff --git a/src/main/java/de/tr7zw/yapfa/MainThreadHandler.java b/src/main/java/de/tr7zw/yapfa/MainThreadHandler.java
+new file mode 100644
+index 000000000..f66e15e76
+--- /dev/null
++++ b/src/main/java/de/tr7zw/yapfa/MainThreadHandler.java
+@@ -0,0 +1,24 @@
++package de.tr7zw.yapfa;
++
++import org.bukkit.craftbukkit.util.WeakCollection;
++
++/**
++ * All Threads that are stored in this Collection are considered "MainThread"
++ * for all intents and purposes.
++ * 
++ * @author tr7zw
++ *
++ */
++public class MainThreadHandler {
++
++	private static WeakCollection<Thread> weakMainThreads = new WeakCollection<Thread>();
++
++	public static void registerThread(Thread thread) {
++		weakMainThreads.add(thread);
++	}
++
++	public static boolean isMainThread(Thread thread) {
++		return weakMainThreads.contains(thread);
++	}
++
++}
+diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+index cfe43e882..9009705ee 100644
+--- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
++++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+@@ -1,6 +1,9 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.Queues;
++
++import de.tr7zw.yapfa.MainThreadHandler;
++
+ import java.util.Queue;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.Executor;
+@@ -25,7 +28,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     protected abstract boolean canExecute(R r0);
+ 
+     public boolean isMainThread() {
+-        return Thread.currentThread() == this.getThread();
++        return MainThreadHandler.isMainThread(Thread.currentThread()); // YAPFA
+     }
+ 
+     protected abstract Thread getThread();
+diff --git a/src/main/java/net/minecraft/server/MCUtil.java b/src/main/java/net/minecraft/server/MCUtil.java
+index bcd5cc9f2..f1310bf57 100644
+--- a/src/main/java/net/minecraft/server/MCUtil.java
++++ b/src/main/java/net/minecraft/server/MCUtil.java
+@@ -10,6 +10,8 @@ import com.google.gson.internal.Streams;
+ import com.google.gson.stream.JsonWriter;
+ import com.mojang.authlib.GameProfile;
+ import com.mojang.datafixers.util.Either;
++
++import de.tr7zw.yapfa.MainThreadHandler;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+ import org.apache.commons.lang.exception.ExceptionUtils;
+ import org.bukkit.Location;
+@@ -195,7 +197,7 @@ public final class MCUtil {
+      * @return
+      */
+     public static void ensureMain(String reason, Runnable run) {
+-        if (AsyncCatcher.enabled && Thread.currentThread() != MinecraftServer.getServer().serverThread) {
++        if (AsyncCatcher.enabled && !MainThreadHandler.isMainThread(Thread.currentThread())) { // YAPFA
+             if (reason != null) {
+                 new IllegalStateException("Asynchronous " + reason + "!").printStackTrace();
+             }
+@@ -220,7 +222,7 @@ public final class MCUtil {
+      * @return
+      */
+     public static <T> T ensureMain(String reason, Supplier<T> run) {
+-        if (AsyncCatcher.enabled && Thread.currentThread() != MinecraftServer.getServer().serverThread) {
++        if (AsyncCatcher.enabled && !MainThreadHandler.isMainThread(Thread.currentThread())) { // YAPFA
+             if (reason != null) {
+                 new IllegalStateException("Asynchronous " + reason + "! Blocking thread until it returns ").printStackTrace();
+             }
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 816f4ff14..6ea3833fc 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -2,6 +2,8 @@ package net.minecraft.server;
+ 
+ import com.google.common.base.Splitter;
+ import co.aikar.timings.Timings;
++import de.tr7zw.yapfa.MainThreadHandler;
++
+ import com.destroystokyo.paper.event.server.PaperServerListPingEvent;
+ import com.google.common.base.Stopwatch;
+ import com.google.common.collect.Lists;
+@@ -132,6 +134,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         thread.setUncaughtExceptionHandler((thread1, throwable) -> {
+             MinecraftServer.LOGGER.error(throwable);
+         });
++        MainThreadHandler.registerThread(thread); // YAPFA
+     });
+     private long nextTick = SystemUtils.getMonotonicMillis();
+     private long ab; final long getTickOversleepMaxTime() { return this.ab; } // Paper - OBFHELPER
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 9384c9292..19b74f3ca 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -14,6 +14,8 @@ import com.mojang.brigadier.StringReader;
+ import com.mojang.brigadier.exceptions.CommandSyntaxException;
+ import com.mojang.brigadier.tree.CommandNode;
+ import com.mojang.brigadier.tree.LiteralCommandNode;
++
++import de.tr7zw.yapfa.MainThreadHandler;
+ import io.netty.buffer.ByteBuf;
+ import io.netty.buffer.ByteBufOutputStream;
+ import io.netty.buffer.Unpooled;
+@@ -1684,7 +1686,7 @@ public final class CraftServer implements Server {
+ 
+     @Override
+     public boolean isPrimaryThread() {
+-        return Thread.currentThread().equals(console.serverThread); // Paper - Fix issues with detecting main thread properly
++        return MainThreadHandler.isMainThread(Thread.currentThread()); // YAPFA // Paper - Fix issues with detecting main thread properly
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
+index 9f7d2ef93..f9fd9f603 100644
+--- a/src/main/java/org/spigotmc/AsyncCatcher.java
++++ b/src/main/java/org/spigotmc/AsyncCatcher.java
+@@ -1,6 +1,6 @@
+ package org.spigotmc;
+ 
+-import net.minecraft.server.MinecraftServer;
++import de.tr7zw.yapfa.MainThreadHandler;
+ 
+ public class AsyncCatcher
+ {
+@@ -10,7 +10,7 @@ public class AsyncCatcher
+ 
+     public static void catchOp(String reason)
+     {
+-        if ( enabled && Thread.currentThread() != MinecraftServer.getServer().serverThread )
++        if ( enabled && !MainThreadHandler.isMainThread(Thread.currentThread()) ) // YAPFA
+         {
+             throw new IllegalStateException( "Asynchronous " + reason + "!" );
+         }
+-- 
+2.25.1.windows.1
+
