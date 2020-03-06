@@ -1,0 +1,138 @@
+From ed12b33587ec6bcd357eb81383b787632416db2c Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Fri, 6 Mar 2020 20:28:47 +0100
+Subject: [PATCH] Rewrite the PathfinderGoalSelector class
+
+---
+ .../server/PathfinderGoalSelector.java        | 79 +++++++++++++++++--
+ 1 file changed, 72 insertions(+), 7 deletions(-)
+
+diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+index 935136771..fd438432e 100644
+--- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
++++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+@@ -1,9 +1,14 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.Sets;
++
++import net.minecraft.server.PathfinderGoal.Type;
++
+ import java.util.EnumMap;
+ import java.util.EnumSet;
++import java.util.Iterator;
+ import java.util.Map;
++import java.util.Map.Entry;
+ import java.util.Set;
+ import java.util.stream.Stream;
+ import org.apache.logging.log4j.LogManager;
+@@ -58,9 +63,16 @@ public class PathfinderGoalSelector {
+     // Paper end
+ 
+     public void a(PathfinderGoal pathfindergoal) {
+-        this.d.stream().filter((pathfindergoalwrapped) -> {
++    	// YAPFA start
++    	for(PathfinderGoalWrapped goal : this.d) {
++    		if(goal.j() == pathfindergoal && goal.g()) {
++    			goal.d();
++    		}
++    	}
++        /*this.d.stream().filter((pathfindergoalwrapped) -> {
+             return pathfindergoalwrapped.j() == pathfindergoal;
+-        }).filter(PathfinderGoalWrapped::g).forEach(PathfinderGoalWrapped::d);
++        }).filter(PathfinderGoalWrapped::g).forEach(PathfinderGoalWrapped::d);*/
++        // YAPFA end
+         this.d.removeIf((pathfindergoalwrapped) -> {
+             return pathfindergoalwrapped.j() == pathfindergoal;
+         });
+@@ -68,7 +80,24 @@ public class PathfinderGoalSelector {
+ 
+     public void doTick() {
+         this.e.enter("goalCleanup");
+-        this.c().filter((pathfindergoalwrapped) -> {
++        // YAPFA start
++		for (PathfinderGoalWrapped goal : this.d) {
++			if (goal.g() && goal.b()) {
++				boolean flag = true;
++
++				for(Type t : goal.i()) {
++					if(this.f.contains(t)) {
++						flag = false;
++					}
++				}
++
++				if (flag) {
++					goal.d();
++				}
++			}
++		}
++        this.c.entrySet().removeIf(ent -> !ent.getValue().g());
++        /*this.c().filter((pathfindergoalwrapped) -> {
+             boolean flag;
+ 
+             if (pathfindergoalwrapped.g()) {
+@@ -90,10 +119,38 @@ public class PathfinderGoalSelector {
+                 this.c.remove(pathfindergoal_type);
+             }
+ 
+-        });
++        });*/
++        // YAPFA end
+         this.e.exit();
+         this.e.enter("goalUpdate");
+-        this.d.stream().filter((pathfindergoalwrapped) -> {
++        // YAPFA start
++        for(PathfinderGoalWrapped goal : this.d) {
++        	if(!goal.g() && goal.a()) {
++        		boolean noneMatch = true;
++        		for(Type t : goal.i()) {
++        			if(this.f.contains(t)) {
++        				noneMatch = false;
++        			}
++        		}
++        		if(noneMatch) {
++        			boolean allMatch = true;
++        			for(Type t : goal.i()) {
++        				if(!this.c.getOrDefault(t, PathfinderGoalSelector.b).a(goal)){
++        					allMatch = false;
++        				}
++        			}
++        			if(allMatch) {
++        				for(Type t : goal.i()) {
++        					PathfinderGoalWrapped pathfindergoalwrapped1 = (PathfinderGoalWrapped) this.c.getOrDefault(t, PathfinderGoalSelector.b);
++        	                pathfindergoalwrapped1.d();
++        	                this.c.put(t, goal);
++        				}
++        				goal.c();
++        			}
++        		}
++        	}
++        }
++        /*this.d.stream().filter((pathfindergoalwrapped) -> {
+             return !pathfindergoalwrapped.g();
+         }).filter((pathfindergoalwrapped) -> {
+             Stream stream = pathfindergoalwrapped.i().stream();
+@@ -113,10 +170,18 @@ public class PathfinderGoalSelector {
+                 this.c.put(pathfindergoal_type, pathfindergoalwrapped);
+             });
+             pathfindergoalwrapped.c();
+-        });
++        });*/
++        // YAPFA end
+         this.e.exit();
+         this.e.enter("goalTick");
+-        this.c().forEach(PathfinderGoalWrapped::e);
++        // YAPFA start
++        for(PathfinderGoalWrapped goal : this.d) {
++        	if(goal.g()) {
++        		goal.e();
++        	}
++        }
++        //this.c().forEach(PathfinderGoalWrapped::e);
++        // YAPFA end
+         this.e.exit();
+     }
+ 
+-- 
+2.25.1.windows.1
+
