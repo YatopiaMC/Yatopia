@@ -1,4 +1,4 @@
-From ed12b33587ec6bcd357eb81383b787632416db2c Mon Sep 17 00:00:00 2001
+From af216c33212a285dbcb0b6255c568d005d91de43 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Fri, 6 Mar 2020 20:28:47 +0100
 Subject: [PATCH] Rewrite the PathfinderGoalSelector class
@@ -8,7 +8,7 @@ Subject: [PATCH] Rewrite the PathfinderGoalSelector class
  1 file changed, 72 insertions(+), 7 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
-index 935136771..fd438432e 100644
+index 935136771..8e5b944b2 100644
 --- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
 +++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
 @@ -1,9 +1,14 @@
@@ -52,7 +52,7 @@ index 935136771..fd438432e 100644
 -        this.c().filter((pathfindergoalwrapped) -> {
 +        // YAPFA start
 +		for (PathfinderGoalWrapped goal : this.d) {
-+			if (goal.g() && goal.b()) {
++			if (goal.g() && !goal.b()) {
 +				boolean flag = true;
 +
 +				for(Type t : goal.i()) {
