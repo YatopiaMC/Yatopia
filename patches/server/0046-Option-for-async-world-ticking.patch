@@ -1,4 +1,4 @@
-From db49e34c410bc6380c4427e7417eddadcefc2f6d Mon Sep 17 00:00:00 2001
+From 8690976a40883dffcd7c0d7cc5001caa5d7482e8 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Mon, 9 Mar 2020 18:49:50 +0100
 Subject: [PATCH] Option for async world ticking
@@ -8,11 +8,12 @@ Subject: [PATCH] Option for async world ticking
  src/main/java/de/tr7zw/yapfa/YapfaConfig.java |   5 +
  .../minecraft/server/ChunkProviderServer.java |   2 +-
  .../minecraft/server/EntityTrackerEntry.java  |   2 +-
- .../net/minecraft/server/MinecraftServer.java | 141 ++++++++++++------
+ .../net/minecraft/server/MinecraftServer.java | 141 ++++++++++++-----
  .../net/minecraft/server/PlayerChunkMap.java  |   7 +-
  .../server/PlayerConnectionUtils.java         |  12 +-
- .../net/minecraft/server/WorldServer.java     |  42 +++++-
- 8 files changed, 163 insertions(+), 50 deletions(-)
+ .../net/minecraft/server/WorldServer.java     |  42 ++++-
+ .../craftbukkit/util/WeakCollection.java      | 148 ++++++++++--------
+ 9 files changed, 248 insertions(+), 113 deletions(-)
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 index 58ce1f826..ed987cd15 100644
@@ -387,6 +388,219 @@ index c74b85917..09767fb85 100644
 +	
 +	// YAPFA end
 +    
+ }
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java b/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java
+index 166f4ee08..24dd1ea9f 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java
+@@ -18,23 +18,29 @@ public final class WeakCollection<T> implements Collection<T> {
+     @Override
+     public boolean add(T value) {
+         Validate.notNull(value, "Cannot add null value");
+-        return collection.add(new WeakReference<T>(value));
++        synchronized (collection) {
++        	return collection.add(new WeakReference<T>(value));
++		}
+     }
+ 
+     @Override
+     public boolean addAll(Collection<? extends T> collection) {
+-        Collection<WeakReference<T>> values = this.collection;
+-        boolean ret = false;
+-        for (T value : collection) {
+-            Validate.notNull(value, "Cannot add null value");
+-            ret |= values.add(new WeakReference<T>(value));
+-        }
+-        return ret;
++    	synchronized (collection) {
++	        Collection<WeakReference<T>> values = this.collection;
++	        boolean ret = false;
++	        for (T value : collection) {
++	            Validate.notNull(value, "Cannot add null value");
++	            ret |= values.add(new WeakReference<T>(value));
++	        }
++	        return ret;
++    	}
+     }
+ 
+     @Override
+     public void clear() {
+-        collection.clear();
++    	synchronized (collection) {
++    		collection.clear();
++    	}
+     }
+ 
+     @Override
+@@ -42,17 +48,21 @@ public final class WeakCollection<T> implements Collection<T> {
+         if (object  == null) {
+             return false;
+         }
+-        for (T compare : this) {
+-            if (object.equals(compare)) {
+-                return true;
+-            }
++        synchronized (collection) {
++	        for (T compare : this) {
++	            if (object.equals(compare)) {
++	                return true;
++	            }
++	        }
++	        return false;
+         }
+-        return false;
+     }
+ 
+     @Override
+     public boolean containsAll(Collection<?> collection) {
+-        return toCollection().containsAll(collection);
++    	synchronized (collection) {
++    		return toCollection().containsAll(collection);
++    	}
+     }
+ 
+     @Override
+@@ -73,20 +83,22 @@ public final class WeakCollection<T> implements Collection<T> {
+                     return true;
+                 }
+ 
+-                Iterator<WeakReference<T>> it = this.it;
+-                value = null;
+-
+-                while (it.hasNext()) {
+-                    WeakReference<T> ref = it.next();
+-                    value = ref.get();
+-                    if (value == null) {
+-                        it.remove();
+-                    } else {
+-                        this.value = value;
+-                        return true;
+-                    }
++                synchronized (collection) {
++	                Iterator<WeakReference<T>> it = this.it;
++	                value = null;
++	
++	                while (it.hasNext()) {
++	                    WeakReference<T> ref = it.next();
++	                    value = ref.get();
++	                    if (value == null) {
++	                        it.remove();
++	                    } else {
++	                        this.value = value;
++	                        return true;
++	                    }
++	                }
++	                return false;
+                 }
+-                return false;
+             }
+ 
+             @Override
+@@ -119,49 +131,57 @@ public final class WeakCollection<T> implements Collection<T> {
+             return false;
+         }
+ 
+-        Iterator<T> it = this.iterator();
+-        while (it.hasNext()) {
+-            if (object.equals(it.next())) {
+-                it.remove();
+-                return true;
+-            }
++        synchronized (collection) {
++	        Iterator<T> it = this.iterator();
++	        while (it.hasNext()) {
++	            if (object.equals(it.next())) {
++	                it.remove();
++	                return true;
++	            }
++	        }
++	        return false;
+         }
+-        return false;
+     }
+ 
+     @Override
+     public boolean removeAll(Collection<?> collection) {
+-        Iterator<T> it = this.iterator();
+-        boolean ret = false;
+-        while (it.hasNext()) {
+-            if (collection.contains(it.next())) {
+-                ret = true;
+-                it.remove();
+-            }
+-        }
+-        return ret;
++    	synchronized (collection) {
++	        Iterator<T> it = this.iterator();
++	        boolean ret = false;
++	        while (it.hasNext()) {
++	            if (collection.contains(it.next())) {
++	                ret = true;
++	                it.remove();
++	            }
++	        }
++	        return ret;
++    	}
+     }
+ 
+     @Override
+     public boolean retainAll(Collection<?> collection) {
+-        Iterator<T> it = this.iterator();
+-        boolean ret = false;
+-        while (it.hasNext()) {
+-            if (!collection.contains(it.next())) {
+-                ret = true;
+-                it.remove();
+-            }
+-        }
+-        return ret;
++    	synchronized (collection) {
++	        Iterator<T> it = this.iterator();
++	        boolean ret = false;
++	        while (it.hasNext()) {
++	            if (!collection.contains(it.next())) {
++	                ret = true;
++	                it.remove();
++	            }
++	        }
++	        return ret;
++    	}
+     }
+ 
+     @Override
+     public int size() {
+-        int s = 0;
+-        for (T value : this) {
+-            s++;
+-        }
+-        return s;
++    	synchronized (collection) {
++	        int s = 0;
++	        for (T value : this) {
++	            s++;
++	        }
++	        return s;
++    	}
+     }
+ 
+     @Override
+@@ -175,10 +195,12 @@ public final class WeakCollection<T> implements Collection<T> {
+     }
+ 
+     private Collection<T> toCollection() {
+-        ArrayList<T> collection = new ArrayList<T>();
+-        for (T value : this) {
+-            collection.add(value);
+-        }
+-        return collection;
++    	synchronized (collection) {
++	        ArrayList<T> collection = new ArrayList<T>();
++	        for (T value : this) {
++	            collection.add(value);
++	        }
++	        return collection;
++    	}
+     }
  }
 -- 
 2.25.1.windows.1
