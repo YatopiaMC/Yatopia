@@ -1,4 +1,4 @@
-From db2ae5023bc314a789e86f5b5f7e0ad76654699b Mon Sep 17 00:00:00 2001
+From db49e34c410bc6380c4427e7417eddadcefc2f6d Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Mon, 9 Mar 2020 18:49:50 +0100
 Subject: [PATCH] Option for async world ticking
@@ -7,9 +7,12 @@ Subject: [PATCH] Option for async world ticking
  .../java/de/tr7zw/yapfa/YapfaCommand.java     |   2 +
  src/main/java/de/tr7zw/yapfa/YapfaConfig.java |   5 +
  .../minecraft/server/ChunkProviderServer.java |   2 +-
+ .../minecraft/server/EntityTrackerEntry.java  |   2 +-
  .../net/minecraft/server/MinecraftServer.java | 141 ++++++++++++------
- .../net/minecraft/server/WorldServer.java     |  34 ++++-
- 5 files changed, 139 insertions(+), 45 deletions(-)
+ .../net/minecraft/server/PlayerChunkMap.java  |   7 +-
+ .../server/PlayerConnectionUtils.java         |  12 +-
+ .../net/minecraft/server/WorldServer.java     |  42 +++++-
+ 8 files changed, 163 insertions(+), 50 deletions(-)
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 index 58ce1f826..ed987cd15 100644
@@ -51,6 +54,19 @@ index 76c7f4a50..e5831d778 100644
              return (IChunkAccess) CompletableFuture.supplyAsync(() -> {
                  return this.getChunkAt(i, j, chunkstatus, flag);
              }, this.serverThreadQueue).join();
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 3a88c9a67..e7ed993ef 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -85,7 +85,7 @@ public class EntityTrackerEntry {
+ 
+             if (this.tickCounter % 10 == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks
+                 WorldMap worldmap = ItemWorldMap.getSavedMap(itemstack, this.b);
+-                Iterator iterator = this.trackedPlayers.iterator(); // CraftBukkit
++                Iterator iterator = new HashSet<>(this.trackedPlayers).iterator(); // CraftBukkit
+ 
+                 while (iterator.hasNext()) {
+                     EntityPlayer entityplayer = (EntityPlayer) iterator.next();
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
 index 692c0cac9..495eb7833 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
@@ -232,11 +248,87 @@ index 692c0cac9..495eb7833 100644
  
          this.methodProfiler.exitEnter("connection");
          MinecraftTimings.connectionTimer.startTiming(); // Spigot
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 57bea926a..981f31ad0 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -24,6 +24,7 @@ import java.io.IOException;
+ import java.io.Writer;
+ import java.util.ArrayList;
+ import java.util.HashMap; // Paper
++import java.util.HashSet;
+ import java.util.Collection;
+ import java.util.Iterator;
+ import java.util.List;
+@@ -1644,7 +1645,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         }
+ 
+         public void broadcast(Packet<?> packet) {
+-            Iterator iterator = this.trackedPlayers.iterator();
++            Iterator iterator = new HashSet<>(this.trackedPlayers).iterator();
+ 
+             while (iterator.hasNext()) {
+                 EntityPlayer entityplayer = (EntityPlayer) iterator.next();
+@@ -1663,7 +1664,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         }
+ 
+         public void a() {
+-            Iterator iterator = this.trackedPlayers.iterator();
++            Iterator iterator = new HashSet<>(this.trackedPlayers).iterator();
+ 
+             while (iterator.hasNext()) {
+                 EntityPlayer entityplayer = (EntityPlayer) iterator.next();
+@@ -1739,7 +1740,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         }
+ 
+         public void track(List<EntityPlayer> list) {
+-            Iterator iterator = list.iterator();
++            Iterator iterator = new ArrayList<>(list).iterator();
+ 
+             while (iterator.hasNext()) {
+                 EntityPlayer entityplayer = (EntityPlayer) iterator.next();
+diff --git a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
+index eb3269e0e..e3cb16e39 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
++++ b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
+@@ -4,13 +4,23 @@ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ import co.aikar.timings.MinecraftTimings; // Paper
+ import co.aikar.timings.Timing; // Paper
++import co.aikar.timings.Timings;
+ 
+ public class PlayerConnectionUtils {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+ 
+     public static <T extends PacketListener> void ensureMainThread(Packet<T> packet, T t0, WorldServer worldserver) throws CancelledPacketHandleException {
+-        ensureMainThread(packet, t0, (IAsyncTaskHandler) worldserver.getMinecraftServer());
++        // YAPFA start
++		if (Timings.isTimingsEnabled()) {
++			ensureMainThread(packet, t0, (IAsyncTaskHandler) worldserver.getMinecraftServer());
++		} else {
++			if (!de.tr7zw.yapfa.MainThreadHandler.isMainThread(Thread.currentThread())) {
++				worldserver.packets.add(() -> packet.a(t0));
++				throw CancelledPacketHandleException.INSTANCE;
++			}
++		}
++    	// YAPFA end
+     }
+ 
+     public static <T extends PacketListener> void ensureMainThread(Packet<T> packet, T t0, IAsyncTaskHandler<?> iasynctaskhandler) throws CancelledPacketHandleException {
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index c74b85917..1f908c647 100644
+index c74b85917..09767fb85 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -31,6 +31,7 @@ import java.util.Queue;
+@@ -22,6 +22,7 @@ import java.io.BufferedWriter;
+ import java.io.IOException;
+ import java.io.Writer;
+ import java.nio.file.Files;
++import java.util.ArrayList;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
+@@ -31,6 +32,7 @@ import java.util.Queue;
  import java.util.Random;
  import java.util.Set;
  import java.util.UUID;
@@ -244,7 +336,7 @@ index c74b85917..1f908c647 100644
  import java.util.concurrent.Executor;
  import java.util.function.BooleanSupplier;
  import java.util.function.Predicate;
-@@ -51,7 +52,8 @@ import org.bukkit.event.weather.LightningStrikeEvent;
+@@ -51,7 +53,8 @@ import org.bukkit.event.weather.LightningStrikeEvent;
  import org.bukkit.event.world.TimeSkipEvent;
  // CraftBukkit end
  
@@ -254,15 +346,22 @@ index c74b85917..1f908c647 100644
  
      private static final Logger LOGGER = LogManager.getLogger();
      private final List<Entity> globalEntityList = Lists.newArrayList();
-@@ -2135,4 +2137,34 @@ public class WorldServer extends World {
+@@ -2135,4 +2138,41 @@ public class WorldServer extends World {
              return structureboundingbox.b((BaseBlockPosition) blockactiondata.a());
          });
      }
 +    
 +    // YAPFA start
++    public List<Runnable> packets = new ArrayList<Runnable>();
++    
 +	@Override
 +	public Long call() throws Exception {
 +		long start = System.currentTimeMillis();
++		List<Runnable> copy = new ArrayList<>(packets);
++		copy.forEach(r -> {
++			packets.remove(r);
++			r.run();
++		});
 +        hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
 +        TileEntityHopper.skipHopperEvents = paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
 +
