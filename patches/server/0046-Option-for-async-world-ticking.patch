@@ -1,4 +1,4 @@
-From 8690976a40883dffcd7c0d7cc5001caa5d7482e8 Mon Sep 17 00:00:00 2001
+From e3a6b6a27f0d57fa39219dfd70c5e0b5809c1d57 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Mon, 9 Mar 2020 18:49:50 +0100
 Subject: [PATCH] Option for async world ticking
@@ -11,9 +11,10 @@ Subject: [PATCH] Option for async world ticking
  .../net/minecraft/server/MinecraftServer.java | 141 ++++++++++++-----
  .../net/minecraft/server/PlayerChunkMap.java  |   7 +-
  .../server/PlayerConnectionUtils.java         |  12 +-
- .../net/minecraft/server/WorldServer.java     |  42 ++++-
+ src/main/java/net/minecraft/server/World.java |   8 +-
+ .../net/minecraft/server/WorldServer.java     |  44 +++++-
  .../craftbukkit/util/WeakCollection.java      | 148 ++++++++++--------
- 9 files changed, 248 insertions(+), 113 deletions(-)
+ 10 files changed, 253 insertions(+), 118 deletions(-)
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 index 58ce1f826..ed987cd15 100644
@@ -317,8 +318,48 @@ index eb3269e0e..e3cb16e39 100644
      }
  
      public static <T extends PacketListener> void ensureMainThread(Packet<T> packet, T t0, IAsyncTaskHandler<?> iasynctaskhandler) throws CancelledPacketHandleException {
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index baad98517..2b61d7f4f 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -42,7 +42,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public final List<TileEntity> tileEntityListTick = Lists.newArrayList();
+     protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
+     protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
+-    public final Thread serverThread;
++    //public final Thread serverThread;
+     private int c;
+     protected int i = (new Random()).nextInt();
+     protected final int j = 1013904223;
+@@ -140,7 +140,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         this.chunkProvider = (IChunkProvider) bifunction.apply(this, this.worldProvider);
+         this.isClientSide = flag;
+         this.worldBorder = this.worldProvider.getWorldBorder();
+-        this.serverThread = Thread.currentThread();
++        //this.serverThread = Thread.currentThread();
+         this.biomeManager = new BiomeManager(this, flag ? worlddata.getSeed() : WorldData.c(worlddata.getSeed()), dimensionmanager.getGenLayerZoomer());
+         // CraftBukkit start
+         getWorldBorder().world = (WorldServer) this;
+@@ -256,7 +256,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     @Override
+     public Chunk getChunkAt(int i, int j) {
+         // Paper start - optimise this for loaded chunks
+-        if (Thread.currentThread() == this.serverThread) {
++        if (de.tr7zw.yapfa.MainThreadHandler.isMainThread(Thread.currentThread())) {
+             Chunk ifLoaded = ((WorldServer) this).getChunkProvider().getChunkAtIfLoadedMainThread(i, j);
+             if (ifLoaded != null) {
+                 return ifLoaded;
+@@ -1028,7 +1028,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         // CraftBukkit end
+         if (isOutsideWorld(blockposition)) {
+             return null;
+-        } else if (!this.isClientSide && Thread.currentThread() != this.serverThread) {
++        } else if (!this.isClientSide && !de.tr7zw.yapfa.MainThreadHandler.isMainThread(Thread.currentThread())) { // YAPFA
+             return null;
+         } else {
+             // CraftBukkit start
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index c74b85917..09767fb85 100644
+index c74b85917..191946376 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -22,6 +22,7 @@ import java.io.BufferedWriter;
@@ -347,6 +388,15 @@ index c74b85917..09767fb85 100644
  
      private static final Logger LOGGER = LogManager.getLogger();
      private final List<Entity> globalEntityList = Lists.newArrayList();
+@@ -221,7 +224,7 @@ public class WorldServer extends World {
+     @Override
+     protected TileEntity getTileEntity(BlockPosition pos, boolean validate) {
+         TileEntity result = super.getTileEntity(pos, validate);
+-        if (!validate || Thread.currentThread() != this.serverThread) {
++        if (!validate || !de.tr7zw.yapfa.MainThreadHandler.isMainThread(Thread.currentThread())) {
+             // SPIGOT-5378: avoid deadlock, this can be called in loading logic (i.e lighting) but getType() will block on chunk load
+             return result;
+         }
 @@ -2135,4 +2138,41 @@ public class WorldServer extends World {
              return structureboundingbox.b((BaseBlockPosition) blockactiondata.a());
          });
