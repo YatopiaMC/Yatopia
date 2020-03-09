@@ -1,0 +1,294 @@
+From db2ae5023bc314a789e86f5b5f7e0ad76654699b Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Mon, 9 Mar 2020 18:49:50 +0100
+Subject: [PATCH] Option for async world ticking
+
+---
+ .../java/de/tr7zw/yapfa/YapfaCommand.java     |   2 +
+ src/main/java/de/tr7zw/yapfa/YapfaConfig.java |   5 +
+ .../minecraft/server/ChunkProviderServer.java |   2 +-
+ .../net/minecraft/server/MinecraftServer.java | 141 ++++++++++++------
+ .../net/minecraft/server/WorldServer.java     |  34 ++++-
+ 5 files changed, 139 insertions(+), 45 deletions(-)
+
+diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
+index 58ce1f826..ed987cd15 100644
+--- a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
++++ b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
+@@ -113,6 +113,8 @@ public class YapfaCommand extends Command {
+ 
+     private void doInfo(CommandSender sender) {
+         Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Last tick took " + Bukkit.getLastTickMs() + "ms");
++        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Async world ticking: " + MinecraftServer.asyncWorlds);
++        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "The worlds where ticking for " + MinecraftServer.worldTick + "ms");
+         //TODO
+     }
+ 
+diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+index 71c04cf49..ce8ff835b 100644
+--- a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
++++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+@@ -216,4 +216,9 @@ public class YapfaConfig {
+     	disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
+     }
+     
++    public static boolean asyncWorldTick = false;
++    private static void asyncWorldTick() {
++    	asyncWorldTick = getBoolean("settings.asyncWorldTick", false);
++    }
++    
+ }
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 76c7f4a50..e5831d778 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -349,7 +349,7 @@ public class ChunkProviderServer extends IChunkProvider {
+     @Override
+     public IChunkAccess getChunkAt(int i, int j, ChunkStatus chunkstatus, boolean flag) {
+         final int x = i; final int z = j; // Paper - conflict on variable change
+-        if (Thread.currentThread() != this.serverThread) {
++        if (!de.tr7zw.yapfa.MainThreadHandler.isMainThread(Thread.currentThread())) { // YAPFA
+             return (IChunkAccess) CompletableFuture.supplyAsync(() -> {
+                 return this.getChunkAt(i, j, chunkstatus, flag);
+             }, this.serverThreadQueue).join();
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 692c0cac9..495eb7833 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -50,7 +50,14 @@ import java.util.Random;
+ import java.util.UUID;
+ import java.util.Map.Entry;
+ import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Executor;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.LinkedBlockingQueue;
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.ThreadPoolExecutor;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.function.BooleanSupplier;
+ import javax.annotation.Nullable;
+ import javax.imageio.ImageIO;
+@@ -70,6 +77,7 @@ import org.bukkit.event.server.ServerLoadEvent;
+ // CraftBukkit end
+ import co.aikar.timings.MinecraftTimings; // Paper
+ import org.spigotmc.SlackActivityAccountant; // Spigot
++import org.spigotmc.WatchdogThread;
+ 
+ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTask> implements IMojangStatistics, ICommandListener, AutoCloseable, Runnable {
+ 
+@@ -1003,7 +1011,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+ 
+     }
+ 
+-    private boolean canSleepForTick() {
++    boolean canSleepForTick() { // YAPFA
+         // CraftBukkit start
+         return this.forceTicks || this.isEntered() || SystemUtils.getMonotonicMillis() < (this.ac ? this.ab : this.nextTick);
+     }
+@@ -1194,6 +1202,29 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         co.aikar.timings.TimingsManager.FULL_SERVER_TICK.stopTiming(); // Paper
+     }
+ 
++    // YAPFA start
++    
++    public static final ThreadFactory threadFactory = new ThreadFactory() {
++
++        private final AtomicInteger id = new AtomicInteger(0);
++
++        @Override
++        public Thread newThread(Runnable r) {
++            Thread thread = new Thread(r);
++            thread.setName("ASYNC_WORLD_THREAD" + "_" + id.incrementAndGet());
++            de.tr7zw.yapfa.MainThreadHandler.registerThread(thread);
++            return thread;
++        }
++    };
++    
++    public final ExecutorService worldPool = new ThreadPoolExecutor(3, 50, 60, TimeUnit.SECONDS,
++            new LinkedBlockingQueue<Runnable>(), MinecraftServer.threadFactory);
++    
++    public static long worldTick = 0;
++    public static boolean asyncWorlds = false;
++    
++    // YAPFA end
++    
+     protected void b(BooleanSupplier booleansupplier) {
+         MinecraftTimings.bukkitSchedulerTimer.startTiming(); // Spigot // Paper
+         this.server.getScheduler().mainThreadHeartbeat(this.ticks); // CraftBukkit
+@@ -1235,48 +1266,72 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         // Paper end
+         MinecraftTimings.timeUpdateTimer.stopTiming(); // Spigot // Paper
+ 
+-        while (iterator.hasNext()) {
+-            WorldServer worldserver = (WorldServer) iterator.next();
+-
+-            worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
+-            TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
+-            if (true || worldserver.worldProvider.getDimensionManager() == DimensionManager.OVERWORLD || this.getAllowNether()) { // CraftBukkit
+-                this.methodProfiler.a(() -> {
+-                    return worldserver.getWorldData().getName() + " " + IRegistry.DIMENSION_TYPE.getKey(worldserver.worldProvider.getDimensionManager());
+-                });
+-                /* Drop global time updates
+-                if (this.ticks % 20 == 0) {
+-                    this.methodProfiler.enter("timeSync");
+-                    this.playerList.a((Packet) (new PacketPlayOutUpdateTime(worldserver.getTime(), worldserver.getDayTime(), worldserver.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE))), worldserver.worldProvider.getDimensionManager());
+-                    this.methodProfiler.exit();
+-                }
+-                // CraftBukkit end */
+-
+-                this.methodProfiler.enter("tick");
+-
+-                try {
+-                    worldserver.timings.doTick.startTiming(); // Spigot
+-                    worldserver.doTick(booleansupplier);
+-                    worldserver.timings.doTick.stopTiming(); // Spigot
+-                } catch (Throwable throwable) {
+-                    // Spigot Start
+-                    CrashReport crashreport;
+-                    try {
+-                        crashreport = CrashReport.a(throwable, "Exception ticking world");
+-                    } catch (Throwable t) {
+-                        throw new RuntimeException("Error generating crash report", t);
+-                    }
+-                    // Spigot End
+-
+-                    worldserver.a(crashreport);
+-                    throw new ReportedException(crashreport);
+-                }
+-
+-                this.methodProfiler.exit();
+-                this.methodProfiler.exit();
+-                worldserver.explosionDensityCache.clear(); // Paper - Optimize explosions
+-            }
+-        }
++        
++        // YAPFA start
++		if (de.tr7zw.yapfa.YapfaConfig.asyncWorldTick && !Timings.isTimingsEnabled()) {
++			asyncWorlds = true;
++			try {
++				worldTick = worldPool.invokeAll(new ArrayList<WorldServer>(this.worldServer.values())).parallelStream().mapToLong(f -> {
++					try {
++						return f.get();
++					} catch (InterruptedException e) {
++						e.printStackTrace();
++					} catch (ExecutionException e) {
++						e.printStackTrace();
++					}
++					return 100000;
++				}).sum();
++			} catch (InterruptedException e) {
++				e.printStackTrace();
++			}
++		} else {
++			asyncWorlds = false;
++			long start = System.currentTimeMillis();
++	        while (iterator.hasNext()) {
++	            WorldServer worldserver = (WorldServer) iterator.next();
++	
++	            worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
++	            TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
++	            if (true || worldserver.worldProvider.getDimensionManager() == DimensionManager.OVERWORLD || this.getAllowNether()) { // CraftBukkit
++	                this.methodProfiler.a(() -> {
++	                    return worldserver.getWorldData().getName() + " " + IRegistry.DIMENSION_TYPE.getKey(worldserver.worldProvider.getDimensionManager());
++	                });
++	                /* Drop global time updates
++	                if (this.ticks % 20 == 0) {
++	                    this.methodProfiler.enter("timeSync");
++	                    this.playerList.a((Packet) (new PacketPlayOutUpdateTime(worldserver.getTime(), worldserver.getDayTime(), worldserver.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE))), worldserver.worldProvider.getDimensionManager());
++	                    this.methodProfiler.exit();
++	                }
++	                // CraftBukkit end */
++	
++	                this.methodProfiler.enter("tick");
++	
++	                try {
++	                    worldserver.timings.doTick.startTiming(); // Spigot
++	                    worldserver.doTick(booleansupplier);
++	                    worldserver.timings.doTick.stopTiming(); // Spigot
++	                } catch (Throwable throwable) {
++	                    // Spigot Start
++	                    CrashReport crashreport;
++	                    try {
++	                        crashreport = CrashReport.a(throwable, "Exception ticking world");
++	                    } catch (Throwable t) {
++	                        throw new RuntimeException("Error generating crash report", t);
++	                    }
++	                    // Spigot End
++	
++	                    worldserver.a(crashreport);
++	                    throw new ReportedException(crashreport);
++	                }
++	
++	                this.methodProfiler.exit();
++	                this.methodProfiler.exit();
++	                worldserver.explosionDensityCache.clear(); // Paper - Optimize explosions
++	            }
++	        }
++	        worldTick = System.currentTimeMillis() - start;
++        }
++        // YAPFA end
+ 
+         this.methodProfiler.exitEnter("connection");
+         MinecraftTimings.connectionTimer.startTiming(); // Spigot
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index c74b85917..1f908c647 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -31,6 +31,7 @@ import java.util.Queue;
+ import java.util.Random;
+ import java.util.Set;
+ import java.util.UUID;
++import java.util.concurrent.Callable;
+ import java.util.concurrent.Executor;
+ import java.util.function.BooleanSupplier;
+ import java.util.function.Predicate;
+@@ -51,7 +52,8 @@ import org.bukkit.event.weather.LightningStrikeEvent;
+ import org.bukkit.event.world.TimeSkipEvent;
+ // CraftBukkit end
+ 
+-public class WorldServer extends World {
++public class WorldServer extends World
++	implements Callable<Long> { // YAPFA
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     private final List<Entity> globalEntityList = Lists.newArrayList();
+@@ -2135,4 +2137,34 @@ public class WorldServer extends World {
+             return structureboundingbox.b((BaseBlockPosition) blockactiondata.a());
+         });
+     }
++    
++    // YAPFA start
++	@Override
++	public Long call() throws Exception {
++		long start = System.currentTimeMillis();
++        hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
++        TileEntityHopper.skipHopperEvents = paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
++
++        try {
++            doTick(server::canSleepForTick);
++        } catch (Throwable throwable) {
++            // Spigot Start
++            CrashReport crashreport;
++            try {
++                crashreport = CrashReport.a(throwable, "Exception ticking world");
++            } catch (Throwable t) {
++                throw new RuntimeException("Error generating crash report", t);
++            }
++            // Spigot End
++
++            a(crashreport);
++            throw new ReportedException(crashreport);
++        }
++
++        explosionDensityCache.clear(); // Paper - Optimize explosions
++		return System.currentTimeMillis() - start;
++	}
++	
++	// YAPFA end
++    
+ }
+-- 
+2.25.1.windows.1
+
