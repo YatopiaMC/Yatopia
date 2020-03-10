@@ -1,4 +1,4 @@
-From e3a6b6a27f0d57fa39219dfd70c5e0b5809c1d57 Mon Sep 17 00:00:00 2001
+From 79547b24d9b7e0b0b16d3916afb244b223c96030 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Mon, 9 Mar 2020 18:49:50 +0100
 Subject: [PATCH] Option for async world ticking
@@ -6,6 +6,7 @@ Subject: [PATCH] Option for async world ticking
 ---
  .../java/de/tr7zw/yapfa/YapfaCommand.java     |   2 +
  src/main/java/de/tr7zw/yapfa/YapfaConfig.java |   5 +
+ .../minecraft/server/ChunkMapDistance.java    |  76 +++++----
  .../minecraft/server/ChunkProviderServer.java |   2 +-
  .../minecraft/server/EntityTrackerEntry.java  |   2 +-
  .../net/minecraft/server/MinecraftServer.java | 141 ++++++++++++-----
@@ -13,8 +14,9 @@ Subject: [PATCH] Option for async world ticking
  .../server/PlayerConnectionUtils.java         |  12 +-
  src/main/java/net/minecraft/server/World.java |   8 +-
  .../net/minecraft/server/WorldServer.java     |  44 +++++-
+ .../org/bukkit/craftbukkit/CraftWorld.java    |  39 +++--
  .../craftbukkit/util/WeakCollection.java      | 148 ++++++++++--------
- 10 files changed, 253 insertions(+), 118 deletions(-)
+ 12 files changed, 319 insertions(+), 167 deletions(-)
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 index 58ce1f826..ed987cd15 100644
@@ -43,6 +45,135 @@ index 71c04cf49..ce8ff835b 100644
 +    }
 +    
  }
+diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+index 73d157076..f4f60abb7 100644
+--- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
++++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+@@ -54,21 +54,23 @@ public abstract class ChunkMapDistance {
+ 
+     protected void purgeTickets() {
+         ++this.currentTick;
+-        ObjectIterator objectiterator = this.tickets.long2ObjectEntrySet().fastIterator();
++        synchronized (tickets) {
++        	ObjectIterator objectiterator = this.tickets.long2ObjectEntrySet().fastIterator();
+ 
+-        while (objectiterator.hasNext()) {
+-            Entry<ArraySetSorted<Ticket<?>>> entry = (Entry) objectiterator.next();
++            while (objectiterator.hasNext()) {
++                Entry<ArraySetSorted<Ticket<?>>> entry = (Entry) objectiterator.next();
+ 
+-            if ((entry.getValue()).removeIf((ticket) -> { // CraftBukkit - decompile error
+-                return ticket.b(this.currentTick);
+-            })) {
+-                this.e.b(entry.getLongKey(), a((ArraySetSorted) entry.getValue()), false);
+-            }
++                if ((entry.getValue()).removeIf((ticket) -> { // CraftBukkit - decompile error
++                    return ticket == null || ticket.b(this.currentTick); // YAPFA
++                })) {
++                    this.e.b(entry.getLongKey(), a((ArraySetSorted) entry.getValue()), false);
++                }
+ 
+-            if (((ArraySetSorted) entry.getValue()).isEmpty()) {
+-                objectiterator.remove();
++                if (((ArraySetSorted) entry.getValue()).isEmpty()) {
++                    objectiterator.remove();
++                }
+             }
+-        }
++		}
+ 
+     }
+ 
+@@ -157,7 +159,9 @@ public abstract class ChunkMapDistance {
+         }
+ 
+         if (arraysetsorted.isEmpty()) {
+-            this.tickets.remove(i);
++        	synchronized (tickets) {
++        		this.tickets.remove(i);
++        	}
+         }
+ 
+         this.e.b(i, a(arraysetsorted), false);
+@@ -197,9 +201,11 @@ public abstract class ChunkMapDistance {
+     }
+ 
+     private ArraySetSorted<Ticket<?>> e(long i) {
+-        return (ArraySetSorted) this.tickets.computeIfAbsent(i, (j) -> {
+-            return ArraySetSorted.a(4);
+-        });
++    	synchronized (tickets) {
++	        return (ArraySetSorted) this.tickets.computeIfAbsent(i, (j) -> {
++	            return ArraySetSorted.a(4);
++	        });
++    	}
+     }
+ 
+     protected void a(ChunkCoordIntPair chunkcoordintpair, boolean flag) {
+@@ -237,16 +243,18 @@ public abstract class ChunkMapDistance {
+     }
+ 
+     protected String c(long i) {
+-        ArraySetSorted<Ticket<?>> arraysetsorted = (ArraySetSorted) this.tickets.get(i);
+-        String s;
++    	synchronized (tickets) {
++    		ArraySetSorted<Ticket<?>> arraysetsorted = (ArraySetSorted) this.tickets.get(i);
++            String s;
+ 
+-        if (arraysetsorted != null && !arraysetsorted.isEmpty()) {
+-            s = ((Ticket) arraysetsorted.b()).toString();
+-        } else {
+-            s = "no_ticket";
+-        }
++            if (arraysetsorted != null && !arraysetsorted.isEmpty()) {
++                s = ((Ticket) arraysetsorted.b()).toString();
++            } else {
++                s = "no_ticket";
++            }
+ 
+-        return s;
++            return s;
++		}
+     }
+ 
+     protected void a(int i) {
+@@ -271,13 +279,15 @@ public abstract class ChunkMapDistance {
+     public <T> void removeAllTicketsFor(TicketType<T> ticketType, int ticketLevel, T ticketIdentifier) {
+         Ticket<T> target = new Ticket<>(ticketType, ticketLevel, ticketIdentifier);
+ 
+-        for (java.util.Iterator<ArraySetSorted<Ticket<?>>> iterator = this.tickets.values().iterator(); iterator.hasNext();) {
+-            ArraySetSorted<Ticket<?>> tickets = iterator.next();
+-            tickets.remove(target);
+-
+-            if (tickets.isEmpty()) {
+-                iterator.remove();
+-            }
++        synchronized (tickets) {
++	        for (java.util.Iterator<ArraySetSorted<Ticket<?>>> iterator = this.tickets.values().iterator(); iterator.hasNext();) {
++	            ArraySetSorted<Ticket<?>> tickets = iterator.next();
++	            tickets.remove(target);
++	
++	            if (tickets.isEmpty()) {
++	                iterator.remove();
++	            }
++	        }
+         }
+     }
+     // CraftBukkit end
+@@ -290,9 +300,11 @@ public abstract class ChunkMapDistance {
+ 
+         @Override
+         protected int b(long i) {
+-            ArraySetSorted<Ticket<?>> arraysetsorted = (ArraySetSorted) ChunkMapDistance.this.tickets.get(i);
++        	synchronized (tickets) {
++        		ArraySetSorted<Ticket<?>> arraysetsorted = (ArraySetSorted) ChunkMapDistance.this.tickets.get(i);
+ 
+-            return arraysetsorted == null ? Integer.MAX_VALUE : (arraysetsorted.isEmpty() ? Integer.MAX_VALUE : ((Ticket) arraysetsorted.b()).b());
++                return arraysetsorted == null ? Integer.MAX_VALUE : (arraysetsorted.isEmpty() ? Integer.MAX_VALUE : ((Ticket) arraysetsorted.b()).b());
++			}
+         }
+ 
+         @Override
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 index 76c7f4a50..e5831d778 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
@@ -290,7 +421,7 @@ index 57bea926a..981f31ad0 100644
              while (iterator.hasNext()) {
                  EntityPlayer entityplayer = (EntityPlayer) iterator.next();
 diff --git a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
-index eb3269e0e..e3cb16e39 100644
+index eb3269e0e..c2ff8f184 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
 @@ -4,13 +4,23 @@ import org.apache.logging.log4j.LogManager;
@@ -306,7 +437,7 @@ index eb3269e0e..e3cb16e39 100644
      public static <T extends PacketListener> void ensureMainThread(Packet<T> packet, T t0, WorldServer worldserver) throws CancelledPacketHandleException {
 -        ensureMainThread(packet, t0, (IAsyncTaskHandler) worldserver.getMinecraftServer());
 +        // YAPFA start
-+		if (Timings.isTimingsEnabled()) {
++		if (Timings.isTimingsEnabled() || packet instanceof PacketPlayInCustomPayload) {
 +			ensureMainThread(packet, t0, (IAsyncTaskHandler) worldserver.getMinecraftServer());
 +		} else {
 +			if (!de.tr7zw.yapfa.MainThreadHandler.isMainThread(Thread.currentThread())) {
@@ -439,6 +570,63 @@ index c74b85917..191946376 100644
 +	// YAPFA end
 +    
  }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+index a14b8cb98..b7cd3b281 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+@@ -623,7 +623,10 @@ public class CraftWorld implements World {
+     @Override
+     public Collection<Plugin> getPluginChunkTickets(int x, int z) {
+         ChunkMapDistance chunkDistanceManager = this.world.getChunkProvider().playerChunkMap.chunkDistanceManager;
+-        ArraySetSorted<Ticket<?>> tickets = chunkDistanceManager.tickets.get(ChunkCoordIntPair.pair(x, z));
++        ArraySetSorted<Ticket<?>> tickets = null;
++        synchronized (chunkDistanceManager.tickets) {
++        	tickets = chunkDistanceManager.tickets.get(ChunkCoordIntPair.pair(x, z));
++		}
+ 
+         if (tickets == null) {
+             return Collections.emptyList();
+@@ -644,22 +647,24 @@ public class CraftWorld implements World {
+         Map<Plugin, ImmutableList.Builder<Chunk>> ret = new HashMap<>();
+         ChunkMapDistance chunkDistanceManager = this.world.getChunkProvider().playerChunkMap.chunkDistanceManager;
+ 
+-        for (Long2ObjectMap.Entry<ArraySetSorted<Ticket<?>>> chunkTickets : chunkDistanceManager.tickets.long2ObjectEntrySet()) {
+-            long chunkKey = chunkTickets.getLongKey();
+-            ArraySetSorted<Ticket<?>> tickets = chunkTickets.getValue();
+-
+-            Chunk chunk = null;
+-            for (Ticket<?> ticket : tickets) {
+-                if (ticket.getTicketType() != TicketType.PLUGIN_TICKET) {
+-                    continue;
+-                }
+-
+-                if (chunk == null) {
+-                    chunk = this.getChunkAt(ChunkCoordIntPair.getX(chunkKey), ChunkCoordIntPair.getZ(chunkKey));
+-                }
+-
+-                ret.computeIfAbsent((Plugin) ticket.identifier, (key) -> ImmutableList.builder()).add(chunk);
+-            }
++        synchronized (chunkDistanceManager.tickets) {
++	        for (Long2ObjectMap.Entry<ArraySetSorted<Ticket<?>>> chunkTickets : chunkDistanceManager.tickets.long2ObjectEntrySet()) {
++	            long chunkKey = chunkTickets.getLongKey();
++	            ArraySetSorted<Ticket<?>> tickets = chunkTickets.getValue();
++	
++	            Chunk chunk = null;
++	            for (Ticket<?> ticket : tickets) {
++	                if (ticket.getTicketType() != TicketType.PLUGIN_TICKET) {
++	                    continue;
++	                }
++	
++	                if (chunk == null) {
++	                    chunk = this.getChunkAt(ChunkCoordIntPair.getX(chunkKey), ChunkCoordIntPair.getZ(chunkKey));
++	                }
++	
++	                ret.computeIfAbsent((Plugin) ticket.identifier, (key) -> ImmutableList.builder()).add(chunk);
++	            }
++	        }
+         }
+ 
+         return ret.entrySet().stream().collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, (entry) -> entry.getValue().build()));
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java b/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java
 index 166f4ee08..24dd1ea9f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/WeakCollection.java
