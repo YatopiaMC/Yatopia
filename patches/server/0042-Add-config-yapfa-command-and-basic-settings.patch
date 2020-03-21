@@ -1,4 +1,4 @@
-From 9bb528c0c5db42ba279c5e6189e6dc6670d7c384 Mon Sep 17 00:00:00 2001
+From 233bb958da7d0c1d336b932860d95a77205b21f1 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 22:31:50 +0100
 Subject: [PATCH] Add config, yapfa command and basic settings
@@ -8,14 +8,14 @@ Subject: [PATCH] Add config, yapfa command and basic settings
  src/main/java/de/tr7zw/yapfa/YapfaConfig.java | 219 ++++++++++++++++++
  .../net/minecraft/server/DedicatedServer.java |   9 +
  .../java/net/minecraft/server/Entity.java     |   3 +-
- .../net/minecraft/server/EntityLiving.java    |   9 +-
- 5 files changed, 366 insertions(+), 3 deletions(-)
+ .../net/minecraft/server/EntityLiving.java    |   6 +-
+ 5 files changed, 364 insertions(+), 2 deletions(-)
  create mode 100644 src/main/java/de/tr7zw/yapfa/YapfaCommand.java
  create mode 100644 src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 new file mode 100644
-index 000000000..58ce1f826
+index 00000000..76d83f3d
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 @@ -0,0 +1,129 @@
@@ -148,9 +148,10 @@ index 000000000..58ce1f826
 +        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "YAPFA config reload complete.");
 +    }
 +}
+\ No newline at end of file
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 new file mode 100644
-index 000000000..71c04cf49
+index 00000000..9711cbc5
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 @@ -0,0 +1,219 @@
@@ -373,8 +374,9 @@ index 000000000..71c04cf49
 +    }
 +    
 +}
+\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 8a241c28a..c4006ff01 100644
+index 610826c9..2ed69f56 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -194,6 +194,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
@@ -390,14 +392,14 @@ index 8a241c28a..c4006ff01 100644
 +        }
 +        de.tr7zw.yapfa.YapfaConfig.registerCommands();
 +        // YAPFA end
+         com.tuinity.tuinity.config.TuinityConfig.init((File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
  
          this.setSpawnAnimals(dedicatedserverproperties.spawnAnimals);
-         this.setSpawnNPCs(dedicatedserverproperties.spawnNpcs);
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index bfcf4a9b0..c27c1d5c2 100644
+index d2a224a8..45fdcee0 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -662,6 +662,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -761,6 +761,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
  
              try {
                  this.inLava = false;
@@ -405,7 +407,7 @@ index bfcf4a9b0..c27c1d5c2 100644
                  this.checkBlockCollisions();
              } catch (Throwable throwable) {
                  CrashReport crashreport = CrashReport.a(throwable, "Checking entity block collision");
-@@ -786,7 +787,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -885,7 +886,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
          VoxelShape voxelshape = this.world.getWorldBorder().a();
          Stream<VoxelShape> stream = VoxelShapes.c(voxelshape, VoxelShapes.a(axisalignedbb.shrink(1.0E-7D)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelshape);
@@ -415,10 +417,10 @@ index bfcf4a9b0..c27c1d5c2 100644
          Vec3D vec3d1 = vec3d.g() == 0.0D ? vec3d : a(this, vec3d, axisalignedbb, this.world, voxelshapecollision, streamaccumulator);
          boolean flag = vec3d.x != vec3d1.x;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 5b402690d..fa3affb54 100644
+index 5b402690..839b0f51 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -246,10 +246,11 @@ public abstract class EntityLiving extends Entity {
+@@ -246,6 +246,7 @@ public abstract class EntityLiving extends Entity {
          this.world.getMethodProfiler().enter("livingEntityBaseTick");
          boolean flag = this instanceof EntityHuman;
  
@@ -426,11 +428,6 @@ index 5b402690d..fa3affb54 100644
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
--            } else if (flag && !this.world.getWorldBorder().a(this.getBoundingBox())) {
-+            } else if (flag && !de.tr7zw.yapfa.YapfaConfig.disablePlayerOutOfWorldBorderCheck && !this.world.getWorldBorder().a(this.getBoundingBox())) { // YAPFA
-                 double d0 = this.world.getWorldBorder().a((Entity) this) + this.world.getWorldBorder().getDamageBuffer();
- 
-                 if (d0 < 0.0D) {
 @@ -261,6 +262,7 @@ public abstract class EntityLiving extends Entity {
                  }
              }
@@ -455,7 +452,7 @@ index 5b402690d..fa3affb54 100644
  
              if (!this.world.isClientSide) {
                  BlockPosition blockposition = new BlockPosition(this);
-@@ -2640,11 +2644,12 @@ public abstract class EntityLiving extends Entity {
+@@ -2640,7 +2644,7 @@ public abstract class EntityLiving extends Entity {
          this.e(new Vec3D((double) this.aZ, (double) this.ba, (double) this.bb));
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("push");
@@ -464,11 +461,6 @@ index 5b402690d..fa3affb54 100644
              --this.bn;
              this.a(axisalignedbb, this.getBoundingBox());
          }
- 
-+        if(!de.tr7zw.yapfa.YapfaConfig.disableEntityCollisions) // YAPFA
-         this.collideNearby();
-         this.world.getMethodProfiler().exit();
-     }
 -- 
 2.25.1.windows.1
 

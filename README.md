@@ -1,8 +1,8 @@
 # YAPFA
-## (Yet another Paper fork attempt)
+## (Yet another ~~Paper~~ Tuinity fork attempt)
 ## What ##
 
-This Fork tries to import universal patches from [EMC](https://github.com/starlis/empirecraft) and [Purpur](https://github.com/pl3xgaming/Purpur), while adding a few more "extrem" patches that modify the basic minecraft server for more performance.
+This Fork tries to import universal patches from [EMC](https://github.com/starlis/empirecraft) and [Purpur](https://github.com/pl3xgaming/Purpur), while adding a few more "extrem" patches that modify the basic minecraft server for more performance. This fork was based on Paper, but is now based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
 
 ## Building and setting up
 Run the following commands in the root directory:

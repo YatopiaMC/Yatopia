@@ -9,7 +9,7 @@ done
 . $(dirname $SOURCE)/init.sh
 PS1="$"
 
-paperVer=$(cat current-paper)
+tuinityVer=$(cat current-tuinity)
 gpgsign="$(git config commit.gpgsign || echo "false")"
 
 echo "Rebuilding Forked projects.... "
@@ -69,8 +69,8 @@ function enableCommitSigningIfNeeded {
 }
 
 (
-	(applyPatch Paper/Paper-API ${FORK_NAME}-API HEAD api $API_REPO &&
-	applyPatch Paper/Paper-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO) || exit 1
+	(applyPatch Tuinity/Tuinity-API ${FORK_NAME}-API HEAD api $API_REPO &&
+	applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO) || exit 1
 	enableCommitSigningIfNeeded
 ) || (
 	echo "Failed to apply patches"

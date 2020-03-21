@@ -10,10 +10,10 @@ done
 
 
 cd $basedir
-paperVer=$(cat current-paper)
+tuinityVer=$(cat current-tuinity)
 
-minecraftversion=$(cat $basedir/Paper/work/BuildData/info.json | grep minecraftVersion | cut -d '"' -f 4)
-decompile="Paper/work/Minecraft/$minecraftversion/spigot"
+minecraftversion=$(cat $basedir/Tuinity/work/BuildData/info.json | grep minecraftVersion | cut -d '"' -f 4)
+decompile="Tuinity/work/Minecraft/$minecraftversion/spigot"
 
 mkdir -p mc-dev/src/net/minecraft/server
 
@@ -29,7 +29,7 @@ do
 done
 
 
-base="$basedir/Paper/Paper-Server/src/main/java/net/minecraft/server"
+base="$basedir/Tuinity/Tuinity-Server/src/main/java/net/minecraft/server"
 cd $basedir/mc-dev/src/net/minecraft/server/
 for file in $(/bin/ls $base)
 do
@@ -40,4 +40,4 @@ done
 cd $basedir/mc-dev
 git add . -A
 git commit . -m "mc-dev"
-git tag -a "$paperVer" -m "$paperVer" 2>/dev/null
+git tag -a "$tuinityVer" -m "$tuinityVer" 2>/dev/null

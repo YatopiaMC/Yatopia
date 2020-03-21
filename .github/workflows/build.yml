@@ -12,9 +12,12 @@ jobs:
     - name: Build YAPFA
       run: |
         git submodule init
-        git submodule update
+        git submodule update --init --recursive
         git config --global user.email "ci@github.com"
         git config --global user.name "Github CI"
-        ./yapfa up
+        yapfaDir=`pwd`
+        cd Tuinity
+        ./tuinity jar
+        cd $yapfaDir
         ./yapfa patch
         ./yapfa build
