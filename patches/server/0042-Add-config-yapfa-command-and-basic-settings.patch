@@ -1,4 +1,4 @@
-From 233bb958da7d0c1d336b932860d95a77205b21f1 Mon Sep 17 00:00:00 2001
+From 0c2f4b89cf11f58387baa7bd964aaa84e3fefd23 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 22:31:50 +0100
 Subject: [PATCH] Add config, yapfa command and basic settings
@@ -15,7 +15,7 @@ Subject: [PATCH] Add config, yapfa command and basic settings
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 new file mode 100644
-index 00000000..76d83f3d
+index 000000000..76d83f3db
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 @@ -0,0 +1,129 @@
@@ -151,7 +151,7 @@ index 00000000..76d83f3d
 \ No newline at end of file
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 new file mode 100644
-index 00000000..9711cbc5
+index 000000000..9711cbc52
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 @@ -0,0 +1,219 @@
@@ -376,7 +376,7 @@ index 00000000..9711cbc5
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 610826c9..2ed69f56 100644
+index 610826c9e..2ed69f567 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -194,6 +194,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
@@ -396,10 +396,10 @@ index 610826c9..2ed69f56 100644
  
          this.setSpawnAnimals(dedicatedserverproperties.spawnAnimals);
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index d2a224a8..45fdcee0 100644
+index 429666193..2d97ecacb 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -761,6 +761,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -781,6 +781,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
  
              try {
                  this.inLava = false;
@@ -407,7 +407,7 @@ index d2a224a8..45fdcee0 100644
                  this.checkBlockCollisions();
              } catch (Throwable throwable) {
                  CrashReport crashreport = CrashReport.a(throwable, "Checking entity block collision");
-@@ -885,7 +886,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -905,7 +906,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
          VoxelShape voxelshape = this.world.getWorldBorder().a();
          Stream<VoxelShape> stream = VoxelShapes.c(voxelshape, VoxelShapes.a(axisalignedbb.shrink(1.0E-7D)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelshape);
@@ -417,7 +417,7 @@ index d2a224a8..45fdcee0 100644
          Vec3D vec3d1 = vec3d.g() == 0.0D ? vec3d : a(this, vec3d, axisalignedbb, this.world, voxelshapecollision, streamaccumulator);
          boolean flag = vec3d.x != vec3d1.x;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 5b402690..839b0f51 100644
+index 5b402690d..839b0f514 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -246,6 +246,7 @@ public abstract class EntityLiving extends Entity {
