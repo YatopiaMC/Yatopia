@@ -1,0 +1,49 @@
+From de92d000fb89c53031701e97c1c79445fde2f889 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Mon, 23 Mar 2020 23:11:10 +0100
+Subject: [PATCH] Add option for only players to have collisions with Entities
+
+---
+ src/main/java/de/tr7zw/yapfa/YapfaConfig.java        | 6 ++++++
+ src/main/java/net/minecraft/server/EntityLiving.java | 9 ++++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+index 9711cbc52..655c4e68f 100644
+--- a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
++++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+@@ -216,4 +216,10 @@ public class YapfaConfig {
+     	disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
+     }
+     
++    public static boolean onlyPlayerCollisions = false;
++    private static void onlyPlayerCollisions() {
++    	onlyPlayerCollisions = getBoolean("settings.onlyPlayerCollisions", false);
++    }
++
++    
+ }
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 8ff6370d7..517cb84bb 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2684,7 +2684,14 @@ public abstract class EntityLiving extends Entity {
+     protected void doTick() {}
+ 
+     protected void collideNearby() {
+-        List<Entity> list = this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this));
++    	// YAPFA start
++        List<Entity> list = null;
++        if(de.tr7zw.yapfa.YapfaConfig.onlyPlayerCollisions) {
++        	list = this.world.getEntities(this, this.getBoundingBox(), entity -> entity.getEntityType() == EntityTypes.PLAYER);
++        } else {
++        	list = this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this));
++        }
++        // YAPFA end
+ 
+         if (!list.isEmpty()) {
+             int i = this.world.getGameRules().getInt(GameRules.MAX_ENTITY_CRAMMING);
+-- 
+2.25.1.windows.1
+
