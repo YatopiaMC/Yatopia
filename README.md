@@ -1,5 +1,7 @@
 # YAPFA
 ## (Yet another ~~Paper~~ Tuinity fork attempt)
+[![Github-CI](https://github.com/tr7zw/YAPFA/workflows/CI/badge.svg)](https://github.com/tr7zw/YAPFA/actions?query=workflow%3ACI) [![CodeMC-CI](https://ci.codemc.io/job/Tr7zw/job/YAPFA/badge/icon?style=plastic)](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)
+
 ## What ##
 
 This Fork tries to import universal patches from [EMC](https://github.com/starlis/empirecraft) and [Purpur](https://github.com/pl3xgaming/Purpur), while adding a few more "extrem" patches that modify the basic minecraft server for more performance. This fork was based on Paper, but is now based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
