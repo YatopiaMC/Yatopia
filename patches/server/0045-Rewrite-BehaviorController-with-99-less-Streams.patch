@@ -1,0 +1,270 @@
+From 698a03fe533c795e57b1f30f0099438699fc034b Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Sun, 22 Mar 2020 20:42:24 +0100
+Subject: [PATCH] Rewrite BehaviorController with 99% less Streams
+
+---
+ .../minecraft/server/BehaviorController.java  | 250 ++++++++++++++++++
+ 1 file changed, 250 insertions(+)
+ create mode 100644 src/main/java/net/minecraft/server/BehaviorController.java
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
+new file mode 100644
+index 000000000..1bb496b3e
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/BehaviorController.java
+@@ -0,0 +1,250 @@
++package net.minecraft.server;
++
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Map.Entry;
++import java.util.Optional;
++import java.util.Set;
++import java.util.function.Function;
++import java.util.stream.Stream;
++
++import javax.annotation.Nullable;
++
++import com.google.common.collect.ImmutableList;
++import com.google.common.collect.ImmutableMap;
++import com.google.common.collect.ImmutableSet;
++import com.google.common.collect.Maps;
++import com.google.common.collect.Sets;
++import com.mojang.datafixers.Dynamic;
++import com.mojang.datafixers.types.DynamicOps;
++import com.mojang.datafixers.util.Pair;
++
++import net.minecraft.server.Behavior.Status;
++
++public class BehaviorController<E extends EntityLiving> implements MinecraftSerializable {
++	private final Map<MemoryModuleType<?>, Optional<?>> memories = Maps.newHashMap();
++	private final Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> sensors = Maps.newLinkedHashMap();
++	private final Map<Integer, Map<Activity, Set<Behavior<? super E>>>> c = Maps.newTreeMap();
++	private Schedule schedule;
++	private final Map<Activity, Set<Pair<MemoryModuleType<?>, MemoryStatus>>> e;
++	private Set<Activity> f;
++	private final Set<Activity> g;
++	private Activity h;
++	private long i;
++
++	public <T> BehaviorController(Collection<MemoryModuleType<?>> var0,
++			Collection<SensorType<? extends Sensor<? super E>>> var1, Dynamic<T> var2) {
++		this.schedule = Schedule.EMPTY;
++		this.e = Maps.newHashMap();
++		this.f = Sets.newHashSet();
++		this.g = Sets.newHashSet();
++		this.h = Activity.IDLE;
++		this.i = -9999L;
++		for(MemoryModuleType<?> mem : var0) {
++			this.memories.put(mem, Optional.empty());
++		}
++		for(SensorType<? extends Sensor<? super E>> sensor : var1) {
++			this.sensors.put(sensor, sensor.a());
++		}
++		for(Sensor<? super E> sensor : sensors.values()) {
++			Iterator<MemoryModuleType<?>> var2x = sensor.a().iterator();
++
++			while (var2x.hasNext()) {
++				MemoryModuleType<?> next = var2x.next();
++				this.memories.put(next, Optional.empty());
++			}
++		}
++
++		Iterator<Entry<Dynamic<T>, Dynamic<T>>> var4 = var2.get("memories").asMap(Function.identity(), Function.identity()).entrySet().iterator();
++
++		while (var4.hasNext()) {
++			Entry<Dynamic<T>, Dynamic<T>> var5 = var4.next();
++			this.a(IRegistry.MEMORY_MODULE_TYPE
++					.get(new MinecraftKey(( var5.getKey()).asString(""))), var5.getValue());
++		}
++
++	}
++
++	public boolean hasMemory(MemoryModuleType<?> var0) {
++		return this.a(var0, MemoryStatus.VALUE_PRESENT);
++	}
++
++	private <T, U> void a(MemoryModuleType<U> var0, Dynamic<T> var1) {
++		this.setMemory(var0, (U)((Function) var0.getSerializer().orElseThrow(RuntimeException::new)).apply(var1));
++	}
++
++	public <U> void removeMemory(MemoryModuleType<U> var0) {
++		this.setMemory(var0, Optional.empty());
++	}
++
++	public <U> void setMemory(MemoryModuleType<U> var0, @Nullable U var1) {
++		this.setMemory(var0, Optional.ofNullable(var1));
++	}
++
++	public <U> void setMemory(MemoryModuleType<U> var0, Optional<U> var1) {
++		if (this.memories.containsKey(var0)) {
++			if (var1.isPresent() && this.a(var1.get())) {
++				this.removeMemory(var0);
++			} else {
++				this.memories.put(var0, var1);
++			}
++		}
++
++	}
++
++	public <U> Optional<U> getMemory(MemoryModuleType<U> var0) {
++		return (Optional<U>) this.memories.get(var0);
++	}
++
++	public boolean a(MemoryModuleType<?> var0, MemoryStatus var1) {
++		Optional<?> var2 = this.memories.get(var0);
++		if (var2 == null) {
++			return false;
++		} else {
++			return var1 == MemoryStatus.REGISTERED || var1 == MemoryStatus.VALUE_PRESENT && var2.isPresent()
++					|| var1 == MemoryStatus.VALUE_ABSENT && !var2.isPresent();
++		}
++	}
++
++	public Schedule getSchedule() {
++		return this.schedule;
++	}
++
++	public void setSchedule(Schedule var0) {
++		this.schedule = var0;
++	}
++
++	public void a(Set<Activity> var0) {
++		this.f = var0;
++	}
++
++	@Deprecated
++	public Stream<Behavior<? super E>> d() {
++		return this.c.values().stream().flatMap((var0) -> {
++			return var0.values().stream();
++		}).flatMap(Collection::stream).filter((var0) -> {
++			return var0.a() == Status.RUNNING;
++		});
++	}
++
++	public void a(Activity var0) {
++		this.g.clear();
++		this.g.addAll(this.f);
++		boolean var1 = this.e.keySet().contains(var0) && this.d(var0);
++		this.g.add(var1 ? var0 : this.h);
++	}
++
++	public void a(long var0, long var2) {
++		if (var2 - this.i > 20L) {
++			this.i = var2;
++			Activity var4 = this.getSchedule().a((int) (var0 % 24000L));
++			if (!this.g.contains(var4)) {
++				this.a(var4);
++			}
++		}
++
++	}
++
++	public void b(Activity var0) {
++		this.h = var0;
++	}
++
++	public void a(Activity var0, ImmutableList<Pair<Integer, ? extends Behavior<? super E>>> var1) {
++		this.a((Activity) var0, var1, ImmutableSet.of());
++	}
++
++	public void a(Activity var0, ImmutableList<Pair<Integer, ? extends Behavior<? super E>>> var1,
++			Set<Pair<MemoryModuleType<?>, MemoryStatus>> var2) {
++		this.e.put(var0, var2);
++		for(Pair<Integer, ? extends Behavior<? super E>> var1x : var1) {
++			((this.c.computeIfAbsent(var1x.getFirst(), (var0x) -> {
++				return Maps.newHashMap();
++			})).computeIfAbsent(var0, (var0x) -> {
++				return Sets.newLinkedHashSet();
++			})).add(var1x.getSecond());
++		}
++	}
++
++	public boolean c(Activity var0) {
++		return this.g.contains(var0);
++	}
++
++	public BehaviorController<E> f() {
++		BehaviorController<E> var0 = new BehaviorController<E>(this.memories.keySet(), this.sensors.keySet(),
++				new Dynamic<>(DynamicOpsNBT.a, new NBTTagCompound()));
++		for(Entry<MemoryModuleType<?>, Optional<?>> entry : this.memories.entrySet()) {
++			entry.getValue().ifPresent((var2x) -> {
++				var0.memories.put(entry.getKey(), Optional.of(var2x));
++			});
++		}
++		return var0;
++	}
++
++	public void a(WorldServer var0, E var1) {
++		this.c(var0, var1);
++		this.d(var0, var1);
++		this.e(var0, var1);
++	}
++
++	public void b(WorldServer var0, E var1) {
++		long var2 = var1.world.getTime();
++		this.d().forEach((var4) -> {
++			var4.e(var0, var1, var2);
++		});
++	}
++
++	public <T> T a(DynamicOps<T> var0) {
++		Map<T, T> outMap = new HashMap<T, T>();
++		for(Entry<MemoryModuleType<?>, Optional<?>> memory : this.memories.entrySet()) {
++			if((memory.getKey()).getSerializer().isPresent() && (memory.getValue()).isPresent()) {
++				outMap.put(var0.createString(IRegistry.MEMORY_MODULE_TYPE.getKey(memory.getKey()).toString()), ((MinecraftSerializable) (memory.getValue()).get()).a(var0));
++			}
++		}
++		return var0.createMap(ImmutableMap.of(var0.createString("memories"), var0.createMap(outMap)));
++	}
++
++	private void c(WorldServer var0, E var1) {
++		for(Sensor<? super E> var2 : this.sensors.values()) {
++			var2.b(var0, var1);
++		}
++	}
++
++	private void d(WorldServer var0, E var1) {
++		long var2 = var0.getTime();
++		for(Map<Activity, Set<Behavior<? super E>>> value : this.c.values()) {
++			for(Entry<Activity, Set<Behavior<? super E>>> entry : value.entrySet()) {
++				if(this.g.contains(entry.getKey())) {
++					for(Behavior<? super E> behavior : entry.getValue()) {
++						if(behavior.a() == Status.STOPPED) {
++							behavior.b(var0, var1, var2);
++						}
++					}
++				}
++			}
++		}
++	}
++
++	private void e(WorldServer var0, E var1) {
++		long var2 = var0.getTime();
++		this.d().forEach((var4) -> {
++			var4.c(var0, var1, var2);
++		});
++	}
++
++	private boolean d(Activity var0) {
++		for(Pair<MemoryModuleType<?>, MemoryStatus> entry : this.e.get(var0)) {
++			MemoryModuleType<?> var1 = entry.getFirst();
++			MemoryStatus var2 = entry.getSecond();
++			if(!this.a(var1, var2)) {
++				return false;
++			}
++		}
++		return true;
++	}
++
++	private boolean a(Object var0) {
++		return var0 instanceof Collection && ((Collection<?>) var0).isEmpty();
++	}
++}
+\ No newline at end of file
+-- 
+2.25.1.windows.1
+

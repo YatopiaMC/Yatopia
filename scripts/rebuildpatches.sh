@@ -40,9 +40,9 @@ function savePatches {
 
 savePatches ${FORK_NAME}-API api
 if [ -f "$basedir/${FORK_NAME}-API/.git/patch-apply-failed" ]; then
-	echo "$(bashColor 1 31)[[[ WARNING ]]] $(bashColor 1 33)- Not saving Paper-Server as it appears ${FORK_NAME}-API did not apply clean.$(bashColorReset)"
+	echo "$(bashColor 1 31)[[[ WARNING ]]] $(bashColor 1 33)- Not saving Tuinity-Server as it appears ${FORK_NAME}-API did not apply clean.$(bashColorReset)"
 	echo "$(bashColor 1 33)If this is a mistake, delete $(bashColor 1 34)${FORK_NAME}-API/.git/patch-apply-failed$(bashColor 1 33) and run rebuild again.$(bashColorReset)"
-	echo "$(bashColor 1 33)Otherwise, rerun ./paper patch to have a clean Paper-API apply so the latest Paper-Server can build.$(bashColorReset)"
+	echo "$(bashColor 1 33)Otherwise, rerun ./tuinity patch to have a clean Tuinity-API apply so the latest Tuinity-Server can build.$(bashColorReset)"
 else
 	savePatches ${FORK_NAME}-Server server
 	${basedir}/scripts/push.sh

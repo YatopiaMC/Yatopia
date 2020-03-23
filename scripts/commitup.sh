@@ -7,9 +7,9 @@ function changelog() {
     base=$(git ls-tree HEAD $1  | cut -d' ' -f3 | cut -f1)
     cd $1 && git log --oneline ${base}...HEAD
 }
-paper=$(changelog Paper)
+tuinity=$(changelog Tuinity)
 
-log="Updated Paper \n\nUpdating our baseline Paper reference\n\nPaper changes since last:\n$paper"
+log="Updated Tuinity \n\nUpdating our baseline Tuinity reference\n\nTuinity changes since last:\n$tuinity"
 
 echo -e "$log" | git commit -F -
 

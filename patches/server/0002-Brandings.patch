@@ -1,47 +1,33 @@
-From 657c46021b893e6184415b1182fda23d7d9974d9 Mon Sep 17 00:00:00 2001
+From d1dfd7255c30123ed4d636bb4a6c2b1f03bac049 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Wed, 26 Feb 2020 18:37:34 +0100
 Subject: [PATCH] Brandings
 
 ---
- .../paper/console/PaperConsole.java           |  2 +-
- .../paper/util/misc/AreaMap.java              |  1 +
+ .../paper/console/PaperConsole.java           |  1 +
  .../de/tr7zw/yapfa/YapfaVersionFetcher.java   | 20 +++++++++++++++++++
  .../net/minecraft/server/MinecraftServer.java |  2 +-
  .../org/bukkit/craftbukkit/CraftServer.java   |  2 +-
  .../craftbukkit/util/CraftMagicNumbers.java   |  2 +-
  .../bukkit/craftbukkit/util/Versioning.java   |  2 +-
- 7 files changed, 26 insertions(+), 5 deletions(-)
+ 6 files changed, 25 insertions(+), 4 deletions(-)
  create mode 100644 src/main/java/de/tr7zw/yapfa/YapfaVersionFetcher.java
 
 diff --git a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
-index cd6e25923..24e852ebd 100644
+index cd6e2592..e3599d11 100644
 --- a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
 +++ b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
-@@ -17,7 +17,7 @@ public final class PaperConsole extends SimpleTerminalConsole {
-     @Override
+@@ -18,6 +18,7 @@ public final class PaperConsole extends SimpleTerminalConsole {
      protected LineReader buildReader(LineReaderBuilder builder) {
          return super.buildReader(builder
--                .appName("Paper")
-+                .appName("YAPFA")
+                 .appName("Paper")
++                .appName("YAPFA") // YAPFA
                  .completer(new ConsoleCommandCompleter(this.server))
          );
      }
-diff --git a/src/main/java/com/destroystokyo/paper/util/misc/AreaMap.java b/src/main/java/com/destroystokyo/paper/util/misc/AreaMap.java
-index 5a44bc644..4bd88e5b3 100644
---- a/src/main/java/com/destroystokyo/paper/util/misc/AreaMap.java
-+++ b/src/main/java/com/destroystokyo/paper/util/misc/AreaMap.java
-@@ -1,6 +1,7 @@
- package com.destroystokyo.paper.util.misc;
- 
- import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
-+import it.unimi.dsi.fastutil.longs.Long2ObjectMap.Entry;
- import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
- import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
- import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaVersionFetcher.java b/src/main/java/de/tr7zw/yapfa/YapfaVersionFetcher.java
 new file mode 100644
-index 000000000..4ca5fd338
+index 00000000..b7a73408
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaVersionFetcher.java
 @@ -0,0 +1,20 @@
@@ -65,34 +51,35 @@ index 000000000..4ca5fd338
 +    }
 +
 +}
+\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index c9deaffc4..b5bed4705 100644
+index 2acd6bf2..eec9a5b2 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1484,7 +1484,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1482,7 +1482,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
      }
  
      public String getServerModName() {
--        return "Paper"; //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
-+        return "YAPFA"; //YAPFA - YAPFA > //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
+-        return "Tuinity"; // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
++        return "YAPFA"; // YAPFA // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
      }
  
      public CrashReport b(CrashReport crashreport) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index b7dfda265..d6b06c06e 100644
+index 0b65cbb2..4b27af23 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -203,7 +203,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {
--    private final String serverName = "Paper"; // Paper
-+    private final String serverName = "YAPFA"; // YAPFA
+-    private final String serverName = "Tuinity"; // Paper // Tuinity
++    private final String serverName = "YAPFA"; // Paper // Tuinity // YAPFA
      private final String serverVersion;
      private final String bukkitVersion = Versioning.getBukkitVersion();
      private final Logger logger = Logger.getLogger("Minecraft");
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
-index 770375ed4..d88cc3383 100644
+index 770375ed..aefa51ac 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 @@ -306,7 +306,7 @@ public final class CraftMagicNumbers implements UnsafeValues {
@@ -100,19 +87,19 @@ index 770375ed4..d88cc3383 100644
      @Override
      public com.destroystokyo.paper.util.VersionFetcher getVersionFetcher() {
 -        return new com.destroystokyo.paper.PaperVersionFetcher();
-+        return new de.tr7zw.yapfa.YapfaVersionFetcher();//YAPFA
++        return new de.tr7zw.yapfa.YapfaVersionFetcher(); //YAPFA
      }
  
      @Override
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-index 674096cab..e3c4ad3d3 100644
+index 001b1e51..e3c4ad3d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 @@ -11,7 +11,7 @@ public final class Versioning {
      public static String getBukkitVersion() {
          String result = "Unknown-Version";
  
--        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.destroystokyo.paper/paper-api/pom.properties");
+-        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.tuinity/tuinity-api/pom.properties"); // Tuinity
 +        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/de.tr7zw.yapfa/yapfa-api/pom.properties"); // YAPFA
          Properties properties = new Properties();
  
