@@ -2,7 +2,7 @@ name: Upstream
 
 on:
   schedule:
-  - cron: "*/60 */2 * * *"
+  - cron: "*/5 * * * *"
 
 jobs:
   update:
@@ -25,16 +25,7 @@ jobs:
         git status
         git fetch
         cd ..
-        ./patchPaper.sh
-        cd Tuinity
-        ./tuinity jar
-        cd $yapfaDir
-        ./yapfa patch
-        ./yapfa rb
-        ./yapfa patch
-        ./yapfa build
-        ./yapfa paperclip
-        git add $(git rev-parse --show-toplevel)
+        git commit -a -m Update upstream
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v2
       with:
