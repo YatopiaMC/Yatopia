@@ -13,7 +13,7 @@ jobs:
       uses: actions/setup-java@v1.3.0
       with:
         java-version: 11
-    - name: Update with Tuinity
+    - name: Update Tuinity
       run: |
         git submodule init
         git submodule update --init --recursive
@@ -26,18 +26,8 @@ jobs:
         git fetch
         git reset --hard origin
         cd ..
-        ./patchPaper.sh
-        cd Tuinity
-        ./tuinity jar
-        cd $yapfaDir
-        ./yapfa patch
-        ./yapfa rb
-        ./yapfa patch
-        ./yapfa build
-        ./yapfa paperclip
         git add $(git rev-parse --show-toplevel)
         git commit -m "Update upstream"
-        git status
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v2
       with:
