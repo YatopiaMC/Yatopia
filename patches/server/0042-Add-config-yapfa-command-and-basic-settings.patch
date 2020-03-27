@@ -1,4 +1,4 @@
-From fdc9dd192f39efb4e2a22b8ea93c272c08c56c67 Mon Sep 17 00:00:00 2001
+From 4731c9cd06bfaeaf38cfb8dc47e131dd80ec5605 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 22:31:50 +0100
 Subject: [PATCH] Add config, yapfa command and basic settings
@@ -8,8 +8,8 @@ Subject: [PATCH] Add config, yapfa command and basic settings
  src/main/java/de/tr7zw/yapfa/YapfaConfig.java | 219 ++++++++++++++++++
  .../net/minecraft/server/DedicatedServer.java |   9 +
  .../java/net/minecraft/server/Entity.java     |   3 +-
- .../net/minecraft/server/EntityLiving.java    |   6 +-
- 5 files changed, 364 insertions(+), 2 deletions(-)
+ .../net/minecraft/server/EntityLiving.java    |   4 +
+ 5 files changed, 363 insertions(+), 1 deletion(-)
  create mode 100644 src/main/java/de/tr7zw/yapfa/YapfaCommand.java
  create mode 100644 src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 
@@ -396,10 +396,10 @@ index 610826c9e..2ed69f567 100644
  
          this.setSpawnAnimals(dedicatedserverproperties.spawnAnimals);
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index fa1fb7a40..8c21a1e73 100644
+index 9a84da011..b955580f2 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -798,6 +798,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -832,6 +832,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
  
              try {
                  this.inLava = false;
@@ -407,7 +407,7 @@ index fa1fb7a40..8c21a1e73 100644
                  this.checkBlockCollisions();
              } catch (Throwable throwable) {
                  CrashReport crashreport = CrashReport.a(throwable, "Checking entity block collision");
-@@ -922,7 +923,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -956,7 +957,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
          VoxelShape voxelshape = this.world.getWorldBorder().a();
          Stream<VoxelShape> stream = VoxelShapes.c(voxelshape, VoxelShapes.a(axisalignedbb.shrink(1.0E-7D)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelshape);
@@ -417,7 +417,7 @@ index fa1fb7a40..8c21a1e73 100644
          Vec3D vec3d1 = vec3d.g() == 0.0D ? vec3d : a(this, vec3d, axisalignedbb, this.world, voxelshapecollision, streamaccumulator);
          boolean flag = vec3d.x != vec3d1.x;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 5b402690d..839b0f514 100644
+index c474c3e09..384307a91 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -246,6 +246,7 @@ public abstract class EntityLiving extends Entity {
@@ -452,15 +452,6 @@ index 5b402690d..839b0f514 100644
  
              if (!this.world.isClientSide) {
                  BlockPosition blockposition = new BlockPosition(this);
-@@ -2640,7 +2644,7 @@ public abstract class EntityLiving extends Entity {
-         this.e(new Vec3D((double) this.aZ, (double) this.ba, (double) this.bb));
-         this.world.getMethodProfiler().exit();
-         this.world.getMethodProfiler().enter("push");
--        if (this.bn > 0) {
-+        if (!de.tr7zw.yapfa.YapfaConfig.disableEntityCollisions && this.bn > 0) { // YAPFA
-             --this.bn;
-             this.a(axisalignedbb, this.getBoundingBox());
-         }
 -- 
 2.25.1.windows.1
 
