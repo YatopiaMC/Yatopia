@@ -92,7 +92,7 @@ done
 # but after you have paper rb'd your changes, remove the line from this file before committing.
 # we do not need any lines added to this file for NMS
 
-#import BehaviorController
+import PistonExtendsChecker
 
 
 
