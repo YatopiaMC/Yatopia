@@ -93,6 +93,7 @@ done
 # we do not need any lines added to this file for NMS
 
 import PistonExtendsChecker
+# import TileEntityPiston # doesn't compile without fixes, copied into patch
 
 
 
