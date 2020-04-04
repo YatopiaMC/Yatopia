@@ -1,0 +1,102 @@
+From 30c85fad276b35ec430be9a5028095bde5767a89 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Sat, 4 Apr 2020 23:23:04 +0200
+Subject: [PATCH] Player saving async FileIO
+
+---
+ .../java/net/minecraft/server/PlayerList.java | 14 ++++++++
+ .../net/minecraft/server/WorldNBTStorage.java | 32 +++++++++++++------
+ 2 files changed, 36 insertions(+), 10 deletions(-)
+
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 253ee52eb..85db617fb 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -16,6 +16,8 @@ import java.util.Map;
+ import java.util.Optional;
+ import java.util.Set;
+ import java.util.UUID;
++import java.util.concurrent.TimeUnit;
++
+ import javax.annotation.Nullable;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -1112,6 +1114,18 @@ public abstract class PlayerList {
+             if (team != null) scoreboard.removeTeam(team);
+         }
+         // Paper end
++        
++        // YAPFA start - make sure all saves are done
++        try {
++            ((WorldNBTStorage)playerFileData).saveThread.shutdown();
++			boolean done = ((WorldNBTStorage)playerFileData).saveThread.awaitTermination(60, TimeUnit.SECONDS);
++			if(!done) {
++				LOGGER.error("Players did not save completly!");
++			}
++		} catch (InterruptedException e) {
++			e.printStackTrace();
++		}
++        // YAPFA end
+     }
+     // Paper end
+ 
+diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+index 350ac42d6..39f613fec 100644
+--- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
++++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+@@ -15,6 +15,9 @@ import org.apache.logging.log4j.Logger;
+ 
+ // CraftBukkit start
+ import java.util.UUID;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++
+ import org.bukkit.craftbukkit.entity.CraftPlayer;
+ // CraftBukkit end
+ 
+@@ -28,6 +31,7 @@ public class WorldNBTStorage implements IPlayerFileData {
+     private final DefinedStructureManager g;
+     protected final DataFixer a;
+     private UUID uuid = null; // CraftBukkit
++    public ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
+ 
+     public WorldNBTStorage(File file, String s, @Nullable MinecraftServer minecraftserver, DataFixer datafixer) {
+         this.a = datafixer;
+@@ -140,16 +144,24 @@ public class WorldNBTStorage implements IPlayerFileData {
+     public void save(EntityHuman entityhuman) {
+         if(!com.destroystokyo.paper.PaperConfig.savePlayerData) return; // Paper - Make player data saving configurable
+         try {
+-            NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
+-            File file = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat.tmp");
+-            File file1 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat");
+-
+-            NBTCompressedStreamTools.a(nbttagcompound, (OutputStream) (new FileOutputStream(file)));
+-            if (file1.exists()) {
+-                file1.delete();
+-            }
+-
+-            file.renameTo(file1);
++        	// YAPFA start
++            NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound()); // Yapfa - save the entity sync to the tag
++            saveThread.submit(() -> { // Save the tag async
++            	try {
++		            File file = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat.tmp");
++		            File file1 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat");
++		
++		            NBTCompressedStreamTools.a(nbttagcompound, (OutputStream) (new FileOutputStream(file)));
++		            if (file1.exists()) {
++		                file1.delete();
++		            }
++		
++		            file.renameTo(file1);
++            	} catch (Exception exception) {
++                    WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
++                }
++            });
++            // YAPFA end
+         } catch (Exception exception) {
+             WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
+         }
+-- 
+2.25.1.windows.1
+
