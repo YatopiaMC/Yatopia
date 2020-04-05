@@ -1,4 +1,4 @@
-From 416295b54c77bf9093ee4bf3ff60ec168540abb1 Mon Sep 17 00:00:00 2001
+From 94ba4f7c2f38efc4bb1cb284cf71d16188673ce8 Mon Sep 17 00:00:00 2001
 From: willies952002 <admin@domnian.com>
 Date: Fri, 16 Aug 2019 22:18:35 -0400
 Subject: [PATCH] EMC Fix Bukkit.createInventory() with type LECTERN
@@ -28,7 +28,7 @@ License: https://opensource.org/licenses/MIT
  3 files changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/TileEntityLectern.java b/src/main/java/net/minecraft/server/TileEntityLectern.java
-index 8aac96ed..89d3608b 100644
+index 6c2b48bdb..ab1c15e0d 100644
 --- a/src/main/java/net/minecraft/server/TileEntityLectern.java
 +++ b/src/main/java/net/minecraft/server/TileEntityLectern.java
 @@ -18,6 +18,11 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
@@ -92,10 +92,10 @@ index 8aac96ed..89d3608b 100644
              this.page = j;
 +            if (this.virtual) return; // EMC
              this.update();
-             BlockLectern.a(this.getWorld(), this.getPosition(), this.getBlock());
+             if (this.world != null) BlockLectern.a(this.getWorld(), this.getPosition(), this.getBlock()); // CraftBukkit
          }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
-index 470b3fbe..04c624a2 100644
+index 470b3fbe0..04c624a2c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
 @@ -331,6 +331,11 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
@@ -111,7 +111,7 @@ index 470b3fbe..04c624a2 100644
  
          if (iinventory instanceof ITileInventory) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java b/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java
-index 32b36c70..f0c1d611 100644
+index 32b36c70a..f0c1d6110 100644
 --- a/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java
 +++ b/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java
 @@ -126,8 +126,19 @@ public abstract class CraftTileInventoryConverter implements CraftInventoryCreat
