@@ -1,15 +1,150 @@
-From 30c85fad276b35ec430be9a5028095bde5767a89 Mon Sep 17 00:00:00 2001
+From c68747df4b0ff8650150cb56aaaa1e5b8209dfc9 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Sat, 4 Apr 2020 23:23:04 +0200
 Subject: [PATCH] Player saving async FileIO
 
 ---
- .../java/net/minecraft/server/PlayerList.java | 14 ++++++++
- .../net/minecraft/server/WorldNBTStorage.java | 32 +++++++++++++------
- 2 files changed, 36 insertions(+), 10 deletions(-)
+ .../server/AdvancementDataPlayer.java         | 106 ++++++++++--------
+ .../java/net/minecraft/server/PlayerList.java |  24 ++++
+ .../server/ServerStatisticManager.java        |  12 +-
+ .../net/minecraft/server/WorldNBTStorage.java |  32 ++++--
+ 4 files changed, 117 insertions(+), 57 deletions(-)
 
+diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+index 79e11eebb..8d08c91fe 100644
+--- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
++++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+@@ -26,6 +26,8 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ import java.util.Map.Entry;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
+ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+@@ -50,6 +52,7 @@ public class AdvancementDataPlayer {
+     @Nullable
+     private Advancement k;
+     private boolean l = true;
++    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
+ 
+     public AdvancementDataPlayer(MinecraftServer minecraftserver, File file, EntityPlayer entityplayer) {
+         this.d = minecraftserver;
+@@ -222,53 +225,66 @@ public class AdvancementDataPlayer {
+ 
+         jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
+ 
++        // YAPFA start
++        String gson = null;
+         try {
+-            FileOutputStream fileoutputstream = new FileOutputStream(this.e);
+-            Throwable throwable = null;
+-
+-            try {
+-                OutputStreamWriter outputstreamwriter = new OutputStreamWriter(fileoutputstream, Charsets.UTF_8.newEncoder());
+-                Throwable throwable1 = null;
+-
+-                try {
+-                    AdvancementDataPlayer.b.toJson(jsonelement, outputstreamwriter);
+-                } catch (Throwable throwable2) {
+-                    throwable1 = throwable2;
+-                    throw throwable2;
+-                } finally {
+-                    if (outputstreamwriter != null) {
+-                        if (throwable1 != null) {
+-                            try {
+-                                outputstreamwriter.close();
+-                            } catch (Throwable throwable3) {
+-                                throwable1.addSuppressed(throwable3);
+-                            }
+-                        } else {
+-                            outputstreamwriter.close();
+-                        }
+-                    }
+-
+-                }
+-            } catch (Throwable throwable4) {
+-                throwable = throwable4;
+-                throw throwable4;
+-            } finally {
+-                if (fileoutputstream != null) {
+-                    if (throwable != null) {
+-                        try {
+-                            fileoutputstream.close();
+-                        } catch (Throwable throwable5) {
+-                            throwable.addSuppressed(throwable5);
+-                        }
+-                    } else {
+-                        fileoutputstream.close();
+-                    }
+-                }
+-
+-            }
+-        } catch (IOException ioexception) {
+-            AdvancementDataPlayer.LOGGER.error("Couldn't save player advancements to {}", this.e, ioexception);
++        	gson = AdvancementDataPlayer.b.toJson(jsonelement);
++        } catch (Throwable throwable) {
++            throw throwable;
++        }
++        if(gson != null) {
++        	final String fGson = gson;
++        	saveThread.submit(() -> {
++		        try {
++		            FileOutputStream fileoutputstream = new FileOutputStream(this.e);
++		            Throwable throwable = null;
++		
++		            try {
++		                OutputStreamWriter outputstreamwriter = new OutputStreamWriter(fileoutputstream, Charsets.UTF_8.newEncoder());
++		                Throwable throwable1 = null;
++		
++		                try {
++		                    outputstreamwriter.write(fGson);
++		                } catch (Throwable throwable2) {
++		                    throwable1 = throwable2;
++		                    throw throwable2;
++		                } finally {
++		                    if (outputstreamwriter != null) {
++		                        if (throwable1 != null) {
++		                            try {
++		                                outputstreamwriter.close();
++		                            } catch (Throwable throwable3) {
++		                                throwable1.addSuppressed(throwable3);
++		                            }
++		                        } else {
++		                            outputstreamwriter.close();
++		                        }
++		                    }
++		
++		                }
++		            } catch (Throwable throwable4) {
++		                throwable = throwable4;
++		                throw throwable4;
++		            } finally {
++		                if (fileoutputstream != null) {
++		                    if (throwable != null) {
++		                        try {
++		                            fileoutputstream.close();
++		                        } catch (Throwable throwable5) {
++		                            throwable.addSuppressed(throwable5);
++		                        }
++		                    } else {
++		                        fileoutputstream.close();
++		                    }
++		                }
++		
++		            }
++		        } catch (IOException ioexception) {
++		            AdvancementDataPlayer.LOGGER.error("Couldn't save player advancements to {}", this.e, ioexception);
++		        }
++        	});
+         }
++        // YAPFA end
+ 
+     }
+ 
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 253ee52eb..85db617fb 100644
+index 253ee52eb..4c5cd8b4b 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -16,6 +16,8 @@ import java.util.Map;
@@ -21,7 +156,7 @@ index 253ee52eb..85db617fb 100644
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1112,6 +1114,18 @@ public abstract class PlayerList {
+@@ -1112,6 +1114,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -33,6 +168,16 @@ index 253ee52eb..85db617fb 100644
 +			if(!done) {
 +				LOGGER.error("Players did not save completly!");
 +			}
++			ServerStatisticManager.saveThread.shutdown();
++			done = ServerStatisticManager.saveThread.awaitTermination(60, TimeUnit.SECONDS);
++			if(!done) {
++				LOGGER.error("Stats did not save completly!");
++			}
++			AdvancementDataPlayer.saveThread.shutdown();
++			done = AdvancementDataPlayer.saveThread.awaitTermination(60, TimeUnit.SECONDS);
++			if(!done) {
++				LOGGER.error("Advancements did not save completly!");
++			}
 +		} catch (InterruptedException e) {
 +			e.printStackTrace();
 +		}
@@ -40,6 +185,47 @@ index 253ee52eb..85db617fb 100644
      }
      // Paper end
  
+diff --git a/src/main/java/net/minecraft/server/ServerStatisticManager.java b/src/main/java/net/minecraft/server/ServerStatisticManager.java
+index b3c9a5a84..162b8a27e 100644
+--- a/src/main/java/net/minecraft/server/ServerStatisticManager.java
++++ b/src/main/java/net/minecraft/server/ServerStatisticManager.java
+@@ -20,6 +20,9 @@ import java.util.Map;
+ import java.util.Optional;
+ import java.util.Set;
+ import java.util.Map.Entry;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -30,6 +33,7 @@ public class ServerStatisticManager extends StatisticManager {
+     private final File d;
+     private final Set<Statistic<?>> e = Sets.newHashSet();
+     private int f = -300;
++    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
+ 
+     public ServerStatisticManager(MinecraftServer minecraftserver, File file) {
+         this.c = minecraftserver;
+@@ -55,12 +59,16 @@ public class ServerStatisticManager extends StatisticManager {
+ 
+     public void a() {
+         if ( org.spigotmc.SpigotConfig.disableStatSaving ) return; // Spigot
++        // YAPFA start
++        String str = this.b();
++        saveThread.submit(() -> {
+         try {
+-            org.apache.commons.io.FileUtils.writeStringToFile(this.d, this.b());
++            org.apache.commons.io.FileUtils.writeStringToFile(this.d, str);
+         } catch (IOException ioexception) {
+             ServerStatisticManager.LOGGER.error("Couldn't save stats", ioexception);
+         }
+-
++        });
++        // YAPFA end
+     }
+ 
+     @Override
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 index 350ac42d6..39f613fec 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
