@@ -1,4 +1,4 @@
-From e4fb138e05f9940d564557685af0df8bd894b173 Mon Sep 17 00:00:00 2001
+From e8a07981b2db71e0a4643894823ffaf63b4f0ffe Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 22:31:50 +0100
 Subject: [PATCH] Add config, yapfa command and basic settings
@@ -417,7 +417,7 @@ index 25fad49eb..58ee4c0c3 100644
          Vec3D vec3d1 = vec3d.g() == 0.0D ? vec3d : a(this, vec3d, axisalignedbb, this.world, voxelshapecollision, streamaccumulator);
          boolean flag = vec3d.x != vec3d1.x;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index c474c3e09..384307a91 100644
+index c474c3e09..248be8200 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -246,6 +246,7 @@ public abstract class EntityLiving extends Entity {
@@ -440,7 +440,7 @@ index c474c3e09..384307a91 100644
          boolean flag1 = flag && ((EntityHuman) this).abilities.isInvulnerable;
  
          if (this.isAlive()) {
-+        	if(!de.tr7zw.yapfa.YapfaConfig.disableEntityWaterChecks) { // YAPFA start
++        	if(this instanceof EntityPlayer || !de.tr7zw.yapfa.YapfaConfig.disableEntityWaterChecks) { // YAPFA start
              if (this.a(TagsFluid.WATER) && this.world.getType(new BlockPosition(this.locX(), this.getHeadY(), this.locZ())).getBlock() != Blocks.BUBBLE_COLUMN) {
                  if (!this.canBreatheUnderwater() && !MobEffectUtil.c(this) && !flag1) {  // Paper - use OBFHELPER so it can be overridden
                      this.setAirTicks(this.l(this.getAirTicks()));
