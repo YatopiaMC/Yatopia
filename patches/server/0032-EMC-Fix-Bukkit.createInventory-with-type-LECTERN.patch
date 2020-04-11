@@ -1,4 +1,4 @@
-From de39653cc130b330c6feb5786a426f0e72ebc3a8 Mon Sep 17 00:00:00 2001
+From d13aae1ed7987bef8f932dce5e9dfed8401c8dc9 Mon Sep 17 00:00:00 2001
 From: willies952002 <admin@domnian.com>
 Date: Fri, 16 Aug 2019 22:18:35 -0400
 Subject: [PATCH] EMC Fix Bukkit.createInventory() with type LECTERN
@@ -23,9 +23,9 @@ This patch is licensed under the MIT License.
 License: https://opensource.org/licenses/MIT
 ---
  .../net/minecraft/server/TileEntityLectern.java    | 14 +++++++++++---
- .../craftbukkit/entity/CraftHumanEntity.java       |  5 +++++
+ .../craftbukkit/entity/CraftHumanEntity.java       |  6 ++++++
  .../util/CraftTileInventoryConverter.java          | 13 ++++++++++++-
- 3 files changed, 28 insertions(+), 4 deletions(-)
+ 3 files changed, 29 insertions(+), 4 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/TileEntityLectern.java b/src/main/java/net/minecraft/server/TileEntityLectern.java
 index 6c2b48bdb..ab1c15e0d 100644
@@ -95,16 +95,24 @@ index 6c2b48bdb..ab1c15e0d 100644
              if (this.world != null) BlockLectern.a(this.getWorld(), this.getPosition(), this.getBlock()); // CraftBukkit
          }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
-index 5dfa8eb79..e949b8693 100644
+index 5dfa8eb79..d0069cfe5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
-@@ -317,6 +317,11 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
+@@ -31,6 +31,7 @@ import net.minecraft.server.PacketPlayInCloseWindow;
+ import net.minecraft.server.PacketPlayOutOpenWindow;
+ import net.minecraft.server.TileEntity;
+ import net.minecraft.server.TileEntityContainer;
++import net.minecraft.server.TileEntityLectern.LecternInventory;
+ import net.minecraft.server.Vec3D;
+ import org.bukkit.GameMode;
+ import org.bukkit.Location;
+@@ -317,6 +318,11 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
              if (craft.getInventory() instanceof ITileInventory) {
                  iinventory = (ITileInventory) craft.getInventory();
              }
 +            // EMC start
-+            if (craft.getInventory() instanceof TileEntityLectern.LecternInventory) {
-+                iinventory = ((TileEntityLectern.LecternInventory)craft.getInventory()).getLectern();
++            if (craft.getInventory() instanceof LecternInventory) {
++                iinventory = ((LecternInventory)craft.getInventory()).getLectern();
 +            }
 +            // EMC end
          }
