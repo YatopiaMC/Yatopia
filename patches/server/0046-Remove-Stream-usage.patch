@@ -1,4 +1,4 @@
-From a4dbccdff63e1434c72a859d156e11bf9910f482 Mon Sep 17 00:00:00 2001
+From 21f03a2e562b70deb89bfd69cb8bec91e3ccf674 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Mon, 23 Mar 2020 18:20:58 +0100
 Subject: [PATCH] Remove Stream usage
@@ -9,16 +9,16 @@ This removes streams from the entity collision code, Crafting Manager and some o
  .../server/BehaviorInteractDoor.java          |  27 +++-
  src/main/java/net/minecraft/server/Block.java |   2 +-
  .../net/minecraft/server/BlockPosition.java   |   2 +-
- .../net/minecraft/server/CraftingManager.java |  57 +++++--
+ .../net/minecraft/server/CraftingManager.java |  58 +++++--
  .../java/net/minecraft/server/Entity.java     | 145 ++++++++++++++++--
  .../net/minecraft/server/EntityLiving.java    |   1 +
  .../net/minecraft/server/VoxelShapes.java     | 103 +++++++++++++
- 8 files changed, 424 insertions(+), 36 deletions(-)
+ 8 files changed, 425 insertions(+), 36 deletions(-)
  create mode 100644 src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java
 
 diff --git a/src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java b/src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java
 new file mode 100644
-index 000000000..d67753937
+index 00000000..d6775393
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java
 @@ -0,0 +1,123 @@
@@ -146,7 +146,7 @@ index 000000000..d67753937
 +	
 +}
 diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-index 01d9c2d92..8c8be194e 100644
+index 01d9c2d9..8c8be194 100644
 --- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
 +++ b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
 @@ -2,6 +2,9 @@ package net.minecraft.server;
@@ -205,7 +205,7 @@ index 01d9c2d92..8c8be194e 100644
  
      private void a(WorldServer worldserver, List<BlockPosition> list, Set<BlockPosition> set, int i, EntityLiving entityliving, BehaviorController<?> behaviorcontroller) {
 diff --git a/src/main/java/net/minecraft/server/Block.java b/src/main/java/net/minecraft/server/Block.java
-index e40375b67..2a5574be3 100644
+index e40375b6..2a5574be 100644
 --- a/src/main/java/net/minecraft/server/Block.java
 +++ b/src/main/java/net/minecraft/server/Block.java
 @@ -92,7 +92,7 @@ public class Block implements IMaterial {
@@ -218,7 +218,7 @@ index e40375b67..2a5574be3 100644
              entity.enderTeleportTo(entity.locX(), entity.locY() + 1.0D + d0, entity.locZ());
          }
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
-index 2d07d350d..51a574184 100644
+index 2d07d350..51a57418 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
 +++ b/src/main/java/net/minecraft/server/BlockPosition.java
 @@ -72,7 +72,7 @@ public class BlockPosition extends BaseBlockPosition implements MinecraftSeriali
@@ -231,7 +231,7 @@ index 2d07d350d..51a574184 100644
  
      public static long a(long i, EnumDirection enumdirection) {
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index f0d7a91fa..c3c4d475d 100644
+index f0d7a91f..15e2439d 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -8,14 +8,18 @@ import com.google.gson.GsonBuilder;
@@ -253,7 +253,7 @@ index f0d7a91fa..c3c4d475d 100644
  import java.util.Map.Entry;
  import java.util.stream.Collectors;
  import java.util.stream.Stream;
-@@ -82,21 +86,30 @@ public class CraftingManager extends ResourceDataJson {
+@@ -82,21 +86,31 @@ public class CraftingManager extends ResourceDataJson {
      // CraftBukkit end
  
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
@@ -268,6 +268,7 @@ index f0d7a91fa..c3c4d475d 100644
 +        for(IRecipe<C> rep : this.a(recipes).values()) {
 +        	Optional<T> optional = recipes.a(rep, world, c0);
 +        	if(optional.isPresent()) {
++		        c0.setCurrentRecipe(optional.get());
 +        		return optional;
 +        	}
 +        }
@@ -295,7 +296,7 @@ index f0d7a91fa..c3c4d475d 100644
      }
  
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> a(Recipes<T> recipes) {
-@@ -120,15 +133,25 @@ public class CraftingManager extends ResourceDataJson {
+@@ -120,15 +134,25 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public Optional<? extends IRecipe<?>> a(MinecraftKey minecraftkey) {
@@ -328,7 +329,7 @@ index f0d7a91fa..c3c4d475d 100644
  
      public Stream<MinecraftKey> c() {
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 58ee4c0c3..8d9245210 100644
+index 58ee4c0c..8d924521 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -13,6 +13,7 @@ import java.util.Locale;
@@ -508,7 +509,7 @@ index 58ee4c0c3..8d9245210 100644
      public static Vec3D a(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
          double d0 = vec3d.x;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 248be8200..0092d5c95 100644
+index 248be820..0092d5c9 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -2649,6 +2649,7 @@ public abstract class EntityLiving extends Entity {
@@ -520,7 +521,7 @@ index 248be8200..0092d5c95 100644
          this.world.getMethodProfiler().exit();
      }
 diff --git a/src/main/java/net/minecraft/server/VoxelShapes.java b/src/main/java/net/minecraft/server/VoxelShapes.java
-index 08c83c62d..f9687cdb4 100644
+index 08c83c62..f9687cdb 100644
 --- a/src/main/java/net/minecraft/server/VoxelShapes.java
 +++ b/src/main/java/net/minecraft/server/VoxelShapes.java
 @@ -5,9 +5,12 @@ import com.google.common.math.DoubleMath;
@@ -644,5 +645,5 @@ index 08c83c62d..f9687cdb4 100644
      public static double a(EnumDirection.EnumAxis enumdirection_enumaxis, AxisAlignedBB axisalignedbb, IWorldReader iworldreader, double d0, VoxelShapeCollision voxelshapecollision, Stream<VoxelShape> stream) {
          return a(axisalignedbb, iworldreader, d0, voxelshapecollision, EnumAxisCycle.a(enumdirection_enumaxis, EnumDirection.EnumAxis.Z), stream);
 -- 
-2.25.1.windows.1
+2.21.0.windows.1
 
