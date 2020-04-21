@@ -1,4 +1,4 @@
-From c30286683a3515cf85f0f6c31d02053720b5b6ea Mon Sep 17 00:00:00 2001
+From af238121798ee5b64ad6daa1c3d24d9bb7aa0a61 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Mon, 23 Mar 2020 18:20:58 +0100
 Subject: [PATCH] Remove Stream usage
@@ -6,14 +6,13 @@ Subject: [PATCH] Remove Stream usage
 This removes streams from the entity collision code, Crafting Manager and some other useless places.
 ---
  .../yapfa/collision/CollisionHelper.java      | 123 +++++++++++++++
- .../server/BehaviorInteractDoor.java          |  27 +++-
  src/main/java/net/minecraft/server/Block.java |   2 +-
  .../net/minecraft/server/BlockPosition.java   |   2 +-
  .../net/minecraft/server/CraftingManager.java |  58 +++++--
  .../java/net/minecraft/server/Entity.java     | 145 ++++++++++++++++--
  .../net/minecraft/server/EntityLiving.java    |   1 +
  .../net/minecraft/server/VoxelShapes.java     | 103 +++++++++++++
- 8 files changed, 425 insertions(+), 36 deletions(-)
+ 7 files changed, 400 insertions(+), 34 deletions(-)
  create mode 100644 src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java
 
 diff --git a/src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java b/src/main/java/de/tr7zw/yapfa/collision/CollisionHelper.java
@@ -145,65 +144,6 @@ index 0000000000..d67753937f
 +	}
 +	
 +}
-diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-index 01d9c2d92c..8c8be194e7 100644
---- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-+++ b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-@@ -2,6 +2,9 @@ package net.minecraft.server;
- 
- import com.google.common.collect.ImmutableMap;
- import com.google.common.collect.Sets;
-+
-+import java.util.ArrayList;
-+import java.util.HashSet;
- import java.util.Iterator;
- import java.util.List;
- import java.util.Set;
-@@ -19,9 +22,16 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
-         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
-         PathEntity pathentity = (PathEntity) behaviorcontroller.getMemory(MemoryModuleType.PATH).get();
-         List<GlobalPos> list = (List) behaviorcontroller.getMemory(MemoryModuleType.INTERACTABLE_DOORS).get();
-+        // YAPFA start
-+        List<BlockPosition> list1 = new ArrayList<BlockPosition>();
-+        for(PathPoint pathpoint : pathentity.d()) {
-+        	list1.add(new BlockPosition(pathpoint.a, pathpoint.b, pathpoint.c));
-+        }
-+        /*
-         List<BlockPosition> list1 = (List) pathentity.d().stream().map((pathpoint) -> {
-             return new BlockPosition(pathpoint.a, pathpoint.b, pathpoint.c);
-         }).collect(Collectors.toList());
-+        */ // YAPFA end
-         Set<BlockPosition> set = this.a(worldserver, list, list1);
-         int j = pathentity.f() - 1;
- 
-@@ -29,12 +39,25 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
-     }
- 
-     private Set<BlockPosition> a(WorldServer worldserver, List<GlobalPos> list, List<BlockPosition> list1) {
--        Stream stream = list.stream().filter((globalpos) -> {
-+        // YAPFA start
-+    	Set<BlockPosition> positions = new HashSet<BlockPosition>();
-+    	for(GlobalPos globalpos : list) {
-+    		if(globalpos.getDimensionManager() == worldserver.getWorldProvider().getDimensionManager()) {
-+    			BlockPosition pos = globalpos.getBlockPosition();
-+    			if(list1.contains(pos)) {
-+    				positions.add(pos);
-+    			}
-+    		}
-+    	}
-+    	return positions;
-+    	/*
-+    	Stream stream = list.stream().filter((globalpos) -> {
-             return globalpos.getDimensionManager() == worldserver.getWorldProvider().getDimensionManager();
-         }).map(GlobalPos::getBlockPosition);
--
-+        
-         list1.getClass();
-         return (Set) stream.filter(list1::contains).collect(Collectors.toSet());
-+        */ // YAPFA end
-     }
- 
-     private void a(WorldServer worldserver, List<BlockPosition> list, Set<BlockPosition> set, int i, EntityLiving entityliving, BehaviorController<?> behaviorcontroller) {
 diff --git a/src/main/java/net/minecraft/server/Block.java b/src/main/java/net/minecraft/server/Block.java
 index e40375b67a..2a5574be3a 100644
 --- a/src/main/java/net/minecraft/server/Block.java
