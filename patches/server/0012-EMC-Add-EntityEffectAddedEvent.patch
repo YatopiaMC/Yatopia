@@ -18,12 +18,12 @@ index 671fa069..6ea927dc 100644
 +        // EMC start
 +        com.empireminecraft.customevents.EntityEffectAddedEvent addedEvent = new com.empireminecraft.customevents.EntityEffectAddedEvent((org.bukkit.entity.LivingEntity) this.getBukkitEntity(), new org.bukkit.potion.PotionEffect(
 +            org.bukkit.potion.PotionEffectType.getById(MobEffectList.getId(mobeffect.getMobEffect())),
-+            mobeffect.getDuration(), mobeffect.getAmplifier()));
++            mobeffect.getDuration(), mobeffect.getAmplifier(), mobeffect.isAmbient(), mobeffect.isShowParticles(), mobeffect.isShowIcon()));
 +        if (!addedEvent.callEvent()) {
 +            return false;
 +        }
 +        final org.bukkit.potion.PotionEffect effect = addedEvent.getEffect();
-+        mobeffect = new MobEffect(MobEffectList.fromId(effect.getType().getId()), effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.hasParticles());
++        mobeffect = new MobEffect(MobEffectList.fromId(effect.getType().getId()), effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.hasParticles(), effect.hasIcon());
 +        // EMC end
          if (!this.d(mobeffect)) {
              return false;
