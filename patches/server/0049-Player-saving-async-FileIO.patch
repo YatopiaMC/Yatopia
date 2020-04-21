@@ -1,4 +1,4 @@
-From 5074c992da93751ab5908ccd0f4cbdcb9a13d873 Mon Sep 17 00:00:00 2001
+From 70388f2abf6dfc0588205bfd041d7ab727f869b8 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Sat, 4 Apr 2020 23:23:04 +0200
 Subject: [PATCH] Player saving async FileIO
@@ -11,7 +11,7 @@ Subject: [PATCH] Player saving async FileIO
  4 files changed, 117 insertions(+), 57 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 79e11eebb..8d08c91fe 100644
+index 79e11eebb7..8d08c91fe6 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -26,6 +26,8 @@ import java.util.List;
@@ -144,7 +144,7 @@ index 79e11eebb..8d08c91fe 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 931fec091..059fd995b 100644
+index cf56a821ce..53298c9e3b 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -16,6 +16,8 @@ import java.util.Map;
@@ -156,7 +156,7 @@ index 931fec091..059fd995b 100644
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1113,6 +1115,28 @@ public abstract class PlayerList {
+@@ -1128,6 +1130,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -186,7 +186,7 @@ index 931fec091..059fd995b 100644
      // Paper end
  
 diff --git a/src/main/java/net/minecraft/server/ServerStatisticManager.java b/src/main/java/net/minecraft/server/ServerStatisticManager.java
-index b3c9a5a84..162b8a27e 100644
+index b3c9a5a845..162b8a27ea 100644
 --- a/src/main/java/net/minecraft/server/ServerStatisticManager.java
 +++ b/src/main/java/net/minecraft/server/ServerStatisticManager.java
 @@ -20,6 +20,9 @@ import java.util.Map;
@@ -227,7 +227,7 @@ index b3c9a5a84..162b8a27e 100644
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index 350ac42d6..39f613fec 100644
+index 350ac42d6b..39f613fec3 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -15,6 +15,9 @@ import org.apache.logging.log4j.Logger;
