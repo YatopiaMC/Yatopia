@@ -1,4 +1,4 @@
-From d9c8673d1a51a2c509f97e4a8964e81499d2415e Mon Sep 17 00:00:00 2001
+From eeae8210a97cd0b81adb1bb350072cf9b69bd60d Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 22:31:50 +0100
 Subject: [PATCH] Add config, yapfa command and basic settings
@@ -376,7 +376,7 @@ index 0000000000..9711cbc522
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 90b7c03800..9094be1b88 100644
+index 3c8e231c6a..a2864c9534 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -194,6 +194,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
@@ -396,10 +396,10 @@ index 90b7c03800..9094be1b88 100644
  
          this.setSpawnAnimals(dedicatedserverproperties.spawnAnimals);
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index d8b09fb95c..c22c5c0ce1 100644
+index 05d1c5b72f..b23669c27f 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -750,6 +750,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -765,6 +765,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
  
              try {
                  this.inLava = false;
@@ -407,7 +407,7 @@ index d8b09fb95c..c22c5c0ce1 100644
                  this.checkBlockCollisions();
              } catch (Throwable throwable) {
                  CrashReport crashreport = CrashReport.a(throwable, "Checking entity block collision");
-@@ -881,7 +882,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -896,7 +897,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
          VoxelShape voxelshape = this.world.getWorldBorder().a();
          Stream<VoxelShape> stream = VoxelShapes.c(voxelshape, VoxelShapes.a(axisalignedbb.shrink(1.0E-7D)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelshape);
@@ -417,7 +417,7 @@ index d8b09fb95c..c22c5c0ce1 100644
          Vec3D vec3d1 = vec3d.g() == 0.0D ? vec3d : a(this, vec3d, axisalignedbb, this.world, voxelshapecollision, streamaccumulator);
          boolean flag = vec3d.x != vec3d1.x;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index b40ba3a211..091256dd73 100644
+index 36da5fc43d..cc6822d6c5 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -246,6 +246,7 @@ public abstract class EntityLiving extends Entity {

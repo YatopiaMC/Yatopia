@@ -1,4 +1,4 @@
-From 9cedcad70e04988113afb65264cfe900ab09b2e8 Mon Sep 17 00:00:00 2001
+From 04c3df8bcd1dfa73bdd09bd4d5174d6f8023cad8 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 21:13:33 +0100
 Subject: [PATCH] Add getLastTickMs() api
@@ -10,7 +10,7 @@ Subject: [PATCH] Add getLastTickMs() api
  3 files changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 01c509dca0..b7ddbbb6f1 100644
+index 18990b4f5a..a160b88612 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -893,6 +893,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -21,7 +21,7 @@ index 01c509dca0..b7ddbbb6f1 100644
 +    public static long lastTickMs = 0; // YAPFA
  
      public void run() {
-         boolean isThreadDeath = false; // Paper
+         try {
 @@ -945,9 +947,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                          this.methodProfiler.d().d();
                      }

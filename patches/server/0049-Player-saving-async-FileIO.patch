@@ -1,4 +1,4 @@
-From b4dc82c91be20d5db78589ed6b66e31572b5616e Mon Sep 17 00:00:00 2001
+From 6a7597c57b014e31c633e165dbabcbb47a2faeac Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Sat, 4 Apr 2020 23:23:04 +0200
 Subject: [PATCH] Player saving async FileIO
@@ -145,7 +145,7 @@ index 79e11eebb7..8d08c91fe6 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 09684370f0..9e0cb456bb 100644
+index d8f5910359..353000c158 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -733,11 +733,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -183,7 +183,7 @@ index 09684370f0..9e0cb456bb 100644
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index cf56a821ce..e83d343eaf 100644
+index 6815ae9045..5c1a7959ae 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -16,6 +16,8 @@ import java.util.Map;
@@ -195,7 +195,7 @@ index cf56a821ce..e83d343eaf 100644
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1128,6 +1130,28 @@ public abstract class PlayerList {
+@@ -1164,6 +1166,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -224,7 +224,7 @@ index cf56a821ce..e83d343eaf 100644
      }
      // Paper end
  
-@@ -1167,13 +1191,13 @@ public abstract class PlayerList {
+@@ -1203,13 +1227,13 @@ public abstract class PlayerList {
              File file = new File(this.server.getWorldServer(DimensionManager.OVERWORLD).getDataManager().getDirectory(), "stats");
              File file1 = new File(file, uuid + ".json");
  

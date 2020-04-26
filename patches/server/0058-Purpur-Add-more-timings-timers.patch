@@ -1,4 +1,4 @@
-From 24d91934043496ec3c10c46e82d1d3dc0de0fc62 Mon Sep 17 00:00:00 2001
+From 41037c807466963b2360cddb62b882b998f90d1b Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Tue, 21 Apr 2020 15:49:52 +0200
 Subject: [PATCH] Purpur Add more timings timers
@@ -6,10 +6,10 @@ Subject: [PATCH] Purpur Add more timings timers
 ---
  .../co/aikar/timings/MinecraftTimings.java    | 22 +++++++++++++++++++
  .../minecraft/server/EntityInsentient.java    | 12 ++++++++++
- .../net/minecraft/server/EntityLiving.java    | 12 ++++++++++
+ .../net/minecraft/server/EntityLiving.java    | 16 +++++++++++++-
  .../server/PathfinderGoalSelector.java        |  6 +++++
  .../net/minecraft/server/WorldServer.java     |  2 ++
- 5 files changed, 54 insertions(+)
+ 5 files changed, 57 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/co/aikar/timings/MinecraftTimings.java b/src/main/java/co/aikar/timings/MinecraftTimings.java
 index cfbcb6b6d9..15f9d2eaf1 100644
@@ -90,20 +90,23 @@ index 329f36859f..25fe07b974 100644
          this.K();
      }
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 292c4bda9e..6b910d1949 100644
+index 58de79e966..99f62f11cb 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2400,7 +2400,9 @@ public abstract class EntityLiving extends Entity {
+@@ -2400,7 +2400,11 @@ public abstract class EntityLiving extends Entity {
              }
          }
  
+-        this.movementTick();
++
 +        MinecraftTimings.entityMovementTick.startTiming(); // Purpur
-         if (!dead) this.movementTick(); // Purpur
++        if (!dead) this.movementTick(); // Purpur
 +        MinecraftTimings.entityMovementTick.stopTiming(); // Purpur
++
          double d0 = this.locX() - this.lastX;
          double d1 = this.locZ() - this.lastZ;
          float f = (float) (d0 * d0 + d1 * d1);
-@@ -2607,18 +2609,23 @@ public abstract class EntityLiving extends Entity {
+@@ -2607,18 +2611,23 @@ public abstract class EntityLiving extends Entity {
  
          this.setMot(d4, d5, d6);
          this.world.getMethodProfiler().enter("ai");
@@ -127,7 +130,7 @@ index 292c4bda9e..6b910d1949 100644
          if (this.jumping) {
              if (this.N > 0.0D && (!this.onGround || this.N > 0.4D)) {
                  this.c(TagsFluid.WATER);
-@@ -2633,21 +2640,26 @@ public abstract class EntityLiving extends Entity {
+@@ -2633,21 +2642,26 @@ public abstract class EntityLiving extends Entity {
          } else {
              this.jumpTicks = 0;
          }
@@ -197,10 +200,10 @@ index 90319909e5..cb12d292cd 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 7d3ecb5bac..e6ed973e0e 100644
+index 3aa9cf5269..84ddd78fdd 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -880,7 +880,9 @@ public class WorldServer extends World {
+@@ -878,7 +878,9 @@ public class WorldServer extends World {
                          return IRegistry.ENTITY_TYPE.getKey(entity1.getEntityType()).toString();
                      });
                      gameprofilerfiller.c("tickPassenger");
