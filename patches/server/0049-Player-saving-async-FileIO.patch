@@ -1,4 +1,4 @@
-From 6a7597c57b014e31c633e165dbabcbb47a2faeac Mon Sep 17 00:00:00 2001
+From 6ba3b7f40de0eed0e97b8425d794d39d4169083a Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Sat, 4 Apr 2020 23:23:04 +0200
 Subject: [PATCH] Player saving async FileIO
@@ -145,7 +145,7 @@ index 79e11eebb7..8d08c91fe6 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index d8f5910359..353000c158 100644
+index d8f5910359..eeffa5095a 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -733,11 +733,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -169,7 +169,7 @@ index d8f5910359..353000c158 100644
          super.b(nbttagcompound);
          nbttagcompound.setInt("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
 -        nbttagcompound.set("Inventory", this.inventory.a(new NBTTagList()));
-+        nbttagcompound.set("Inventory", inventorySnapshot); inventorySnapshot = null;// YAPFA
++        nbttagcompound.set("Inventory", inventorySnapshot != null ? inventorySnapshot : this.inventory.a(new NBTTagList())); inventorySnapshot = null;// YAPFA
          nbttagcompound.setInt("SelectedItemSlot", this.inventory.itemInHandIndex);
          nbttagcompound.setShort("SleepTimer", (short) this.sleepTicks);
          nbttagcompound.setFloat("XpP", this.exp);
@@ -178,12 +178,12 @@ index d8f5910359..353000c158 100644
          this.foodData.b(nbttagcompound);
          this.abilities.a(nbttagcompound);
 -        nbttagcompound.set("EnderItems", this.enderChest.f());
-+        nbttagcompound.set("EnderItems", enderchestSnapshot); enderchestSnapshot = null;// YAPFA
++        nbttagcompound.set("EnderItems", enderchestSnapshot != null ? enderchestSnapshot : this.enderChest.f()); enderchestSnapshot = null;// YAPFA
          if (!this.getShoulderEntityLeft().isEmpty()) {
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 6815ae9045..5c1a7959ae 100644
+index 9145916d96..22865818db 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -16,6 +16,8 @@ import java.util.Map;
