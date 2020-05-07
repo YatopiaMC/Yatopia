@@ -1,0 +1,691 @@
+From c77eb0f5ad7306cc6575de580cfd3897fd874106 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Sun, 29 Mar 2020 01:59:27 +0100
+Subject: [PATCH] Add option for pushable TileEntities
+
+[WIP] This patch is a Spigot patch port of Carpet-Mod's option to allow pushable TileEntities. Original source can be found here: https://github.com/gnembon/fabric-carpet
+---
+ src/main/java/de/tr7zw/yapfa/YapfaConfig.java |   5 +
+ .../net/minecraft/server/BlockPiston.java     |  53 ++-
+ .../server/PistonExtendsChecker.java          |  96 ++++-
+ .../java/net/minecraft/server/TileEntity.java |   6 +
+ .../minecraft/server/TileEntityPiston.java    | 369 ++++++++++++++++++
+ .../net/minecraft/server/WorldServer.java     |   7 +
+ 6 files changed, 531 insertions(+), 5 deletions(-)
+ create mode 100644 src/main/java/net/minecraft/server/TileEntityPiston.java
+
+diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+index 29587589cb..e804bd3f5c 100644
+--- a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
++++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+@@ -226,4 +226,9 @@ public class YapfaConfig {
+     	pistonPushLimit = getInt("settings.pistonPushLimit", 12);
+     }
+     
++    public static boolean pushableTileEntities = false;
++    private static void pushableTileEntities() {
++    	pushableTileEntities = getBoolean("settings.pushableTileEntities", false);
++    }
++    
+ }
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/BlockPiston.java b/src/main/java/net/minecraft/server/BlockPiston.java
+index b29525c40d..86c760f40d 100644
+--- a/src/main/java/net/minecraft/server/BlockPiston.java
++++ b/src/main/java/net/minecraft/server/BlockPiston.java
+@@ -241,11 +241,16 @@ public class BlockPiston extends BlockDirectional {
+         return true;
+     }
+ 
++    // YAPFA isMovable
+     public static boolean a(IBlockData iblockdata, World world, BlockPosition blockposition, EnumDirection enumdirection, boolean flag, EnumDirection enumdirection1) {
+         Block block = iblockdata.getBlock();
+ 
+         if (block == Blocks.OBSIDIAN) {
+             return false;
++        // YAPFA start
++        } else if (de.tr7zw.yapfa.YapfaConfig.pushableTileEntities && block instanceof BlockCommand) {
++        	return true;
++        // YAPFA end
+         } else if (!world.getWorldBorder().a(blockposition)) {
+             return false;
+         } else if (blockposition.getY() >= 0 && (enumdirection != EnumDirection.DOWN || blockposition.getY() != 0)) {
+@@ -267,7 +272,13 @@ public class BlockPiston extends BlockDirectional {
+                     return false;
+                 }
+ 
+-                return !block.isTileEntity();
++                // YAPFA start
++                if(!block.isTileEntity()) {
++                	return true;
++                } else {
++                	return (de.tr7zw.yapfa.YapfaConfig.pushableTileEntities && isPushableBlockEntity(block));
++                }
++                // YAPFA end
+             } else {
+                 return false;
+             }
+@@ -276,6 +287,7 @@ public class BlockPiston extends BlockDirectional {
+         }
+     }
+ 
++    // YAPFA move
+     private boolean a(World world, BlockPosition blockposition, EnumDirection enumdirection, boolean flag) {
+         BlockPosition blockposition1 = blockposition.shift(enumdirection);
+ 
+@@ -362,13 +374,36 @@ public class BlockPiston extends BlockDirectional {
+                 aiblockdata[j] = iblockdata1;
+             }
+ 
++            // YAPFA start
++            if (de.tr7zw.yapfa.YapfaConfig.pushableTileEntities) {
++            	list1_BlockEntities.set(Lists.newArrayList());
++                for (int i = 0; i < list1.size(); ++i)
++                {
++                    BlockPosition blockpos = list.get(i);
++                    TileEntity blockEntity = (list1.get(i).getBlock().isTileEntity()) ? world.getTileEntity(blockpos) : null;
++                    list1_BlockEntities.get().add(blockEntity);
++                    if (blockEntity != null)
++                    {
++                        //hopefully this call won't have any side effects in the future, such as dropping all the BlockEntity's items
++                        //we want to place this same(!) BlockEntity object into the world later when the movement stops again
++                        world.removeTileEntity(blockpos);
++                        blockEntity.markDirty();
++                    }
++                }
++            }
++            // YAPFA end
+             for (k = list.size() - 1; k >= 0; --k) {
+                 blockposition3 = (BlockPosition) list.get(k);
+                 iblockdata1 = world.getType(blockposition3);
+                 blockposition3 = blockposition3.shift(enumdirection1);
+                 map.remove(blockposition3);
+                 world.setTypeAndData(blockposition3, (IBlockData) Blocks.MOVING_PISTON.getBlockData().set(BlockPiston.FACING, enumdirection), 68);
+-                world.setTileEntity(blockposition3, BlockPistonMoving.a((IBlockData) list1.get(k), enumdirection, flag, false));
++                // YAPFA start
++                TileEntity blockEntityPiston = BlockPistonMoving.a((IBlockData) list1.get(k), enumdirection, flag, false);
++                if (de.tr7zw.yapfa.YapfaConfig.pushableTileEntities)
++                    ((TileEntityPiston) blockEntityPiston).setCarriedTileEntity(list1_BlockEntities.get().get(k));
++                world.setTileEntity(blockposition3, blockEntityPiston);
++                // YAPFA end
+                 --j;
+                 aiblockdata[j] = iblockdata1;
+             }
+@@ -452,4 +487,18 @@ public class BlockPiston extends BlockDirectional {
+     public boolean a(IBlockData iblockdata, IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
+         return false;
+     }
++    
++    // YAPFA start
++    private ThreadLocal<List<TileEntity>> list1_BlockEntities = new ThreadLocal<>(); //Unneccessary ThreadLocal if client and server use different PistonBlock instances
++    
++    private static boolean isPushableBlockEntity(Block block)
++    {
++        //Making PISTON_EXTENSION (BlockPistonMoving) pushable would not work as its createNewTileEntity()-method returns null
++        return block != Blocks.ENDER_CHEST && block != Blocks.ENCHANTING_TABLE &&
++                       block != Blocks.END_GATEWAY && block != Blocks.END_PORTAL && block != Blocks.MOVING_PISTON  &&
++                       block != Blocks.SPAWNER;
++    }
++    
++    // YAPFA end
++    
+ }
+diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
+index de1c98ccab..92f1839953 100644
+--- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java
++++ b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
+@@ -29,6 +29,7 @@ public class PistonExtendsChecker {
+ 
+     }
+ 
++    // YAPFA calculatePush
+     public boolean a() {
+         this.f.clear();
+         this.g.clear();
+@@ -46,7 +47,11 @@ public class PistonExtendsChecker {
+         } else {
+             for (int i = 0; i < this.f.size(); ++i) {
+                 BlockPosition blockposition = (BlockPosition) this.f.get(i);
+-
++                // YAPFA start
++                if(!stickToStickySide(blockposition)){
++                    return false;
++                }
++                // YAPFA end
+                 if (a(this.a.getType(blockposition).getBlock()) && !this.a(blockposition)) {
+                     return false;
+                 }
+@@ -56,6 +61,7 @@ public class PistonExtendsChecker {
+         }
+     }
+ 
++    // YAPFA isBlockSticky
+     private static boolean a(Block block) {
+         return block == Blocks.SLIME_BLOCK || block == Blocks.HONEY_BLOCK;
+     }
+@@ -64,6 +70,7 @@ public class PistonExtendsChecker {
+         return block == Blocks.HONEY_BLOCK && block1 == Blocks.SLIME_BLOCK ? false : (block == Blocks.SLIME_BLOCK && block1 == Blocks.HONEY_BLOCK ? false : a(block) || a(block1));
+     }
+ 
++    // YAPFA in fabric this is 'tryMove'
+     private boolean a(BlockPosition blockposition, EnumDirection enumdirection) {
+         IBlockData iblockdata = this.a.getType(blockposition);
+         Block block = iblockdata.getBlock();
+@@ -82,7 +89,7 @@ public class PistonExtendsChecker {
+             if (i + this.f.size() > de.tr7zw.yapfa.YapfaConfig.pistonPushLimit) { // YAPFA
+                 return false;
+             } else {
+-                while (a(block)) {
++                while (customIsBlockSticky(block, iblockdata)) { // YAPFA
+                     BlockPosition blockposition1 = blockposition.shift(this.e.opposite(), i);
+                     Block block1 = block;
+ 
+@@ -118,7 +125,11 @@ public class PistonExtendsChecker {
+ 
+                         for (int i1 = 0; i1 <= l + j; ++i1) {
+                             BlockPosition blockposition3 = (BlockPosition) this.f.get(i1);
+-
++                            // YAPFA start
++                            if(!stickToStickySide(blockposition3)){
++                                return false;
++                            }
++                            // YAPFA end
+                             if (a(this.a.getType(blockposition3).getBlock()) && !this.a(blockposition3)) {
+                                 return false;
+                             }
+@@ -195,4 +206,83 @@ public class PistonExtendsChecker {
+     public List<BlockPosition> getBrokenBlocks() {
+         return this.g;
+     }
++    
++    // YAPFA start
++    
++    private World getWorld() {
++    	return a;
++    }
++    
++    private EnumDirection getDirection() {
++    	return h;
++    }
++    
++    private boolean customIsBlockSticky(Block block, IBlockData data) {
++    	if (de.tr7zw.yapfa.YapfaConfig.pushableTileEntities && isStickyOnSide(data, getDirection().opposite()))
++            return true;
++    	return a(block);
++    }
++    
++    /**
++     * Handles blocks besides the slimeblock that are sticky. Currently only supports blocks that are sticky on one side.
++     * Currently the only additional sticky block is the double chest, which sticks to its other chest half.
++     * @param BlockPosition_1 location of a block that moves and needs to stick other blocks to it
++     * @author 2No2Name
++     */
++    private boolean stickToStickySide(BlockPosition BlockPosition_1){
++        if(!de.tr7zw.yapfa.YapfaConfig.pushableTileEntities)
++            return true;
++
++        IBlockData IBlockData_1 = getWorld().getType(BlockPosition_1);
++        Block block = IBlockData_1.getBlock();
++        EnumDirection stickyEnumDirection  = null;
++        if(block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST) {
++            stickyEnumDirection = getEnumDirectionToOtherChestHalf(IBlockData_1);
++        }
++
++        //example how you could make sticky pistons have a sticky side:
++        //else if(block == Blocks.STICKY_PISTON){
++        //    stickyEnumDirection = IBlockData_1.get(FacingBlock.FACING);
++        //}
++
++        return stickyEnumDirection == null || this.a(BlockPosition_1.shift(stickyEnumDirection), stickyEnumDirection);
++    }
++
++    //if more helpers like this start existing, move this to Chest class
++    /**
++     * @param IBlockData IBlockData of one double chest half block
++     * @return EnumDirection towards the other block of the double chest, null if the IBlockData is not a double chest
++     * @author 2No2Name
++     */
++    private EnumDirection getEnumDirectionToOtherChestHalf(IBlockData IBlockData){
++        BlockPropertyChestType chestType;
++        try{
++            chestType = IBlockData.get(BlockChest.c);
++        }catch(IllegalArgumentException e){return null;}
++        if(chestType == BlockPropertyChestType.SINGLE)
++            return null;
++        return BlockChest.i(IBlockData);
++    }
++    
++    /**
++     * Returns true if there is a modification making this IBlockData sticky on the given face. Vanilla stickyness of SLIME_BLOCK is not affected.
++     * @param IBlockData IBlockData to determine the stickyness of
++     * @param EnumDirection EnumDirection in which the stickyness is to be found
++     * @return boolean whether block is not SLIME_BLOCK and is sticky in the given EnumDirection
++     * @author 2No2Name
++     */
++    private boolean isStickyOnSide(IBlockData IBlockData, EnumDirection EnumDirection) {
++        Block block = IBlockData.getBlock();
++        if(block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST)
++            //Make chests be sticky on the side to
++            return getEnumDirectionToOtherChestHalf(IBlockData) == EnumDirection;
++
++        //example how you could make sticky pistons have a sticky side:
++        //if(block == Blocks.STICKY_PISTON)
++        //    return IBlockData.get(FacingBlock.FACING) == EnumDirection.getOpposite();
++        return false;
++    }
++
++    
++    // YAPFA end
+ }
+diff --git a/src/main/java/net/minecraft/server/TileEntity.java b/src/main/java/net/minecraft/server/TileEntity.java
+index d4556abda3..b4bba5efa8 100644
+--- a/src/main/java/net/minecraft/server/TileEntity.java
++++ b/src/main/java/net/minecraft/server/TileEntity.java
+@@ -252,4 +252,10 @@ public abstract class TileEntity implements KeyedObject { // Paper
+         return null;
+     }
+     // CraftBukkit end
++    
++    // YAPFA start
++    public void markDirty() {
++    	this.g = true;
++    }
++    // YAPFA end
+ }
+diff --git a/src/main/java/net/minecraft/server/TileEntityPiston.java b/src/main/java/net/minecraft/server/TileEntityPiston.java
+new file mode 100644
+index 0000000000..b32f231981
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/TileEntityPiston.java
+@@ -0,0 +1,369 @@
++package net.minecraft.server;
++
++import java.util.Iterator;
++import java.util.List;
++
++public class TileEntityPiston extends TileEntity implements ITickable {
++	private IBlockData a;
++	private EnumDirection b;
++	private boolean c;
++	private boolean g;
++	private static final ThreadLocal<EnumDirection> h = ThreadLocal.withInitial(() -> null);
++	private float i;
++	private float j;
++	private long k;
++
++	// YAPFA start
++	private TileEntity carriedTileEntity;
++	// YAPFA end
++
++	public TileEntityPiston() {
++		super(TileEntityTypes.PISTON);
++	}
++
++	// YAPFA start
++	/**
++	 * @author 2No2Name
++	 */
++	public TileEntity getCarriedTileEntity() {
++		return carriedTileEntity;
++	}
++
++	public void setCarriedTileEntity(TileEntity TileEntity) {
++		this.carriedTileEntity = TileEntity;
++		if (this.carriedTileEntity != null) {
++			this.carriedTileEntity.setPosition(this.getPosition());
++			carriedTileEntity.r();
++		}
++	}
++	// YAPFA end
++
++	public TileEntityPiston(IBlockData var0, EnumDirection var1, boolean var2, boolean var3) {
++		this();
++		this.a = var0;
++		this.b = var1;
++		this.c = var2;
++		this.g = var3;
++	}
++
++	public NBTTagCompound b() {
++		return this.save(new NBTTagCompound());
++	}
++
++	public boolean d() {
++		return this.c;
++	}
++
++	public EnumDirection f() {
++		return this.b;
++	}
++
++	public boolean h() {
++		return this.g;
++	}
++
++	public float a(float var0) {
++		if (var0 > 1.0f) {
++			var0 = 1.0f;
++		}
++		return MathHelper.g((float) var0, (float) this.j, (float) this.i);
++	}
++
++	private float e(float var0) {
++		return this.c ? var0 - 1.0f : 1.0f - var0;
++	}
++
++	private IBlockData x() {
++		if (!this.d() && this.h() && this.a.getBlock() instanceof BlockPiston) {
++			return (IBlockData) ((IBlockData) Blocks.PISTON_HEAD.getBlockData().set(
++					(IBlockState) BlockPistonExtension.TYPE,
++					(Comparable) (this.a.getBlock() == Blocks.STICKY_PISTON ? BlockPropertyPistonType.STICKY
++							: BlockPropertyPistonType.DEFAULT))).set((IBlockState) BlockPistonExtension.FACING,
++									this.a.get((IBlockState) BlockPiston.FACING));
++		}
++		return this.a;
++	}
++
++	private void f(float var0) {
++		EnumDirection var1 = this.j();
++		double var2 = var0 - this.i;
++		VoxelShape var4 = this.x().getCollisionShape((IBlockAccess) this.world, this.getPosition());
++		if (var4.isEmpty()) {
++			return;
++		}
++		List var5 = var4.d();
++		AxisAlignedBB var6 = this.a(this.a(var5));
++		List<Entity> var7 = this.world.getEntities(null,
++				PistonUtil.a((AxisAlignedBB) var6, (EnumDirection) var1, (double) var2).b(var6));
++		if (var7.isEmpty()) {
++			return;
++		}
++		boolean var8 = this.a.getBlock() == Blocks.SLIME_BLOCK;
++		for (Entity var10 : var7) {
++			AxisAlignedBB var15;
++			AxisAlignedBB var14;
++			AxisAlignedBB var16;
++			if (var10.getPushReaction() == EnumPistonReaction.IGNORE)
++				continue;
++			if (var8) {
++				Vec3D var11 = var10.getMot();
++				double var12 = var11.x;
++				double var142 = var11.y;
++				double var162 = var11.z;
++				switch (var1.m()) {
++				case X: {
++					var12 = var1.getAdjacentX();
++					break;
++				}
++				case Y: {
++					var142 = var1.getAdjacentY();
++					break;
++				}
++				case Z: {
++					var162 = var1.getAdjacentZ();
++				}
++				}
++				var10.setMot(var12, var142, var162);
++			}
++			double var11 = 0.0;
++			Iterator iterator = var5.iterator();
++			while (iterator.hasNext()
++					&& (!(var15 = PistonUtil.a((AxisAlignedBB) this.a(var14 = (AxisAlignedBB) iterator.next()),
++							(EnumDirection) var1, (double) var2)).c(var16 = var10.getBoundingBox())
++							|| (var11 = Math.max(var11, TileEntityPiston.a(var15, var1, var16))) < var2)) {
++			}
++			if (var11 <= 0.0)
++				continue;
++			var11 = Math.min(var11, var2) + 0.01;
++			TileEntityPiston.a(var1, var10, var11, var1);
++			if (this.c || !this.g)
++				continue;
++			this.a(var10, var1, var2);
++		}
++	}
++
++	private static void a(EnumDirection var0, Entity var1, double var2, EnumDirection var4) {
++		h.set(var0);
++		var1.move(EnumMoveType.PISTON, new Vec3D(var2 * (double) var4.getAdjacentX(),
++				var2 * (double) var4.getAdjacentY(), var2 * (double) var4.getAdjacentZ()));
++		h.set(null);
++	}
++
++	private void g(float var0) {
++		if (!this.y()) {
++			return;
++		}
++		EnumDirection var12 = this.j();
++		if (!var12.m().c()) {
++			return;
++		}
++		double var2 = this.a.getCollisionShape((IBlockAccess) this.world, this.position).c(EnumDirection.EnumAxis.Y);
++		AxisAlignedBB var4 = this.a(new AxisAlignedBB(0.0, var2, 0.0, 1.0, 1.5000000999999998, 1.0));
++		double var5 = var0 - this.i;
++		List<Entity> var7 = this.world.getEntities((Entity) null, var4, var1 -> TileEntityPiston.a(var4, var1));
++		for (Entity var9 : var7) {
++			TileEntityPiston.a(var12, var9, var5, var12);
++		}
++	}
++
++	private static boolean a(AxisAlignedBB var0, Entity var1) {
++		return var1.getPushReaction() == EnumPistonReaction.NORMAL && var1.onGround && var1.locX() >= var0.minX
++				&& var1.locX() <= var0.maxX && var1.locZ() >= var0.minZ && var1.locZ() <= var0.maxZ;
++	}
++
++	private boolean y() {
++		return this.a.getBlock() == Blocks.HONEY_BLOCK;
++	}
++
++	public EnumDirection j() {
++		return this.c ? this.b : this.b.opposite();
++	}
++
++	private AxisAlignedBB a(List<AxisAlignedBB> var0) {
++		double var1 = 0.0;
++		double var3 = 0.0;
++		double var5 = 0.0;
++		double var7 = 1.0;
++		double var9 = 1.0;
++		double var11 = 1.0;
++		for (AxisAlignedBB var14 : var0) {
++			var1 = Math.min(var14.minX, var1);
++			var3 = Math.min(var14.minY, var3);
++			var5 = Math.min(var14.minZ, var5);
++			var7 = Math.max(var14.maxX, var7);
++			var9 = Math.max(var14.maxY, var9);
++			var11 = Math.max(var14.maxZ, var11);
++		}
++		return new AxisAlignedBB(var1, var3, var5, var7, var9, var11);
++	}
++
++	private static double a(AxisAlignedBB var0, EnumDirection var1, AxisAlignedBB var2) {
++		switch (var1) {
++		case EAST: {
++			return var0.maxX - var2.minX;
++		}
++		case WEST: {
++			return var2.maxX - var0.minX;
++		}
++		default: {
++			return var0.maxY - var2.minY;
++		}
++		case DOWN: {
++			return var2.maxY - var0.minY;
++		}
++		case SOUTH: {
++			return var0.maxZ - var2.minZ;
++		}
++		case NORTH:
++		}
++		return var2.maxZ - var0.minZ;
++	}
++
++	private AxisAlignedBB a(AxisAlignedBB var0) {
++		double var1 = this.e(this.i);
++		return var0.d((double) this.position.getX() + var1 * (double) this.b.getAdjacentX(),
++				(double) this.position.getY() + var1 * (double) this.b.getAdjacentY(),
++				(double) this.position.getZ() + var1 * (double) this.b.getAdjacentZ());
++	}
++
++	private void a(Entity var0, EnumDirection var1, double var2) {
++		double var9;
++		AxisAlignedBB var5;
++		EnumDirection var6;
++		double var7;
++		AxisAlignedBB var4 = var0.getBoundingBox();
++		if (var4.c(var5 = VoxelShapes.b().getBoundingBox().a(this.position))
++				&& Math.abs((var7 = TileEntityPiston.a(var5, var6 = var1.opposite(), var4) + 0.01)
++						- (var9 = TileEntityPiston.a(var5, var6, var4.a(var5)) + 0.01)) < 0.01) {
++			var7 = Math.min(var7, var2) + 0.01;
++			TileEntityPiston.a(var1, var0, var7, var6);
++		}
++	}
++
++	public IBlockData k() {
++		return this.a;
++	}
++
++	// YAPFA finish
++	public void l() {
++		if (this.j < 1.0f && this.world != null) {
++			this.j = this.i = 1.0f;
++			this.world.removeTileEntity(this.position);
++			this.ab_();
++			if (this.world.getType(this.position).getBlock() == Blocks.MOVING_PISTON) {
++				IBlockData var0 = this.g ? Blocks.AIR.getBlockData()
++						: Block.b((IBlockData) this.a, (GeneratorAccess) this.world, (BlockPosition) this.position);
++				this.world.setTypeAndData(this.position, var0, 3);
++				// YAPFA start
++				if(carriedTileEntity != null) {
++					carriedTileEntity.r();
++					this.world.setTileEntity(position, carriedTileEntity);
++					carriedTileEntity = null;
++				}
++				// YAPFA end
++				this.world.a(this.position, var0.getBlock(), this.position);
++			}
++		}
++		// YAPFA start
++        if (this.carriedTileEntity != null && this.world.getType(this.position).getBlock() == Blocks.AIR)
++        {
++        	IBlockData var0 = this.g ? Blocks.AIR.getBlockData()
++					: Block.b((IBlockData) this.a, (GeneratorAccess) this.world, (BlockPosition) this.position);
++        	this.world.setTypeAndData(this.position, var0, 3);
++			this.world.setTileEntity(position, carriedTileEntity);
++            this.world.a(this.position, false, null); // destroy
++        }
++        // YAPFA end
++	}
++
++	public void tick() {
++		this.k = this.world.getTime();
++		this.j = this.i;
++		if (this.j >= 1.0f) {
++			this.world.removeTileEntity(this.position);
++			this.ab_();
++			if (this.a != null && this.world.getType(this.position).getBlock() == Blocks.MOVING_PISTON) {
++				IBlockData var0 = Block.b((IBlockData) this.a, (GeneratorAccess) this.world,
++						(BlockPosition) this.position);
++				if (var0.isAir()) {
++					this.world.setTypeAndData(this.position, this.a, 84);
++					// YAPFA start
++					if(carriedTileEntity != null) {
++						carriedTileEntity.r();
++						this.world.setTileEntity(position, carriedTileEntity);
++					}
++					// YAPFA end
++					Block.a((IBlockData) this.a, (IBlockData) var0, (GeneratorAccess) this.world,
++							(BlockPosition) this.position, (int) 3);
++				} else {
++					if (var0.b((IBlockState) BlockProperties.C)
++							&& ((Boolean) var0.get((IBlockState) BlockProperties.C)).booleanValue()) {
++						var0 = (IBlockData) var0.set((IBlockState) BlockProperties.C,
++								(Comparable) Boolean.valueOf(false));
++					}
++					this.world.setTypeAndData(this.position, var0, 67);
++					// YAPFA start
++					if(carriedTileEntity != null) {
++						carriedTileEntity.r();
++						this.world.setTileEntity(position, carriedTileEntity);
++					}
++					// YAPFA end
++					this.world.a(this.position, var0.getBlock(), this.position);
++				}
++			}
++			return;
++		}
++		float var0 = this.i + 0.5f;
++		this.f(var0);
++		this.g(var0);
++		this.i = var0;
++		if (this.i >= 1.0f) {
++			this.i = 1.0f;
++		}
++	}
++
++	public void load(NBTTagCompound var0) {
++		super.load(var0);
++		this.a = GameProfileSerializer.d((NBTTagCompound) var0.getCompound("blockState"));
++		this.b = EnumDirection.fromType1((int) var0.getInt("facing"));
++		this.j = this.i = var0.getFloat("progress");
++		this.c = var0.getBoolean("extending");
++		this.g = var0.getBoolean("source");
++	}
++
++	public NBTTagCompound save(NBTTagCompound var0) {
++		super.save(var0);
++		var0.set("blockState", (NBTBase) GameProfileSerializer.a((IBlockData) this.a));
++		var0.setInt("facing", this.b.b());
++		var0.setFloat("progress", this.j);
++		var0.setBoolean("extending", this.c);
++		var0.setBoolean("source", this.g);
++		return var0;
++	}
++
++	public VoxelShape a(IBlockAccess var0, BlockPosition var1) {
++		VoxelShape var2 = !this.c && this.g
++				? ((IBlockData) this.a.set((IBlockState) BlockPiston.EXTENDED, (Comparable) Boolean.valueOf(true)))
++						.getCollisionShape(var0, var1)
++				: VoxelShapes.a();
++		EnumDirection var3 = h.get();
++		if ((double) this.i < 1.0 && var3 == this.j()) {
++			return var2;
++		}
++		IBlockData var4 = this.h() ? (IBlockData) ((IBlockData) Blocks.PISTON_HEAD.getBlockData()
++				.set((IBlockState) BlockPistonExtension.FACING, (Comparable) this.b)).set(
++						(IBlockState) BlockPistonExtension.SHORT,
++						(Comparable) Boolean.valueOf(this.c != 1.0f - this.i < 4.0f))
++				: this.a;
++		float var5 = this.e(this.i);
++		double var6 = (float) this.b.getAdjacentX() * var5;
++		double var8 = (float) this.b.getAdjacentY() * var5;
++		double var10 = (float) this.b.getAdjacentZ() * var5;
++		return VoxelShapes.a((VoxelShape) var2, (VoxelShape) var4.getCollisionShape(var0, var1).a(var6, var8, var10));
++	}
++
++	public long m() {
++		return this.k;
++	}
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 132c5e7dfb..e1de2edd02 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -275,6 +275,13 @@ public class WorldServer extends World {
+ 
+         if (type instanceof ITileEntity) {
+             TileEntity replacement = ((ITileEntity) type).createTile(this);
++            // YAPFA start - Better handeling of missplaced tiles, moving_piston returns null!
++            if(replacement == null) {
++            	this.setAir(pos);
++            	this.removeTileEntity(pos);
++            	return null;
++            }
++            // YAPFA end
+             replacement.world = this;
+             this.setTileEntity(pos, replacement);
+             return replacement;
+-- 
+2.25.1.windows.1
+
