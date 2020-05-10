@@ -1,4 +1,4 @@
-From cd3e60148db11a7f500e9b2d257b8689c9a4701b Mon Sep 17 00:00:00 2001
+From f26762de38c0f91772aca3ff854a56c280001b6d Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Sat, 4 Apr 2020 23:23:04 +0200
 Subject: [PATCH] Player saving async FileIO
@@ -183,7 +183,7 @@ index c1e8ff6ab3..db4f628830 100644
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 9786f110c5..54e778815e 100644
+index bcf95c4bb0..f50f844473 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -16,6 +16,8 @@ import java.util.Map;
@@ -195,7 +195,7 @@ index 9786f110c5..54e778815e 100644
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1184,6 +1186,28 @@ public abstract class PlayerList {
+@@ -1185,6 +1187,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -224,7 +224,7 @@ index 9786f110c5..54e778815e 100644
      }
      // Paper end
  
-@@ -1223,13 +1247,13 @@ public abstract class PlayerList {
+@@ -1224,13 +1248,13 @@ public abstract class PlayerList {
              File file = new File(this.server.getWorldServer(DimensionManager.OVERWORLD).getDataManager().getDirectory(), "stats");
              File file1 = new File(file, uuid + ".json");
  
