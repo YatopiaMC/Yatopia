@@ -94,6 +94,7 @@ done
 
 import PistonExtendsChecker
 import EnumDirection
+import EnumAxisCycle
 # import TileEntityPiston # doesn't compile without fixes, copied into patch
 
 
