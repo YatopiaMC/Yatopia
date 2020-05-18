@@ -1,4 +1,4 @@
-From f93f942cf91b25a278926807bbf696ebfed23af2 Mon Sep 17 00:00:00 2001
+From db475ecf5d7f8a1a5dc39cf52047ac46dc644dda Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 21:13:33 +0100
 Subject: [PATCH] Add getLastTickMs() api
@@ -10,10 +10,10 @@ Subject: [PATCH] Add getLastTickMs() api
  3 files changed, 17 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 2df0919a15..6f09157927 100644
+index 049860a211..3daa46271b 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -890,6 +890,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -893,6 +893,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
      private static final java.math.BigDecimal TPS_BASE = new java.math.BigDecimal(1E9).multiply(new java.math.BigDecimal(SAMPLE_INTERVAL));
      // Paper End
      // Spigot End
@@ -22,7 +22,7 @@ index 2df0919a15..6f09157927 100644
  
      public void run() {
          try {
-@@ -954,9 +956,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -957,9 +959,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                          this.methodProfiler.d().d();
                      }
  
@@ -36,7 +36,7 @@ index 2df0919a15..6f09157927 100644
                      this.methodProfiler.exitEnter("nextTickWait");
                      this.ac = true;
                      this.ab = Math.max(SystemUtils.getMonotonicMillis() + 50L, this.nextTick);
-@@ -964,6 +970,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -967,6 +973,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                      this.methodProfiler.exit();
                      this.methodProfiler.b();
                      this.hasTicked = true;
