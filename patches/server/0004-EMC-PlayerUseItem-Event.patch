@@ -1,4 +1,4 @@
-From f7fb8d4fe0c2d15e8a6ed186906c49313419ae43 Mon Sep 17 00:00:00 2001
+From 8455f7508c6c62acf1a2d42494a9a8eccfb1cf9e Mon Sep 17 00:00:00 2001
 From: Aikar <aikar@aikar.co>
 Date: Sat, 22 Dec 2012 00:35:15 -0500
 Subject: [PATCH] EMC PlayerUseItem Event
@@ -23,10 +23,10 @@ index 3fc2360a10..5ad0aacf01 100644
              this.setSlot(EnumItemSlot.MAINHAND, itemstack);
          } else {
 diff --git a/src/main/java/net/minecraft/server/PlayerInteractManager.java b/src/main/java/net/minecraft/server/PlayerInteractManager.java
-index 9fb008f64d..54ce069e50 100644
+index 272c1f0eaf..76a8d94229 100644
 --- a/src/main/java/net/minecraft/server/PlayerInteractManager.java
 +++ b/src/main/java/net/minecraft/server/PlayerInteractManager.java
-@@ -426,6 +426,15 @@ public class PlayerInteractManager {
+@@ -432,6 +432,15 @@ public class PlayerInteractManager {
      }
  
      public EnumInteractionResult a(EntityHuman entityhuman, World world, ItemStack itemstack, EnumHand enumhand) {
@@ -42,7 +42,7 @@ index 9fb008f64d..54ce069e50 100644
          if (this.gamemode == EnumGamemode.SPECTATOR) {
              return EnumInteractionResult.PASS;
          } else if (entityhuman.getCooldownTracker().hasCooldown(itemstack.getItem())) {
-@@ -433,27 +442,53 @@ public class PlayerInteractManager {
+@@ -439,27 +448,53 @@ public class PlayerInteractManager {
          } else {
              int i = itemstack.getCount();
              int j = itemstack.getDamage();
@@ -102,7 +102,7 @@ index 9fb008f64d..54ce069e50 100644
                      ((EntityPlayer) entityhuman).updateInventory(entityhuman.defaultContainer);
                  }
  
-@@ -467,6 +502,7 @@ public class PlayerInteractManager {
+@@ -473,6 +508,7 @@ public class PlayerInteractManager {
      public boolean firedInteract = false;
      public EnumInteractionResult a(EntityHuman entityhuman, World world, ItemStack itemstack, EnumHand enumhand, MovingObjectPositionBlock movingobjectpositionblock) {
          BlockPosition blockposition = movingobjectpositionblock.getBlockPosition();
@@ -110,7 +110,7 @@ index 9fb008f64d..54ce069e50 100644
          IBlockData iblockdata = world.getType(blockposition);
          EnumInteractionResult enuminteractionresult = EnumInteractionResult.PASS;
          boolean cancelledBlock = false;
-@@ -534,17 +570,45 @@ public class PlayerInteractManager {
+@@ -540,17 +576,45 @@ public class PlayerInteractManager {
              }
  
              if (!itemstack.isEmpty() && enuminteractionresult != EnumInteractionResult.SUCCESS && !interactResult) { // add !interactResult SPIGOT-764
