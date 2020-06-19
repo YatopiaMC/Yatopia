@@ -34,6 +34,15 @@ This Fork tries to import universal/performance patches from [EMC](https://githu
 ### checkEntityBlockCollisionTicks
 ``Default``:``1`` How often entities trigger blocks like pressureplates/cactus/nether portals. Legacy option that probably doesn't do that much, breaks the nether portal logic and will be removed later.
 
+### pistonPushLimit
+``Default``:``12`` Just a fun option that enables you to modify the maximum amount of blocks that a piston can push. Together with slime/honeyblocks and pushable tiles from tuinity this allows a lot of new machines/doors.
+
+### villager.simplerVillagerBehavior
+``Default``:``false`` Replaces the entire villager AI to the old AI system that all other mobs use. This breaks iron farms/villager breeders/villages(WIP to fix these problems), all villagers get a random profession(if they didn't have one) like in 1.8, don't need/use workstations and refresh their trades after some time(trades are completly unaffected). This makes villagers as performant as all the other mobs by getting rid of their "brain"(Mojangs name^^) and behavior controller system, instead using the normal goal selector system. This way villagers are over twice as performant, but with the drawbacks that for now Iron farms/villager breeders are broken, so they can just be used for trading systems.
+
+### villager.villagersHideAtNight
+``Default``:``false`` Addon for ``villager.simplerVillagerBehavior``, gives villagers the ability to drink an invisibility potion like wandering traders at night to make it less likely for them to be killed since (for now) they don't stay at the village/use their houses at night and no ability for them to respawn.
+
 ## Building and setting up
 Run the following commands in the root directory:
 
