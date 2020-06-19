@@ -8,6 +8,32 @@
 
 This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin) and [Purpur](https://github.com/pl3xgaming/Purpur), while adding a few more (optional via config) "extrem" patches that modify the vanilla minecraft gameplay for more performance(noteable killing entity pushing/collisionboxes). This fork was based on Paper, but is now based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
 
+## Config entries
+
+### itemStuckSleepTicks
+``Default``:``1`` Controlls how often a dropped item checks rather it's stuck inside a block(Their most expansive operation). Higher values like ``15`` can be savely used and greatly improves dropped item performance if your server has thousends of them(from big farms/tnt/farming players etc).
+
+### disableEntityWaterChecks
+``Default``:``false`` Entities don't check for drowning. Legacy option that probably doesn't do that much.
+
+### disableEntityStuckChecks
+``Default``:``false`` Entities don't check if they are stuck in a wall and should sufficate. Usefull in for example hubs where player damage is canceled anyway.
+
+### disablePlayerOutOfWorldBorderCheck
+``Default``:``false`` Players don't check if they are outside of the world border(to take damage). Can be used everywhere where the world border doesn't apply anyway like hubs/minigames.
+
+### disableEntityCollisions
+``Default``:``false`` All entities stop pushing each other. The only exception is that players still will be pushed since this is clientside and controlled by a scoreboard team flag. This also breaks the entity cramming(which players can bypass anyway with ladders). Greatly improves performance where entity pushing is not required.
+
+### onlyPlayerCollisions
+``Default``:``false`` Does the same as ``disableEntityCollisions`` except that players are still able to push other entities.
+
+### disableEntityCollisionboxes
+``Default``:``false`` Removes the collisionbox from entities. This only really affects shulker mobs(not the shulker box) so that mobs will fall through them like any other mob. Players still can walk over them since that is clientside. Greatly improves performance, with minimal impact on ingame behavior.
+
+### checkEntityBlockCollisionTicks
+``Default``:``1`` How often entities trigger blocks like pressureplates/cactus/nether portals. Legacy option that probably doesn't do that much, breaks the nether portal logic and will be removed later.
+
 ## Building and setting up
 Run the following commands in the root directory:
 
