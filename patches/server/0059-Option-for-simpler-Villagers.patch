@@ -1,4 +1,4 @@
-From 372230cb1a8d97665f82a7743d24c5cb6e98b52d Mon Sep 17 00:00:00 2001
+From 69302590d112bd297266978c75f954203df1ef4e Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Fri, 19 Jun 2020 19:21:35 +0200
 Subject: [PATCH] Option for simpler Villagers
@@ -6,8 +6,8 @@ Subject: [PATCH] Option for simpler Villagers
 Option to extremly simplefy the villager AI.
 ---
  src/main/java/de/tr7zw/yapfa/YapfaConfig.java | 10 +++
- .../net/minecraft/server/EntityVillager.java  | 85 ++++++++++++++++++-
- 2 files changed, 92 insertions(+), 3 deletions(-)
+ .../net/minecraft/server/EntityVillager.java  | 84 ++++++++++++++++++-
+ 2 files changed, 91 insertions(+), 3 deletions(-)
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 index 78d21c2ea..5af955493 100644
@@ -30,7 +30,7 @@ index 78d21c2ea..5af955493 100644
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 7da267d28..4c819d2e2 100644
+index 7da267d28..f875494b5 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -6,6 +6,8 @@ import com.google.common.collect.ImmutableSet;
@@ -52,7 +52,7 @@ index 7da267d28..4c819d2e2 100644
      private static final DataWatcherObject<VillagerData> bz = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bx = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
      private static final Set<Item> bA = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
-@@ -61,13 +66,52 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -61,13 +66,51 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      public EntityVillager(EntityTypes<? extends EntityVillager> entitytypes, World world, VillagerType villagertype) {
          super(entitytypes, world);
          this.bG = new Reputation();
@@ -92,11 +92,10 @@ index 7da267d28..4c819d2e2 100644
 +        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityIllagerIllusioner.class, 12.0F, 0.5D, 0.5D));
 +        this.goalSelector.a(1, new PathfinderGoalPanic(this, 0.5D));
 +        this.goalSelector.a(1, new PathfinderGoalLookAtTradingPlayer(this));
-+        // These targets don't seem to work on villagers?
-+        //this.goalSelector.a(2, new PathfinderGoalStrollVillage(this, 0.6D));
-+        /*this.goalSelector.a(3, new PathfinderGoalMoveThroughVillage(this, 0.6D, false, 4, () -> {
++        this.goalSelector.a(2, new PathfinderGoalStrollVillage(this, 0.6D));
++        this.goalSelector.a(3, new PathfinderGoalMoveThroughVillage(this, 0.6D, false, 4, () -> {
 +            return false;
-+        }));*/
++        }));
 +        this.goalSelector.a(4, new PathfinderGoalMoveTowardsRestriction(this, 0.35D));
 +        this.goalSelector.a(8, new PathfinderGoalRandomStrollLand(this, 0.35D));
 +        this.goalSelector.a(9, new PathfinderGoalInteract(this, EntityHuman.class, 3.0F, 1.0F));
@@ -107,7 +106,7 @@ index 7da267d28..4c819d2e2 100644
      @Override
      public BehaviorController<EntityVillager> getBehaviorController() {
          return (BehaviorController<EntityVillager>) super.getBehaviorController(); // CraftBukkit - decompile error
-@@ -75,6 +119,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -75,6 +118,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
  
      @Override
      protected BehaviorController<?> a(Dynamic<?> dynamic) {
@@ -115,7 +114,7 @@ index 7da267d28..4c819d2e2 100644
          BehaviorController<EntityVillager> behaviorcontroller = new BehaviorController<>(EntityVillager.bN, EntityVillager.bO, dynamic);
  
          this.a(behaviorcontroller);
-@@ -153,12 +198,44 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -153,12 +197,44 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
      // Spigot End
  
@@ -161,7 +160,7 @@ index 7da267d28..4c819d2e2 100644
          this.world.getMethodProfiler().exit();
          if (!this.et() && this.bB > 0) {
              --this.bB;
-@@ -556,6 +633,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -556,6 +632,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      private void a(Entity entity) {
@@ -169,7 +168,7 @@ index 7da267d28..4c819d2e2 100644
          if (this.world instanceof WorldServer) {
              Optional<List<EntityLiving>> optional = this.bo.getMemory(MemoryModuleType.VISIBLE_MOBS);
  
-@@ -572,6 +650,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -572,6 +649,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      public void a(MemoryModuleType<GlobalPos> memorymoduletype) {
