@@ -1,4 +1,4 @@
-From b3ef80f52810b8bf876e3104c80325fd071f22f6 Mon Sep 17 00:00:00 2001
+From de38322ff67af98006f66df5432393809f1f8c4a Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Fri, 26 Jun 2020 01:11:47 +0200
 Subject: [PATCH] Optimize Hopper logic
@@ -246,7 +246,7 @@ index 000000000..63e024e9d
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index c755faed4..4776ce830 100644
+index c755faed4..5220e8673 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -2,6 +2,7 @@ package net.minecraft.server;
@@ -266,7 +266,7 @@ index c755faed4..4776ce830 100644
 +    	if(ihopper instanceof TileEntityHopper) {
 +    		TileEntityHopper hopper = (TileEntityHopper) ihopper;
 +    		if(hopper.cachedAbove != null) {
-+    			if(!hopper.cachedAbove.isEmpty()) {
++    			if(hopper.cachedAbove.isPresent()) {
 +    				return hopper.cachedAbove.get();
 +    			}else {
 +    				//should look for items?
