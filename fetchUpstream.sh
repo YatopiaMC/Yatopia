@@ -1,6 +1,7 @@
 cd Tuinity
 git fetch
-git reset --hard origin/head
+git reset --hard origin/ver/1.16
+git submodule update --init --recursive -f
 cd ..
 sh patchPaper.sh
 cd Tuinity
