@@ -5,7 +5,7 @@ PS1="$"
 
 function changelog() {
     base=$(git ls-tree HEAD $1 | cut -d' ' -f3 | cut -f1)
-    cd $1 && git log --oneline ${base}...ORIGIN/HEAD
+    cd $1 && git log --oneline ${base}...ORIGIN/ver/1.16
 }
 tuinity=$(changelog Tuinity)
 #paper=$(changelog Tuinity/Paper)

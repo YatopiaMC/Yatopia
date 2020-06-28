@@ -1,4 +1,4 @@
-From 24155adba5a1a7cadfcf0a61c3e0d8f77cd8509b Mon Sep 17 00:00:00 2001
+From 3722cb3a76dc7a7ddd12a303935b73d284962179 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 21:13:33 +0100
 Subject: [PATCH] Add getLastTickMs() api
@@ -10,7 +10,7 @@ Subject: [PATCH] Add getLastTickMs() api
  3 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index e1373f2c0..9bb5e0c98 100644
+index e1373f2c0a..9bb5e0c980 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -933,6 +933,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -41,7 +41,7 @@ index e1373f2c0..9bb5e0c98 100644
              } else {
                  this.a((CrashReport) null);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 63c4cb1d1..3ee0a6e34 100644
+index 0ed2d27a1b..70afb87c46 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -2354,4 +2354,13 @@ public final class CraftServer implements Server {
@@ -59,18 +59,18 @@ index 63c4cb1d1..3ee0a6e34 100644
 +	// YAPFA end
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 387af9d5c..159c95eb8 100644
+index f70173827f..b1aeac39bc 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-@@ -30,7 +30,7 @@ public class TicksPerSecondCommand extends Command
+@@ -33,7 +33,7 @@ public class TicksPerSecondCommand extends Command
          for ( int i = 0; i < tps.length; i++) {
              tpsAvg[i] = format( tps[i] );
          }
--        sender.sendMessage( ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", "));
+-        sender.sendMessage(ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", "));
 +        sender.sendMessage( ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ") + " Last tick time: " + org.bukkit.Bukkit.getLastTickMs() + "ms"); // YAPFA
+         sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
          // Paper end
  
-         return true;
 -- 
 2.25.1.windows.1
 
