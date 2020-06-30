@@ -1,4 +1,4 @@
-From 3722cb3a76dc7a7ddd12a303935b73d284962179 Mon Sep 17 00:00:00 2001
+From dd873e44d15d7ed73b6c6767299784c0e42e46e0 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 5 Mar 2020 21:13:33 +0100
 Subject: [PATCH] Add getLastTickMs() api
@@ -10,7 +10,7 @@ Subject: [PATCH] Add getLastTickMs() api
  3 files changed, 15 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index e1373f2c0a..9bb5e0c980 100644
+index 56e41760fd..90a793e8dc 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -933,6 +933,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -59,7 +59,7 @@ index 0ed2d27a1b..70afb87c46 100644
 +	// YAPFA end
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index f70173827f..b1aeac39bc 100644
+index 7218f23df4..a4f6df8606 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 @@ -33,7 +33,7 @@ public class TicksPerSecondCommand extends Command
@@ -68,9 +68,9 @@ index f70173827f..b1aeac39bc 100644
          }
 -        sender.sendMessage(ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", "));
 +        sender.sendMessage( ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ") + " Last tick time: " + org.bukkit.Bukkit.getLastTickMs() + "ms"); // YAPFA
-         sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
-         // Paper end
- 
+         if (args.length > 0 && args[0].equals("mem") && sender.hasPermission("bukkit.command.tpsmemory")) {
+             sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
+             if (!hasShownMemoryWarning) {
 -- 
 2.25.1.windows.1
 
