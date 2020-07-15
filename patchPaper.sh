@@ -1,1 +1,0 @@
-cp -f ./scripts/importmcdev_paper.sh ./Tuinity/Paper/scripts/importmcdev.sh
