@@ -27,10 +27,13 @@ jobs:
         restore-keys: ${{ runner.os }}-maven-
     - name: Setup YAPFA Project
       run: |
-         git submodule update --init --recursive -f
+         git submodule update --init -f
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
-         sudo chmod -R -f 777 scripts   
+         sudo chmod -R -f 777 scripts
+         cd Tuinity
+         git submodule update --init --recursive -f
+         cd ..//
     - name: Build Maven Depends
       if: steps.maven-cache.outputs.cache-hit != 'true'
       run: |
