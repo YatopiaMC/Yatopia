@@ -18,25 +18,30 @@ jobs:
       uses: actions/setup-java@v1.3.0
       with:
         java-version: ${{ matrix.java }}
-
-    - uses: actions/cache@v1.1.2
+    - name: Pull Maven Cache
+      uses: actions/cache@v1.1.2
+      id: maven-cache
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
-
+    - name: Setup YAPFA Project
+      run: |
+         git submodule update --init --recursive -f
+         git config --global user.email "ci@github.com"
+         git config --global user.name "Github CI"
+         sudo chmod -R -f 777 scripts   
+    - name: Build Maven Depends
+      if: steps.maven-cache.outputs.cache-hit != 'true'
+      run: |
+         cd Tuinity
+         cd Paper
+         ./paper patch
+         cd ..//
+         ./tuinity jar
+         cd ..//           
     - name: Build YAPFA
       run: |
-        git submodule update --init --recursive -f
-        git config --global user.email "ci@github.com"
-        git config --global user.name "Github CI"
-        sudo chmod -R -f 777 scripts
-        cd Tuinity
-        cd paper
-        ./paper patch
-        cd ..//
-        ./tuinity jar
-        cd ..//
         ./yapfa paperclip
     - name: Upload Artifact
       uses: actions/upload-artifact@v2-preview
