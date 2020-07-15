@@ -1,51 +1,46 @@
-#!/bin/bash
-# get base dir regardless of execution location
-SOURCE="${BASH_SOURCE[0]}"
-while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-	DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
-	SOURCE="$(readlink "$SOURCE")"
-	[[ ${SOURCE} != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-done
-. $(dirname ${SOURCE})/init.sh
+#!/usr/bin/env bash
 
-PS1="$"
-echo "Rebuilding patch files from current fork state..."
+# SCRIPT HEADER start
+basedir=$1
+source "$basedir/scripts/functions.sh"
+echo "  "
+echo "----------------------------------------"
+echo "  $(bashcolor 1 32)Task$(bashcolorend) - Rebuild Patches"
+echo "  This will diff the sources of YAPFA and Paper to build patches."
+echo "  "
+echo "  $(bashcolor 1 32)Modules:$(bashcolorend)"
+echo "  - $(bashcolor 1 32)1$(bashcolorend) : API"
+echo "  - $(bashcolor 1 32)2$(bashcolorend) : Server"
+echo "----------------------------------------"
+# SCRIPT HEADER end
+
 function savePatches {
-	what=$1
-	cd ${basedir}/${what}/
+    targetname=$1
+    basedir
+    mkdir -p $basedir/patches/$2
+    if [ -d ".git/rebase-apply" ]; then
+        # in middle of a rebase, be smarter
+        echo "REBASE DETECTED - PARTIAL SAVE"
+        last=$(cat ".git/rebase-apply/last")
+        next=$(cat ".git/rebase-apply/next")
+        declare -a files=("$basedir/patches/$2/"*.patch)
+        for i in $(seq -f "%04g" 1 1 $last)
+        do
+            if [ $i -lt $next ]; then
+                rm "${files[`expr $i - 1`]}"
+            fi
+        done
+    else
+        rm -rf $basedir/patches/$2/*.patch
+    fi
 
-	mkdir -p ${basedir}/patches/$2
-	if [ -d ".git/rebase-apply" ]; then
-		# in middle of a rebase, be smarter
-		echo "REBASE DETECTED - PARTIAL SAVE"
-		last=$(cat ".git/rebase-apply/last")
-		next=$(cat ".git/rebase-apply/next")
-		declare -a files=("$basedir/patches/$2/"*.patch)
-		for i in $(seq -f "%04g" 1 1 ${last})
-		do
-			if [ ${i} -lt ${next} ]; then
-				rm "${files[`expr ${i} - 1`]}"
-			fi
-		done
-	else
-		rm ${basedir}/patches/$2/*.patch
-	fi
-
-	git format-patch --quiet -N -o ${basedir}/patches/$2 upstream/upstream
-	cd ${basedir}
-	git add -A ${basedir}/patches/$2
-	cleanupPatches ${basedir}/patches/$2/
-	echo "  Patches saved for $what to patches/$2"
+    cd "$basedir/$targetname"
+    $gitcmd format-patch --no-signature --zero-commit --full-index --no-stat -N -o "$basedir/patches/$2" upstream/upstream >/dev/null
+	basedir
+    $gitcmd add -A "$basedir/patches/$2"
+	echo "  $(bashcolor 1 32)($3/$4)$(bashcolorend) - Patches saved for $targetname to patches/$2"
 }
 
-savePatches ${FORK_NAME}-API api
-if [ -f "$basedir/${FORK_NAME}-API/.git/patch-apply-failed" ]; then
-	echo "$(bashColor 1 31)[[[ WARNING ]]] $(bashColor 1 33)- Not saving Tuinity-Server as it appears ${FORK_NAME}-API did not apply clean.$(bashColorReset)"
-	echo "$(bashColor 1 33)If this is a mistake, delete $(bashColor 1 34)${FORK_NAME}-API/.git/patch-apply-failed$(bashColor 1 33) and run rebuild again.$(bashColorReset)"
-	echo "$(bashColor 1 33)Otherwise, rerun ./tuinity patch to have a clean Tuinity-API apply so the latest Tuinity-Server can build.$(bashColorReset)"
-else
-	savePatches ${FORK_NAME}-Server server
-	${basedir}/scripts/push.sh
-fi
-
-
+savePatches ${FORK_NAME}-API api 1 2
+savePatches ${FORK_NAME}-Server server 2 2
+# gitpushproject
