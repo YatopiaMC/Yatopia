@@ -17,7 +17,7 @@ echo "----------------------------------------"
 set -e
 paperworkdir="$basedir/Tuinity/Paper/work"
 mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
-serverjar="$basedir/YAPFA-Server/target/YAPFA-$mcver.jar"
+serverjar="$basedir/YAPFA-Server/target/yapfa-$mcver.jar"
 vanillajar="$paperworkdir/Minecraft/$mcver/$mcver.jar"
 
 (
