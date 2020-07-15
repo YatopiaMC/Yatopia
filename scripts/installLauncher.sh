@@ -25,7 +25,7 @@ vanillajar="$paperworkdir/Minecraft/$mcver/$mcver.jar"
     mvn clean package "-Dmcver=$mcver" "-Dpaperjar=$serverjar" "-Dvanillajar=$vanillajar"
 )
 mkdir -p "$basedir/target"
-cp "$paperworkdir/Paperclip/assembly/target/paperclip-${mcver}.jar" "$basedir/target/YAPFA-${mcver}-launcher.jar"
+cp "$paperworkdir/Paperclip/assembly/target/paperclip-${mcver}.jar" "$basedir/target/YAPFA-${mcver}-paperclip.jar"
 
 echo ""
 echo "  $(bashcolor 1 32)Success$(bashcolorend) - Saved launcher jar to target/YAPFA-${mcver}-launcher.jar"
