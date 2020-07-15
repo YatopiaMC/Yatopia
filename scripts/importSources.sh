@@ -118,10 +118,12 @@ done
 
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
-
+importToPaperWorkspace PistonExtendsChecker
+importToPaperWorkspace EnumDirection
 # Library import format (multiple files are supported):
 # importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
-
+importLibraryToPaperWorkspace com.mojang authlib com/mojang/authlib yggdrasil/YggdrasilGameProfileRepository.java
+importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
 # Submit imports by commit with file descriptions
 (
     cd "$paperserverdir"
