@@ -1,4 +1,4 @@
-From 3b2d14eee262b6906a7f85abcc16b89eeabfd19b Mon Sep 17 00:00:00 2001
+From 6dfd62dfc8291b5606e209e34bf07fa9b63f820b Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Sat, 4 Apr 2020 23:23:04 +0200
 Subject: [PATCH] Player saving async FileIO
@@ -12,7 +12,7 @@ Subject: [PATCH] Player saving async FileIO
  5 files changed, 139 insertions(+), 62 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 57b9d13447..540bd10f7e 100644
+index 1588d101e0..6cdcca8707 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -27,6 +27,8 @@ import java.util.List;
@@ -30,9 +30,9 @@ index 57b9d13447..540bd10f7e 100644
      private boolean m = true;
 +    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
  
-     public AdvancementDataPlayer(DataFixer datafixer, PlayerList playerlist, AdvancementDataWorld advancementdataworld, File file, EntityPlayer entityplayer) {
-         this.d = datafixer;
-@@ -223,53 +226,66 @@ public class AdvancementDataPlayer {
+     // Tuinity start - fix advancement data player leakage
+     final Map<CriterionTriggerAbstract, Set<CriterionTrigger.a>> criterionData = Maps.newIdentityHashMap();
+@@ -227,53 +230,66 @@ public class AdvancementDataPlayer {
  
          jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
  
