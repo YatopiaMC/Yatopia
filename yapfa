@@ -15,6 +15,8 @@ set -e
 
 source "./scripts/functions.sh"
 
+JAVA_VERSION=`java -version 2>&1 |awk 'NR==1{ gsub(/"/,""); print $3 }'`
+
 failed=0
 case "$1" in
     "r" | "rb" | "rbp" | "rebuild")
@@ -36,7 +38,7 @@ case "$1" in
        basedir
        $mvncmd -N install surefire-report:report
        cd ${FORK_NAME}-API
-       $mvncmd -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -e clean install surefire-report:report
+       $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install surefire-report:report
     ) || failed=1
     ;;
     "j" | "launcher" | "jar" | "paperclip")
@@ -78,7 +80,7 @@ case "$1" in
         basedir
         $mvncmd -N install surefire-report:report
         cd ${FORK_NAME}-API
-        $mvncmd -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -e clean install surefire-report:report
+        $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install surefire-report:report
     ) || failed=1
     ;;
     "e" | "edit")
