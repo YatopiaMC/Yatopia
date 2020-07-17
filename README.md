@@ -44,9 +44,10 @@ This Fork tries to import universal/performance patches from [EMC](https://githu
 ``Default``:``false`` Addon for ``villager.simplerVillagerBehavior``, gives villagers the ability to drink an invisibility potion like wandering traders at night to make it less likely for them to be killed since (for now) they don't stay at the village/use their houses at night and no ability for them to respawn.
 
 ## Building and setting up
-Run the following command in the root directory:
+Run the following commands in the root directory:
 
 ```
+git submodule update --init --recursive --force
 ./yapfa jar
 ```
 
