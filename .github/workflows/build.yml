@@ -26,9 +26,9 @@ jobs:
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
     - uses: s4u/maven-settings-action@v2.1.0
-      name: Use ${{ matrix.java }} as the java target and source
+      name: Use ${{ matrix.java }} as the java target
       with:
-        properties: '[{"maven.compiler.source": "${{ matrix.java }}"}, {"maven.compiler.target": "${{ matrix.java }}"}]'
+        properties: '[{"maven.compiler.target": "${{ matrix.java }}"}]'
     - name: Setup YAPFA Project
       run: |
          git submodule update --init --recursive -f
