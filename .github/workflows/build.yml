@@ -31,13 +31,10 @@ jobs:
         properties: '[{"maven.compiler.source": "${{ matrix.java }}"}, {"maven.compiler.target": "${{ matrix.java }}"}]'
     - name: Setup YAPFA Project
       run: |
-         git submodule update --init -f
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
          sudo chmod -R -f 777 scripts
-         cd Tuinity
-         git submodule update --init --recursive -f
-         cd ..//
+         ./yapfa init
     - name: Build Maven Depends
       if: steps.maven-cache.outputs.cache-hit != 'true'
       run: |

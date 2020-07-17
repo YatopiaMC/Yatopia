@@ -19,6 +19,13 @@ JAVA_VERSION=`java -version 2>&1 |awk 'NR==1{ gsub(/"/,""); print $3 }'`
 
 failed=0
 case "$1" in
+    "i" | "in" | "init" | "initsubmodules")
+    (
+        set -e
+        basedir
+        $scriptdir/initUpstream.sh "$basedir" || exit 1
+    ) || failed=1
+    ;;
     "r" | "rb" | "rbp" | "rebuild")
     (
         set -e
