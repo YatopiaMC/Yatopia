@@ -54,6 +54,64 @@ index 26bbf2fc413e193507272d930e42e1ec9133abd7..565287c4c64f998ffe2caa631dd329b4
          int i = aenumitemslot.length;
  
          for (int j = 0; j < i; ++j) {
+diff --git a/src/main/java/net/minecraft/server/EnumAxisCycle.java b/src/main/java/net/minecraft/server/EnumAxisCycle.java
+index a7c2543fdd4d5f6a04c45ec42472837ccaea9619..d05cddcc90e220c42548b2eb7b190fc63e9d51f5 100644
+--- a/src/main/java/net/minecraft/server/EnumAxisCycle.java
++++ b/src/main/java/net/minecraft/server/EnumAxisCycle.java
+@@ -24,14 +24,27 @@ public enum EnumAxisCycle {
+             return enumdirection_enumaxis.a(k, i, j);
+         }
+ 
++        /**
++         * The JVM has difficulty optimizing these functions due to the use of dynamic dispatch. They can trivially be
++         * implemented as a simple switch lookup table.
++         */
+         @Override
+         public EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis) {
+-            return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() + 1, 3)];
++			switch (enumdirection_enumaxis) {
++			case X:
++				return EnumDirection.EnumAxis.Y;
++			case Y:
++				return EnumDirection.EnumAxis.Z;
++			case Z:
++				return EnumDirection.EnumAxis.X;
++			}
++
++			throw new IllegalArgumentException();
+         }
+ 
+         @Override
+         public EnumAxisCycle a() {
+-            return null.BACKWARD;
++            return BACKWARD;
+         }
+     },
+     BACKWARD {
+@@ -42,12 +55,21 @@ public enum EnumAxisCycle {
+ 
+         @Override
+         public EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis) {
+-            return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() - 1, 3)];
++			switch (enumdirection_enumaxis) {
++			case X:
++				return EnumDirection.EnumAxis.Z;
++			case Y:
++				return EnumDirection.EnumAxis.X;
++			case Z:
++				return EnumDirection.EnumAxis.Y;
++			}
++
++			throw new IllegalArgumentException();
+         }
+ 
+         @Override
+         public EnumAxisCycle a() {
+-            return null.FORWARD;
++            return FORWARD;
+         }
+     };
+ 
 diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
 index dd64aad1ed6c2acf360e757bf0369da5fcf6be41..18a136213565794addf35511de23e078065af5f2 100644
 --- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java

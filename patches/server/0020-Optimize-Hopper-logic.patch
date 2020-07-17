@@ -1,17 +1,11 @@
-From fa38c57d5703a679e32da11c43f51706281d40f1 Mon Sep 17 00:00:00 2001
-From: tr7zw <tr7zw@live.de>
-Date: Fri, 26 Jun 2020 01:11:47 +0200
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Thu, 16 Jul 2020 23:09:45 -0500
 Subject: [PATCH] Optimize Hopper logic
 
----
- .../net/minecraft/server/BlockDropper.java    |   2 +-
- .../net/minecraft/server/BlockHopper.java     | 230 ++++++++++++++++++
- .../minecraft/server/TileEntityHopper.java    |  70 +++++-
- 3 files changed, 291 insertions(+), 11 deletions(-)
- create mode 100644 src/main/java/net/minecraft/server/BlockHopper.java
 
 diff --git a/src/main/java/net/minecraft/server/BlockDropper.java b/src/main/java/net/minecraft/server/BlockDropper.java
-index 1ce89c28c2..1b360140b6 100644
+index 1ce89c28c2b54278dc8f1c17f2d0ccb743a27b34..1b360140b6161e9cae96752943d574200b5ced4e 100644
 --- a/src/main/java/net/minecraft/server/BlockDropper.java
 +++ b/src/main/java/net/minecraft/server/BlockDropper.java
 @@ -36,7 +36,7 @@ public class BlockDropper extends BlockDispenser {
@@ -24,13 +18,13 @@ index 1ce89c28c2..1b360140b6 100644
  
                  if (iinventory == null) {
 diff --git a/src/main/java/net/minecraft/server/BlockHopper.java b/src/main/java/net/minecraft/server/BlockHopper.java
-new file mode 100644
-index 0000000000..31ee358f82
---- /dev/null
+index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..31ee358f82c2193fa7f2fc4e01798126be89f349 100644
+--- a/src/main/java/net/minecraft/server/BlockHopper.java
 +++ b/src/main/java/net/minecraft/server/BlockHopper.java
-@@ -0,0 +1,230 @@
-+package net.minecraft.server;
-+
+@@ -1,182 +1,230 @@
+ package net.minecraft.server;
+ 
+-public class BlockHopper extends BlockTileEntity {
 +import java.util.OptionalInt;
 +import net.minecraft.server.Block;
 +import net.minecraft.server.BlockActionContext;
@@ -72,7 +66,185 @@ index 0000000000..31ee358f82
 +import net.minecraft.server.VoxelShapeCollision;
 +import net.minecraft.server.VoxelShapes;
 +import net.minecraft.server.World;
-+
+ 
+-    public static final BlockStateDirection FACING = BlockProperties.N;
+-    public static final BlockStateBoolean ENABLED = BlockProperties.f;
+-    private static final VoxelShape c = Block.a(0.0D, 10.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+-    private static final VoxelShape d = Block.a(4.0D, 4.0D, 4.0D, 12.0D, 10.0D, 12.0D);
+-    private static final VoxelShape e = VoxelShapes.a(BlockHopper.d, BlockHopper.c);
+-    private static final VoxelShape f = VoxelShapes.a(BlockHopper.e, IHopper.a, OperatorBoolean.ONLY_FIRST);
+-    private static final VoxelShape g = VoxelShapes.a(BlockHopper.f, Block.a(6.0D, 0.0D, 6.0D, 10.0D, 4.0D, 10.0D));
+-    private static final VoxelShape h = VoxelShapes.a(BlockHopper.f, Block.a(12.0D, 4.0D, 6.0D, 16.0D, 8.0D, 10.0D));
+-    private static final VoxelShape i = VoxelShapes.a(BlockHopper.f, Block.a(6.0D, 4.0D, 0.0D, 10.0D, 8.0D, 4.0D));
+-    private static final VoxelShape j = VoxelShapes.a(BlockHopper.f, Block.a(6.0D, 4.0D, 12.0D, 10.0D, 8.0D, 16.0D));
+-    private static final VoxelShape k = VoxelShapes.a(BlockHopper.f, Block.a(0.0D, 4.0D, 6.0D, 4.0D, 8.0D, 10.0D));
+-    private static final VoxelShape o = IHopper.a;
+-    private static final VoxelShape p = VoxelShapes.a(IHopper.a, Block.a(12.0D, 8.0D, 6.0D, 16.0D, 10.0D, 10.0D));
+-    private static final VoxelShape q = VoxelShapes.a(IHopper.a, Block.a(6.0D, 8.0D, 0.0D, 10.0D, 10.0D, 4.0D));
+-    private static final VoxelShape r = VoxelShapes.a(IHopper.a, Block.a(6.0D, 8.0D, 12.0D, 10.0D, 10.0D, 16.0D));
+-    private static final VoxelShape s = VoxelShapes.a(IHopper.a, Block.a(0.0D, 8.0D, 6.0D, 4.0D, 10.0D, 10.0D));
+-
+-    public BlockHopper(BlockBase.Info blockbase_info) {
+-        super(blockbase_info);
+-        this.j((IBlockData) ((IBlockData) ((IBlockData) this.blockStateList.getBlockData()).set(BlockHopper.FACING, EnumDirection.DOWN)).set(BlockHopper.ENABLED, true));
+-    }
+-
+-    @Override
+-    public VoxelShape b(IBlockData iblockdata, IBlockAccess iblockaccess, BlockPosition blockposition, VoxelShapeCollision voxelshapecollision) {
+-        switch ((EnumDirection) iblockdata.get(BlockHopper.FACING)) {
+-            case DOWN:
+-                return BlockHopper.g;
+-            case NORTH:
+-                return BlockHopper.i;
+-            case SOUTH:
+-                return BlockHopper.j;
+-            case WEST:
+-                return BlockHopper.k;
+-            case EAST:
+-                return BlockHopper.h;
+-            default:
+-                return BlockHopper.f;
+-        }
+-    }
+-
+-    @Override
+-    public VoxelShape a_(IBlockData iblockdata, IBlockAccess iblockaccess, BlockPosition blockposition) {
+-        switch ((EnumDirection) iblockdata.get(BlockHopper.FACING)) {
+-            case DOWN:
+-                return BlockHopper.o;
+-            case NORTH:
+-                return BlockHopper.q;
+-            case SOUTH:
+-                return BlockHopper.r;
+-            case WEST:
+-                return BlockHopper.s;
+-            case EAST:
+-                return BlockHopper.p;
+-            default:
+-                return IHopper.a;
+-        }
+-    }
+-
+-    @Override
+-    public IBlockData getPlacedState(BlockActionContext blockactioncontext) {
+-        EnumDirection enumdirection = blockactioncontext.getClickedFace().opposite();
+-
+-        return (IBlockData) ((IBlockData) this.getBlockData().set(BlockHopper.FACING, enumdirection.n() == EnumDirection.EnumAxis.Y ? EnumDirection.DOWN : enumdirection)).set(BlockHopper.ENABLED, true);
+-    }
+-
+-    @Override
+-    public TileEntity createTile(IBlockAccess iblockaccess) {
+-        return new TileEntityHopper();
+-    }
+-
+-    @Override
+-    public void postPlace(World world, BlockPosition blockposition, IBlockData iblockdata, EntityLiving entityliving, ItemStack itemstack) {
+-        if (itemstack.hasName()) {
+-            TileEntity tileentity = world.getTileEntity(blockposition);
+-
+-            if (tileentity instanceof TileEntityHopper) {
+-                ((TileEntityHopper) tileentity).setCustomName(itemstack.getName());
+-            }
+-        }
+-
+-    }
+-
+-    @Override
+-    public void onPlace(IBlockData iblockdata, World world, BlockPosition blockposition, IBlockData iblockdata1, boolean flag) {
+-        if (!iblockdata1.a(iblockdata.getBlock())) {
+-            this.a(world, blockposition, iblockdata);
+-        }
+-    }
+-
+-    @Override
+-    public EnumInteractionResult interact(IBlockData iblockdata, World world, BlockPosition blockposition, EntityHuman entityhuman, EnumHand enumhand, MovingObjectPositionBlock movingobjectpositionblock) {
+-        if (world.isClientSide) {
+-            return EnumInteractionResult.SUCCESS;
+-        } else {
+-            TileEntity tileentity = world.getTileEntity(blockposition);
+-
+-            if (tileentity instanceof TileEntityHopper) {
+-                entityhuman.openContainer((TileEntityHopper) tileentity);
+-                entityhuman.a(StatisticList.INSPECT_HOPPER);
+-            }
+-
+-            return EnumInteractionResult.CONSUME;
+-        }
+-    }
+-
+-    @Override
+-    public void doPhysics(IBlockData iblockdata, World world, BlockPosition blockposition, Block block, BlockPosition blockposition1, boolean flag) {
+-        this.a(world, blockposition, iblockdata);
+-    }
+-
+-    private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
+-        boolean flag = !world.isBlockIndirectlyPowered(blockposition);
+-
+-        if (flag != (Boolean) iblockdata.get(BlockHopper.ENABLED)) {
+-            world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockHopper.ENABLED, flag), 4);
+-        }
+-
+-    }
+-
+-    @Override
+-    public void remove(IBlockData iblockdata, World world, BlockPosition blockposition, IBlockData iblockdata1, boolean flag) {
+-        if (!iblockdata.a(iblockdata1.getBlock())) {
+-            TileEntity tileentity = world.getTileEntity(blockposition);
+-
+-            if (tileentity instanceof TileEntityHopper) {
+-                InventoryUtils.dropInventory(world, blockposition, (TileEntityHopper) tileentity);
+-                world.updateAdjacentComparators(blockposition, this);
+-            }
+-
+-            super.remove(iblockdata, world, blockposition, iblockdata1, flag);
+-        }
+-    }
+-
+-    @Override
+-    public EnumRenderType b(IBlockData iblockdata) {
+-        return EnumRenderType.MODEL;
+-    }
+-
+-    @Override
+-    public boolean isComplexRedstone(IBlockData iblockdata) {
+-        return true;
+-    }
+-
+-    @Override
+-    public int a(IBlockData iblockdata, World world, BlockPosition blockposition) {
+-        return Container.a(world.getTileEntity(blockposition));
+-    }
+-
+-    @Override
+-    public IBlockData a(IBlockData iblockdata, EnumBlockRotation enumblockrotation) {
+-        return (IBlockData) iblockdata.set(BlockHopper.FACING, enumblockrotation.a((EnumDirection) iblockdata.get(BlockHopper.FACING)));
+-    }
+-
+-    @Override
+-    public IBlockData a(IBlockData iblockdata, EnumBlockMirror enumblockmirror) {
+-        return iblockdata.a(enumblockmirror.a((EnumDirection) iblockdata.get(BlockHopper.FACING)));
+-    }
+-
+-    @Override
+-    protected void a(BlockStateList.a<Block, IBlockData> blockstatelist_a) {
+-        blockstatelist_a.a(BlockHopper.FACING, BlockHopper.ENABLED);
+-    }
+-
+-    @Override
+-    public void a(IBlockData iblockdata, World world, BlockPosition blockposition, Entity entity) {
+-        TileEntity tileentity = world.getTileEntity(blockposition);
+-
+-        if (tileentity instanceof TileEntityHopper) {
+-            ((TileEntityHopper) tileentity).a(entity);
+-        }
+-
+-    }
+-
+-    @Override
+-    public boolean a(IBlockData iblockdata, IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
+-        return false;
+-    }
+-}
 +public class BlockHopper extends BlockTileEntity {
 +	public static final BlockStateDirection FACING = BlockProperties.N;
 +	public static final BlockStateBoolean ENABLED = BlockProperties.f;
@@ -261,7 +433,7 @@ index 0000000000..31ee358f82
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 20df9bd21d..a7f9d3e5ec 100644
+index 20df9bd21d0e4d2579d05d79672da2eb26478044..a7f9d3e5ec1d582eb7101d5b6a969281b15be028 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -2,6 +2,7 @@ package net.minecraft.server;
@@ -382,6 +554,3 @@ index 20df9bd21d..a7f9d3e5ec 100644
 +    // YAPFA end
 +    
  }
--- 
-2.25.1.windows.1
-
