@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-maintask=$2
-if [[ $maintask == "0" ]]; then
-    TASKTITLE="Import Sources"
-else
-    TASKTITLE="Import Sources (Subtask)"
-fi
+#maintask=$2
+#if [[ $maintask == "0" ]]; then
+#    TASKTITLE="Import Sources"
+#else
+#    TASKTITLE="Import Sources (Subtask)"
+#fi
 
 # SCRIPT HEADER start
 basedir=$1
@@ -19,8 +19,8 @@ echo "----------------------------------------"
 
 # For a description of this script, see updateUpstream.sh.
 paperworkdir="$basedir/Tuinity/Paper/work"
-paperserverdir="$basedir/Tuinity/Tuinity-Server"
-papersrcdir="$paperserverdir/src/main/java"
+lookdirserverdir="$2"
+papersrcdir="$basedir/YAPFA-Server/src/main/java"
 papernmsdir="$papersrcdir/net/minecraft/server"
 
 (
@@ -88,10 +88,16 @@ function importLibraryToPaperWorkspace {
 )
 
 # Filter and import every files which have patch to modify
-patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-
-patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-
+patchedFiles=$(cat patches/$2/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+if [[ $lookdirserverdir != "YAPFA" ]]; then
+	if [[ $lookdirserverdir != null ]]; then
+		patchedFilesNonNMS=$(cat patches/$lookdirserverdir/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+	else
+		patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+	fi
+else 
+	patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+fi
 (
     cd "$paperserverdir"
     $gitcmd fetch --all &> /dev/null

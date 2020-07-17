@@ -3,6 +3,7 @@
 # SCRIPT HEADER start
 basedir=$1
 source "$basedir/scripts/functions.sh"
+gpgsign="$($gitcmd config commit.gpgsign || echo "false")"
 echo "  "
 echo "----------------------------------------"
 echo "  $(bashcolor 1 32)Task$(bashcolorend) - Apply Patches"
@@ -18,7 +19,11 @@ echo "----------------------------------------"
 # SCRIPT HEADER end
 
 needimport=$2
-
+function enableCommitSigningIfNeeded {
+	if [[ "$gpgsign" == "true" ]]; then
+		$gitcmd config commit.gpgsign true
+	fi
+}
 function applyPatch {
     baseproject=$1
     basename=$(basename $baseproject)
@@ -32,14 +37,11 @@ function applyPatch {
 	    echo "  $(bashcolor 1 33)($5/$6) Skipped$(bashcolorend) - No patch found for $target under patches/$patch_folder"
 		return
 	fi
-
-    echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Setup upstream project.."
-    cd "$basedir/$baseproject"
-    $gitcmd fetch --all &> /dev/null
-	# Create the upstream branch in Paper project with current state
-    $gitcmd checkout master >/dev/null 2>&1 # possibly already in
-	$gitcmd branch -D upstream &> /dev/null
-	$gitcmd branch -f upstream "$branch" &> /dev/null && $gitcmd checkout upstream &> /dev/null
+	
+	# Disable GPG signing before AM, slows things down and doesn't play nicely.
+	# There is also zero rational or logical reason to do so for these sub-repo AMs.
+	# Calm down kids, it's re-enabled (if needed) immediately after, pass or fail.
+	$gitcmd config commit.gpgsign false	
 	
 	if [[ $needimport != "1" ]]; then
 	    if [ $baseproject != "Paper/Paper-API" ]; then
@@ -47,27 +49,8 @@ function applyPatch {
 	        basedir && $scriptdir/importSources.sh $basedir 1 || exit 1
 		fi
     fi
-
-    basedir
-	# Create source project dirs
-    if [ ! -d  "$basedir/$target" ]; then
-        mkdir "$basedir/$target"
-        cd "$basedir/$target"
-        # $gitcmd remote add origin "$5"
-    fi
-    cd "$basedir/$target"
-	$gitcmd init > /dev/null 2>&1
-
-    echo "  "
-	echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Reset $target to $basename.."
-	# Add the generated Paper project as the upstream remote of subproject
-    $gitcmd remote rm upstream &> /dev/null
-    $gitcmd remote add upstream "$basedir/$baseproject" &> /dev/null
-	# Ensure that we are in the branch we want so not overriding things
-    $gitcmd checkout master &> /dev/null || $gitcmd checkout -b master &> /dev/null
-    $gitcmd fetch upstream &> /dev/null
-	# Reset our source project to Paper
-    cd "$basedir/$target" && $gitcmd reset --hard upstream/upstream &> /dev/null
+	$gitcmd branch $target
+	
 	echo "  "
 
 	echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Apply patches to $target.."
@@ -90,6 +73,9 @@ function applyPatch {
 		echo "  "
     fi
 }
-
+$1/scripts/resetToUpstream.sh $1 || exit 1
+$1/scripts/getUpstream.sh $1 || exit 1
 (applyPatch Tuinity/Tuinity-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
-applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2) || exit 1
+applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
+enableCommitSigningIfNeeded
+exit 1 )
