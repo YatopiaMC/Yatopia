@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [11, 8]
+        java: [11, 8, 14]
 
     steps:
     - uses: actions/checkout@v2
@@ -25,6 +25,10 @@ jobs:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
+    - uses: s4u/maven-settings-action@v2.1.0
+      name: Use ${{ matrix.java }} as the java target and source
+      with:
+        properties: '[{"maven.compiler.source": "${{ matrix.java }}"}, {"maven.compiler.target": "${{ matrix.java }}"}]'
     - name: Setup YAPFA Project
       run: |
          git submodule update --init -f
