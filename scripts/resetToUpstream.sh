@@ -5,7 +5,7 @@ basedir=$1
 basename=$(basename $baseproject)
 branch=HEAD
 for type in ${searchtxts[@]}; do
-	baseproject=YAPFA-$type
+	baseproject=/Tuinity/Tuinity-$type
 	target=YAPFA-$type
 	echo "Setup upstream project.."
 	cd "$basedir/$baseproject"

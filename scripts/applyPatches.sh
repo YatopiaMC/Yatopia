@@ -73,8 +73,8 @@ function applyPatch {
 		echo "  "
     fi
 }
-$1/scripts/resetToUpstream.sh $1 || exit 1
-$1/scripts/getUpstream.sh $1 || exit 1
+$1/scripts/resetToUpstream.sh $1
+$1/scripts/getUpstream.sh $1
 (applyPatch Tuinity/Tuinity-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
 applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
 enableCommitSigningIfNeeded
