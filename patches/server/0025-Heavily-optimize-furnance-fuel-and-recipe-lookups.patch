@@ -1,15 +1,11 @@
-From 40fa0bc6f6838a9bb268864cc02a03b6c1e7e4d8 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
 Date: Thu, 25 Jun 2020 23:40:12 +0200
 Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 
----
- .../net/minecraft/server/CraftingManager.java | 19 +++++++++++++++-
- .../minecraft/server/TileEntityFurnace.java   | 22 +++++++++++++++++++
- 2 files changed, 40 insertions(+), 1 deletion(-)
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index f27c7041c..384cb3c62 100644
+index f27c7041cdc2f062f0abb222b02026194ab33c60..384cb3c62a3fb0972cf6058b219d1e0731a8dc0d 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -89,7 +89,24 @@ public class CraftingManager extends ResourceDataJson {
@@ -39,7 +35,7 @@ index f27c7041c..384cb3c62 100644
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 59aa2f8a7..7b1d20d39 100644
+index 59aa2f8a797482c43fd47d3bce936772ad3cd6aa..7b1d20d395ffd264b23dccba230f5e6205796b56 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
 @@ -99,7 +99,13 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
@@ -84,6 +80,3 @@ index 59aa2f8a7..7b1d20d39 100644
 +    // YAPFA end
 +    
  }
--- 
-2.25.1.windows.1
-
