@@ -83,7 +83,8 @@ case "$1" in
         $mvncmd -N install surefire-report:report
         cd ${FORK_NAME}-API
 		$mvncmd -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -e clean install surefire-report:report
-    ) || failed=1
+		$scriptdir/installLauncher.sh "$basedir" || exit 1
+	) || failed=1
     ;;
     "e" | "edit")
         case "$2" in
