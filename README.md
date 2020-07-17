@@ -47,11 +47,8 @@ This Fork tries to import universal/performance patches from [EMC](https://githu
 Run the following commands in the root directory:
 
 ```
-git submodule init
-git submodule update
-./fetchUpstream.sh
-./yapfa build
-./yapfa paperclip
+git submodule update --init --recursive --force
+./yapfa jar
 ```
 
 ## LICENSE

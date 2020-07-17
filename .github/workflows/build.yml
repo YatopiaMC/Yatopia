@@ -2,6 +2,7 @@ name: CI
 
 on: [push, pull_request]
 
+
 jobs:
   build:
 
@@ -9,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [11, 8]
+        java: [11, 8, 14]
 
     steps:
     - uses: actions/checkout@v2
@@ -17,30 +18,34 @@ jobs:
       uses: actions/setup-java@v1.3.0
       with:
         java-version: ${{ matrix.java }}
-
-    - uses: actions/cache@v1.1.2
+    - name: Pull Maven Cache
+      uses: actions/cache@v1.1.2
+      id: maven-cache
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
-
+    - uses: s4u/maven-settings-action@v2.1.0
+      name: Use ${{ matrix.java }} as the java target
+      with:
+        properties: '[{"maven.compiler.target": "${{ matrix.java }}"}]'
+    - name: Setup YAPFA Project
+      run: |
+         git submodule update --init --recursive -f
+         git config --global user.email "ci@github.com"
+         git config --global user.name "Github CI"
+         sudo chmod -R -f 777 scripts   
+    - name: Build Maven Depends
+      if: steps.maven-cache.outputs.cache-hit != 'true'
+      run: |
+         cd Tuinity
+         ./tuinity jar
+         cd ..//           
     - name: Build YAPFA
       run: |
-        git submodule init
-        git submodule update --init --recursive
-        git config --global user.email "ci@github.com"
-        git config --global user.name "Github CI"
-        yapfaDir=`pwd`
-        ./patchPaper.sh
-        cd Tuinity
-        mvn -N install
-        ./tuinity patch
-        cd $yapfaDir
-        ./yapfa patch
-        ./yapfa build
-        ./yapfa paperclip
+        ./yapfa full
     - name: Upload Artifact
       uses: actions/upload-artifact@v2-preview
       with:
         name: YAPFA-${{ matrix.java }}
-        path: yapfa-paperclip.jar
+        path: target/YAPFA-1.16.1-paperclip.jar
