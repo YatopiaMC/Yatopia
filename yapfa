@@ -15,18 +15,6 @@ set -e
 
 source "./scripts/functions.sh"
 
-function setupUpstreamAndPatch {
-    basedir
-    if [ "$1" == "--updatePaper" ]; then
-        $scriptdir/updateUpstream.sh "$basedir" 1 || exit 1
-	else
-	    if [ "$1" != "--skipPaper" ]; then
-            $scriptdir/updateUpstream.sh "$basedir" 0 || exit 1 # not update submodule
-        fi
-    fi
-	$scriptdir/applyPatches.sh "$basedir" || exit 1
-}
-
 failed=0
 case "$1" in
     "r" | "rb" | "rbp" | "rebuild")
@@ -40,37 +28,22 @@ case "$1" in
     "a" | "p" | "patch" | "apply")
     (
         set -e
-		setupUpstreamAndPatch $2 || exit 1
+		$scriptdir/applyPatches.sh "$basedir" || exit 1
     ) || failed=1
     ;;
     "b" | "bu" | "build" | "install")
     (
-        set -e
-		setupUpstreamAndPatch $2 || exit 1
-		basedir
-        $mvncmd -N install || exit 1
-        cd ${FORK_NAME}-API
-        $mvncmd -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -e clean install || exit 1
-    ) || failed=1
-    ;;
-    "j" | "launcher" | "jar" | "paperclip")
-    (
-	   setupUpstreamAndPatch $2 || exit 1
        basedir
        $mvncmd -N install surefire-report:report
        cd ${FORK_NAME}-API
        $mvncmd -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -e clean install surefire-report:report
+    ) || failed=1
+    ;;
+    "j" | "launcher" | "jar" | "paperclip")
+    (
        basedir
        $scriptdir/installLauncher.sh "$basedir"
     ) || failed=1
-    ;;
-    "d" | "de" | "deploy")
-    (
-        basedir
-        $mvncmd -N install
-        cd ${FORK_NAME}-API
-        $mvncmd clean deploy && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd clean install
-    )
     ;;
     "u" | "up" | "upstream" | "update")
     (
@@ -82,22 +55,37 @@ case "$1" in
         basedir
     ;;
     "a" | "api")
-        cd "$basedir/Akarin-API"
+        cd "$basedir/YAPFA-API"
     ;;
     "s" | "server")
-        cd "$basedir/Akarin-Server"
+        cd "$basedir/YAPFA-Server"
+    ;;
+    "fup" | "fetchupstream")
+		$scriptdir/fetchUpstream.sh "$basedir" || exit 1
     ;;
     "c" | "clean")
-        rm -rf Akarin-API
-        rm -rf Akarin-Server
+        rm -rf YAPFA-API
+        rm -rf YAPFA-Server
         rm -rf Paper
         echo "Cleaned build files"
+    ;;
+    "f" | "fu" | "full" | "fullbuild")
+    (
+        basedir
+        $scriptdir/updateUpstream.sh "$basedir" || exit 1
+        set -e
+        $scriptdir/applyPatches.sh "$basedir" || exit 1
+        basedir
+        $mvncmd -N install surefire-report:report
+        cd ${FORK_NAME}-API
+        $mvncmd -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -e clean install surefire-report:report
+    ) || failed=1
     ;;
     "e" | "edit")
         case "$2" in
             "s" | "server")
-            export AKARIN_LAST_EDIT="$basedir/Akarin-Server"
-            cd "$basedir/Akarin-Server"
+            export YAPFA_LAST_EDIT="$basedir/YAPFA-Server"
+            cd "$basedir/YAPFA-Server"
             (
                 set -e
                 gitstash
@@ -107,14 +95,14 @@ case "$1" in
                 $gitcmd checkout master # possibly already in
 	            $gitcmd branch -D upstream || true
                 $gitcmd branch -f upstream HEAD
-				cd "$basedir/Akarin-Server"
+				cd "$basedir/YAPFA-Server"
                 $gitcmd rebase -i upstream/upstream
                 gitunstash
             )
             ;;
             "a" | "api")
-            export AKARIN_LAST_EDIT="$basedir/Akarin-API"
-            cd "$basedir/Akarin-API"
+            export YAPFA_LAST_EDIT="$basedir/YAPFA-API"
+            cd "$basedir/YAPFA-API"
             (
                 set -e
                 gitstash
@@ -124,14 +112,14 @@ case "$1" in
                 $gitcmd checkout master # possibly already in
 	            $gitcmd branch -D upstream || true
                 $gitcmd branch -f upstream HEAD
-				cd "$basedir/Akarin-API"
+				cd "$basedir/YAPFA-API"
                 $gitcmd rebase -i upstream/upstream
                 gitunstash
             )
             ;;
             "c" | "continue")
-            cd "$AKARIN_LAST_EDIT"
-            unset AKARIN_LAST_EDIT
+            cd "$YAPFA_LAST_EDIT"
+            unset YAPFA_LAST_EDIT
             (
                 set -e
                 $gitcmd add .
@@ -148,13 +136,13 @@ case "$1" in
     ;;
     "setup")
         if [[ -f ~/.bashrc ]] ; then
-            NAME="akarin"
+            NAME="YAPFA"
             if [[ ! -z "${2+x}" ]] ; then
                 NAME="$2"
             fi
             (grep "alias $NAME=" ~/.bashrc > /dev/null) && (sed -i "s|alias $NAME=.*|alias $NAME='. $SOURCE'|g" ~/.bashrc) || (echo "alias $NAME='. $SOURCE'" >> ~/.bashrc)
             alias "$NAME=. $SOURCE"
-            echo "You can now just type '$NAME' at any time to access the akarin tool."
+            echo "You can now just type '$NAME' at any time to access the YAPFA tool."
         fi
     ;;
     *)
@@ -180,8 +168,8 @@ case "$1" in
         echo ""
         echo "  * setup        | Add an alias to .bashrc to allow full functionality of this script. Run as:"
         echo "                 |     . ./YAPFA setup"
-        echo "                 | After you run this command you'll be able to just run 'akarin' from anywhere."
-        echo "                 | The default name for the resulting alias is 'akarin', you can give an argument to override"
+        echo "                 | After you run this command you'll be able to just run 'YAPFA' from anywhere."
+        echo "                 | The default name for the resulting alias is 'YAPFA', you can give an argument to override"
         echo "                 | this default, such as:"
         echo "                 |     . ./YAPFA setup example"
         echo "                 | Which will allow you to run 'example' instead."
