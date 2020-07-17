@@ -35,16 +35,17 @@ case "$1" in
     ;;
     "b" | "bu" | "build" | "install")
     (
-       basedir
-       $mvncmd -N install surefire-report:report
-       cd ${FORK_NAME}-API
-       $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install surefire-report:report
+		echo "$JAVA_VERSION"
+		basedir
+		$mvncmd -N install surefire-report:report
+		cd ${FORK_NAME}-API
+		$mvncmd -source "$JAVA_VERSION" -target "$JAVA_VERSION" -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -source "$JAVA_VERSION" -target "$JAVA_VERSION" -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -source "$JAVA_VERSION" -target "$JAVA_VERSION" -e clean install surefire-report:report
     ) || failed=1
     ;;
     "j" | "launcher" | "jar" | "paperclip")
     (
-       basedir
-       $scriptdir/installLauncher.sh "$basedir"
+		basedir
+		$scriptdir/installLauncher.sh "$basedir"
     ) || failed=1
     ;;
     "u" | "up" | "upstream" | "update")
@@ -73,6 +74,7 @@ case "$1" in
     ;;
     "f" | "fu" | "full" | "fullbuild")
     (
+		echo "$JAVA_VERSION"
         basedir
         $scriptdir/updateUpstream.sh "$basedir" || exit 1
         set -e
@@ -80,7 +82,7 @@ case "$1" in
         basedir
         $mvncmd -N install surefire-report:report
         cd ${FORK_NAME}-API
-        $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -source $JAVA_VERSION -target $JAVA_VERSION -e clean install surefire-report:report
+		$mvncmd -source "$JAVA_VERSION" -target "$JAVA_VERSION" -e clean install && (cd ../Tuinity/Paper/Paper-MojangAPI && $mvncmd -source "$JAVA_VERSION" -target "$JAVA_VERSION" -e clean install) && cd ../${FORK_NAME}-Server && $mvncmd -source "$JAVA_VERSION" -target "$JAVA_VERSION" -e clean install surefire-report:report
     ) || failed=1
     ;;
     "e" | "edit")
