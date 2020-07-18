@@ -14,7 +14,6 @@ on:
       - dev/ver/1.16.1
       - master
 
-
 jobs:
   build:
 
@@ -65,24 +64,15 @@ jobs:
       with:
         name: YAPFA-${{ matrix.java }}
         path: target/YAPFA-1.16.1-paperclip.jar
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
+    - name: Deploy Release
+      if: github.ref == 'refs/heads/dev/ver/1.16.1'
+      uses: WebFreak001/deploy-nightly@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
       with:
-        tag_name: ${{ github.ref }}
-        release_name: YAPFA Release 1.16.1 Java ${{ matrix.java }} ${{ github.ref }}
-        body: |
-          This an an automated release!
-        draft: false
-        prerelease: false
-    - name: Upload Release Asset
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: target/YAPFA-1.16.1-paperclip.jar
-        asset_name: YAPFA-${{ matrix.java }}--${{ github.ref }}
+        upload_url: https://uploads.github.com/repos/tr7zw/YAPFA/releases/28703947/assets{?name,label} # find out this value by opening https://api.github.com/repos/<owner>/<repo>/releases in your browser and copy the full "upload_url" value including the {?name,label} part
+        release_id: 28703947 # same as above (id can just be taken out the upload_url, it's used to find old releases)
+        asset_path: target/YAPFA-1.16.1-paperclip.jar # path to archive to upload
+        asset_name: YAPFA-1.16.1-paperclip.jar # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
+        asset_content_type: application/zip # required by GitHub API
+        max_releases: 3 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
