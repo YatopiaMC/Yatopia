@@ -46,7 +46,7 @@ function applyPatch {
 	if [[ $needimport != "1" ]]; then
 	    if [ $baseproject != "Paper/Paper-API" ]; then
 	        echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Import new introduced NMS files.."
-	        basedir && $scriptdir/importSources.sh $basedir 1 || exit 1
+	        basedir && $scriptdir/importSources.sh $basedir "YAPFA" || exit 1
 		fi
     fi
 	$gitcmd branch $target

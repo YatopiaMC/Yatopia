@@ -9,6 +9,7 @@
 
 # SCRIPT HEADER start
 basedir=$1
+echo "$2"
 source "$basedir/scripts/functions.sh"
 echo "  "
 echo "----------------------------------------"
@@ -88,14 +89,17 @@ function importLibraryToPaperWorkspace {
 )
 
 # Filter and import every files which have patch to modify
-patchedFiles=$(cat patches/$2/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+
 if [[ $lookdirserverdir != "YAPFA" ]]; then
 	if [[ $lookdirserverdir != null ]]; then
+		patchedFiles=$(cat patches/$lookdirserverdir/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 		patchedFilesNonNMS=$(cat patches/$lookdirserverdir/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	else
+		patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 		patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	fi
-else 
+else
+	patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 fi
 (
@@ -124,18 +128,16 @@ done
 
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
-importToPaperWorkspace PistonExtendsChecker
-importToPaperWorkspace EnumDirection
+
 # Library import format (multiple files are supported):
 # importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
-importLibraryToPaperWorkspace com.mojang authlib com/mojang/authlib yggdrasil/YggdrasilGameProfileRepository.java
-importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
 # Submit imports by commit with file descriptions
 (
     cd "$paperserverdir"
     # rm -rf nms-patches
     git add . &> /dev/null
-    echo -e "Extra dev imports of YAPFA\n\n$IMPORT_LOG" | git commit src -F - &> /dev/null
+    echo -e "Extra dev imports of $2\n\n$IMPORT_LOG"
+	git commit -m Extra dev imports of $2
 	echo "  $(bashcolor 1 32)Succeed$(bashcolorend) - Sources have been imported to Paper/Paper-Server (branch upstream)"
 	
     if [[ $maintask != "0" ]]; then # this is magical

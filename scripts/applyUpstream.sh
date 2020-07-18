@@ -1,6 +1,7 @@
 #!/bin/bash
-searchtxts=(server api)
+searchtxts=(Server API)
 gpgsign="$(git config commit.gpgsign || echo "false")"
+scriptdir=$1/scripts
 function enableCommitSigningIfNeeded {
 	if [[ "$gpgsign" == "true" ]]; then
 		git config commit.gpgsign true
@@ -11,14 +12,17 @@ function enableCommitSigningIfNeeded {
 # Calm down kids, it's re-enabled (if needed) immediately after, pass or fail.
 git config commit.gpgsign false
 cd $1/patches/$2
-for D in */; do
+for D in ${searchtxts[@]}; do
     if [ -d "${D}" ]; then
-		dnoslash=${D%/*}
+		echo $D
+		dnoslash=$D
+		echo "DnoS: $dnoslash"
 		cd $1/YAPFA-$dnoslash
 		git branch $2-Upstream
+		git checkout $2-Upstream
 		if [ $dnoslash != "api" ]; then
-			echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Import new introduced NMS files.."
-			basedir && $scriptdir/importSources.sh $1 $dnoslash || exit 1
+			echo "Import new introduced NMS files.."
+				$scriptdir/importSources.sh $1 $2 || exit 1
 		fi				
 		for filename in $1/patches/$2/$dnoslash/*.patch; do
 			# Abort previous applying operation
