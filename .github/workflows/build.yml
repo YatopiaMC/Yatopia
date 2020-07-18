@@ -1,6 +1,12 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '*.md'
 
 
 jobs:
@@ -13,6 +19,10 @@ jobs:
         java: [11, 8, 14]
 
     steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.4.1
+      with:
+        access_token: ${{ github.token }}
     - uses: actions/checkout@v2.2.0
     - name: Set up JDK ${{ matrix.java }}
       uses: actions/setup-java@v1.3.0
