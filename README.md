@@ -52,4 +52,4 @@ Everything is licensed under the MIT license, and is free to be used in your own
 See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur) and [Tuinity](https://github.com/Spottedleaf/Tuinity)
 for the license of material used/modified by this project.
 
-**By using this project you accept the Mojang EULA! Starting the server-jar requires that you have read and accepted the EULA.**
+**To use this project you'll have to accept the Mojang EULA!**
