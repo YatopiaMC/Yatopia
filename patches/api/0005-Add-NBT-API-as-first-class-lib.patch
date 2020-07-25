@@ -72,19 +72,20 @@ index 3b10fcc13893403b29f0260b8605144679e89b82..acb13596874191f9356a25befa49af73
 +    // YAPFA end
  }
 diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
-index 7808ade92ccd3553056c57cdf77464fb8bdf9312..a8cf16da197383202859245d04ff92a8d455a6fb 100644
+index 7808ade92ccd3553056c57cdf77464fb8bdf9312..54c213b6e9c4046fdadb93a650ca5976c83c5643 100644
 --- a/src/main/java/org/bukkit/entity/Entity.java
 +++ b/src/main/java/org/bukkit/entity/Entity.java
-@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Contract;
+@@ -23,6 +23,9 @@ import org.jetbrains.annotations.Contract;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  
++import de.tr7zw.changeme.nbtapi.NBTCompound;
 +import de.tr7zw.changeme.nbtapi.NBTEntity;
 +
  /**
   * Represents a base entity in the world
   */
-@@ -695,4 +697,12 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
+@@ -695,4 +698,16 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
       */
      public boolean isInLava();
      // Paper end
@@ -93,6 +94,10 @@ index 7808ade92ccd3553056c57cdf77464fb8bdf9312..a8cf16da197383202859245d04ff92a8
 +    
 +    public default NBTEntity getNBT() {
 +    	return new NBTEntity(this);
++    }
++    
++    public default NBTCompound getNBTC() {
++    	return getNBT().getPersistentDataContainer();
 +    }
 +    
 +    // YAPFA end
