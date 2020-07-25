@@ -5,12 +5,12 @@ Subject: [PATCH] Purpur Add more timings timers
 
 
 diff --git a/src/main/java/co/aikar/timings/MinecraftTimings.java b/src/main/java/co/aikar/timings/MinecraftTimings.java
-index 2966c5731761b125d841c8f3ea80f68bc189c162..ae55867370e496043994867b31c82c37b690efc2 100644
+index 85b25eace786fa0d7694afa405f9d2bdf4937b6e..b81eeea483e1313a3b4a329bf09ac6e40a7b267f 100644
 --- a/src/main/java/co/aikar/timings/MinecraftTimings.java
 +++ b/src/main/java/co/aikar/timings/MinecraftTimings.java
-@@ -45,6 +45,28 @@ public final class MinecraftTimings {
- 
+@@ -46,6 +46,28 @@ public final class MinecraftTimings {
      public static final Timing scoreboardScoreSearch = Timings.ofSafe("Scoreboard score search"); // Tuinity - add timings for scoreboard search
+     public static final Timing distanceManagerTick = Timings.ofSafe("Distance Manager Tick"); // Tuinity - add timings for distance manager
  
 +    // Purpur start
 +    public static final Timing goalCleanup = Timings.ofSafe("PathfinderGoal - Cleanup");
@@ -83,10 +83,10 @@ index 605bbf0174e60f795e445193a0284739ea452946..9a937623aaf59d3159038f06c1ede1a1
          this.M();
      }
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 26bbf2fc413e193507272d930e42e1ec9133abd7..9c14854a971a8818b7fe4acca7113c1e09ad32f0 100644
+index 0170b2e877d4ef0b24a9c1e48da061e02cda2653..a1819225ea0c3ceb677877586c7b9176ffd36a4d 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2467,7 +2467,11 @@ public abstract class EntityLiving extends Entity {
+@@ -2464,7 +2464,11 @@ public abstract class EntityLiving extends Entity {
              }
          }
  
@@ -99,7 +99,7 @@ index 26bbf2fc413e193507272d930e42e1ec9133abd7..9c14854a971a8818b7fe4acca7113c1e
          double d0 = this.locX() - this.lastX;
          double d1 = this.locZ() - this.lastZ;
          float f = (float) (d0 * d0 + d1 * d1);
-@@ -2736,18 +2740,23 @@ public abstract class EntityLiving extends Entity {
+@@ -2733,18 +2737,23 @@ public abstract class EntityLiving extends Entity {
  
          this.setMot(d4, d5, d6);
          this.world.getMethodProfiler().enter("ai");
@@ -123,7 +123,7 @@ index 26bbf2fc413e193507272d930e42e1ec9133abd7..9c14854a971a8818b7fe4acca7113c1e
          if (this.jumping && this.cS()) {
              double d7;
  
-@@ -2773,21 +2782,26 @@ public abstract class EntityLiving extends Entity {
+@@ -2770,21 +2779,26 @@ public abstract class EntityLiving extends Entity {
          } else {
              this.jumpTicks = 0;
          }
@@ -196,10 +196,10 @@ index d3f0327a2a7cdedf3fe8d10df981a9f1cb378d26..cce7cac92b3256576fb35d5d03719b15
  
      public final Stream<PathfinderGoalWrapped> getExecutingGoals() { return d(); } // Paper - OBFHELPER
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index d1dbb3cb4060819e1fb82d700cb7a909ba6c500b..7f64c327b8a55d33fdbaa0dec62c14a3d7962ad7 100644
+index 8388629f573ff8ac4aea0b8fe6b041e293f70a2d..90b159db4e36d67e742dcfc92dbb56af7f9f9acb 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1325,7 +1325,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1337,7 +1337,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          return IRegistry.ENTITY_TYPE.getKey(entity1.getEntityType()).toString();
                      });
                      gameprofilerfiller.c("tickPassenger");
