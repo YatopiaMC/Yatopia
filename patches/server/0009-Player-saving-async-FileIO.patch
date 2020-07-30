@@ -5,7 +5,11 @@ Subject: [PATCH] Player saving async FileIO
 
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+<<<<<<< HEAD:patches/server/0009-Player-saving-async-FileIO.patch
 index 1588d101e0939c883757a5be91b30966d456a6bf..6cdcca870766214fa44c3930ce37e286a2549467 100644
+=======
+index 17789407b9e86896a963a305a13357286aa5f319..030e76685d8111a4feec3a91791ab06ef339604a 100644
+>>>>>>> 1.16.1:patches/server/0010-Player-saving-async-FileIO.patch
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -27,6 +27,8 @@ import java.util.List;
@@ -23,7 +27,7 @@ index 1588d101e0939c883757a5be91b30966d456a6bf..6cdcca870766214fa44c3930ce37e286
      private boolean m = true;
 +    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
  
-     // Tuinity start - fix advancement data player leakage
+     // Paper start - fix advancement data player leakage
      final Map<CriterionTriggerAbstract, Set<CriterionTrigger.a>> criterionData = Maps.newIdentityHashMap();
 @@ -227,53 +230,66 @@ public class AdvancementDataPlayer {
  
@@ -176,7 +180,11 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..321726139df8b10bf264a4cabdc55423
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+<<<<<<< HEAD:patches/server/0009-Player-saving-async-FileIO.patch
 index 3c2f1f140c3991195bb8147bd65d9cd16a8fd3da..71d67cec763be9b72ea91c9f40757d214a4d4e5a 100644
+=======
+index 9382e8f79e8edec8885c629a36e230fbec50e1fb..871b104b60d03a7abbff80130c4b2ea3254676e2 100644
+>>>>>>> 1.16.1:patches/server/0010-Player-saving-async-FileIO.patch
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -18,6 +18,9 @@ import java.util.Map;
@@ -189,7 +197,7 @@ index 3c2f1f140c3991195bb8147bd65d9cd16a8fd3da..71d67cec763be9b72ea91c9f40757d21
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1248,6 +1251,28 @@ public abstract class PlayerList {
+@@ -1258,6 +1261,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -218,7 +226,7 @@ index 3c2f1f140c3991195bb8147bd65d9cd16a8fd3da..71d67cec763be9b72ea91c9f40757d21
      }
      // Paper end
  
-@@ -1285,13 +1310,13 @@ public abstract class PlayerList {
+@@ -1295,13 +1320,13 @@ public abstract class PlayerList {
              File file = this.server.a(SavedFile.STATS).toFile();
              File file1 = new File(file, uuid + ".json");
  

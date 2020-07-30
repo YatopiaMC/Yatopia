@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E3=84=97=E3=84=A0=CB=8B=20=E3=84=91=E3=84=A7=CB=8A?=
+ <tsao-chi@the-lingo.org>
+Date: Thu, 2 Apr 2020 11:16:18 +0800
+Subject: [PATCH] Akarin Save json list async
+
+
+diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
+index 9213bfb78e92b838189161045e3945588251b486..f2c14ba3123556ea6a3d0b9c945271fa2e08aff0 100644
+--- a/src/main/java/net/minecraft/server/JsonList.java
++++ b/src/main/java/net/minecraft/server/JsonList.java
+@@ -20,6 +20,8 @@ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
+ import javax.annotation.Nullable;
++
++import org.apache.commons.io.IOUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -146,6 +148,7 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+     }
+ 
+     public void save() throws IOException {
++        Runnable runnable = () -> { // Akarin - Save json list async
+         this.removeStaleEntries(); // Paper - remove expired values before saving
+         JsonArray jsonarray = new JsonArray();
+ 
+@@ -155,29 +158,21 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+             jsonlistentry.getClass();
+             return (JsonObject) SystemUtils.a(jsonobject, jsonlistentry::a); // CraftBukkit - decompile error
+         }).forEach(jsonarray::add);
+-        BufferedWriter bufferedwriter = Files.newWriter(this.c, StandardCharsets.UTF_8);
++        BufferedWriter bufferedwriter = null;
+         Throwable throwable = null;
+ 
+         try {
++        	bufferedwriter = Files.newWriter(this.c, StandardCharsets.UTF_8);
+             JsonList.b.toJson(jsonarray, bufferedwriter);
+         } catch (Throwable throwable1) {
+             throwable = throwable1;
+-            throw throwable1;
++            JsonList.LOGGER.warn("Failed to save " + this.c, e); // Akarin - Save json list async
+         } finally {
+-            if (bufferedwriter != null) {
+-                if (throwable != null) {
+-                    try {
+-                        bufferedwriter.close();
+-                    } catch (Throwable throwable2) {
+-                        throwable.addSuppressed(throwable2);
+-                    }
+-                } else {
+-                    bufferedwriter.close();
+-                }
+-            }
++        	IOUtils.closeQuietly(bufferedwriter);
+ 
+         }
+-
++        }; // Akarin - Save json list async
++        MCUtil.scheduleAsyncTask(runnable); // Akarin - Save json list async
+     }
+ 
+     public void load() throws IOException {

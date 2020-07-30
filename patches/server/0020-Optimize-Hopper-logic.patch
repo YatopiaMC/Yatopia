@@ -1,6 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+<<<<<<< HEAD:patches/server/0020-Optimize-Hopper-logic.patch
 From: Bud Gidiere <sgidiere@gmail.com>
 Date: Thu, 16 Jul 2020 23:09:45 -0500
+=======
+From: tr7zw <tr7zw@live.de>
+Date: Fri, 26 Jun 2020 01:11:47 +0200
+>>>>>>> 1.16.1:patches/server/0026-Optimize-Hopper-logic.patch
 Subject: [PATCH] Optimize Hopper logic
 
 
@@ -18,6 +23,7 @@ index 1ce89c28c2b54278dc8f1c17f2d0ccb743a27b34..1b360140b6161e9cae96752943d57420
  
                  if (iinventory == null) {
 diff --git a/src/main/java/net/minecraft/server/BlockHopper.java b/src/main/java/net/minecraft/server/BlockHopper.java
+<<<<<<< HEAD:patches/server/0020-Optimize-Hopper-logic.patch
 index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..31ee358f82c2193fa7f2fc4e01798126be89f349 100644
 --- a/src/main/java/net/minecraft/server/BlockHopper.java
 +++ b/src/main/java/net/minecraft/server/BlockHopper.java
@@ -365,73 +371,24 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..31ee358f82c2193fa7f2fc4e01798126
 +	public void doPhysics(IBlockData var0, World var1, BlockPosition var2, Block var3, BlockPosition var4,
 +			boolean var5) {
 +		this.a(var1, var2, var0);
+=======
+index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..3a07fb76ebeddaf6b3676e04a995638cc43cf2f2 100644
+--- a/src/main/java/net/minecraft/server/BlockHopper.java
++++ b/src/main/java/net/minecraft/server/BlockHopper.java
+@@ -110,6 +110,12 @@ public class BlockHopper extends BlockTileEntity {
+     @Override
+     public void doPhysics(IBlockData iblockdata, World world, BlockPosition blockposition, Block block, BlockPosition blockposition1, boolean flag) {
+         this.a(world, blockposition, iblockdata);
+>>>>>>> 1.16.1:patches/server/0026-Optimize-Hopper-logic.patch
 +		//YAPFA start
-+		TileEntity tileEntity = var1.getTileEntity(var2);
++		TileEntity tileEntity = world.getTileEntity(blockposition);
 +		if (tileEntity instanceof TileEntityHopper) {
 +			((TileEntityHopper)tileEntity).flushCaches();
 +		}
 +		// YAPFA end
-+	}
-+
-+	private void a(World var0, BlockPosition var1, IBlockData var2) {
-+		boolean var3;
-+		boolean bl = var3 = !var0.isBlockIndirectlyPowered(var1);
-+		if (var3 != (Boolean) var2.get((IBlockState) ENABLED)) {
-+			var0.setTypeAndData(var1, (IBlockData) var2.set((IBlockState) ENABLED, (Comparable) Boolean.valueOf(var3)),
-+					4);
-+		}
-+	}
-+
-+	public void remove(IBlockData var0, World var1, BlockPosition var2, IBlockData var3, boolean var4) {
-+		if (var0.a(var3.getBlock())) {
-+			return;
-+		}
-+		TileEntity var5 = var1.getTileEntity(var2);
-+		if (var5 instanceof TileEntityHopper) {
-+			InventoryUtils.dropInventory((World) var1, (BlockPosition) var2, (IInventory) ((TileEntityHopper) var5));
-+			var1.updateAdjacentComparators(var2, (Block) this);
-+		}
-+		super.remove(var0, var1, var2, var3, var4);
-+	}
-+
-+	public EnumRenderType b(IBlockData var0) {
-+		return EnumRenderType.MODEL;
-+	}
-+
-+	public boolean isComplexRedstone(IBlockData var0) {
-+		return true;
-+	}
-+
-+	public int a(IBlockData var0, World var1, BlockPosition var2) {
-+		return Container.a((TileEntity) var1.getTileEntity(var2));
-+	}
-+
-+	public IBlockData a(IBlockData var0, EnumBlockRotation var1) {
-+		return (IBlockData) var0.set((IBlockState) FACING,
-+				(Comparable) var1.a((EnumDirection) var0.get((IBlockState) FACING)));
-+	}
-+
-+	public IBlockData a(IBlockData var0, EnumBlockMirror var1) {
-+		return var0.a(var1.a((EnumDirection) var0.get((IBlockState) FACING)));
-+	}
-+
-+	protected void a(BlockStateList.a<Block, IBlockData> var0) {
-+		var0.a(new IBlockState[]{FACING, ENABLED});
-+	}
-+
-+	public void a(IBlockData var0, World var1, BlockPosition var2, Entity var3) {
-+		TileEntity var4 = var1.getTileEntity(var2);
-+		if (var4 instanceof TileEntityHopper) {
-+			((TileEntityHopper) var4).a(var3);
-+		}
-+	}
-+
-+	public boolean a(IBlockData var0, IBlockAccess var1, BlockPosition var2, PathMode var3) {
-+		return false;
-+	}
-+
-+}
-\ No newline at end of file
+     }
+ 
+     private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
 index 20df9bd21d0e4d2579d05d79672da2eb26478044..a7f9d3e5ec1d582eb7101d5b6a969281b15be028 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
