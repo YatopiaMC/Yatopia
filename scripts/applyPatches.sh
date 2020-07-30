@@ -46,7 +46,7 @@ function applyPatch {
 	if [[ $needimport != "1" ]]; then
 	    if [ $baseproject != "Paper/Paper-API" ]; then
 	        echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Import new introduced NMS files.."
-	        basedir && $scriptdir/importSources.sh $basedir "YAPFA" || exit 1
+	        basedir && $scriptdir/importSources.sh $basedir "YAPFA" $previous || exit 1
 		fi
     fi
 	$gitcmd branch $target
@@ -74,7 +74,7 @@ function applyPatch {
     fi
 }
 $1/scripts/resetToUpstream.sh $1
-$1/scripts/getUpstream.sh $1
+previous=$1/scripts/getUpstream.sh $1
 (applyPatch Tuinity/Tuinity-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
 applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
 enableCommitSigningIfNeeded
