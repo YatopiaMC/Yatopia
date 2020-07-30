@@ -1,5 +1,5 @@
 #!/bin/bash
-searchtxts=(Server API)
+searchtxts=(server api)
 gpgsign="$(git config commit.gpgsign || echo "false")"
 scriptdir=$1/scripts
 function enableCommitSigningIfNeeded {
@@ -13,15 +13,18 @@ function enableCommitSigningIfNeeded {
 git config commit.gpgsign false
 cd $1/patches/$2
 for D in ${searchtxts[@]}; do
-    if [ -d "${D}" ]; then
+	echo "IMPORTANT:!!! $D"
+    if [ true ]; then
 		echo $D
 		dnoslash=$D
 		echo "DnoS: $dnoslash"
 		cd $1/YAPFA-$dnoslash
+		echo "Appyling $2 $dnoslash files!"
 		#git branch $2-upstream
 		#git checkout $2-upstream
 		if [ $dnoslash != "api" ]; then
-			echo "Import new introduced NMS files.."
+			echo "$"
+			echo "Import new introduced NMS files.. test"
 				$scriptdir/importSources.sh $1 $2 || exit 1
 		fi				
 		for filename in $1/patches/$2/$dnoslash/*.patch; do
@@ -46,5 +49,5 @@ for D in ${searchtxts[@]}; do
 		done
 	fi
 done
-git am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+#git am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
 enableCommitSigningIfNeeded
