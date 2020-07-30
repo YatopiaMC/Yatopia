@@ -20,7 +20,8 @@ echo "----------------------------------------"
 
 # For a description of this script, see updateUpstream.sh.
 paperworkdir="$basedir/Tuinity/Paper/work"
-paperserverdir="$2"
+forkname = "$2"
+paperserverdir="$basedir/YAPFA-Server"
 papersrcdir="$basedir/YAPFA-Server/src/main/java"
 papernmsdir="$papersrcdir/net/minecraft/server"
 
@@ -90,10 +91,10 @@ function importLibraryToPaperWorkspace {
 
 # Filter and import every files which have patch to modify
 
-if [[ $lookdirserverdir != "YAPFA" ]]; then
-	if [[ $lookdirserverdir != null ]]; then
-		patchedFiles=$(cat patches/$lookdirserverdir/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-		patchedFilesNonNMS=$(cat patches/$lookdirserverdir/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+if [[ $forkname != "YAPFA" ]]; then
+	if [[ $forkname != null ]]; then
+		patchedFiles=$(cat patches/$forkname/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+		patchedFilesNonNMS=$(cat patches/$forkname/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	else
 		patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 		patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
