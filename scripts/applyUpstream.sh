@@ -22,7 +22,7 @@ for D in ${searchtxts[@]}; do
 		git checkout $2-upstream
 		if [ $dnoslash != "api" ]; then
 			echo "Import new introduced NMS files.."
-				$scriptdir/importSources.sh $1 $2 || exit 1
+				$scriptdir/importSources.sh $1 $2 $3 || exit 1
 		fi				
 		for filename in $1/patches/$2/$dnoslash/*.patch; do
 			# Abort previous applying operation

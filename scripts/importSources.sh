@@ -84,7 +84,7 @@ function importLibraryToPaperWorkspace {
     # Reset to last NORMAL commit if already have imported before
     cd "$paperserverdir"
     lastcommit=$(git log -1 --pretty=oneline --abbrev-commit)
-    if [[ "$lastcommit" = *"Extra dev imports of YAPFA"* ]]; then
+    if [[ "$lastcommit" = *"Extra dev imports of $forkname"* ]]; then
         git reset --hard HEAD^
     fi
 )
@@ -111,10 +111,10 @@ fi
     $gitcmd fetch --all &> /dev/null
 	# Create the upstream branch in Paper project with current state
     $gitcmd checkout master >/dev/null 2>&1 # possibly already in
-    if [[ $forkname != "YAPFA" ]]; then
-	    if [[ $forkname != null ]]; then
-            $gitcmd branch -D ${forkname}-upstream &>/dev/null
-	        $gitcmd branch -f ${forkname}-upstream HEAD && $gitcmd checkout ${forkname}-upstream
+    if [[ $3 != "YAPFA" ]]; then
+	    if [[ $3 != null ]]; then
+            $gitcmd branch -D ${3}-upstream &>/dev/null
+	        $gitcmd branch -f ${3}-upstream HEAD && $gitcmd checkout ${3}-upstream
         else
 	        $gitcmd branch -D upstream &>/dev/null
 	        $gitcmd branch -f upstream HEAD && $gitcmd checkout upstream
@@ -150,8 +150,8 @@ done
     cd "$paperserverdir"
     # rm -rf nms-patches
     git add . &> /dev/null
-    echo -e "Extra dev imports of $2\n\n$IMPORT_LOG"
-	git commit -m Extra dev imports of $2
+    echo -e "Extra dev imports of $forkname\n\n$IMPORT_LOG"
+	git commit -m "Extra dev imports of $forkname"
 	echo "  $(bashcolor 1 32)Succeed$(bashcolorend) - Sources have been imported to Paper/Paper-Server (branch upstream)"
 	
     if [[ $maintask != "0" ]]; then # this is magical
