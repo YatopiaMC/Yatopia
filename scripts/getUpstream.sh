@@ -2,7 +2,7 @@
 patchdir="$1/patches"
 searchtxts=(server api)
 i=0
-previous=null
+#previous=null
 
 echo "Starting Upstream Patching!"
 cd $patchdir
@@ -40,8 +40,8 @@ for D in */; do
 						done
 					done
 				done
-				$1/scripts/applyUpstream.sh $1 $dnoslash $previous || exit 1
-				previous=$dnoslash
+				$1/scripts/applyUpstream.sh $1 $dnoslash|| exit 1
+				#previous=$dnoslash
 			fi
 		fi
     fi
