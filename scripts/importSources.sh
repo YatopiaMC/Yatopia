@@ -20,7 +20,7 @@ echo "----------------------------------------"
 
 # For a description of this script, see updateUpstream.sh.
 paperworkdir="$basedir/Tuinity/Paper/work"
-lookdirserverdir="$2"
+paperserverdir="$2"
 papersrcdir="$basedir/YAPFA-Server/src/main/java"
 papernmsdir="$papersrcdir/net/minecraft/server"
 
