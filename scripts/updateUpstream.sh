@@ -27,18 +27,20 @@ set -e
 
 subtasks=1
 updatepaper=$2
-if [ "$updatepaper" == "1" ]; then
-    echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Update Git submodules.."
-    $gitcmd submodule update --init --remote
-fi
+#if [ "$updatepaper" == "1" ]; then
+    #echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Update Git submodules.."
+    #$gitcmd submodule update --init --remote
+#fi
 
-if [[ "$2" == "--resetPaper" ]]; then
-    echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Reset Paper submodule.."
-    paperdir
-    $gitcmd fetch && $gitcmd reset --hard origin/master
-    basedir
-    $gitcmd add Paper
-fi
+#if [[ "$2" == "--resetPaper" ]]; then
+    #echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Reset Paper submodule.."
+    #paperdir
+    #$gitcmd fetch && $gitcmd reset --hard origin/master
+    #basedir
+    #$gitcmd add Paper
+#fi
+
+$basedir/scripts/fetchUpstream.sh $basedir
 
 # patch paper
 echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Apply patches of Tuinity.."
