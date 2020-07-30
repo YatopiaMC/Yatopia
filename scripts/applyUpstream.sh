@@ -18,8 +18,8 @@ for D in ${searchtxts[@]}; do
 		dnoslash=$D
 		echo "DnoS: $dnoslash"
 		cd $1/YAPFA-$dnoslash
-		git branch $2-Upstream
-		git checkout $2-Upstream
+		git branch $2-upstream
+		git checkout $2-upstream
 		if [ $dnoslash != "api" ]; then
 			echo "Import new introduced NMS files.."
 				$scriptdir/importSources.sh $1 $2 || exit 1

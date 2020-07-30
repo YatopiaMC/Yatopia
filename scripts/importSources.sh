@@ -111,8 +111,18 @@ fi
     $gitcmd fetch --all &> /dev/null
 	# Create the upstream branch in Paper project with current state
     $gitcmd checkout master >/dev/null 2>&1 # possibly already in
-	$gitcmd branch -D upstream &>/dev/null
-	$gitcmd branch -f upstream HEAD && $gitcmd checkout upstream
+    if [[ $forkname != "YAPFA" ]]; then
+	    if [[ $forkname != null ]]; then
+            $gitcmd branch -D ${forkname}-upstream &>/dev/null
+	        $gitcmd branch -f ${forkname}-upstream HEAD && $gitcmd checkout ${forkname}-upstream
+        else
+	        $gitcmd branch -D upstream &>/dev/null
+	        $gitcmd branch -f upstream HEAD && $gitcmd checkout upstream
+        fi
+    else
+   	    $gitcmd branch -D upstream &>/dev/null
+	    $gitcmd branch -f upstream HEAD && $gitcmd checkout upstream   
+    fi  
 )
 
 basedir
