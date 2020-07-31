@@ -53,7 +53,7 @@ function applyPatch {
 	        basedir && $scriptdir/importSources.sh $basedir "YAPFA" || exit 1
 		fi
     fi
-	$gitcmd branch $target
+	#$gitcmd branch $target
 	
 	echo "  "
 
@@ -82,8 +82,8 @@ function applyPatch {
 		git add .
 		git commit -m $filenameedited
 		)
-	cd $1
 	done
+	cd $basedir
 
     if [ "$?" != "0" ]; then
         echo "  Something did not apply cleanly to $target."
