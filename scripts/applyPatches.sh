@@ -44,7 +44,7 @@ function applyPatch {
 	$gitcmd config commit.gpgsign false	
 	
 	if [[ $needimport != "1" ]]; then
-	    if [ $baseproject != "Paper/Paper-API" ]; then
+	    if [ $baseproject != "Tuinity/Tuinity-API" ]; then
 	        echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Import new introduced NMS files.."
 			#cd $basedir/YAPFA-Server/
 			#branch_name="$(git symbolic-ref HEAD 2>/dev/null)"
@@ -62,8 +62,8 @@ function applyPatch {
     #$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
     #$gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
-	cd $1/patches/$2/$dnoslash/
-	for filename in $1/patches/$2/$dnoslash/*.patch; do
+	cd $1/patches/$patch_folder/
+	for filename in $1/patches/$patch_folder/*.patch; do
 		# Abort previous applying operation
 		git am --abort >/dev/null 2>&1
 		# Apply our patches on top Paper in our dirs
@@ -82,6 +82,7 @@ function applyPatch {
 		git add .
 		git commit -m $filenameedited
 		)
+	cd $1
 	done
 
     if [ "$?" != "0" ]; then
