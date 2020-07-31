@@ -62,8 +62,8 @@ function applyPatch {
     #$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
     #$gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
-	cd $1/patches/$patch_folder/
-	for filename in $1/patches/$patch_folder/*.patch; do
+	cd $basedir/$2
+	for filename in $basedir/patches/$patch_folder/*.patch; do
 		# Abort previous applying operation
 		git am --abort >/dev/null 2>&1
 		# Apply our patches on top Paper in our dirs
@@ -101,7 +101,7 @@ function applyPatch {
 }
 $1/scripts/resetToUpstream.sh $1
 $1/scripts/getUpstream.sh $1
-(applyPatch Tuinity/Tuinity-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
-applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
+(applyPatch YAPFA/YAPFA-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
+applyPatch YAPFA/YAPFA-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
 enableCommitSigningIfNeeded
 exit 1 )
