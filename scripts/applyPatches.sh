@@ -59,9 +59,30 @@ function applyPatch {
 
 	echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Apply patches to $target.."
 	# Abort previous applying operation
-    $gitcmd am --abort >/dev/null 2>&1
+    #$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
-    $gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+    #$gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+	cd $1/patches/$2/$dnoslash/
+	for filename in $1/patches/$2/$dnoslash/*.patch; do
+		# Abort previous applying operation
+		git am --abort >/dev/null 2>&1
+		# Apply our patches on top Paper in our dirs
+		git am --reject --whitespace=fix --no-utf8 --3way --ignore-whitespace $filename || (
+		files=`$gitcmd diff --name-only | grep -E '.rej$' `
+		if [[ files != null ]]; then
+			for filerej in files; do
+				echo "Error found .rej file! Deleting. This might have unforseen consqunces!"
+				rm -f filerej
+			done
+		fi
+		filenamend="${filename##*/}"
+		filenamens=${filenamend%/*}
+		filenameedited=${filenamens%.*}  # retain the part before the period
+		filenameedited=${filenameedited:5}  # retain the part after the frist slash				
+		git add .
+		git commit -m $filenameedited
+		)
+	done
 
     if [ "$?" != "0" ]; then
         echo "  Something did not apply cleanly to $target."
