@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mariell Hoversholm <proximyst@proximyst.com>
+Date: Tue, 26 May 2020 21:23:46 +0200
+Subject: [PATCH] Ban EntityTrackerFixer
+
+---
+ src/main/java/org/bukkit/plugin/java/JavaPlugin.java | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+index 04fa3991f6ce4e9dad804f28fc6c947695857089..e7a6eb2526bb2c26c84bbb774ba4a6f3e9626b6a 100644
+--- a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
++++ b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+@@ -257,6 +257,12 @@ public abstract class JavaPlugin extends PluginBase {
+      */
+     protected final void setEnabled(final boolean enabled) {
+         if (isEnabled != enabled) {
++            // Papercut start
++            if ("net.minemora.entitytrackerfixer.EntityTrackerFixer".equals(getDescription().getMain())) {
++                getLogger().warning("EntityTrackerFixer is unsupported on Papercut.");
++                return;
++            }
++            // Papercut end
+             isEnabled = enabled;
+ 
+             if (isEnabled) {

@@ -44,7 +44,7 @@ for D in ${searchtxts[@]}; do
 			filenameedited=${filenamens%.*}  # retain the part before the period
 			filenameedited=${filenameedited:5}  # retain the part after the frist slash				
 			git add .
-			git commit -m filenameedited
+			git commit -m $filenameedited
 			)
 		done
 	fi

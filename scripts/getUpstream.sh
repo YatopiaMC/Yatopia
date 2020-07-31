@@ -2,7 +2,6 @@
 patchdir="$1/patches"
 searchtxts=(server api)
 i=0
-#previous=null
 
 echo "Starting Upstream Patching!"
 cd $patchdir
@@ -17,8 +16,9 @@ for D in */; do
 					rm -rf -f "$1/patches/$dnoslash/$file/"
 					echo "Looking for $file file!"
 					echo "$(cat $patchdir/$dnoslash/$file.txt)"
-					IFS=$'\n' 
-					for patch in "$(cat $patchdir/$dnoslash/$file.txt)"; do
+					IFS='&'
+					read -ra ADDR <<< $(cat $patchdir/$dnoslash/$file.txt)
+					for patch in ${ADDR[@]}; do
 						echo "Found $patch in $file!"
 						echo $1/$dnoslash/patches/$file
 						for filename in $1/$dnoslash/patches/$file/*.patch; do
@@ -39,10 +39,11 @@ for D in */; do
 							fi
 						done
 					done
+					IFS=' '
 				done
-				$1/scripts/applyUpstream.sh $1 $dnoslash|| exit 1
-				#previous=$dnoslash
+				$1/scripts/applyUpstream.sh $1 $dnoslash || exit 1
 			fi
 		fi
     fi
 done
+
