@@ -30,14 +30,13 @@ function applyPatch {
     target=$2
     branch=$3
     patch_folder=$4
-
     # Skip if that software have no patch
     haspatch=-f "$basedir/patches/$patch_folder/"*.patch >/dev/null 2>&1 # too many files
 	if [ ! haspatch ]; then
 	    echo "  $(bashcolor 1 33)($5/$6) Skipped$(bashcolorend) - No patch found for $target under patches/$patch_folder"
 		return
 	fi
-	
+	git checkout -b $target
 	# Disable GPG signing before AM, slows things down and doesn't play nicely.
 	# There is also zero rational or logical reason to do so for these sub-repo AMs.
 	# Calm down kids, it's re-enabled (if needed) immediately after, pass or fail.
