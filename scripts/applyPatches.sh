@@ -63,7 +63,8 @@ function applyPatch {
 	# Apply our patches on top Paper in our dirs
     #$gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
 	cd $basedir/$2
-	git checkout -b $2-upstream
+	git branch -d $2
+	git checkout -b $2
 	for filename in $basedir/patches/$patch_folder/*.patch; do
 		# Abort previous applying operation
 		git am --abort >/dev/null 2>&1
