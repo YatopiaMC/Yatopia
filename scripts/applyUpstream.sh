@@ -1,5 +1,5 @@
 #!/bin/bash
-searchtxts=(server api)
+searchtxts=(Server API)
 gpgsign="$(git config commit.gpgsign || echo "false")"
 scriptdir=$1/scripts
 function enableCommitSigningIfNeeded {
@@ -18,6 +18,7 @@ for D in ${searchtxts[@]}; do
 		echo $D
 		dnoslash=$D
 		echo "DnoS: $dnoslash"
+		echo "$1/YAPFA-$dnoslash"
 		cd $1/YAPFA-$dnoslash
 		echo "Appyling $2 $dnoslash files!"
 		#git branch $2-upstream

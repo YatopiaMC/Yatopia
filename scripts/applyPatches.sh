@@ -87,6 +87,7 @@ function applyPatch {
 	# 	git commit -m $filenameedited
 	# 	)
 	# done
+
 	$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
     $gitcmd am --whitespace=fix --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
