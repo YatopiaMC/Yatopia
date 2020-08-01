@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "[YAPFA] State: Generate Imports"
+echo "[Yatopia] State: Generate Imports"
 
 # For a description of this script, see updateUpstream.sh.
 
@@ -41,6 +41,6 @@ done
 # push the dev project
 cd $basedir/mc-dev
 $gitcmd add . -A
-$gitcmd commit . -m "YAPFA-base"
-$gitcmd tag -a "YAPFA-base" -m "YAPFA-base" 2>/dev/null
+$gitcmd commit . -m "Yatopia-base"
+$gitcmd tag -a "Yatopia-base" -m "Yatopia-base" 2>/dev/null
 # gitpush . $MCDEV_REPO $paperVer
