@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "[YAPFA] State: Commit Upstream"
+echo "[Yatopia] State: Commit Upstream"
 
 (
 set -e
