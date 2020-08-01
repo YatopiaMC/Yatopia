@@ -65,7 +65,8 @@ function applyPatch {
 	
 	cd $basedir/$2
 	git branch -d $2
-	git checkout -b $2
+	git branch $2
+	git checkout $2
 	for filename in $basedir/patches/$patch_folder/*.patch; do
 		# Abort previous applying operation
 		git am --abort >/dev/null 2>&1
