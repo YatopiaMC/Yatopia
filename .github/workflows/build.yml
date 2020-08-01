@@ -33,13 +33,13 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
-    #- name: Pull Maven Cache
-      #uses: actions/cache@v2
-      #id: maven-cache
-      #with:
-        #path: ~/.m2/repository
-        #key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        #restore-keys: ${{ runner.os }}-maven-
+    - name: Pull Maven Cache
+      uses: actions/cache@v2
+      id: maven-cache
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-maven-
     - uses: s4u/maven-settings-action@v2.1.0
       name: Use ${{ matrix.java }} as the java target
       with:
@@ -65,7 +65,7 @@ jobs:
         name: YAPFA-${{ matrix.java }}
         path: target/YAPFA-1.16.1-paperclip.jar
     - name: Deploy Release
-      #if: github.ref == 'refs/heads/dev/ver/1.16.1'
+      if: github.ref == 'refs/heads/dev/ver/1.16.1'
       uses: WebFreak001/deploy-nightly@v1.0.3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
