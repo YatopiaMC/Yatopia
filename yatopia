@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
  
-# YAPFA Build Script
+# Yatopia Build Script
 
 ############################################################################
 # Multicore building                                                       #
@@ -58,17 +58,17 @@ case "$1" in
         basedir
     ;;
     "a" | "api")
-        cd "$basedir/YAPFA-API"
+        cd "$basedir/Yatopia-API"
     ;;
     "s" | "server")
-        cd "$basedir/YAPFA-Server"
+        cd "$basedir/Yatopia-Server"
     ;;
     "fup" | "fetchupstream")
 		$scriptdir/fetchUpstream.sh "$basedir" || exit 1
     ;;
     "c" | "clean")
-        rm -rf YAPFA-API
-        rm -rf YAPFA-Server
+        rm -rf Yatopia-API
+        rm -rf Yatopia-Server
         rm -rf Paper
         echo "Cleaned build files"
     ;;
@@ -89,8 +89,8 @@ case "$1" in
     "e" | "edit")
         case "$2" in
             "s" | "server")
-            export YAPFA_LAST_EDIT="$basedir/YAPFA-Server"
-            cd "$basedir/YAPFA-Server"
+            export Yatopia_LAST_EDIT="$basedir/Yatopia-Server"
+            cd "$basedir/Yatopia-Server"
             (
                 set -e
                 gitstash
@@ -100,14 +100,14 @@ case "$1" in
                 $gitcmd checkout master # possibly already in
 	            $gitcmd branch -D upstream || true
                 $gitcmd branch -f upstream HEAD
-				cd "$basedir/YAPFA-Server"
+				cd "$basedir/Yatopia-Server"
                 $gitcmd rebase -i upstream/upstream
                 gitunstash
             )
             ;;
             "a" | "api")
-            export YAPFA_LAST_EDIT="$basedir/YAPFA-API"
-            cd "$basedir/YAPFA-API"
+            export Yatopia_LAST_EDIT="$basedir/Yatopia-API"
+            cd "$basedir/Yatopia-API"
             (
                 set -e
                 gitstash
@@ -117,14 +117,14 @@ case "$1" in
                 $gitcmd checkout master # possibly already in
 	            $gitcmd branch -D upstream || true
                 $gitcmd branch -f upstream HEAD
-				cd "$basedir/YAPFA-API"
+				cd "$basedir/Yatopia-API"
                 $gitcmd rebase -i upstream/upstream
                 gitunstash
             )
             ;;
             "c" | "continue")
-            cd "$YAPFA_LAST_EDIT"
-            unset YAPFA_LAST_EDIT
+            cd "$Yatopia_LAST_EDIT"
+            unset Yatopia_LAST_EDIT
             (
                 set -e
                 $gitcmd add .
@@ -141,17 +141,17 @@ case "$1" in
     ;;
     "setup")
         if [[ -f ~/.bashrc ]] ; then
-            NAME="YAPFA"
+            NAME="Yatopia"
             if [[ ! -z "${2+x}" ]] ; then
                 NAME="$2"
             fi
             (grep "alias $NAME=" ~/.bashrc > /dev/null) && (sed -i "s|alias $NAME=.*|alias $NAME='. $SOURCE'|g" ~/.bashrc) || (echo "alias $NAME='. $SOURCE'" >> ~/.bashrc)
             alias "$NAME=. $SOURCE"
-            echo "You can now just type '$NAME' at any time to access the YAPFA tool."
+            echo "You can now just type '$NAME' at any time to access the Yatopia tool."
         fi
     ;;
     *)
-        echo "YAPFA build tool command. This provides a variety of commands to build and manage the YAPFA build"
+        echo "Yatopia build tool command. This provides a variety of commands to build and manage the Yatopia build"
         echo "environment. For all of the functionality of this command to be available, you must first run the"
         echo "'setup' command. View below for details. For essential building and patching, you do not need to do the setup."
         echo ""
@@ -165,18 +165,18 @@ case "$1" in
         echo ""
         echo " These commands require the setup command before use:"
         echo "  * r, root      | Change directory to the root of the project."
-        echo "  * a. api       | Move to the YAPFA-API directory."
-        echo "  * s, server    | Move to the YAPFA-Server directory."
+        echo "  * a. api       | Move to the YatopiaYatopia-API directory."
+        echo "  * s, server    | Move to the YatopiaYatopia-Server directory."
         echo "  * e, edit      | Use to edit a specific patch, give it the argument \"server\" or \"api\""
         echo "                 | respectively to edit the correct project. Use the argument \"continue\" after"
         echo "                 | the changes have been made to finish and rebuild patches. Can be called from anywhere."
         echo ""
         echo "  * setup        | Add an alias to .bashrc to allow full functionality of this script. Run as:"
-        echo "                 |     . ./YAPFA setup"
-        echo "                 | After you run this command you'll be able to just run 'YAPFA' from anywhere."
-        echo "                 | The default name for the resulting alias is 'YAPFA', you can give an argument to override"
+        echo "                 |     . ./Yatopia setup"
+        echo "                 | After you run this command you'll be able to just run 'Yatopia' from anywhere."
+        echo "                 | The default name for the resulting alias is 'Yatopia', you can give an argument to override"
         echo "                 | this default, such as:"
-        echo "                 |     . ./YAPFA setup example"
+        echo "                 |     . ./Yatopia setup example"
         echo "                 | Which will allow you to run 'example' instead."
     ;;
 esac
