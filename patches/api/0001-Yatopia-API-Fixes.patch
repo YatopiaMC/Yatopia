@@ -1,26 +1,27 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
-Date: Fri, 31 Jul 2020 21:02:32 -0500
-Subject: [PATCH] YAPFA API Fixes
+Date: Sat, 1 Aug 2020 15:29:16 -0500
+Subject: [PATCH] Yatopia API Fixes
 
 
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..af770b69d2096c8f693bb0e4988b3d84b66ce38e 100644
+index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..e40542f8e72d9ee8137c07afc01e5534fd91bd36 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
-@@ -1776,4 +1776,14 @@ public final class Bukkit {
+@@ -1776,4 +1776,15 @@ public final class Bukkit {
      public static Server.Spigot spigot() {
          return server.spigot();
      }
-+    // Purpur start
++
++    // Purpur Start
 +    /**
 +     * Check if server is lagging according to laggy threshold setting
 +     *
 +     * @return True if lagging
 +     */
-+    public static boolean isLagging() {
-+        return server.isLagging();
-+    }
++     public static boolean isLagging() {
++     return server.isLagging();
++     }
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/Bukkit.java.rej b/src/main/java/org/bukkit/Bukkit.java.rej
@@ -46,32 +47,21 @@ index ff7a0fef308dc3cd14bf70aa1b93f2bedbc187c6..00000000000000000000000000000000
 -     // Purpur end
 - }
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index a053c88cf5d789193e0c52b12517f6d8a2cfd8db..859efc5c5f50d48ca1557056da659ed182d5c181 100644
+index 1f916988bd54e8386011b0d7e82fc9219939a881..ebc235e3973ca0b9de5604409e486d9f5f38bbdf 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -1455,7 +1455,6 @@ public interface Server extends PluginMessageRecipient {
-         }
-         // Tuinity end - add config to timings report
- 
--<<<<<<< HEAD
-         // Akarin start - Server config
-         @NotNull
-         public org.bukkit.configuration.file.YamlConfiguration getAkarinConfig()
-@@ -1463,7 +1462,7 @@ public interface Server extends PluginMessageRecipient {
-             throw new UnsupportedOperationException("Not supported yet.");
+@@ -1463,6 +1463,28 @@ public interface Server extends PluginMessageRecipient {
          }
          // Akarin end - Server config
--=======
-+
-         // Papercut start
-         @NotNull
-         public org.bukkit.configuration.file.YamlConfiguration getPapercutConfig()
-@@ -1471,8 +1470,15 @@ public interface Server extends PluginMessageRecipient {
-             throw new UnsupportedOperationException("Not supported yet.");
-         }
-         // Papercut end
-->>>>>>> Add Papercut config
  
++        // Papercut start
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getPapercutConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++        // Papercut end
++
 +        // Purpur start
 +        @NotNull
 +        public org.bukkit.configuration.file.YamlConfiguration getPurpurConfig()
@@ -79,27 +69,28 @@ index a053c88cf5d789193e0c52b12517f6d8a2cfd8db..859efc5c5f50d48ca1557056da659ed1
 +            throw new UnsupportedOperationException("Not supported yet.");
 +        }
 +
++        @NotNull
++        public java.util.Properties getServerProperties()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
 +        // Purpur end
++
          /**
           * Sends the component to the player
           *
-@@ -1570,6 +1576,16 @@ public interface Server extends PluginMessageRecipient {
-      *
-      * @return the mob goals manager
-      */
-+
-+    // Purpur start
-+    /**
-+      * Check if server is lagging according to laggy threshold setting
-+      *
-+      * @return True if lagging
-+      */
-+    boolean isLagging();
-+    // Purpur end
-+
+@@ -1563,4 +1585,11 @@ public interface Server extends PluginMessageRecipient {
      @NotNull
      com.destroystokyo.paper.entity.ai.MobGoals getMobGoals();
      // Paper end
++
++    /**
++     * Check if server is lagging according to laggy threshold setting
++     *
++     * @return True if lagging
++     */
++     boolean isLagging();
+ }
 diff --git a/src/main/java/org/bukkit/Server.java.rej b/src/main/java/org/bukkit/Server.java.rej
 deleted file mode 100644
 index 27ac6085245ef4270b20b213f9520b87a6c7b323..0000000000000000000000000000000000000000
