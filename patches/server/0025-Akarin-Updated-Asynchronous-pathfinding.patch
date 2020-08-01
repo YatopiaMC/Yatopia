@@ -1,8 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?=E3=84=97=E3=84=A0=CB=8B=20=E3=84=91=E3=84=A7=CB=8A?=
- <tsao-chi@the-lingo.org>
-Date: Sun, 5 Apr 2020 13:01:13 +0800
-Subject: [PATCH] Asynchronous pathfinding
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 22:14:29 -0500
+Subject: [PATCH] Akarin Updated Asynchronous pathfinding
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
@@ -32,26 +31,26 @@ index 681465d8a74831461dce4615d2d19c7ed46bc299..f04411a2a295d2a982dca5851ae76a80
                          if (!this.a(pathtype)) {
                              return false;
 diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 600c506ea7dc32f62d2acd391918679818992a1d..c14422efe99f6bde6ad08a9ea0a7c6387f63fd45 100644
+index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..83c94166f421eb9c1d5ff552b30153cb950aed82 100644
 --- a/src/main/java/net/minecraft/server/NavigationAbstract.java
 +++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
-@@ -28,6 +28,15 @@ public abstract class NavigationAbstract {
+@@ -26,6 +26,15 @@ public abstract class NavigationAbstract {
+     protected PathfinderAbstract o;
+     private BlockPosition p;
      private int q;
-     private float r;
-     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
 +    // Akarin start - Async pathfinder
 +    private long lastPathfindAsync;
 +    private static final java.util.concurrent.ExecutorService pathfindExecutor =
-+        java.util.concurrent.Executors.newSingleThreadExecutor(
-+            new com.google.common.util.concurrent.ThreadFactoryBuilder()
-+            .setDaemon(true)
-+            .setNameFormat("StarLink Pathfinder - %d")
-+            .build());
++            java.util.concurrent.Executors.newSingleThreadExecutor(
++                    new com.google.common.util.concurrent.ThreadFactoryBuilder()
++                            .setDaemon(true)
++                            .setNameFormat("StarLink Pathfinder - %d")
++                            .build());
 +    // Akarin end
+     private float r;
+     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
  
-     public NavigationAbstract(EntityInsentient entityinsentient, World world) {
-         this.g = Vec3D.a;
-@@ -76,6 +85,40 @@ public abstract class NavigationAbstract {
+@@ -83,6 +92,40 @@ public abstract class NavigationAbstract {
          }
  
      }
@@ -92,7 +91,7 @@ index 600c506ea7dc32f62d2acd391918679818992a1d..c14422efe99f6bde6ad08a9ea0a7c638
  
      @Nullable
      public final PathEntity calculateDestination(double d0, double d1, double d2) { return a(d0, d1, d2, 0); } public final PathEntity a(double d0, double d1, double d2, int i) { // Paper - OBFHELPER
-@@ -157,6 +200,17 @@ public abstract class NavigationAbstract {
+@@ -164,6 +207,17 @@ public abstract class NavigationAbstract {
              return pathentity;
          }
      }
@@ -110,7 +109,7 @@ index 600c506ea7dc32f62d2acd391918679818992a1d..c14422efe99f6bde6ad08a9ea0a7c638
  
      public boolean a(double d0, double d1, double d2, double d3) {
          return this.a(this.a(d0, d1, d2, 1), d3);
-@@ -250,6 +304,37 @@ public abstract class NavigationAbstract {
+@@ -257,6 +311,37 @@ public abstract class NavigationAbstract {
              }
          }
      }
@@ -148,7 +147,7 @@ index 600c506ea7dc32f62d2acd391918679818992a1d..c14422efe99f6bde6ad08a9ea0a7c638
  
      protected void l() {
          Vec3D vec3d = this.b();
-@@ -267,6 +352,20 @@ public abstract class NavigationAbstract {
+@@ -274,6 +359,20 @@ public abstract class NavigationAbstract {
  
          this.a(vec3d);
      }
@@ -169,7 +168,7 @@ index 600c506ea7dc32f62d2acd391918679818992a1d..c14422efe99f6bde6ad08a9ea0a7c638
  
      private boolean b(Vec3D vec3d) {
          if (this.c.e() <= this.c.f() + 1) {
-@@ -317,6 +416,41 @@ public abstract class NavigationAbstract {
+@@ -324,6 +423,41 @@ public abstract class NavigationAbstract {
          }
  
      }
@@ -211,7 +210,7 @@ index 600c506ea7dc32f62d2acd391918679818992a1d..c14422efe99f6bde6ad08a9ea0a7c638
  
      private void e() {
          this.h = BaseBlockPosition.ZERO;
-@@ -327,6 +461,11 @@ public abstract class NavigationAbstract {
+@@ -334,6 +468,11 @@ public abstract class NavigationAbstract {
      public boolean m() {
          return this.c == null || this.c.b();
      }

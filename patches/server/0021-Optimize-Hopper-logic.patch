@@ -35,7 +35,7 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..3a07fb76ebeddaf6b3676e04a995638c
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 20df9bd21d0e4d2579d05d79672da2eb26478044..a7f9d3e5ec1d582eb7101d5b6a969281b15be028 100644
+index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456f2e81a58 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -2,6 +2,7 @@ package net.minecraft.server;
@@ -46,27 +46,27 @@ index 20df9bd21d0e4d2579d05d79672da2eb26478044..a7f9d3e5ec1d582eb7101d5b6a969281
  import java.util.function.Supplier;
  import java.util.stream.Collectors;
  import java.util.stream.IntStream;
-@@ -611,14 +612,44 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -629,14 +630,44 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
  
      @Nullable
      private IInventory l() {
-+    	if(this.cachedPush != null) {
-+    		return this.cachedPush;
-+    	}
++	if(this.cachedPush != null) {
++		return this.cachedPush;
++	}
          EnumDirection enumdirection = (EnumDirection) this.getBlock().get(BlockHopper.FACING);
  
 -        return b(this.getWorld(), this.position.shift(enumdirection));
 +        IInventory tmp = b(this.getWorld(), this.position.shift(enumdirection), this.cachedPushAir);
 +        if(tmp != null && !(tmp instanceof IWorldInventory) && !(tmp instanceof Entity)) {
-+        	this.cachedPush = tmp;
++		this.cachedPush = tmp;
 +        }else {
-+        	if(tmp == null) {
-+        		this.cachedPushAir = true;
-+        	}
-+        	return tmp;
++		if(tmp == null) {
++			this.cachedPushAir = true;
++		}
++		return tmp;
 +        }
 +        if(this.cachedPush == null) {
-+        	this.cachedPushAir = true;
++		this.cachedPushAir = true;
 +        }
 +        return this.cachedPush;
      }
@@ -74,26 +74,26 @@ index 20df9bd21d0e4d2579d05d79672da2eb26478044..a7f9d3e5ec1d582eb7101d5b6a969281
      @Nullable
      public static IInventory b(IHopper ihopper) {
 -        return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A());
-+    	//YAPFA start
-+    	if(ihopper instanceof TileEntityHopper) {
-+    		TileEntityHopper hopper = (TileEntityHopper) ihopper;
-+    		if(hopper.cachedAbove != null) {
-+    			return hopper.cachedAbove;
-+    		}
-+    		IInventory inv = a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), hopper.cachedPullAir);
-+    		hopper.cachedAbove = inv;
-+    		if(hopper.cachedAbove == null) {
-+    			hopper.cachedPullAir = true;
-+    		}
++	//YAPFA start
++	if(ihopper instanceof TileEntityHopper) {
++		TileEntityHopper hopper = (TileEntityHopper) ihopper;
++		if(hopper.cachedAbove != null) {
++			return hopper.cachedAbove;
++		}
++		IInventory inv = a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), hopper.cachedPullAir);
++		hopper.cachedAbove = inv;
++		if(hopper.cachedAbove == null) {
++			hopper.cachedPullAir = true;
++		}
 +            return inv;
-+    	} else {
-+    		return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), false);
-+    	}
++	} else {
++		return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), false);
++	}
 +        //YAPFA end
      }
  
      public static List<EntityItem> c(IHopper ihopper) {
-@@ -633,14 +664,15 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -651,14 +682,15 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      }
  
      @Nullable
@@ -109,50 +109,41 @@ index 20df9bd21d0e4d2579d05d79672da2eb26478044..a7f9d3e5ec1d582eb7101d5b6a969281
 -        Object object = null;
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean skipBlockCheck) { return a(world, d0, d1, d2, false, skipBlockCheck); } // YAPFA // Paper - overload to default false
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities, boolean skipBlockCheck) { // YAPFA // Paper
-+    	Object object = null;
-+    	if(!skipBlockCheck) { // YAPFA
++	Object object = null;
++	if(!skipBlockCheck) { // YAPFA
          BlockPosition blockposition = new BlockPosition(d0, d1, d2);
          if ( !world.isLoaded( blockposition ) ) return null; // Spigot
          IBlockData iblockdata = world.getType(blockposition);
-@@ -658,15 +690,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -676,8 +708,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
                  }
              }
          }
--
++	}
+ 
 -        if (object == null && (!optimizeEntities || !org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding())) { // Paper
-+    	}
-+        
 +        if (object == null && (!optimizeEntities || true/*!org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding()*/)) { // YAPFA // Paper
              List<Entity> list = world.getEntities((Entity) null, new AxisAlignedBB(d0 - 0.5D, d1 - 0.5D, d2 - 0.5D, d0 + 0.5D, d1 + 0.5D, d2 + 0.5D), IEntitySelector.d);
  
              if (!list.isEmpty()) {
-                 object = (IInventory) list.get(world.random.nextInt(list.size()));
-             }
-         }
--
-+        
-         return (IInventory) object;
-     }
- 
-@@ -728,4 +761,21 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -746,4 +779,21 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      protected Container createContainer(int i, PlayerInventory playerinventory) {
          return new ContainerHopper(i, playerinventory, this);
      }
-+    
++
 +    // YAPFA start
-+    
++
 +    private IInventory cachedAbove = null;
 +    private IInventory cachedPush = null;
 +    private boolean cachedPushAir = false;
 +    private boolean cachedPullAir = false;
-+    
++
 +    public void flushCaches() {
-+    	cachedAbove = null;
-+    	cachedPush = null;
-+    	cachedPushAir = false;
-+    	cachedPullAir = false;
++	cachedAbove = null;
++	cachedPush = null;
++	cachedPushAir = false;
++	cachedPullAir = false;
 +    }
-+    
++
 +    // YAPFA end
-+    
++
  }

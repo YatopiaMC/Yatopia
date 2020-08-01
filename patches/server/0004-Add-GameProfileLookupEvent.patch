@@ -5,7 +5,7 @@ Subject: [PATCH] Add GameProfileLookupEvent
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
-index 293b73f4747f48dbf8b6a8453d3fc777de11588d..d79472569d5d8fea2bf7faee2b7d8a6c2a6b17cc 100644
+index 8a18dfcda3c785e9c8bd134f88515e077dbef7dc..5d9ca693387c4f20c0126af7844bdaf57bf7e06a 100644
 --- a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
 +++ b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
 @@ -5,9 +5,13 @@ import com.google.common.base.Charsets;
@@ -22,7 +22,7 @@ index 293b73f4747f48dbf8b6a8453d3fc777de11588d..d79472569d5d8fea2bf7faee2b7d8a6c
  import org.bukkit.craftbukkit.entity.CraftPlayer;
  import org.spigotmc.SpigotConfig;
  
-@@ -183,13 +187,21 @@ public class CraftPlayerProfile implements PlayerProfile {
+@@ -185,13 +189,21 @@ public class CraftPlayerProfile implements PlayerProfile {
  
          boolean isCompleteFromCache = this.completeFromCache(true, onlineMode);
          if (onlineMode && (!isCompleteFromCache || textures && !hasTextures())) {
@@ -33,26 +33,26 @@ index 293b73f4747f48dbf8b6a8453d3fc777de11588d..d79472569d5d8fea2bf7faee2b7d8a6c
 -            if (this.profile.isComplete()) {
 -                server.getUserCache().saveProfile(this.profile);
 -            }
-+        	// YAPFA start
-+        	GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
-+        	Bukkit.getServer().getPluginManager().callEvent(event);
-+        	if (event.getGameProfile() != null) {
-+        		this.profile = event.getGameProfile();
-+        	} else {
-+        		GameProfile result = server.getSessionService().fillProfileProperties(profile, true);
-+        		if (result != null) {
-+        			copyProfileProperties(result, this.profile, true);
-+        		}
++		// YAPFA start
++		GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
++		Bukkit.getServer().getPluginManager().callEvent(event);
++		if (event.getGameProfile() != null) {
++			this.profile = event.getGameProfile();
++		} else {
++			GameProfile result = server.getSessionService().fillProfileProperties(profile, true);
++			if (result != null) {
++				copyProfileProperties(result, this.profile, true);
++			}
 +                if (this.profile.isComplete()) {
 +                    server.getUserCache().saveProfile(this.profile);
 +                }
-+        	}
-+        	// YAPFA end
++		}
++		// YAPFA end
          }
          return profile.isComplete() && (!onlineMode || !textures || hasTextures());
      }
 diff --git a/src/main/java/net/minecraft/server/TileEntitySkull.java b/src/main/java/net/minecraft/server/TileEntitySkull.java
-index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..e572aaaf366709fabfce556c750ba0388ab757ac 100644
+index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..b78dafae7c292e6b909757560a9023a20382c6de 100644
 --- a/src/main/java/net/minecraft/server/TileEntitySkull.java
 +++ b/src/main/java/net/minecraft/server/TileEntitySkull.java
 @@ -4,9 +4,14 @@ import com.google.common.collect.Iterables;
@@ -75,15 +75,15 @@ index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..e572aaaf366709fabfce556c750ba038
                          if ( property == null )
                          {
 -                            profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
-+                        	// YAPFA start
-+                        	GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
-+                        	Bukkit.getServer().getPluginManager().callEvent(event);
-+                        	if (event.getGameProfile() != null) {
-+                        		profile = event.getGameProfile();
-+                        	} else {
-+                        		profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
-+                        	}
-+                        	// YAPFA end
++				// YAPFA start
++				GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
++				Bukkit.getServer().getPluginManager().callEvent(event);
++				if (event.getGameProfile() != null) {
++					profile = event.getGameProfile();
++				} else {
++					profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
++				}
++				// YAPFA end
                          }
                      }
  

@@ -5,7 +5,7 @@ Subject: [PATCH] lithium MixinLandPathNodeMaker
 
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index ec55785af2b432b692d3a3bf4298ffb32489bf3b..87d6caa404f96f7aae586302d2a46420d0662f64 100644
+index ec55785af2b432b692d3a3bf4298ffb32489bf3b..73efaae6a845c4d7e71bb419fe3fd52d16fd436f 100644
 --- a/src/main/java/net/minecraft/server/PathfinderNormal.java
 +++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
 @@ -4,12 +4,23 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -28,7 +28,7 @@ index ec55785af2b432b692d3a3bf4298ffb32489bf3b..87d6caa404f96f7aae586302d2a46420
 +    // This is not thread-safe!
 +    private static final Reference2ReferenceMap<IBlockData, PathType> commonTypes = new Reference2ReferenceOpenHashMap<>();
 +	// YAPFA end
-+	
++
      protected float j;
      private final Long2ObjectMap<PathType> k = new Long2ObjectOpenHashMap();
      private final Object2BooleanMap<AxisAlignedBB> l = new Object2BooleanOpenHashMap();
@@ -40,7 +40,7 @@ index ec55785af2b432b692d3a3bf4298ffb32489bf3b..87d6caa404f96f7aae586302d2a46420
 -        Material material = iblockdata.getMaterial();
 +        // Check early if the block is air as it will always be open regardless of other conditions
 +        if(iblockdata.isAir())return PathType.OPEN;
-+        
++
 +        // Get the cached type for this block state
 +        PathType type = commonTypes.get(iblockdata);
 +

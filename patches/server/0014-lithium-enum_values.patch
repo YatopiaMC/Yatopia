@@ -1,25 +1,25 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: tr7zw <tr7zw@live.de>
-Date: Mon, 11 May 2020 21:37:44 +0200
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 21:44:22 -0500
 Subject: [PATCH] lithium enum_values
 
 
 diff --git a/src/main/java/net/minecraft/server/BlockPiston.java b/src/main/java/net/minecraft/server/BlockPiston.java
-index 4f10ca5ada741b4f5ef941bb9d92a2fa6a7c44ff..7f2ee293a0206d01e44dfffe2a0714719c86712a 100644
+index 4f10ca5ada741b4f5ef941bb9d92a2fa6a7c44ff..aafaedc63277e360fd8bc68d8190ef4f8460ebe8 100644
 --- a/src/main/java/net/minecraft/server/BlockPiston.java
 +++ b/src/main/java/net/minecraft/server/BlockPiston.java
-@@ -128,8 +128,9 @@ public class BlockPiston extends BlockDirectional {
+@@ -127,9 +127,9 @@ public class BlockPiston extends BlockDirectional {
+         }
  
      }
- 
 +    private final static EnumDirection[] aenumdirection = EnumDirection.values(); // YAPFA - don't recreate
-+    
+ 
      private boolean a(World world, BlockPosition blockposition, EnumDirection enumdirection) {
 -        EnumDirection[] aenumdirection = EnumDirection.values();
          int i = aenumdirection.length;
  
          int j;
-@@ -146,12 +147,11 @@ public class BlockPiston extends BlockDirectional {
+@@ -146,12 +146,11 @@ public class BlockPiston extends BlockDirectional {
              return true;
          } else {
              BlockPosition blockposition1 = blockposition.up();
@@ -35,25 +35,18 @@ index 4f10ca5ada741b4f5ef941bb9d92a2fa6a7c44ff..7f2ee293a0206d01e44dfffe2a071471
                  if (enumdirection2 != EnumDirection.DOWN && world.isBlockFacePowered(blockposition1.shift(enumdirection2), enumdirection2)) {
                      return true;
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-<<<<<<< HEAD:patches/server/0013-lithium-enum_values.patch
-index 26bbf2fc413e193507272d930e42e1ec9133abd7..565287c4c64f998ffe2caa631dd329b400f0ccf5 100644
+index 0eeb40337ff709641689d8a45fd3096571eec2f8..2ebe40ab0a9e7ba85a8f16366e44e4b81c314541 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2562,10 +2562,14 @@ public abstract class EntityLiving extends Entity {
-=======
-index a1819225ea0c3ceb677877586c7b9176ffd36a4d..2e879c7f95f2db5dd44e3e1c6879d4f12bf3d408 100644
---- a/src/main/java/net/minecraft/server/EntityLiving.java
-+++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2563,10 +2563,14 @@ public abstract class EntityLiving extends Entity {
->>>>>>> 1.16.1:patches/server/0018-lithium-enum_values.patch
+@@ -2558,11 +2558,14 @@ public abstract class EntityLiving extends Entity {
+         }
  
      }
- 
 +     /**
-+     * @reason Avoid cloning enum values
-+     */
-+    private final static EnumItemSlot[] aenumitemslot = EnumItemSlot.values();
-+
++      * @reason Avoid cloning enum values
++      */
++     private final static EnumItemSlot[] aenumitemslot = EnumItemSlot.values();
+ 
      @Nullable
      private Map<EnumItemSlot, ItemStack> r() {
          Map<EnumItemSlot, ItemStack> map = null;
@@ -62,30 +55,24 @@ index a1819225ea0c3ceb677877586c7b9176ffd36a4d..2e879c7f95f2db5dd44e3e1c6879d4f1
  
          for (int j = 0; j < i; ++j) {
 diff --git a/src/main/java/net/minecraft/server/EnumAxisCycle.java b/src/main/java/net/minecraft/server/EnumAxisCycle.java
-index a7c2543fdd4d5f6a04c45ec42472837ccaea9619..d05cddcc90e220c42548b2eb7b190fc63e9d51f5 100644
+index a7c2543fdd4d5f6a04c45ec42472837ccaea9619..ccfa23af36f66618f4ef18b0d86c86a73de9ea9f 100644
 --- a/src/main/java/net/minecraft/server/EnumAxisCycle.java
 +++ b/src/main/java/net/minecraft/server/EnumAxisCycle.java
-@@ -24,14 +24,27 @@ public enum EnumAxisCycle {
-             return enumdirection_enumaxis.a(k, i, j);
-         }
+@@ -26,12 +26,21 @@ public enum EnumAxisCycle {
  
-+        /**
-+         * The JVM has difficulty optimizing these functions due to the use of dynamic dispatch. They can trivially be
-+         * implemented as a simple switch lookup table.
-+         */
          @Override
          public EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis) {
 -            return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() + 1, 3)];
-+			switch (enumdirection_enumaxis) {
-+			case X:
-+				return EnumDirection.EnumAxis.Y;
-+			case Y:
-+				return EnumDirection.EnumAxis.Z;
-+			case Z:
-+				return EnumDirection.EnumAxis.X;
-+			}
++            switch (enumdirection_enumaxis) {
++                case X:
++                    return EnumDirection.EnumAxis.Y;
++                case Y:
++                    return EnumDirection.EnumAxis.Z;
++                case Z:
++                    return EnumDirection.EnumAxis.X;
++            }
 +
-+			throw new IllegalArgumentException();
++            throw new IllegalArgumentException();
          }
  
          @Override
@@ -95,21 +82,21 @@ index a7c2543fdd4d5f6a04c45ec42472837ccaea9619..d05cddcc90e220c42548b2eb7b190fc6
          }
      },
      BACKWARD {
-@@ -42,12 +55,21 @@ public enum EnumAxisCycle {
+@@ -42,12 +51,21 @@ public enum EnumAxisCycle {
  
          @Override
          public EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis) {
 -            return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() - 1, 3)];
-+			switch (enumdirection_enumaxis) {
-+			case X:
-+				return EnumDirection.EnumAxis.Z;
-+			case Y:
-+				return EnumDirection.EnumAxis.X;
-+			case Z:
-+				return EnumDirection.EnumAxis.Y;
-+			}
++            switch (enumdirection_enumaxis) {
++                case X:
++                    return EnumDirection.EnumAxis.Z;
++                case Y:
++                    return EnumDirection.EnumAxis.X;
++                case Z:
++                    return EnumDirection.EnumAxis.Y;
++            }
 +
-+			throw new IllegalArgumentException();
++            throw new IllegalArgumentException();
          }
  
          @Override
@@ -120,19 +107,18 @@ index a7c2543fdd4d5f6a04c45ec42472837ccaea9619..d05cddcc90e220c42548b2eb7b190fc6
      };
  
 diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
-index dd64aad1ed6c2acf360e757bf0369da5fcf6be41..18a136213565794addf35511de23e078065af5f2 100644
+index dd64aad1ed6c2acf360e757bf0369da5fcf6be41..623abf140ec604f50f9e608038185611ad2bb6d5 100644
 --- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java
 +++ b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
-@@ -167,9 +167,11 @@ public class PistonExtendsChecker {
+@@ -166,10 +166,10 @@ public class PistonExtendsChecker {
+         this.f.addAll(list1);
          this.f.addAll(list2);
      }
- 
 +    private final static EnumDirection[] aenumdirection = EnumDirection.values(); // YAPFA - don't recreate
-+    
+ 
      private boolean a(BlockPosition blockposition) {
          IBlockData iblockdata = this.a.getType(blockposition);
 -        EnumDirection[] aenumdirection = EnumDirection.values();
-+
          int i = aenumdirection.length;
  
          for (int j = 0; j < i; ++j) {

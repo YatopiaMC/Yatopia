@@ -107,3 +107,4 @@ $1/scripts/getUpstream.sh $1
 applyPatch YAPFA/YAPFA-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
 enableCommitSigningIfNeeded
 exit 1 )
+

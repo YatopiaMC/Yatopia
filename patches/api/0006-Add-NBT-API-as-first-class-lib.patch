@@ -5,11 +5,7 @@ Subject: [PATCH] Add NBT-API as first-class lib
 
 
 diff --git a/pom.xml b/pom.xml
-<<<<<<< HEAD
-index d6065069db2d44e9e779e3d9f6a69fa37aeaeebd..875e46318a774bacf7b156d1ca51b95c9e1c40ab 100644
-=======
-index 1d705769fb9d7764c1b9e4a16e791cd7764dcc50..897f536837bd33e25c7a1a0f7a2c6bc8575291c9 100644
->>>>>>> 1.16.1
+index 9647317e92a47c852b3ed08a34ddbfa9e6750a75..5cf643ef31bb741ac0b4971d3aec0c9a37a99ecd 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -43,6 +43,11 @@
@@ -50,7 +46,7 @@ index 1d705769fb9d7764c1b9e4a16e791cd7764dcc50..897f536837bd33e25c7a1a0f7a2c6bc8
              </plugin>
              <plugin>
 diff --git a/src/main/java/org/bukkit/block/TileState.java b/src/main/java/org/bukkit/block/TileState.java
-index 3b10fcc13893403b29f0260b8605144679e89b82..acb13596874191f9356a25befa49af73dab3dc58 100644
+index 3b10fcc13893403b29f0260b8605144679e89b82..898b9dcae21f0cbff2270e248037cf98e466a991 100644
 --- a/src/main/java/org/bukkit/block/TileState.java
 +++ b/src/main/java/org/bukkit/block/TileState.java
 @@ -4,6 +4,8 @@ import org.bukkit.persistence.PersistentDataContainer;
@@ -66,21 +62,17 @@ index 3b10fcc13893403b29f0260b8605144679e89b82..acb13596874191f9356a25befa49af73
      @NotNull
      @Override
      PersistentDataContainer getPersistentDataContainer();
-+    
++
 +    // YAPFA start
-+    
++
 +    public default NBTTileEntity getNBT() {
-+    	return new NBTTileEntity(this);
++	return new NBTTileEntity(this);
 +    }
-+    
++
 +    // YAPFA end
  }
 diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
-<<<<<<< HEAD
-index 7808ade92ccd3553056c57cdf77464fb8bdf9312..a8cf16da197383202859245d04ff92a8d455a6fb 100644
-=======
-index 7808ade92ccd3553056c57cdf77464fb8bdf9312..54c213b6e9c4046fdadb93a650ca5976c83c5643 100644
->>>>>>> 1.16.1
+index 7808ade92ccd3553056c57cdf77464fb8bdf9312..f0684830b45ebc66958c329dc0fbd5c73f94fcb9 100644
 --- a/src/main/java/org/bukkit/entity/Entity.java
 +++ b/src/main/java/org/bukkit/entity/Entity.java
 @@ -23,6 +23,9 @@ import org.jetbrains.annotations.Contract;
@@ -97,21 +89,21 @@ index 7808ade92ccd3553056c57cdf77464fb8bdf9312..54c213b6e9c4046fdadb93a650ca5976
       */
      public boolean isInLava();
      // Paper end
-+    
++
 +    // YAPFA start
-+    
++
 +    public default NBTEntity getNBT() {
-+    	return new NBTEntity(this);
++	return new NBTEntity(this);
 +    }
-+    
++
 +    public default NBTCompound getNBTC() {
-+    	return getNBT().getPersistentDataContainer();
++	return getNBT().getPersistentDataContainer();
 +    }
-+    
++
 +    // YAPFA end
  }
 diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
-index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..433d29ba0efd9782f556266fed33492c195c13c2 100644
+index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..d5f7e7a6f169026b8e2c14c2adbc2db1ad4acb18 100644
 --- a/src/main/java/org/bukkit/inventory/ItemStack.java
 +++ b/src/main/java/org/bukkit/inventory/ItemStack.java
 @@ -1,6 +1,10 @@
@@ -129,20 +121,20 @@ index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..433d29ba0efd9782f556266fed33492c
          return itemMeta.hasItemFlag(flag);
      }
      // Paper end
-+    
++
 +    // YAPFA start
-+    
++
 +    public NBTItem getNBT() {
-+    	return new NBTItem(this);
++	return new NBTItem(this);
 +    }
-+    
++
 +    public void setNBT(NBTItem nbt) {
-+    	ItemStack nbtItem = nbt.getItem();
-+    	setType(nbtItem.getType());
-+    	setAmount(nbtItem.getAmount());
-+    	setData(nbtItem.getData());
-+    	setItemMeta(nbtItem.getItemMeta());
++	ItemStack nbtItem = nbt.getItem();
++	setType(nbtItem.getType());
++	setAmount(nbtItem.getAmount());
++	setData(nbtItem.getData());
++	setItemMeta(nbtItem.getItemMeta());
 +    }
-+    
++
 +    // YAPFA end
  }

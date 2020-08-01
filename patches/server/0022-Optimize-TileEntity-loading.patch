@@ -1,14 +1,14 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: tr7zw <tr7zw@live.de>
-Date: Fri, 17 Jul 2020 01:10:17 +0200
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 22:04:17 -0500
 Subject: [PATCH] Optimize TileEntity loading
 
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-index a2e3e96e1e96c152de820283c1f8cb6248321f54..1725fc72846949fa08009ca5bec6214828bbbf3c 100644
+index c2c19a6fbfa2a4aba21aa71789071c69a6246556..7dfd36e22a896ae440bbda6db0628c44493b44d2 100644
 --- a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-@@ -1,11 +1,10 @@
+@@ -1,12 +1,10 @@
  package me.jellysquid.mods.lithium.common.util.collections;
  
 -import it.unimi.dsi.fastutil.objects.ObjectArraySet;
@@ -17,11 +17,12 @@ index a2e3e96e1e96c152de820283c1f8cb6248321f54..1725fc72846949fa08009ca5bec62148
  
  /**
   * Wraps a {@link List} with a hash table which provides O(1) lookups for {@link Collection#contains(Object)}.
+- *
 + * Uses a hashset so some issues can happen if the same entry get's added multiple times! (Doesn't matter for this usecase)
-  * 
   * @see https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/fabric/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
   */
-@@ -163,6 +162,6 @@ public class HashedList<T> implements List<T> {
+ public class HashedList<T> implements List<T> {
+@@ -163,6 +161,6 @@ public class HashedList<T> implements List<T> {
      }
  
      public static <T> HashedList<T> wrapper(List<T> list) {
@@ -30,8 +31,28 @@ index a2e3e96e1e96c152de820283c1f8cb6248321f54..1725fc72846949fa08009ca5bec62148
      }
  }
 \ No newline at end of file
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java.rej b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java.rej
+new file mode 100644
+index 0000000000000000000000000000000000000000..4c37da13af03314fd0cc0d7138da00f47cfdb5ce
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java.rej
+@@ -0,0 +1,14 @@
++diff a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java	(rejected hunks)
++@@ -1,11 +1,10 @@
++ package me.jellysquid.mods.lithium.common.util.collections;
++
++-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
++-
++ import java.util.*;
++
++ /**
++  * Wraps a {@link List} with a hash table which provides O(1) lookups for {@link Collection#contains(Object)}.
+++ * Uses a hashset so some issues can happen if the same entry get's added multiple times! (Doesn't matter for this usecase)
++  *
++  * @see https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/fabric/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
++  */
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 4a956f36812f36ea9898cb9e0c231ddb5eaa12cd..98196c11e6b22b14c0c23ae877559f06a5795a0f 100644
+index 950f36a52a9672b8052ce021245b4dbab931eb89..3eac7b3b577bbdcd762733b3c019beb746fde17a 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -2,6 +2,8 @@ package net.minecraft.server;

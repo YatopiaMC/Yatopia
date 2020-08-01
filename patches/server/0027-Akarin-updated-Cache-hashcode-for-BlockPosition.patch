@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 22:31:08 -0500
+Subject: [PATCH] Akarin updated Cache hashcode for BlockPosition
+
+
+diff --git a/src/main/java/net/minecraft/server/BaseBlockPosition.java b/src/main/java/net/minecraft/server/BaseBlockPosition.java
+index dab89b0c69ddff24d37cee06107bdc464012c6bb..aeb6553c99807509cb0c0df38a56341d86d8aab0 100644
+--- a/src/main/java/net/minecraft/server/BaseBlockPosition.java
++++ b/src/main/java/net/minecraft/server/BaseBlockPosition.java
+@@ -28,6 +28,7 @@ public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
+         return b < 0 || b >= 256;
+     }
+     // Paper end
++    protected int hash; // Akarin - cache hashcode
+ 
+     public BaseBlockPosition(int i, int j, int k) {
+         this.a = i;
+@@ -52,8 +53,20 @@ public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
+     }
+ 
+     public final int hashCode() { // Paper
+-        return (this.getY() + this.getZ() * 31) * 31 + this.getX();
+-    }
++    // Akarin start - cache hashcode
++        int result = hash; // Make the situation not too bad when it is modified by multiple threads
++        if (result == 0) {
++            result = (this.y + this.z * 31) * 31 + this.x; // Paper
++            hash = result;
++            }
++        return result;
++        // return (this.getY() + this.getZ() * 31) * 31 + this.getX();
++                }
++
++        public final void recalcHashCode() {
++        hash = 0;
++    }
++    // Akarin end
+ 
+     public int compareTo(BaseBlockPosition baseblockposition) {
+         return this.getY() == baseblockposition.getY() ? (this.getZ() == baseblockposition.getZ() ? this.getX() - baseblockposition.getX() : this.getZ() - baseblockposition.getZ()) : this.getY() - baseblockposition.getY();
+diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
+index 7ff4948a47be03c65c162ca04b2338cdcdafe7c4..14a626f98fb1faf38cf3d3e9d0bc79baf14559ac 100644
+--- a/src/main/java/net/minecraft/server/BlockPosition.java
++++ b/src/main/java/net/minecraft/server/BlockPosition.java
+@@ -438,7 +438,9 @@ public class BlockPosition extends BaseBlockPosition {
+         }
+ 
+         public BlockPosition.MutableBlockPosition e(int i, int j, int k) {
+-            return this.d(this.getX() + i, this.getY() + j, this.getZ() + k);
++            this.d(this.getX() + i, this.getY() + j, this.getZ() + k);
++            this.recalcHashCode();
++            return this;
+         }
+ 
+         public BlockPosition.MutableBlockPosition a(EnumDirection.EnumAxis enumdirection_enumaxis, int i, int j) {
+@@ -469,16 +471,19 @@ public class BlockPosition extends BaseBlockPosition {
+         // Tuinity - moved up
+         public final void o(int i) { // Tuinity
+             ((BaseBlockPosition)this).a = i; // need cast thanks to name conflict
++            this.recalcHashCode();
+         }
+ 
+         // Tuinity - moved up
+         public final void p(int i) { // Tuinity
+             ((BaseBlockPosition)this).b = i; // Tuinity
++            this.recalcHashCode();
+         }
+ 
+         // Tuinity - moved up
+         public final void q(int i) { // Tuinity
+             ((BaseBlockPosition)this).e = i; // Tuinity
++            this.recalcHashCode();
+         }
+ 
+         @Override

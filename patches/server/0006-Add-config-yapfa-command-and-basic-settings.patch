@@ -1,12 +1,12 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: tr7zw <tr7zw@live.de>
-Date: Thu, 5 Mar 2020 22:31:50 +0100
-Subject: [PATCH] Add config, yapfa command and basic settings
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 21:23:28 -0500
+Subject: [PATCH] Add config yapfa command and basic settings
 
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..76d83f3db4d7a18c44fccc68fb5620c84217b80b
+index 0000000000000000000000000000000000000000..fe42f5682c03bcfec97f5c83aff76a0c5f23b9d6
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
 @@ -0,0 +1,129 @@
@@ -102,7 +102,7 @@ index 0000000000000000000000000000000000000000..76d83f3db4d7a18c44fccc68fb5620c8
 +
 +        switch (args[0].toLowerCase(Locale.ENGLISH))  {
 +            case "info":
-+            	doInfo(sender);
++		doInfo(sender);
 +                break;
 +            case "reload":
 +                doReload(sender);
@@ -142,7 +142,7 @@ index 0000000000000000000000000000000000000000..76d83f3db4d7a18c44fccc68fb5620c8
 \ No newline at end of file
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..35ac0206c9a5481191752e78f61ccf4582a86f10
+index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b44b16013
 --- /dev/null
 +++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
 @@ -0,0 +1,209 @@
@@ -336,28 +336,28 @@ index 0000000000000000000000000000000000000000..35ac0206c9a5481191752e78f61ccf45
 +
 +    public static boolean disableEntityStuckChecks = false;
 +    private static void disableEntityStuckChecks() {
-+    	disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
++	disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
 +    }
-+    
++
 +    public static boolean disablePlayerOutOfWorldBorderCheck = false;
 +    private static void disablePlayerOutOfWorldBorderCheck() {
-+    	disablePlayerOutOfWorldBorderCheck = getBoolean("settings.disablePlayerOutOfWorldBorderCheck", false);
++	disablePlayerOutOfWorldBorderCheck = getBoolean("settings.disablePlayerOutOfWorldBorderCheck", false);
 +    }
 +
 +    public static boolean disableEntityCollisions = false;
 +    private static void disableEntityCollisions() {
-+    	disableEntityCollisions = getBoolean("settings.disableEntityCollisions", false);
++	disableEntityCollisions = getBoolean("settings.disableEntityCollisions", false);
 +    }
 +
 +    public static boolean disableEntityCollisionboxes = false;
 +    private static void disableEntityCollisionboxes() {
-+    	disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
++	disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
 +    }
-+    
++
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 578f7809cb09e746778d05b153e02c569f0d1d90..d697ccc4279a6e50f86255356c7d1b6ee9656bfe 100644
+index 4bd5cbf6e67c15a91d6063409a50ea33d2acff64..47502f5db68494df1d0fb3515dcb37699d0e2c63 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -7,6 +7,7 @@ import com.mojang.authlib.GameProfileRepository;
@@ -368,31 +368,28 @@ index 578f7809cb09e746778d05b153e02c569f0d1d90..d697ccc4279a6e50f86255356c7d1b6e
  import java.io.IOException;
  import java.io.InputStreamReader;
  import java.net.InetAddress;
-@@ -170,6 +171,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         com.destroystokyo.paper.PaperConfig.registerCommands();
-         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
-         // Paper end
+@@ -182,7 +183,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
+         us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
+-
 +        // YAPFA start
 +        try {
 +            de.tr7zw.yapfa.YapfaConfig.init(new File("yapfa.yml"));
-+        } catch (Exception e) {
++            } catch (Exception e) {
 +            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
 +            return false;
-+        }
++            }
 +        de.tr7zw.yapfa.YapfaConfig.registerCommands();
 +        // YAPFA end
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
- 
          this.setPVP(dedicatedserverproperties.pvp);
+         this.setAllowFlight(dedicatedserverproperties.allowFlight);
+         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-<<<<<<< HEAD:patches/server/0005-Add-config-yapfa-command-and-basic-settings.patch
-index 3db19a9bab8ffdc42f280a27c867bf7d1a1ab9e7..9f9221c481205d3ff84f96ff3e6657b499852710 100644
-=======
-index 9430cda80517b736aa07b8e57a1ae0f9f895f32d..0ad2d20eb188c8db40157f1e68d280f902eadf7f 100644
->>>>>>> 1.16.1:patches/server/0006-Add-config-yapfa-command-and-basic-settings.patch
+index 98c5ecdf8b59670c872cb43593054f5a91d5e9fe..9d45b9697e3e31cbe31b0a773a1c52a0a409b5ca 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1029,7 +1029,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -1035,7 +1035,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
          VoxelShape voxelshape = this.world.getWorldBorder().c();
          Stream<VoxelShape> stream = !this.world.getWorldBorder().isInBounds(axisalignedbb) ? Stream.empty() : Stream.of(voxelshape); // Paper
@@ -402,15 +399,11 @@ index 9430cda80517b736aa07b8e57a1ae0f9f895f32d..0ad2d20eb188c8db40157f1e68d280f9
          });
          StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-<<<<<<< HEAD:patches/server/0005-Add-config-yapfa-command-and-basic-settings.patch
-index 4545bd371c460d360a65d80b31af7819d718c97a..168d0d852eb87357931a11077906788a61041d6b 100644
-=======
-index 8a773d7de4b8eb2f6846ca277e1ef0af2a86abec..4c9b82284c529088fc977e7bd55c1f0f9dc7bbc5 100644
->>>>>>> 1.16.1:patches/server/0006-Add-config-yapfa-command-and-basic-settings.patch
+index d3b4726d37e900fa270d47dfb11c67f4738c687f..39d616e6bbce5bf055678262996dac4585b8b768 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
-         this.world.getMethodProfiler().enter("livingEntityBaseTick");
+         //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
          boolean flag = this instanceof EntityHuman;
  
 +        if(!de.tr7zw.yapfa.YapfaConfig.disableEntityStuckChecks) { // YAPFA start

@@ -1,15 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: tr7zw <tr7zw@live.de>
-Date: Sat, 4 Apr 2020 23:23:04 +0200
-Subject: [PATCH] Player saving async FileIO
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 22:39:45 -0500
+Subject: [PATCH] Player-saving-async-FileIO
 
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-<<<<<<< HEAD:patches/server/0009-Player-saving-async-FileIO.patch
-index 1588d101e0939c883757a5be91b30966d456a6bf..6cdcca870766214fa44c3930ce37e286a2549467 100644
-=======
-index 17789407b9e86896a963a305a13357286aa5f319..030e76685d8111a4feec3a91791ab06ef339604a 100644
->>>>>>> 1.16.1:patches/server/0010-Player-saving-async-FileIO.patch
+index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966465f380d 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -27,6 +27,8 @@ import java.util.List;
@@ -29,7 +25,7 @@ index 17789407b9e86896a963a305a13357286aa5f319..030e76685d8111a4feec3a91791ab06e
  
      // Paper start - fix advancement data player leakage
      final Map<CriterionTriggerAbstract, Set<CriterionTrigger.a>> criterionData = Maps.newIdentityHashMap();
-@@ -227,53 +230,66 @@ public class AdvancementDataPlayer {
+@@ -228,53 +231,66 @@ public class AdvancementDataPlayer {
  
          jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
  
@@ -81,23 +77,23 @@ index 17789407b9e86896a963a305a13357286aa5f319..030e76685d8111a4feec3a91791ab06e
 -            }
 -        } catch (IOException ioexception) {
 -            AdvancementDataPlayer.LOGGER.error("Couldn't save player advancements to {}", this.f, ioexception);
-+        	gson = AdvancementDataPlayer.b.toJson(jsonelement);
++		gson = AdvancementDataPlayer.b.toJson(jsonelement);
 +        } catch (Throwable throwable) {
 +            throw throwable;
 +        }
 +        if(gson != null) {
-+        	final String fGson = gson;
-+        	saveThread.submit(() -> {
-+        		 try {
++		final String fGson = gson;
++		saveThread.submit(() -> {
++			 try {
 +		            FileOutputStream fileoutputstream = new FileOutputStream(this.f);
 +		            Throwable throwable = null;
-+		
++
 +		            try {
 +		                OutputStreamWriter outputstreamwriter = new OutputStreamWriter(fileoutputstream, Charsets.UTF_8.newEncoder());
 +		                Throwable throwable1 = null;
-+		
++
 +		                try {
-+		                	outputstreamwriter.write(fGson);
++					outputstreamwriter.write(fGson);
 +		                } catch (Throwable throwable2) {
 +		                    throwable1 = throwable2;
 +		                    throw throwable2;
@@ -113,7 +109,7 @@ index 17789407b9e86896a963a305a13357286aa5f319..030e76685d8111a4feec3a91791ab06e
 +		                            outputstreamwriter.close();
 +		                        }
 +		                    }
-+		
++
 +		                }
 +		            } catch (Throwable throwable4) {
 +		                throwable = throwable4;
@@ -130,19 +126,19 @@ index 17789407b9e86896a963a305a13357286aa5f319..030e76685d8111a4feec3a91791ab06e
 +		                        fileoutputstream.close();
 +		                    }
 +		                }
-+		
++
 +		            }
 +		        } catch (IOException ioexception) {
 +		            AdvancementDataPlayer.LOGGER.error("Couldn't save player advancements to {}", this.f, ioexception);
 +		        }
-+        	});
++		});
          }
 +        // YAPFA end
  
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..321726139df8b10bf264a4cabdc55423b544ad50 100644
+index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..c9c5876a9192e263ed5103c0e88748b61f46529d 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -700,11 +700,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -152,15 +148,15 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..321726139df8b10bf264a4cabdc55423
 +    // YAPFA start
 +    private NBTTagList inventorySnapshot = null;
 +    private NBTTagList enderchestSnapshot = null;
-+    
-+    
++
++
 +    public void takeInventorySnapshot() {
-+    	inventorySnapshot = this.inventory.a(new NBTTagList());
-+    	enderchestSnapshot = this.enderChest.g();
++	inventorySnapshot = this.inventory.a(new NBTTagList());
++	enderchestSnapshot = this.enderChest.g();
 +    }
-+    
++
 +    // YAPFA end
-+    
++
      @Override
      public void saveData(NBTTagCompound nbttagcompound) {
          super.saveData(nbttagcompound);
@@ -180,28 +176,22 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..321726139df8b10bf264a4cabdc55423
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-<<<<<<< HEAD:patches/server/0009-Player-saving-async-FileIO.patch
-index 3c2f1f140c3991195bb8147bd65d9cd16a8fd3da..71d67cec763be9b72ea91c9f40757d214a4d4e5a 100644
-=======
-index 9382e8f79e8edec8885c629a36e230fbec50e1fb..871b104b60d03a7abbff80130c4b2ea3254676e2 100644
->>>>>>> 1.16.1:patches/server/0010-Player-saving-async-FileIO.patch
+index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3eb8e087e3 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -18,6 +18,9 @@ import java.util.Map;
- import java.util.Optional;
+@@ -20,6 +20,7 @@ import java.util.Optional;
  import java.util.Set;
  import java.util.UUID;
-+import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.CompletableFuture;
 +import java.util.concurrent.TimeUnit;
-+
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1258,6 +1261,28 @@ public abstract class PlayerList {
+@@ -1262,6 +1263,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
-+        
++
 +        // YAPFA start - make sure all saves are done
 +        try {
 +            ((WorldNBTStorage)playerFileData).saveThread.shutdown();
@@ -226,7 +216,7 @@ index 9382e8f79e8edec8885c629a36e230fbec50e1fb..871b104b60d03a7abbff80130c4b2ea3
      }
      // Paper end
  
-@@ -1295,13 +1320,13 @@ public abstract class PlayerList {
+@@ -1299,13 +1322,13 @@ public abstract class PlayerList {
              File file = this.server.a(SavedFile.STATS).toFile();
              File file1 = new File(file, uuid + ".json");
  
@@ -311,7 +301,7 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
                                                  ServerStatisticManager.LOGGER.warn("Invalid statistic in {}: Don't know what {} is", this.d, s2);
                                              });
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index 41a1b93a9e0f16ed9415dfeccd490496650163cb..9517fb0465da55d140c36967891b3e476c47bdf0 100644
+index be060f602f53344cf51c22eafacb4dc9219c8856..c644021bd91868c04ffcdf15663438d398d076e9 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -11,6 +11,10 @@ import org.apache.logging.log4j.LogManager;
@@ -345,18 +335,18 @@ index 41a1b93a9e0f16ed9415dfeccd490496650163cb..9517fb0465da55d140c36967891b3e47
 -            File file2 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat_old");
 -
 -            SystemUtils.a(file1, file, file2);
-+        	// YAPFA start
-+        	entityhuman.takeInventorySnapshot(); // Take a sync inventory/enderchest snapshot to prevent duping
++		// YAPFA start
++		entityhuman.takeInventorySnapshot(); // Take a sync inventory/enderchest snapshot to prevent duping
 +            saveThread.submit(() -> { // Save the tag async
-+            	try {
-+            		NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
++		try {
++			NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
 +		            File file = File.createTempFile(entityhuman.getUniqueIDString() + "-", ".dat", this.playerDir);
 +		            File file1 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat");
 +                    File file2 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat_old");
-+		
++
 +		            NBTCompressedStreamTools.a(nbttagcompound, (OutputStream) (new FileOutputStream(file)));
 +		            SystemUtils.a(file1, file, file2);
-+            	} catch (Exception exception) {
++		} catch (Exception exception) {
 +                    WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
 +                }
 +            });

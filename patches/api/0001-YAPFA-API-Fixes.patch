@@ -1,0 +1,110 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Fri, 31 Jul 2020 21:02:32 -0500
+Subject: [PATCH] YAPFA API Fixes
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..af770b69d2096c8f693bb0e4988b3d84b66ce38e 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -1776,4 +1776,14 @@ public final class Bukkit {
+     public static Server.Spigot spigot() {
+         return server.spigot();
+     }
++    // Purpur start
++    /**
++     * Check if server is lagging according to laggy threshold setting
++     *
++     * @return True if lagging
++     */
++    public static boolean isLagging() {
++        return server.isLagging();
++    }
++    // Purpur end
+ }
+diff --git a/src/main/java/org/bukkit/Bukkit.java.rej b/src/main/java/org/bukkit/Bukkit.java.rej
+deleted file mode 100644
+index ff7a0fef308dc3cd14bf70aa1b93f2bedbc187c6..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/Bukkit.java.rej
++++ /dev/null
+@@ -1,16 +0,0 @@
+-diff a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java	(rejected hunks)
+-@@ -1786,5 +1786,14 @@ public final class Bukkit {
+-     public static String getServerName() {
+-         return server.getServerName();
+-     }
+-+
+-+    /**
+-+     * Check if server is lagging according to laggy threshold setting
+-+     *
+-+     * @return True if lagging
+-+     */
+-+    public static boolean isLagging() {
+-+        return server.isLagging();
+-+    }
+-     // Purpur end
+- }
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index 1f916988bd54e8386011b0d7e82fc9219939a881..008c53e3cb8110d496194708f51879548de71c14 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -1463,6 +1463,21 @@ public interface Server extends PluginMessageRecipient {
+         }
+         // Akarin end - Server config
+ 
++        // Papercut start
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getPapercutConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++        // Papercut end
++        // Purpur start
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getPurpurConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++
++        // Purpur end
+         /**
+          * Sends the component to the player
+          *
+@@ -1560,6 +1575,16 @@ public interface Server extends PluginMessageRecipient {
+      *
+      * @return the mob goals manager
+      */
++
++    // Purpur start
++    /**
++      * Check if server is lagging according to laggy threshold setting
++      *
++      * @return True if lagging
++      */
++    boolean isLagging();
++    // Purpur end
++
+     @NotNull
+     com.destroystokyo.paper.entity.ai.MobGoals getMobGoals();
+     // Paper end
+diff --git a/src/main/java/org/bukkit/Server.java.rej b/src/main/java/org/bukkit/Server.java.rej
+deleted file mode 100644
+index 27ac6085245ef4270b20b213f9520b87a6c7b323..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/Server.java.rej
++++ /dev/null
+@@ -1,14 +0,0 @@
+-diff a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java	(rejected hunks)
+-@@ -1575,5 +1575,12 @@ public interface Server extends PluginMessageRecipient {
+-      */
+-     @NotNull
+-     String getServerName();
+-+
+-+    /**
+-+     * Check if server is lagging according to laggy threshold setting
+-+     *
+-+     * @return True if lagging
+-+     */
+-+    boolean isLagging();
+-     // Purpur end
+- }

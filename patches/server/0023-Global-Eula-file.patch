@@ -5,7 +5,7 @@ Subject: [PATCH] Global Eula file
 
 
 diff --git a/src/main/java/net/minecraft/server/EULA.java b/src/main/java/net/minecraft/server/EULA.java
-index 229c3b0f0c650b501f31147adaa17194af57fedd..703f90500188f037ec907cdb610aa86c7ed9ecf1 100644
+index 229c3b0f0c650b501f31147adaa17194af57fedd..8148e11bef17dee3377f43751d6de7c115eba01c 100644
 --- a/src/main/java/net/minecraft/server/EULA.java
 +++ b/src/main/java/net/minecraft/server/EULA.java
 @@ -1,9 +1,11 @@
@@ -26,24 +26,24 @@ index 229c3b0f0c650b501f31147adaa17194af57fedd..703f90500188f037ec907cdb610aa86c
          this.b = java_nio_file_path;
 -        this.c = SharedConstants.d || this.b();
 +        this.c = SharedConstants.d || globalEula() || this.b(this.b); // YAPFA
++    }
++
++    // YAPFA start
++
++    private boolean globalEula() {
++	File globalEula = new File(System.getProperty("user.home"), "eula.txt");
++
++	if(globalEula.exists()) {
++		return b(globalEula.toPath());
++	} else {
++		System.out.println("No global eula found at " + globalEula.getAbsolutePath());
++	}
++	return false;
      }
  
 -    private boolean b() {
-+    // YAPFA start
-+    
-+    private boolean globalEula() {
-+    	File globalEula = new File(System.getProperty("user.home"), "eula.txt");
-+
-+    	if(globalEula.exists()) {
-+    		return b(globalEula.toPath());
-+    	} else {
-+    		System.out.println("No global eula found at " + globalEula.getAbsolutePath());
-+    	}
-+    	return false;
-+    }
-+    
 +    // YAPFA end
-+    
++
 +    private boolean b(java.nio.file.Path path) { // YAPFA
          try {
 -            InputStream inputstream = Files.newInputStream(this.b);

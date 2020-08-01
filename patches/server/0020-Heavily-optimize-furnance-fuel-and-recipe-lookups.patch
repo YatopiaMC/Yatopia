@@ -5,28 +5,28 @@ Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index f27c7041cdc2f062f0abb222b02026194ab33c60..384cb3c62a3fb0972cf6058b219d1e0731a8dc0d 100644
+index c2af174e639396ac70eb7b520fdd641b1d2c67e6..fffdcd59fd0ad0b427fee815c3d8a06a45cd5d24 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -89,7 +89,24 @@ public class CraftingManager extends ResourceDataJson {
+@@ -83,7 +83,24 @@ public class CraftingManager extends ResourceDataJson {
          }).findFirst();
          c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
          // CraftBukkit end
 -        return recipe;
 +        // YAPFA start
-+    	if(c0.getCurrentRecipe() != null) {
-+    		Optional<T> optional = recipes.a(c0.getCurrentRecipe(), world, c0);
-+        	if(optional.isPresent()) {
++	if(c0.getCurrentRecipe() != null) {
++		Optional<T> optional = recipes.a(c0.getCurrentRecipe(), world, c0);
++		if(optional.isPresent()) {
 +		        c0.setCurrentRecipe(optional.get());
-+        		return optional;
-+        	}
-+    	}
++			return optional;
++		}
++	}
 +        for(IRecipe<C> rep : this.a(recipes)) {
-+        	Optional<T> optional = recipes.a(rep, world, c0);
-+        	if(optional.isPresent()) {
++		Optional<T> optional = recipes.a(rep, world, c0);
++		if(optional.isPresent()) {
 +		        c0.setCurrentRecipe(optional.get());
-+        		return optional;
-+        	}
++			return optional;
++		}
 +        }
 +        c0.setCurrentRecipe(null); // CraftBukkit - Clear recipe when no recipe is found
 +        return Optional.empty();
@@ -35,7 +35,7 @@ index f27c7041cdc2f062f0abb222b02026194ab33c60..384cb3c62a3fb0972cf6058b219d1e07
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 59aa2f8a797482c43fd47d3bce936772ad3cd6aa..7b1d20d395ffd264b23dccba230f5e6205796b56 100644
+index acc533ca8ad612cc439208f4adf6e3d3289c92c7..073aaafe75d0c6e421d31df669b7bba0e634ac85 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
 @@ -99,7 +99,13 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
@@ -44,11 +44,11 @@ index 59aa2f8a797482c43fd47d3bce936772ad3cd6aa..7b1d20d395ffd264b23dccba230f5e62
  
 +    //YAPFA
 +    private static Map<Item, Integer> cachedFuelMap = null;
-+    
++
      public static Map<Item, Integer> f() {
-+    	if(cachedFuelMap != null) {
-+    		return cachedFuelMap; // YAPFA
-+    	}
++	if(cachedFuelMap != null) {
++		return cachedFuelMap; // YAPFA
++	}
          Map<Item, Integer> map = Maps.newLinkedHashMap();
  
          a(map, (IMaterial) Items.LAVA_BUCKET, 20000);
@@ -60,11 +60,11 @@ index 59aa2f8a797482c43fd47d3bce936772ad3cd6aa..7b1d20d395ffd264b23dccba230f5e62
          return map;
      }
  
-@@ -613,4 +620,19 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -615,4 +622,19 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }
-+    
++
 +     // YAPFA start
 +    private IRecipe cachedRecipe = null;
 +    @Override
@@ -73,10 +73,10 @@ index 59aa2f8a797482c43fd47d3bce936772ad3cd6aa..7b1d20d395ffd264b23dccba230f5e62
 +    }
 +    @Override
 +    public void setCurrentRecipe(IRecipe recipe) {
-+    	cachedRecipe = recipe;
++	cachedRecipe = recipe;
 +    }
 +
-+    
++
 +    // YAPFA end
-+    
++
  }
