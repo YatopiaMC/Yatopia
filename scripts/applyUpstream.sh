@@ -21,14 +21,15 @@ for D in ${searchtxts[@]}; do
 		echo "$1/YAPFA-$dnoslash"
 		cd $1/YAPFA-$dnoslash
 		echo "Appyling $2 $dnoslash files!"
+		dnoslashlower="${dnoslash,,}"
 		#git branch $2-upstream
 		#git checkout $2-upstream
-		if [ $dnoslash != "api" ]; then
+		if [ $dnoslashlower != "api" ]; then
 			echo "$"
 			echo "Import new introduced NMS files.. test"
 				$scriptdir/importSources.sh $1 $2 || exit 1
 		fi				
-		for filename in $1/patches/$2/$dnoslash/*.patch; do
+		for filename in $1/patches/$2/$dnoslashlower/*.patch; do
 			# Abort previous applying operation
 			git am --abort >/dev/null 2>&1
 			# Apply our patches on top Paper in our dirs
