@@ -34,13 +34,13 @@ for D in ${searchtxts[@]}; do
 			git am --abort >/dev/null 2>&1
 			# Apply our patches on top Paper in our dirs
 			git am --reject --whitespace=fix --no-utf8 --3way --ignore-whitespace $filename || (
-			files=`$gitcmd diff --name-only | grep -E '.rej$' `
-			if [[ files != null ]]; then
-				for filerej in files; do
-					echo "Error found .rej file! Deleting. This might have unforseen consqunces!"
-					rm -f filerej
-				done
-			fi
+			#files=`$gitcmd diff --name-only | grep -E '.rej$' `
+			#if [[ files != null ]]; then
+			#	for filerej in files; do
+			#		echo "Error found .rej file! Deleting. This might have unforseen consqunces!"
+			#		rm -f filerej
+			#	done
+			#fi
 			filenamend="${filename##*/}"
 			filenamens=${filenamend%/*}
 			filenameedited=${filenamens%.*}  # retain the part before the period
