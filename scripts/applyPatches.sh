@@ -108,17 +108,11 @@ function applyPatch {
     fi
 }
 if [ -d "$basedir/YAPFA/YAPFA-Server" ]; then
-	cd $basedir/YAPFA/YAPFA-Server
-	git branch master
-	git checkout master
-	cd ..//
+	rm -rf $basedir/YAPFA/YAPFA-Server
 fi
 
 if [ -d "$basedir/YAPFA/YAPFA-API" ]; then
-	cd $basedir/YAPFA/YAPFA-API
-	git branch master
-	git checkout master
-	cd ..//
+	rm -rf $basedir/YAPFA/YAPFA-API
 fi
 
 $1/scripts/resetToUpstream.sh $1
