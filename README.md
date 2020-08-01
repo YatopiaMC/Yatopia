@@ -1,5 +1,4 @@
 # Yatopia (formerly YAPFA)
-## (Yet another ~~Paper~~ Tuinity fork attempt)
 [![Github-CI](https://github.com/tr7zw/Yatopia/workflows/CI/badge.svg)](https://github.com/tr7zw/Yatopia/actions?query=workflow%3ACI) [![CodeMC-CI](https://ci.codemc.io/job/Tr7zw/job/Yatopia/badge/icon?style=plastic)](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discordapp.com/invite/yk4caxM)
 [![Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2Ftr7zw%2Fpledges&style=for-the-badge)](https://www.patreon.com/tr7zw)
