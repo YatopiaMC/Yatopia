@@ -1,18 +1,16 @@
-name: YAPFA Build Script
+name: Yatopia Build Script
 
 on:
   push:
     paths-ignore:
       - '*.md'
     branches:
-      - dev/ver/1.16.1
-      - master
+      - ver/1.16.1
   pull_request:
     paths-ignore:
       - '*.md'
     branches:
-      - dev/ver/1.16.1
-      - master
+      - ver/1.16.1
 
 jobs:
   build:
@@ -44,7 +42,7 @@ jobs:
       name: Use ${{ matrix.java }} as the java target
       with:
         properties: '[{"maven.compiler.target": "${{ matrix.java }}"}]'
-    - name: Setup YAPFA Project
+    - name: Setup Yatopia Project
       run: |
          git submodule update --init --recursive -f
          git config --global user.email "ci@github.com"
@@ -56,23 +54,23 @@ jobs:
          cd Tuinity
          ./tuinity jar
          cd ..//           
-    - name: Build YAPFA
+    - name: Build Yatopia
       run: |
         ./yapfa full
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: YAPFA-${{ matrix.java }}
-        path: target/YAPFA-1.16.1-paperclip.jar
+        name: Yatopia-${{ matrix.java }}
+        path: target/Yatopia-1.16.1-paperclip.jar
     - name: Deploy Release
       if: github.ref == 'refs/heads/dev/ver/1.16.1'
       uses: WebFreak001/deploy-nightly@v1.0.3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
       with:
-        upload_url: https://uploads.github.com/repos/tr7zw/YAPFA/releases/28703947/assets{?name,label} # find out this value by opening https://api.github.com/repos/<owner>/<repo>/releases in your browser and copy the full "upload_url" value including the {?name,label} part
+        upload_url: https://uploads.github.com/repos/tr7zw/Yatopia/releases/28703947/assets{?name,label} # find out this value by opening https://api.github.com/repos/<owner>/<repo>/releases in your browser and copy the full "upload_url" value including the {?name,label} part
         release_id: 28703947 # same as above (id can just be taken out the upload_url, it's used to find old releases)
-        asset_path: target/YAPFA-1.16.1-paperclip.jar # path to archive to upload
-        asset_name: YAPFA-1.16.1-JDK${{ matrix.java }}-paperclip.jar # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
+        asset_path: target/Yatopia-1.16.1-paperclip.jar # path to archive to upload
+        asset_name: Yatopia-1.16.1-JDK${{ matrix.java }}-paperclip.jar # name to upload the release as, use $$ to insert date (YYYYMMDD) and 6 letter commit hash
         asset_content_type: application/zip # required by GitHub API
         max_releases: 3 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted

@@ -17,7 +17,7 @@ echo "----------------------------------------"
 set -e
 paperworkdir="$basedir/Tuinity/Paper/work"
 mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
-serverjar="$basedir/YAPFA-Server/target/yapfa-$mcver.jar"
+serverjar="$basedir/YAPFA-Server/target/yatopia-$mcver.jar"
 vanillajar="$paperworkdir/Minecraft/$mcver/$mcver.jar"
 
 (
@@ -25,7 +25,7 @@ vanillajar="$paperworkdir/Minecraft/$mcver/$mcver.jar"
     mvn clean package "-Dmcver=$mcver" "-Dpaperjar=$serverjar" "-Dvanillajar=$vanillajar"
 )
 mkdir -p "$basedir/target"
-cp "$paperworkdir/Paperclip/assembly/target/paperclip-${mcver}.jar" "$basedir/target/YAPFA-${mcver}-paperclip.jar"
+cp "$paperworkdir/Paperclip/assembly/target/paperclip-${mcver}.jar" "$basedir/yatopia-${mcver}-paperclip.jar"
 
 echo ""
-echo "  $(bashcolor 1 32)Success$(bashcolorend) - Saved launcher jar to target/YAPFA-${mcver}-launcher.jar"
+echo "  $(bashcolor 1 32)Success$(bashcolorend) - Saved launcher jar to target/yatopia-${mcver}-launcher.jar"
