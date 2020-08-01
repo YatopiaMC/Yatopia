@@ -82,7 +82,7 @@ function importLibraryToPaperWorkspace {
     # Reset to last NORMAL commit if already have imported before
     cd "$paperserverdir"
     lastcommit=$(git log -1 --pretty=oneline --abbrev-commit)
-    if [[ "$lastcommit" = *"Extra dev imports of YAPFA"* ]]; then
+    if [[ "$lastcommit" = *"Extra dev imports of Yatopia"* ]]; then
         git reset --hard HEAD^
     fi
 )
@@ -129,7 +129,7 @@ importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/ut
     cd "$paperserverdir"
     # rm -rf nms-patches
     git add . &> /dev/null
-    echo -e "Extra dev imports of YAPFA\n\n$IMPORT_LOG" | git commit src -F - &> /dev/null
+    echo -e "Extra dev imports of Yatopia\n\n$IMPORT_LOG" | git commit src -F - &> /dev/null
 	echo "  $(bashcolor 1 32)Succeed$(bashcolorend) - Sources have been imported to Paper/Paper-Server (branch upstream)"
 	
     if [[ $maintask != "0" ]]; then # this is magical
