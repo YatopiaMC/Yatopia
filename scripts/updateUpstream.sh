@@ -12,13 +12,13 @@ echo "  This will update and patch Paper, importing necessary sources for patchi
 echo "  "
 echo "  $(bashcolor 1 32)Projects:$(bashcolorend)"
 echo "  - $(bashcolor 1 32)1$(bashcolorend) : Paper"
-echo "  - $(bashcolor 1 32)2$(bashcolorend) : YAPFA"
+echo "  - $(bashcolor 1 32)2$(bashcolorend) : Yatopia"
 echo "----------------------------------------"
 # SCRIPT HEADER end
 
 # This script are capable of patching paper which have the same effect with renewing the source codes of paper to its corresponding remote/official state, and also are able to reset the patches of paper to its head commit to override dirty changes which needs a argument with --resetPaper.
 
-# After the patching, it will copying sources that do no exist in the YAPFA workspace but referenced in YAPFA patches into our workspace, depending on the content of our patches, this will be addressed by calling importSources.sh.
+# After the patching, it will copying sources that do no exist in the Yatopia workspace but referenced in Yatopia patches into our workspace, depending on the content of our patches, this will be addressed by calling importSources.sh.
 
 # Following by invoking generateImports.sh,  it will generate new added/imported files of paper compared to the original decompiled sources into mc-dev folder under the root dir of the project, whose intention is unclear yet.
 
