@@ -62,6 +62,7 @@ function applyPatch {
     #$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
     #$gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+	
 	cd $basedir/$2
 	git branch -d $2
 	git checkout -b $2
@@ -101,6 +102,20 @@ function applyPatch {
 		echo "  "
     fi
 }
+if [ -d "$basedir/YAPFA/YAPFA-Server" ]; then
+	cd $basedir/YAPFA/YAPFA-Server
+	git branch master
+	git checkout master
+	cd ..//
+fi
+
+if [ -d "$basedir/YAPFA/YAPFA-API" ]; then
+	cd $basedir/YAPFA/YAPFA-API
+	git branch master
+	git checkout master
+	cd ..//
+fi
+
 $1/scripts/resetToUpstream.sh $1
 $1/scripts/getUpstream.sh $1
 
