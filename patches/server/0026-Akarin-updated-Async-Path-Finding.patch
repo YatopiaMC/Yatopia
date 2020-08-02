@@ -227,6 +227,42 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..2f48383201d802a16fe70e6bf2c6ef41
      public void b(BlockPosition blockposition) {
          if (this.c != null && !this.c.b() && this.c.e() != 0) { // Tuinity - diff on change - needed for isViableForPathRecalculationChecking()
              PathPoint pathpoint = this.c.c();
+diff --git a/src/main/java/net/minecraft/server/NavigationFlying.java b/src/main/java/net/minecraft/server/NavigationFlying.java
+index 0c33a0c9d59d79a39826b5ee14144604717ffebe..709dea5992ba642cfd6e4712eb07890e85a6a0b2 100644
+--- a/src/main/java/net/minecraft/server/NavigationFlying.java
++++ b/src/main/java/net/minecraft/server/NavigationFlying.java
+@@ -55,6 +55,31 @@ public class NavigationFlying extends NavigationAbstract {
+         }
+     }
+ 
++    // This was copied from above partly with param
++    @Override
++    public void doTickAsync(PathEntity pathEntity) {
++        if (shouldContinuePathfind(pathEntity))
++            return;
++
++        Vec3D vec3d;
++        if (this.a()) {
++            this.applyPath(pathEntity);
++        } else if (pathEntity != null && pathEntity.f() < pathEntity.e()) {
++            vec3d = pathEntity.a(this.a, pathEntity.f());
++            if (MathHelper.floor(this.a.locX()) == MathHelper.floor(vec3d.x) && MathHelper.floor(this.a.locY()) == MathHelper.floor(vec3d.y) && MathHelper.floor(this.a.locZ()) == MathHelper.floor(vec3d.z)) {
++                pathEntity.c(pathEntity.f() + 1);
++            }
++        }
++
++        if (shouldContinuePathfind(pathEntity))
++            return;
++        //PacketDebug.a(this.b, this.a, pathEntity, this.l);
++        vec3d = pathEntity.a((Entity) this.a);
++        BlockPosition blockposition = new BlockPosition(vec3d);
++
++        this.a.getControllerMove().a(vec3d.x, vec3d.y, vec3d.z, this.d);
++    }
++
+     @Override
+     protected boolean a(Vec3D vec3d, Vec3D vec3d1, int i, int j, int k) {
+         int l = MathHelper.floor(vec3d.x);
 diff --git a/src/main/java/net/minecraft/server/Pathfinder.java b/src/main/java/net/minecraft/server/Pathfinder.java
 index 1c3a8043e735ec4605635efcfc5deb08a35ea1fd..bf2ac046eebd7f88fcb1d953f37952e791e6ea83 100644
 --- a/src/main/java/net/minecraft/server/Pathfinder.java
