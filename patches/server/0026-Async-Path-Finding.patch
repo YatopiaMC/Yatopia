@@ -31,7 +31,7 @@ index 681465d8a74831461dce4615d2d19c7ed46bc299..f04411a2a295d2a982dca5851ae76a80
                          if (!this.a(pathtype)) {
                              return false;
 diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1a550a304 100644
+index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..406d539fe9e37170db4339a0f7fbc6974d5438ab 100644
 --- a/src/main/java/net/minecraft/server/NavigationAbstract.java
 +++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
 @@ -28,6 +28,15 @@ public abstract class NavigationAbstract {
@@ -57,12 +57,12 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1
 +    // Akarin start - Async pathfinder, copied from above with modification
 +    public void doPathfindAsync() {
 +        if (this.b.getTime() - this.lastPathfindAsync > 20L) {
-+            if (this.q != null) {
++            if (this.p != null) {
 +                this.lastPathfindAsync = this.b.getTime();
- 
++
 +                // Bake chunk cache
-+                float f = (float) this.p.getValue();
-+                BlockPosition blockposition = new BlockPosition(this.a);
++                float f = (float) this.a.b(GenericAttributes.FOLLOW_RANGE);;
++                BlockPosition blockposition = this.a.getChunkCoordinates();
 +                int k = (int) (f + (float) 8);
 +                ChunkCache cache = new ChunkCache(this.b, blockposition.b(-k, -k, -k), blockposition.b(k, k, k));
 +
@@ -71,12 +71,12 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1
 +                    doTickAsync(this.c);
 +                    return;
 +                }
-+
+ 
 +                pathfindExecutor.execute(() -> {
-+                    PathEntity result = findPathAsync(cache, java.util.Collections.singleton(this.q), this.r);
++                    PathEntity result = findPathAsync(cache, java.util.Collections.singleton(this.p), this.q);
 +                    NavigationAbstract.this.b.getMinecraftServer().processQueue.add(() -> {
-+                        if (result != null && result.k() != null)
-+                            this.q = result.k();
++                        if (result != null && result.c() != null)
++                            this.q = result.e();
 +
 +                        NavigationAbstract.this.c = result;
 +                    });
@@ -103,7 +103,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1
 +                    } else if (!this.a()) {
 +                        return null;
 +                    } else {
-+                        return this.t.a(cache, this.a, set, f, j, this.s);
++                        return this.s.a(cache, this.a, set, f, j, this.r);
 +                    }
 +            }
 +    // Akarin end
@@ -138,10 +138,10 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1
 +
 +        if (shouldContinuePathfind(pathEntity))
 +            return;
- 
++
 +        vec3d = pathEntity.a((Entity) this.a);
 +        BlockPosition blockposition = new BlockPosition(vec3d);
-+
+ 
 +        this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a((IBlockAccess) this.b, blockposition), vec3d.z, this.d);
 +    }
 +    // Akarin End - Async pathfinder
@@ -155,11 +155,11 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1
 +    // Akarin start - Async pathfinder, copied from above with param
 +    protected void applyPath(PathEntity pathEntity) {
 +        Vec3D vec3d = this.b();
- 
++
 +        this.l = this.a.getWidth() > 0.75F ? this.a.getWidth() / 2.0F : 0.75F - this.a.getWidth() / 2.0F;
 +        BaseBlockPosition vec3d1 = pathEntity.g();
-+
-+        if (Math.abs(this.a.locX() - (vec3d1.x + 0.5D)) < (double) this.l && Math.abs(this.a.locZ() - (vec3d1.z + 0.5D)) < (double) this.l && Math.abs(this.a.locY() - vec3d1.y) < 1.0D) {
+ 
++        if (Math.abs(this.a.locX() - (vec3d1.getX() + 0.5D)) < (double) this.l && Math.abs(this.a.locZ() - (vec3d1.getY()  + 0.5D)) < (double) this.l && Math.abs(this.a.locY() - vec3d1.getZ()) < 1.0D) {
 +            pathEntity.c(pathEntity.f() + 1);
 +        }
 +        this.applyPath0(pathEntity, vec3d);
@@ -190,13 +190,13 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..8708588153c3322f52607d74bb0a9ca1
 +                this.i += SystemUtils.getMonotonicMillis() - this.j;
 +            } else {
 +                this.h = vec3d1;
-+                double d0 = vec3d.f(this.h);
++                double d0 = vec3d.f(Vec3D.c(this.h));
  
-+                this.k = this.a.dt() > 0.0F ? d0 / (double) this.a.dt() * 1000.0D : 0.0D;
++                this.k = this.a.dM() > 0.0F ? d0 / (double) this.a.dM() * 1000.0D : 0.0D;
 +            }
 +
 +            if (this.k > 0.0D && (double) this.i > this.k * 3.0D) {
-+                this.h = Vec3D.a;
++                this.h = BaseBlockPosition.ZERO;
 +                this.i = 0L;
 +                this.k = 0.0D;
 +                this.o();
