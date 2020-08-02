@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
 Date: Fri, 31 Jul 2020 22:39:43 -0500
-Subject: [PATCH] YAPFA-Server-Fixes
+Subject: [PATCH] Yatopia Server Fixes
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
@@ -246,13 +246,14 @@ index b005dd817e9ecffcf2172b4a807b0ecc632570b0..00000000000000000000000000000000
 -                     this.methodProfiler.exit();
 -                     this.methodProfiler.b();
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 3da442fca229f4abae5c1f7725e60286140061b4..969c5c145daf8c0bd81366c90b2b75975eb6fd15 100644
+index 3da442fca229f4abae5c1f7725e60286140061b4..038f4e85e7a7e612d72f21f530f9160dc2f7474f 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1170,6 +1170,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1169,7 +1169,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                 }
  
                  this.getVillagePlace().loadInData(chunkcoordintpair, chunkHolder.poiData);
-                 chunkHolder.tasks.forEach(Runnable::run);
+-                chunkHolder.tasks.forEach(Runnable::run);
 +                for (Runnable task : chunkHolder.tasks) {
 +                    task.run();
 +                 }
