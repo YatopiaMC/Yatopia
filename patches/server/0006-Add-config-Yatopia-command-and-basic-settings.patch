@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
-Date: Fri, 31 Jul 2020 21:23:28 -0500
-Subject: [PATCH] Add config yapfa command and basic settings
+Date: Sun, 2 Aug 2020 11:17:08 -0500
+Subject: [PATCH] Add config Yatopia command and basic settings
 
 
 diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
@@ -357,7 +357,7 @@ index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 4bd5cbf6e67c15a91d6063409a50ea33d2acff64..47502f5db68494df1d0fb3515dcb37699d0e2c63 100644
+index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..c023ce245d68fcc085a5a38baa026ceba97a3e12 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -7,6 +7,7 @@ import com.mojang.authlib.GameProfileRepository;
@@ -368,11 +368,10 @@ index 4bd5cbf6e67c15a91d6063409a50ea33d2acff64..47502f5db68494df1d0fb3515dcb3769
  import java.io.IOException;
  import java.io.InputStreamReader;
  import java.net.InetAddress;
-@@ -182,7 +183,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
+@@ -184,6 +185,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
--
+         com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
+ 
 +        // YAPFA start
 +        try {
 +            de.tr7zw.yapfa.YapfaConfig.init(new File("yapfa.yml"));

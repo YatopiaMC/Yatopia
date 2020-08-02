@@ -5,14 +5,15 @@ Subject: [PATCH] Yatopia Server Fixes
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 841a8d2b392acdcef90592b841cbbcb2237c6901..da44083d47fc07e48e6031c93444dded709c9ff9 100644
+index 841a8d2b392acdcef90592b841cbbcb2237c6901..c9cd3f6e6bb779ecaf0412c21e0dc654321eb44f 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
-@@ -232,6 +232,7 @@ public class TimingsExport extends Thread {
+@@ -232,6 +232,8 @@ public class TimingsExport extends Thread {
              pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
              pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
              , pair("akarin", mapAsJSON(Bukkit.spigot().getAkarinConfig(), null)) // Akarin - Server config
 +            , pair("papercut", mapAsJSON(Bukkit.spigot().getPapercutConfig(), null)) // Papercut
++            , pair("origami", mapAsJSON(Bukkit.spigot().getOrigamiConfig(), null)) // Origami
          ));
  
          new TimingsExport(listeners, parent, history).start();
@@ -100,14 +101,15 @@ index d1152585c5f482e554966f965561626c78ac4d3a..00000000000000000000000000000000
 -             int l = this.chunkMapDistance.b();
 -             // Paper start - per player mob spawning
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 77b6e4dd34893f0959574f95078bc3fa6896e69c..4bd5cbf6e67c15a91d6063409a50ea33d2acff64 100644
+index 77b6e4dd34893f0959574f95078bc3fa6896e69c..ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -181,6 +181,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -181,6 +181,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          // Paper end
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
          app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
 +        us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
++        com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
  
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
@@ -246,7 +248,7 @@ index b005dd817e9ecffcf2172b4a807b0ecc632570b0..00000000000000000000000000000000
 -                     this.methodProfiler.exit();
 -                     this.methodProfiler.b();
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 3da442fca229f4abae5c1f7725e60286140061b4..038f4e85e7a7e612d72f21f530f9160dc2f7474f 100644
+index a91b540a9e35efc8746f74f039a8ab6cfbd37206..546f4c942b047a39e0aec10cc2009b90573484dd 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -1169,7 +1169,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -331,7 +333,7 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 69249d91b4614ae414119230e2784a66c86dbff8..950f36a52a9672b8052ce021245b4dbab931eb89 100644
+index ce7a742f2a3b5c169b956c1a91819882b9b57955..2ab8412f20a77547c8bb12b927d23b2acb84965b 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -353,6 +355,14 @@ index 69249d91b4614ae414119230e2784a66c86dbff8..950f36a52a9672b8052ce021245b4dba
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
          this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
+@@ -646,6 +651,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         this.a(blockposition.south(), block, blockposition);
+     }
+ 
++    public void neighborChanged(BlockPosition pos, Block block, BlockPosition parent) { a(pos, block, parent); } // Origami - OBFHELPER
+     public void a(BlockPosition blockposition, Block block, EnumDirection enumdirection) {
+         if (enumdirection != EnumDirection.WEST) {
+             this.a(blockposition.west(), block, blockposition);
 diff --git a/src/main/java/net/minecraft/server/World.java.rej b/src/main/java/net/minecraft/server/World.java.rej
 deleted file mode 100644
 index 6f7cf093021998e6ae0178fa851e82437d4f7f86..0000000000000000000000000000000000000000
@@ -573,19 +583,20 @@ index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index afaa6ab4744190b134aeb616a1355cefd1333e37..d22eef110c50bf77bca4c35bf5a8bb14ad9942a0 100644
+index afaa6ab4744190b134aeb616a1355cefd1333e37..d3cda38b5e87d433b18b2c28e4fb467a079160d3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -836,6 +836,8 @@ public final class CraftServer implements Server {
+@@ -836,6 +836,9 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          app.akarin.server.Config.init((File) console.options.valueOf("akarin-settings")); // Akarin - Server Config
 +        us.minevict.papercut.PapercutConfig.init((File) console.options.valueOf("papercut-settings")); // Papercut
 +        net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
++        com.mrivanplays.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -872,6 +874,8 @@ public final class CraftServer implements Server {
+@@ -872,6 +875,8 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
              world.akarinConfig.init(); // Akarin - Server Config
@@ -594,7 +605,7 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..d22eef110c50bf77bca4c35bf5a8bb14
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2249,6 +2253,22 @@ public final class CraftServer implements Server {
+@@ -2249,6 +2254,25 @@ public final class CraftServer implements Server {
          }
          // Akarin End - Server Config
  
@@ -614,10 +625,13 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..d22eef110c50bf77bca4c35bf5a8bb14
 +        }*/
 +        // Purpur end
 +
++        @Override
++        public YamlConfiguration getOrigamiConfig() { return com.mrivanplays.origami.OrigamiConfig.config; } // Origami - add config to timings report
++
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2388,4 +2408,11 @@ public final class CraftServer implements Server {
+@@ -2388,4 +2412,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -648,7 +662,7 @@ index b9d3fb83434a48b328cf0a0ae1ec29d93e87aa3e..00000000000000000000000000000000
 -     // Purpur end
 - }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 418a0848541e2cb830a7effe3b7ca0cdf0052508..3b113a873bc940c5748e65d27b5c048b77ee86a6 100644
+index 2b1e0782df017078a742c206e437f61405f026f6..1df56d1e0b51b6ccd1794ffa83a8750d9731597c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -138,6 +138,7 @@ public class Main {
