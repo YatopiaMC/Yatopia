@@ -31,7 +31,7 @@ index 681465d8a74831461dce4615d2d19c7ed46bc299..f04411a2a295d2a982dca5851ae76a80
                          if (!this.a(pathtype)) {
                              return false;
 diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7df3a64e94 100644
+index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..2f48383201d802a16fe70e6bf2c6ef412e4771e2 100644
 --- a/src/main/java/net/minecraft/server/NavigationAbstract.java
 +++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
 @@ -28,6 +28,15 @@ public abstract class NavigationAbstract {
@@ -110,16 +110,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7d
      public boolean a(double d0, double d1, double d2, double d3) {
          return this.a(this.a(d0, d1, d2, 1), d3);
      }
-@@ -238,7 +290,7 @@ public abstract class NavigationAbstract {
-             Vec3D vec3d;
- 
-             if (this.a()) {
--                this.l();
-+                //this.l();
-             } else if (this.c != null && this.c.f() < this.c.e()) {
-                 vec3d = this.b();
-                 Vec3D vec3d1 = this.c.a(this.a, this.c.f());
-@@ -257,24 +309,56 @@ public abstract class NavigationAbstract {
+@@ -257,7 +309,37 @@ public abstract class NavigationAbstract {
              }
          }
      }
@@ -140,7 +131,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7d
 +        } else if (pathEntity.f() < pathEntity.e()) {
 +            vec3d = this.b();
 +            Vec3D vec3d1 = pathEntity.a(this.a, pathEntity.f());
-+
+ 
 +            if (vec3d.y > vec3d1.y && !this.a.isOnGround() && MathHelper.floor(vec3d.x) == MathHelper.floor(vec3d1.x) && MathHelper.floor(vec3d.z) == MathHelper.floor(vec3d1.z)) {
 +                pathEntity.c(pathEntity.f() + 1);
 +            }
@@ -154,34 +145,35 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7d
 +
 +        this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a((IBlockAccess) this.b, blockposition), vec3d.z, this.d);
 +    }
- 
--    protected void l() {
-+    // Akarin start - Async pathfinder, copied from above with param
-+    protected void applyPath(PathEntity pathEntity) {
+     protected void l() {
          Vec3D vec3d = this.b();
  
-         this.l = this.a.getWidth() > 0.75F ? this.a.getWidth() / 2.0F : 0.75F - this.a.getWidth() / 2.0F;
--        BaseBlockPosition baseblockposition = this.c.g();
-+        BaseBlockPosition baseblockposition = pathEntity.g();
-         double d0 = Math.abs(this.a.locX() - ((double) baseblockposition.getX() + 0.5D));
-         double d1 = Math.abs(this.a.locY() - (double) baseblockposition.getY());
-         double d2 = Math.abs(this.a.locZ() - ((double) baseblockposition.getZ() + 0.5D));
-         boolean flag = d0 < (double) this.l && d2 < (double) this.l && d1 < 1.0D;
- 
-         if (flag || this.a.b(this.c.h().l) && this.b(vec3d)) {
--            this.c.c(this.c.f() + 1);
-+            pathEntity.c(pathEntity.f() + 1);
-         }
- 
--        this.a(vec3d);
-+        this.applyPath0(pathEntity, vec3d);
+@@ -275,6 +357,24 @@ public abstract class NavigationAbstract {
+         this.a(vec3d);
      }
--
+ 
++    // Akarin start - Async pathfinder, copied from above with param
++    protected void applyPath(PathEntity pathEntity) {
++        Vec3D vec3d = this.b();
++
++        this.l = this.a.getWidth() > 0.75F ? this.a.getWidth() / 2.0F : 0.75F - this.a.getWidth() / 2.0F;
++        BaseBlockPosition baseblockposition = pathEntity.g();
++        double d0 = Math.abs(this.a.locX() - ((double) baseblockposition.getX() + 0.5D));
++        double d1 = Math.abs(this.a.locY() - (double) baseblockposition.getY());
++        double d2 = Math.abs(this.a.locZ() - ((double) baseblockposition.getZ() + 0.5D));
++        boolean flag = d0 < (double) this.l && d2 < (double) this.l && d1 < 1.0D;
++
++        if (flag || this.a.b(this.c.h().l) && this.b(vec3d)) {
++            pathEntity.c(pathEntity.f() + 1);
++        }
++
++        this.applyPath0(pathEntity, vec3d);
++    }
 +    // Akarin end
      private boolean b(Vec3D vec3d) {
          if (this.c.e() <= this.c.f() + 1) {
              return false;
-@@ -324,7 +408,39 @@ public abstract class NavigationAbstract {
+@@ -324,7 +424,39 @@ public abstract class NavigationAbstract {
          }
  
      }
@@ -195,7 +187,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7d
 +            this.f = this.e;
 +            this.g = vec3d;
 +        }
-+
+ 
 +        if (!pathEntity.b()) {
 +            BaseBlockPosition baseblockposition = pathEntity.g();
 +
@@ -212,7 +204,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7d
 +                this.e();
 +                this.o();
 +            }
- 
++
 +            this.j = SystemUtils.getMonotonicMillis();
 +        }
 +
@@ -221,7 +213,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..0aa6983fb6bb80efa9e20a811570bd7d
      private void e() {
          this.h = BaseBlockPosition.ZERO;
          this.i = 0L;
-@@ -389,7 +505,11 @@ public abstract class NavigationAbstract {
+@@ -389,7 +521,11 @@ public abstract class NavigationAbstract {
      public boolean r() {
          return this.o.e();
      }
