@@ -280,6 +280,68 @@ index 06b502a43f0e89b1b2cef8c3adb0a4229511846f..00000000000000000000000000000000
 -                 // Paper end
 - 
 -                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
+diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java
+index 6eb81504146af614a806add6e5effe0c2b111c8a..512afdfcbaab630a291d1aa120a90e554855d34f 100644
+--- a/src/main/java/net/minecraft/server/StructureGenerator.java
++++ b/src/main/java/net/minecraft/server/StructureGenerator.java
+@@ -139,6 +139,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
+                             int j2 = i1 + k * l1;
+                             ChunkCoordIntPair chunkcoordintpair = this.a(structuresettingsfeature, j, seededrandom, i2, j2);
+                             if (!iworldreader.getWorldBorder().isChunkInBounds(chunkcoordintpair.x, chunkcoordintpair.z)) { continue; } // Paper
++                            // Origami start - seed based feature search doesn't load
++                            if (iworldreader instanceof World && ((World) iworldreader).origamiConfig.fastFeatureSearchDontLoad) {
++                                return chunkcoordintpair.l();
++                            }
++                            // Origami end
+                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS);
+                             StructureStart<?> structurestart = structuremanager.a(SectionPosition.a(ichunkaccess.getPos(), 0), this, ichunkaccess);
+ 
+diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java.rej b/src/main/java/net/minecraft/server/StructureGenerator.java.rej
+deleted file mode 100644
+index 8b5d001fb8ecb4a5b96bda6532cf8d5900816290..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/StructureGenerator.java.rej
++++ /dev/null
+@@ -1,13 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java	(rejected hunks)
+-@@ -139,6 +139,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
+-                             int j2 = i1 + k * l1;
+-                             ChunkCoordIntPair chunkcoordintpair = this.a(structuresettingsfeature, j, seededrandom, i2, j2);
+-                             if (!iworldreader.getWorldBorder().isChunkInBounds(chunkcoordintpair.x, chunkcoordintpair.z)) { continue; } // Paper
+-+                            // Origami start - seed based feature search doesn't load
+-+                            if (iworldreader instanceof World && ((World) iworldreader).origamiConfig.fastFeatureSearchDontLoad) {
+-+                                return chunkcoordintpair.l();
+-+                            }
+-+                            // Origami end
+-                             // Origami start - option to only find generated features to not generate new chunks
+-                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
+-                             if (ichunkaccess == null) {
+diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
+index 7e06324777617d38be18e80b8498a74b1b0eb97f..d87d3f274ba1525c13875a92eec9d4c1bd265fa5 100644
+--- a/src/main/java/net/minecraft/server/TileEntityHopper.java
++++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
+@@ -514,6 +514,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+                 entityitem = (EntityItem) iterator.next();
+             } while (!a((IInventory) ihopper, entityitem));
+ 
++            if (ihopper instanceof TileEntityHopper) ((TileEntityHopper) ihopper).shouldTick = true; // Origami - don't tick empty hoppers
+             return true;
+         }
+         return false; // EMC
+diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java.rej b/src/main/java/net/minecraft/server/TileEntityHopper.java.rej
+deleted file mode 100644
+index cc8866ec1ccbc131e8491c50eda4f85590bb667b..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/TileEntityHopper.java.rej
++++ /dev/null
+@@ -1,9 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java	(rejected hunks)
+-@@ -466,6 +497,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+-                 entityitem = (EntityItem) iterator.next();
+-             } while (!a((IInventory) ihopper, entityitem));
+- 
+-+            if (ihopper instanceof TileEntityHopper) ((TileEntityHopper) ihopper).shouldTick = true; // Origami - don't tick empty hoppers
+-             return true;
+-         }
+-     }
 diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
 index 7fe085e48b6ad625a510edf33b112bef24f7d7ad..9459efde54d507231b4aacb7cba14e9905ebb4d7 100644
 --- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
@@ -333,29 +395,31 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index ce7a742f2a3b5c169b956c1a91819882b9b57955..2ab8412f20a77547c8bb12b927d23b2acb84965b 100644
+index ce7a742f2a3b5c169b956c1a91819882b9b57955..542b7cb89ac6b216d02bac6563df60d53cc7e9f1 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -96,6 +96,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -96,6 +96,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
      public final app.akarin.server.Config.WorldConfig akarinConfig; // Akarin - Server Config
 +    public final us.minevict.papercut.PapercutConfig.WorldConfig papercutConfig; // Papercut
 +    public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
++    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World Config
  
      public final co.aikar.timings.WorldTimingsHandler timings; // Paper
      public static BlockPosition lastPhysicsProblem; // Spigot
-@@ -126,6 +128,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -126,6 +129,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this.paperConfig, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
          this.akarinConfig = new app.akarin.server.Config.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Akarin - Server Config
 +        this.papercutConfig = new us.minevict.papercut.PapercutConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Papercut
 +        this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
++        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami - World Config
 +
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
          this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
-@@ -646,6 +651,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -646,6 +653,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          this.a(blockposition.south(), block, blockposition);
      }
  
@@ -587,29 +651,31 @@ index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index afaa6ab4744190b134aeb616a1355cefd1333e37..d3cda38b5e87d433b18b2c28e4fb467a079160d3 100644
+index afaa6ab4744190b134aeb616a1355cefd1333e37..b06f72228df2bd047e378ba750936a1138e72ade 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -836,6 +836,9 @@ public final class CraftServer implements Server {
+@@ -836,6 +836,10 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          app.akarin.server.Config.init((File) console.options.valueOf("akarin-settings")); // Akarin - Server Config
 +        us.minevict.papercut.PapercutConfig.init((File) console.options.valueOf("papercut-settings")); // Papercut
 +        net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
 +        com.mrivanplays.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
++        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -872,6 +875,8 @@ public final class CraftServer implements Server {
+@@ -872,6 +876,9 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
              world.akarinConfig.init(); // Akarin - Server Config
 +            world.papercutConfig.init(); // Papercut
 +            world.purpurConfig.init(); // Purpur
++            world.origamiConfig.init(); // Origami - World Config
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2249,6 +2254,25 @@ public final class CraftServer implements Server {
+@@ -2249,6 +2256,25 @@ public final class CraftServer implements Server {
          }
          // Akarin End - Server Config
  
@@ -635,7 +701,7 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..d3cda38b5e87d433b18b2c28e4fb467a
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2388,4 +2412,11 @@ public final class CraftServer implements Server {
+@@ -2388,4 +2414,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -666,7 +732,7 @@ index b9d3fb83434a48b328cf0a0ae1ec29d93e87aa3e..00000000000000000000000000000000
 -     // Purpur end
 - }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 2b1e0782df017078a742c206e437f61405f026f6..1df56d1e0b51b6ccd1794ffa83a8750d9731597c 100644
+index 5d9197e6b27c5fcb5ef5244a82b45052a5dd5b40..2c3f96e9d5e7c2cfd4a3d1aeba27f25c6e8b891b 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -138,6 +138,7 @@ public class Main {
@@ -700,6 +766,20 @@ index 2b1e0782df017078a742c206e437f61405f026f6..1df56d1e0b51b6ccd1794ffa83a8750d
                  // Paper start
                  acceptsAll(asList("server-name"), "Name of the server")
                          .withRequiredArg()
+@@ -168,6 +185,13 @@ public class Main {
+                         .defaultsTo(new File("origami.yml"))
+                         .describedAs("Yml file");
+                 // Origami end
++                // Origami Start - Server Config
++                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("origami.yml"))
++                        .describedAs("Yml file");
++                // Origami end - Server Config
+             }
+         };
+ 
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java.rej b/src/main/java/org/bukkit/craftbukkit/Main.java.rej
 deleted file mode 100644
 index 5d35899d1bedbb8643a601a2e1731a9bc66c7b61..0000000000000000000000000000000000000000
