@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
 Date: Sat, 1 Aug 2020 15:55:15 -0500
-Subject: [PATCH] Add NBT API as first class lib
+Subject: [PATCH] Add NBT API as a first class lib
 
 
 diff --git a/pom.xml b/pom.xml
@@ -46,95 +46,98 @@ index 3a49ca4b8af1c9715cda8efde3d09efef92354fe..9338a6a97d9ac2ce010928ffe330fc79
              </plugin>
              <plugin>
 diff --git a/src/main/java/org/bukkit/block/TileState.java b/src/main/java/org/bukkit/block/TileState.java
-index 3b10fcc13893403b29f0260b8605144679e89b82..8e56171795cb9110fa10f5cd98083abc30e67b41 100644
+index 3b10fcc13893403b29f0260b8605144679e89b82..1e9a96d8b08cc396acf73dc42083009354e89d8a 100644
 --- a/src/main/java/org/bukkit/block/TileState.java
 +++ b/src/main/java/org/bukkit/block/TileState.java
-@@ -4,6 +4,8 @@ import org.bukkit.persistence.PersistentDataContainer;
- import org.bukkit.persistence.PersistentDataHolder;
- import org.jetbrains.annotations.NotNull;
- 
-+import de.tr7zw.changeme.nbtapi.NBTTileEntity;
-+
- /**
-  * Represents a block state that also hosts a tile entity at the given location.
-  *
-@@ -36,4 +38,12 @@ public interface TileState extends BlockState, PersistentDataHolder {
+@@ -36,4 +36,26 @@ public interface TileState extends BlockState, PersistentDataHolder {
      @NotNull
      @Override
      PersistentDataContainer getPersistentDataContainer();
 +
 +    // Yatopia start
-+
-+    public default NBTTileEntity getNBT() {
-+	return new NBTTileEntity(this);
++    /**
++     * Returns NBT representation of this tile entity.
++     *
++     * @return vanilla NBT tags container
++     */
++    @NotNull
++    default de.tr7zw.changeme.nbtapi.NBTTileEntity getNBT() {
++        return new de.tr7zw.changeme.nbtapi.NBTTileEntity(this);
 +    }
 +
++    /**
++     * Returns a custom tag container of this tile entity.
++     *
++     * @return custom NBT tags container
++     */
++    @NotNull
++    default de.tr7zw.changeme.nbtapi.NBTCompound getNBTC() {
++        return getNBT().getPersistentDataContainer();
++    }
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
-index 7808ade92ccd3553056c57cdf77464fb8bdf9312..7ee13b985d1e408593a84825531e457e9fbcc4b0 100644
+index 7808ade92ccd3553056c57cdf77464fb8bdf9312..801815e64bb281dbd480258db24a36892f485990 100644
 --- a/src/main/java/org/bukkit/entity/Entity.java
 +++ b/src/main/java/org/bukkit/entity/Entity.java
-@@ -23,6 +23,9 @@ import org.jetbrains.annotations.Contract;
- import org.jetbrains.annotations.NotNull;
- import org.jetbrains.annotations.Nullable;
- 
-+import de.tr7zw.changeme.nbtapi.NBTCompound;
-+import de.tr7zw.changeme.nbtapi.NBTEntity;
-+
- /**
-  * Represents a base entity in the world
-  */
-@@ -695,4 +698,16 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
+@@ -695,4 +695,26 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
       */
      public boolean isInLava();
      // Paper end
 +
 +    // Yatopia start
-+
-+    public default NBTEntity getNBT() {
-+	return new NBTEntity(this);
++    /**
++     * Returns NBT representation of this entity.
++     *
++     * @return vanilla NBT tags container
++     */
++    @NotNull
++    default de.tr7zw.changeme.nbtapi.NBTEntity getNBT() {
++	    return new de.tr7zw.changeme.nbtapi.NBTEntity(this);
 +    }
 +
-+    public default NBTCompound getNBTC() {
-+	return getNBT().getPersistentDataContainer();
++    /**
++     * Returns a custom tag container of this entity.
++     *
++     * @return custom NBT tags container
++     */
++    @NotNull
++    default de.tr7zw.changeme.nbtapi.NBTCompound getNBTC() {
++	    return getNBT().getPersistentDataContainer();
 +    }
-+
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
-index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..802e6c620c831a7187fc52841c110c2934ab8d1b 100644
+index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..b93df6bea4af1b2d4123be031adecf030bcc3893 100644
 --- a/src/main/java/org/bukkit/inventory/ItemStack.java
 +++ b/src/main/java/org/bukkit/inventory/ItemStack.java
-@@ -1,6 +1,10 @@
- package org.bukkit.inventory;
- 
- import com.google.common.collect.ImmutableMap;
-+
-+import de.tr7zw.changeme.nbtapi.NBTItem;
-+import de.tr7zw.changeme.nbtapi.NBTType;
-+
- import java.util.LinkedHashMap;
- import java.util.List; // Paper
- import java.util.Map;
-@@ -791,4 +795,20 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+@@ -791,4 +791,29 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
          return itemMeta.hasItemFlag(flag);
      }
      // Paper end
 +
 +    // Yatopia start
-+
-+    public NBTItem getNBT() {
-+	return new NBTItem(this);
++    /**
++     * Returns NBT representation of this item.
++     *
++     * @return item's NBT tags container
++     */
++    @NotNull
++    public de.tr7zw.changeme.nbtapi.NBTItem getNBT() {
++        return new de.tr7zw.changeme.nbtapi.NBTItem(this);
 +    }
 +
-+    public void setNBT(NBTItem nbt) {
-+	ItemStack nbtItem = nbt.getItem();
-+	setType(nbtItem.getType());
-+	setAmount(nbtItem.getAmount());
-+	setData(nbtItem.getData());
-+	setItemMeta(nbtItem.getItemMeta());
++    /**
++     * Applies NBT data from the provided NBT item.
++     *
++     * @param nbt ItemStack's NBT container
++     */
++    public void setNBT(@NotNull de.tr7zw.changeme.nbtapi.NBTItem nbt) {
++        ItemStack nbtItem = nbt.getItem();
++        setType(nbtItem.getType());
++        setAmount(nbtItem.getAmount());
++        setData(nbtItem.getData());
++        setItemMeta(nbtItem.getItemMeta());
 +    }
-+
 +    // Yatopia end
  }
