@@ -4,11 +4,11 @@ Date: Sun, 2 Aug 2020 11:17:08 -0500
 Subject: [PATCH] Add config Yatopia command and basic settings
 
 
-diff --git a/src/main/java/de/tr7zw/yatopia/YapfaCommand.java b/src/main/java/de/tr7zw/yatopia/YapfaCommand.java
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..18e038e651b774a741111fe52466de6c74cdfeb5
+index 0000000000000000000000000000000000000000..1e88bc1a89eada5008ffe88f7ed32e107b2fb10c
 --- /dev/null
-+++ b/src/main/java/de/tr7zw/yatopia/YapfaCommand.java
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 @@ -0,0 +1,129 @@
 +package dev.tr7zw.yatopia;
 +
@@ -34,9 +34,9 @@ index 0000000000000000000000000000000000000000..18e038e651b774a741111fe52466de6c
 +import net.minecraft.server.MinecraftKey;
 +import net.minecraft.server.MinecraftServer;
 +
-+public class YapfaCommand extends Command {
++public class YatopiaCommand extends Command {
 +
-+    public YapfaCommand(String name) {
++    public YatopiaCommand(String name) {
 +        super(name);
 +        this.description = "Yatopia related commands";
 +        this.usageMessage = "/yatopia [help | reload | info | version]";
@@ -133,18 +133,18 @@ index 0000000000000000000000000000000000000000..18e038e651b774a741111fe52466de6c
 +        Command.broadcastCommandMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
 +
 +        MinecraftServer console = MinecraftServer.getServer();
-+        dev.tr7zw.yatopia.YapfaConfig.init(new File("yatopia.yml"));
++        dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
 +        console.server.reloadCount++;
 +
 +        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6345f7f36971d64141043c61e62c29db015bf57b
+index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6384f40d9
 --- /dev/null
-+++ b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -0,0 +1,209 @@
 +package dev.tr7zw.yatopia;
 +
@@ -179,7 +179,7 @@ index 0000000000000000000000000000000000000000..6345f7f36971d64141043c61e62c29db
 +import org.spigotmc.SpigotConfig;
 +import org.spigotmc.WatchdogThread;
 +
-+public class YapfaConfig {
++public class YatopiaConfig {
 +
 +    private static File CONFIG_FILE;
 +    private static final String HEADER = "This is the main configuration file for Yatopia.\n"
@@ -209,11 +209,11 @@ index 0000000000000000000000000000000000000000..6345f7f36971d64141043c61e62c29db
 +        verbose = getBoolean("verbose", false);
 +
 +        commands = new HashMap<String, Command>();
-+        commands.put("yatopia", new YapfaCommand("yatopia"));
++        commands.put("yatopia", new YatopiaCommand("yatopia"));
 +
 +        version = getInt("config-version", 1);
 +        set("config-version", 1);
-+        readConfig(YapfaConfig.class, null);
++        readConfig(YatopiaConfig.class, null);
 +    }
 +
 +    protected static void logError(String s) {
@@ -233,7 +233,7 @@ index 0000000000000000000000000000000000000000..6345f7f36971d64141043c61e62c29db
 +
 +    public static void registerCommands() {
 +        for (Map.Entry<String, Command> entry : commands.entrySet()) {
-+            MinecraftServer.getServer().server.getCommandMap().register(entry.getKey(), "Yapfa", entry.getValue());
++            MinecraftServer.getServer().server.getCommandMap().register(entry.getKey(), "Yatopia", entry.getValue());
 +        }
 +    }
 +
@@ -357,7 +357,7 @@ index 0000000000000000000000000000000000000000..6345f7f36971d64141043c61e62c29db
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..cac4c3e7fbe5fb8c02dc56df9bbdaa91039aad99 100644
+index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..9ba65a7528755f54b9a1c4b1323b6e75de867f14 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -7,6 +7,7 @@ import com.mojang.authlib.GameProfileRepository;
@@ -374,18 +374,18 @@ index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..cac4c3e7fbe5fb8c02dc56df9bbdaa91
  
 +        // Yatopia start
 +        try {
-+            dev.tr7zw.yatopia.YapfaConfig.init(new File("yatopia.yml"));
++            dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
 +            } catch (Exception e) {
 +            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
 +            return false;
 +            }
-+        dev.tr7zw.yatopia.YapfaConfig.registerCommands();
++        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
 +        // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 98c5ecdf8b59670c872cb43593054f5a91d5e9fe..68459db16da5f70a1c38c8e76e708191874e7a40 100644
+index 98c5ecdf8b59670c872cb43593054f5a91d5e9fe..c77bb0b092cf4198edb6334520fd57042b4e171c 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -1035,7 +1035,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -393,19 +393,19 @@ index 98c5ecdf8b59670c872cb43593054f5a91d5e9fe..68459db16da5f70a1c38c8e76e708191
          VoxelShape voxelshape = this.world.getWorldBorder().c();
          Stream<VoxelShape> stream = !this.world.getWorldBorder().isInBounds(axisalignedbb) ? Stream.empty() : Stream.of(voxelshape); // Paper
 -        Stream<VoxelShape> stream1 = this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
-+        Stream<VoxelShape> stream1 = dev.tr7zw.yatopia.YapfaConfig.disableEntityCollisionboxes ? Stream.empty() : this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
++        Stream<VoxelShape> stream1 = dev.tr7zw.yatopia.YatopiaConfig.disableEntityCollisionboxes ? Stream.empty() : this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
              return true;
          });
          StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index d3b4726d37e900fa270d47dfb11c67f4738c687f..fda60edcd1a6755f12d56c32e1f089c6ebcf4e01 100644
+index d3b4726d37e900fa270d47dfb11c67f4738c687f..9e79187d29957204194b0543f7346cf3a51ed5ce 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
          //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
          boolean flag = this instanceof EntityHuman;
  
-+        if(!dev.tr7zw.yatopia.YapfaConfig.disableEntityStuckChecks) { // Yatopia start
++        if(!dev.tr7zw.yatopia.YatopiaConfig.disableEntityStuckChecks) { // Yatopia start
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);

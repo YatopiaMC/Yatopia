@@ -4,11 +4,11 @@ Date: Fri, 31 Jul 2020 21:48:14 -0500
 Subject: [PATCH] Item stuck sleep config
 
 
-diff --git a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-index 47434bd82bd5cb8cbe4eac18423c436b9762be14..28878ab1b2417f73d46ea7300cf9070a345442f6 100644
---- a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-+++ b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-@@ -215,4 +215,9 @@ public class YapfaConfig {
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+index 3c654db72bf0a8b56dafd73df8a59f76d27360ae..0273d800eb75ba83edb36dff9e76f4d34031d600 100644
+--- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+@@ -215,4 +215,9 @@ public class YatopiaConfig {
      private static void pistonPushLimit() {
          pistonPushLimit = getInt("settings.pistonPushLimit", 12);
      }
@@ -20,7 +20,7 @@ index 47434bd82bd5cb8cbe4eac18423c436b9762be14..28878ab1b2417f73d46ea7300cf9070a
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityItem.java b/src/main/java/net/minecraft/server/EntityItem.java
-index 0a16ede769751678e4aabb4f0337e3142b373f78..6e251e4cb5b40f91532904928fdc3fc4a94cdb58 100644
+index 0a16ede769751678e4aabb4f0337e3142b373f78..ba01aa5ae0f0f0d8d0d3244daba5ae08580f37df 100644
 --- a/src/main/java/net/minecraft/server/EntityItem.java
 +++ b/src/main/java/net/minecraft/server/EntityItem.java
 @@ -81,7 +81,7 @@ public class EntityItem extends Entity {
@@ -28,7 +28,7 @@ index 0a16ede769751678e4aabb4f0337e3142b373f78..6e251e4cb5b40f91532904928fdc3fc4
              if (this.world.isClientSide) {
                  this.noclip = false;
 -            } else {
-+            } else if(!this.onGround || this.noclip || this.ticksLived % dev.tr7zw.yatopia.YapfaConfig.itemStuckSleepTicks == 0) { // Yatopia
++            } else if(!this.onGround || this.noclip || this.ticksLived % dev.tr7zw.yatopia.YatopiaConfig.itemStuckSleepTicks == 0) { // Yatopia
                  this.noclip = !this.world.getCubes(this);
                  if (this.noclip) {
                      this.k(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());

@@ -4,11 +4,11 @@ Date: Fri, 31 Jul 2020 21:28:00 -0500
 Subject: [PATCH] Allow to change the piston push limit
 
 
-diff --git a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-index ee1cea164ad5c1653502a08b31b1df482a598e14..47434bd82bd5cb8cbe4eac18423c436b9762be14 100644
---- a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-+++ b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-@@ -209,5 +209,10 @@ public class YapfaConfig {
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+index 2cee6e02a7dcbacb5f002f9c5917a2e26bcf2c82..3c654db72bf0a8b56dafd73df8a59f76d27360ae 100644
+--- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+@@ -209,5 +209,10 @@ public class YatopiaConfig {
      public static boolean onlyPlayerCollisions = false;
      private static void onlyPlayerCollisions() {
          onlyPlayerCollisions = getBoolean("settings.onlyPlayerCollisions", false);
@@ -22,7 +22,7 @@ index ee1cea164ad5c1653502a08b31b1df482a598e14..47434bd82bd5cb8cbe4eac18423c436b
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
-index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..b23e96ef11819f2892d8b50937fb68eaf0bc2a63 100644
+index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..89385896af6f6088a9749a13ad5c1d0c581fa502 100644
 --- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java
 +++ b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
 @@ -79,7 +79,7 @@ public class PistonExtendsChecker {
@@ -30,7 +30,7 @@ index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..b23e96ef11819f2892d8b50937fb68ea
              int i = 1;
  
 -            if (i + this.f.size() > 12) {
-+            if (i + this.f.size() > dev.tr7zw.yatopia.YapfaConfig.pistonPushLimit) { // Yatopia
++            if (i + this.f.size() > dev.tr7zw.yatopia.YatopiaConfig.pistonPushLimit) { // Yatopia
                  return false;
              } else {
                  while (a(block)) {
@@ -39,7 +39,7 @@ index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..b23e96ef11819f2892d8b50937fb68ea
  
                      ++i;
 -                    if (i + this.f.size() > 12) {
-+                    if (i + this.f.size() > dev.tr7zw.yatopia.YapfaConfig.pistonPushLimit) { // Yatopia
++                    if (i + this.f.size() > dev.tr7zw.yatopia.YatopiaConfig.pistonPushLimit) { // Yatopia
                          return false;
                      }
                  }
@@ -48,7 +48,7 @@ index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..b23e96ef11819f2892d8b50937fb68ea
                      }
  
 -                    if (this.f.size() >= 12) {
-+                    if (this.f.size() >= dev.tr7zw.yatopia.YapfaConfig.pistonPushLimit) { // Yatopia
++                    if (this.f.size() >= dev.tr7zw.yatopia.YatopiaConfig.pistonPushLimit) { // Yatopia
                          return false;
                      }
  

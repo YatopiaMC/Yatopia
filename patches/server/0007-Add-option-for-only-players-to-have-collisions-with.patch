@@ -4,11 +4,11 @@ Date: Fri, 31 Jul 2020 21:25:13 -0500
 Subject: [PATCH] Add option for only players to have collisions with
 
 
-diff --git a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-index 6345f7f36971d64141043c61e62c29db015bf57b..ee1cea164ad5c1653502a08b31b1df482a598e14 100644
---- a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-+++ b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
-@@ -206,4 +206,8 @@ public class YapfaConfig {
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+index 19bea6ee83d8b25da022662253328fb6384f40d9..2cee6e02a7dcbacb5f002f9c5917a2e26bcf2c82 100644
+--- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+@@ -206,4 +206,8 @@ public class YatopiaConfig {
  	disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
      }
  
@@ -19,7 +19,7 @@ index 6345f7f36971d64141043c61e62c29db015bf57b..ee1cea164ad5c1653502a08b31b1df48
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index fda60edcd1a6755f12d56c32e1f089c6ebcf4e01..2d67a24d0dfad7648bc146c8ab0a7b5649b7c4b6 100644
+index 9e79187d29957204194b0543f7346cf3a51ed5ce..1ee23408b493eb707791bd23b474e03510993fb3 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -2835,40 +2835,46 @@ public abstract class EntityLiving extends Entity {
@@ -62,7 +62,7 @@ index fda60edcd1a6755f12d56c32e1f089c6ebcf4e01..2d67a24d0dfad7648bc146c8ab0a7b56
 -                this.C(entity);
 -            }
 -        }
-+	        if(dev.tr7zw.yatopia.YapfaConfig.onlyPlayerCollisions) {
++	        if(dev.tr7zw.yatopia.YatopiaConfig.onlyPlayerCollisions) {
 +	            this.world.getEntities(this, this.getBoundingBox(), entity -> entity.getEntityType() == EntityTypes.PLAYER, list);
 +	        } else {
 +	            this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this), list);
