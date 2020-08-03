@@ -20,7 +20,7 @@ A fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), current side upstre
 * [Origami(2)](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 
-Notable characteristics are: Async Pathfinding, Eigencraft Redstone (1.16), Async Advancements, Ability to disable collisions & collisionboxes, Major Hopper Performance Improvements + A lot more. For a full oversight: [Patches](https://github.com/tr7zw/Yatopia/tree/ver/1.16.1/patches/server)
+Notable features are: Async & Optimized Pathfinding, Eigencraft Redstone (1.16), Async Advancements, Optimizer Pathfinder, Ability to slow down villager brains, Ability to disable collisions & collisionboxes, Major Hopper Performance Improvements, Nether TNT Bug + A lot more that all contribute towards ultimate performance.
 
 ## Experience Greatness ##
 
