@@ -24,7 +24,9 @@ for D in */; do
 						for filename in $1/$dnoslash/patches/$file/*.patch; do
 							filenamend="${filename##*/}"
 							filenamens=${filenamend%/*}
-		 					filenameedited=${filenamens%.*}  # retain the part before the period
+		 					#filenameedited=${filenamens%.*}  # retain the part before the period
+							filenameedited=${filenamens::-6}
+							#echo $filenameedited
 							filenameedited=${filenameedited:5}  # retain the part after the frist slash
 							if [[ $filenameedited == $patch ]]; then
 								echo "Found Matching file!"
