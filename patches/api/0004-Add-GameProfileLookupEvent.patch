@@ -1,0 +1,86 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Sat, 1 Aug 2020 15:52:50 -0500
+Subject: [PATCH] Add GameProfileLookupEvent
+
+
+diff --git a/pom.xml b/pom.xml
+index d0a4f91ed6a50e71644ef99fbb31986547454853..3a49ca4b8af1c9715cda8efde3d09efef92354fe 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -39,6 +39,10 @@
+             <id>sonatype</id>
+             <url>https://oss.sonatype.org/content/groups/public/</url>
+         </repository>
++        <repository>
++            <id>mojang</id>
++            <url>https://libraries.minecraft.net/</url>
++        </repository>
+     </repositories>
+ 
+     <pluginRepositories>
+@@ -49,6 +53,13 @@
+     </pluginRepositories>
+ 
+     <dependencies>
++	<!-- Authlib for Gameprofiles -->
++        <dependency>
++            <groupId>com.mojang</groupId>
++            <artifactId>authlib</artifactId>
++            <version>1.5.25</version>
++            <scope>provided</scope>
++        </dependency>
+         <dependency>
+             <groupId>it.unimi.dsi</groupId>
+             <artifactId>fastutil</artifactId>
+diff --git a/src/main/java/dev/tr7zw/yatopia/events/GameProfileLookupEvent.java b/src/main/java/dev/tr7zw/yatopia/events/GameProfileLookupEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..ff58b8875a07b34de02b9b479ff3e6daf66d7832
+--- /dev/null
++++ b/src/main/java/dev/tr7zw/yatopia/events/GameProfileLookupEvent.java
+@@ -0,0 +1,45 @@
++package dev.tr7zw.yatopia.events;
++
++import java.util.UUID;
++
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++
++import com.mojang.authlib.GameProfile;
++
++public class GameProfileLookupEvent extends Event {
++    private static final HandlerList handlers = new HandlerList();
++    private GameProfile gameProfile = null;
++    private final UUID uuid;
++    private final String name;
++
++	public GameProfileLookupEvent(boolean async, UUID uuid, String name) {
++		super(async);
++		this.uuid = uuid;
++		this.name = name;
++	}
++
++	public GameProfile getGameProfile() {
++		return gameProfile;
++	}
++
++	public void setGameProfile(GameProfile gameProfile) {
++		this.gameProfile = gameProfile;
++	}
++
++	public UUID getUuid() {
++		return uuid;
++	}
++
++	public String getName() {
++		return name;
++	}
++
++	public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}

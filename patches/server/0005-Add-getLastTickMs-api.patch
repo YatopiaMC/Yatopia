@@ -1,68 +1,58 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
-Date: Thu, 5 Mar 2020 21:13:33 +0100
-Subject: [PATCH] Add getLastTickMs() api
+Date: Fri, 31 Jul 2020 21:19:26 -0500
+Subject: [PATCH] Add getLastTickMs api
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index b02f380271b3a658caa59615f77de6b684a174e8..ff02688f7b9f6b58c0006d4ba23c38d73869bac0 100644
+index 7cc402a4dfaa2a4bb123c897b05c09190cbdd489..8e5284fd39be45055bec1609f6b8dd05229e6b35 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -934,6 +934,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-     private static final java.math.BigDecimal TPS_BASE = new java.math.BigDecimal(1E9).multiply(new java.math.BigDecimal(SAMPLE_INTERVAL));
+@@ -930,6 +930,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
      // Paper End
      // Spigot End
-+    
-+    public static long lastTickMs = 0; // YAPFA
  
++    public static long lastTickMs = 0; // Yatopia
++
      protected void v() {
          try {
+             long serverStartTime = SystemUtils.getMonotonicNanos(); // Paper
 @@ -998,7 +1000,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                      this.a(gameprofilertick);
-                     this.methodProfiler.a();
-                     this.methodProfiler.enter("tick");
-+                    long tickStart = System.currentTimeMillis(); // YAPFA
+                     //this.methodProfiler.a(); // Akarin - remove caller
+                     //this.methodProfiler.enter("tick"); // Akarin - remove caller
++                    long tickStart = System.currentTimeMillis(); // Yatopia
                      this.a(this::canSleepForTick);
-+                    lastTickMs = System.currentTimeMillis() - tickStart; // YAPFA
-                     this.methodProfiler.exitEnter("nextTickWait");
++                    lastTickMs = System.currentTimeMillis() - tickStart; // Yatopia
+                     //this.methodProfiler.exitEnter("nextTickWait"); // Akarin - remove caller
                      this.X = true;
-                     this.W = Math.max(SystemUtils.getMonotonicMillis() + 50L, this.nextTick);
-@@ -1007,6 +1011,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-                     this.methodProfiler.b();
-                     this.b(gameprofilertick);
-                     this.hasTicked = true;
-+                    
-                 }
-             } else {
-                 this.a((CrashReport) null);
+                     // Purpur start - tps catchup
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index a83fdf36fa5a47814e244810b688ea31ad7f8abc..a35c516b6d2e3535e4455d7f65f71988a75d1df8 100644
+index 4302ed03920773c2d097d0a0c3a853d1914e8032..a933d651dfd54912249387934cd2da53ac17d616 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -2388,4 +2388,13 @@ public final class CraftServer implements Server {
-         return mobGoals;
+@@ -2419,4 +2419,11 @@ public final class CraftServer implements Server {
+         return getServer().lagging;
      }
-     // Paper end
+     // Purpur end
 +
-+    // YAPFA start
-+    
-+	@Override
++    // Yatopia start
++    @Override
 +	public long getLastTickMs() {
-+		return net.minecraft.server.MinecraftServer.lastTickMs;
-+	}
-+	
-+	// YAPFA end
++        return net.minecraft.server.MinecraftServer.lastTickMs;
++    }
++    // Yatopia end
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 7218f23df4d06ff1ca612286e4a404246389ab18..a4f6df8606b0a96803f9917dc831148ea6f5bb0c 100644
+index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..87812ace9e1327f31693bdfb3fa45ac38766799b 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 @@ -33,7 +33,7 @@ public class TicksPerSecondCommand extends Command
          for ( int i = 0; i < tps.length; i++) {
              tpsAvg[i] = format( tps[i] );
          }
--        sender.sendMessage(ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", "));
-+        sender.sendMessage( ChatColor.GOLD + "TPS from last 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ") + " Last tick time: " + org.bukkit.Bukkit.getLastTickMs() + "ms"); // YAPFA
+-        sender.sendMessage(ChatColor.GOLD + "TPS from last 5s, 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ")); // Purpur
++        sender.sendMessage(ChatColor.GOLD + "TPS from last 5s, 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ") + " Last tick time: " + org.bukkit.Bukkit.getLastTickMs() + "ms"); // Yatopia // Purpur
          if (args.length > 0 && args[0].equals("mem") && sender.hasPermission("bukkit.command.tpsmemory")) {
              sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
              if (!hasShownMemoryWarning) {

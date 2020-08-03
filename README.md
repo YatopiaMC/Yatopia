@@ -5,7 +5,7 @@
 
 ## What ##
 
-This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Papercut](https://github.com/Minevictus/Papercut/) and [Purpur](https://github.com/pl3xgaming/Purpur) while adding a few more (optional via config) "extreme" patches that modify the vanilla Minecraft gameplay for more performance (notable killing entity pushing/collision boxes). This fork was based on [Paper](https://github.com/PaperMC/Paper) but is now based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
+This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami) and [Purpur](https://github.com/pl3xgaming/Purpur) while adding a few more (optional via config) "extreme" patches that modify the vanilla Minecraft gameplay for more performance (notable killing entity pushing/collision boxes). This fork is based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
 
 ## Config entries
 
@@ -41,14 +41,14 @@ Run the following commands in the root directory:
 
 ```
 git submodule update --init --recursive --force
-./yapfa jar
+./yatopia full
 ```
 
 ## LICENSE
 
 Everything is licensed under the MIT license and is free to be used in your own fork.
 
-See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Papercut](https://github.com/Minevictus/Papercut/) and [Tuinity](https://github.com/Spottedleaf/Tuinity)
+See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami) and [Tuinity](https://github.com/Spottedleaf/Tuinity)
 for the license of material used/modified by this project.
 
 **To use this project you'll have to accept the Mojang EULA!**

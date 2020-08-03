@@ -44,10 +44,10 @@ jobs:
         properties: '[{"maven.compiler.target": "${{ matrix.java }}"}]'
     - name: Setup Yatopia Project
       run: |
-         git submodule update --init --recursive -f
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
-         sudo chmod -R -f 777 scripts   
+         sudo chmod -R -f 777 scripts
+         ./yatopia init
     - name: Build Maven Depends
       if: steps.maven-cache.outputs.cache-hit != 'true'
       run: |
@@ -56,7 +56,7 @@ jobs:
          cd ..//           
     - name: Build Yatopia
       run: |
-        ./yapfa full
+        ./yatopia full
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:

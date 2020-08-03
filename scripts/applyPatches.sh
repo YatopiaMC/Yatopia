@@ -3,10 +3,11 @@
 # SCRIPT HEADER start
 basedir=$1
 source "$basedir/scripts/functions.sh"
+gpgsign="$($gitcmd config commit.gpgsign || echo "false")"
 echo "  "
 echo "----------------------------------------"
 echo "  $(bashcolor 1 32)Task$(bashcolorend) - Apply Patches"
-echo "  This will apply all of YAPFA patches on top of the Paper."
+echo "  This will apply all of Yatopia patches on top of the Paper."
 echo "  "
 echo "  $(bashcolor 1 32)Subtask:$(bashcolorend)"
 echo "  - Import Sources"
@@ -18,63 +19,79 @@ echo "----------------------------------------"
 # SCRIPT HEADER end
 
 needimport=$2
-
+function enableCommitSigningIfNeeded {
+	if [[ "$gpgsign" == "true" ]]; then
+		$gitcmd config commit.gpgsign true
+	fi
+}
 function applyPatch {
     baseproject=$1
     basename=$(basename $baseproject)
     target=$2
     branch=$3
     patch_folder=$4
-
+	cd $basedir/$2
     # Skip if that software have no patch
     haspatch=-f "$basedir/patches/$patch_folder/"*.patch >/dev/null 2>&1 # too many files
 	if [ ! haspatch ]; then
 	    echo "  $(bashcolor 1 33)($5/$6) Skipped$(bashcolorend) - No patch found for $target under patches/$patch_folder"
 		return
 	fi
-
-    echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Setup upstream project.."
-    cd "$basedir/$baseproject"
-    $gitcmd fetch --all &> /dev/null
-	# Create the upstream branch in Paper project with current state
-    $gitcmd checkout master >/dev/null 2>&1 # possibly already in
-	$gitcmd branch -D upstream &> /dev/null
-	$gitcmd branch -f upstream "$branch" &> /dev/null && $gitcmd checkout upstream &> /dev/null
+	
+	# Disable GPG signing before AM, slows things down and doesn't play nicely.
+	# There is also zero rational or logical reason to do so for these sub-repo AMs.
+	# Calm down kids, it's re-enabled (if needed) immediately after, pass or fail.
+	$gitcmd config commit.gpgsign false	
 	
 	if [[ $needimport != "1" ]]; then
-	    if [ $baseproject != "Paper/Paper-API" ]; then
+	    if [ $baseproject != "Tuinity/Tuinity-API" ]; then
 	        echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Import new introduced NMS files.."
-	        basedir && $scriptdir/importSources.sh $basedir 1 || exit 1
+			#cd $basedir/Yatopia-Server/
+			#branch_name="$(git symbolic-ref HEAD 2>/dev/null)"
+			#branch_name=${branch_name:-9}
+			#cd $basedir
+	        basedir && $scriptdir/importSources.sh $basedir "Yatopia" || exit 1
 		fi
     fi
-
-    basedir
-	# Create source project dirs
-    if [ ! -d  "$basedir/$target" ]; then
-        mkdir "$basedir/$target"
-        cd "$basedir/$target"
-        # $gitcmd remote add origin "$5"
-    fi
-    cd "$basedir/$target"
-	$gitcmd init > /dev/null 2>&1
-
-    echo "  "
-	echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Reset $target to $basename.."
-	# Add the generated Paper project as the upstream remote of subproject
-    $gitcmd remote rm upstream &> /dev/null
-    $gitcmd remote add upstream "$basedir/$baseproject" &> /dev/null
-	# Ensure that we are in the branch we want so not overriding things
-    $gitcmd checkout master &> /dev/null || $gitcmd checkout -b master &> /dev/null
-    $gitcmd fetch upstream &> /dev/null
-	# Reset our source project to Paper
-    cd "$basedir/$target" && $gitcmd reset --hard upstream/upstream &> /dev/null
+	#$gitcmd branch $target
+	
 	echo "  "
 
 	echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Apply patches to $target.."
 	# Abort previous applying operation
-    $gitcmd am --abort >/dev/null 2>&1
+    #$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
-    $gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+    #$gitcmd am --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+	
+	cd $basedir/$2
+	git branch -d $2
+	git branch $2
+	git checkout $2
+	# for filename in $basedir/patches/$patch_folder/*.patch; do
+	# 	# Abort previous applying operation
+	# 	git am --abort >/dev/null 2>&1
+	# 	# Apply our patches on top Paper in our dirs
+	# 	git am --reject --whitespace=fix --no-utf8 --3way --ignore-whitespace $filename || (
+	# 	files=`$gitcmd diff --name-only | grep -E '.rej$' `
+	# 	if [[ files != null ]]; then
+	# 		for filerej in files; do
+	# 			echo "Error found .rej file! Deleting. This might have unforseen consqunces!"
+	# 			rm -f filerej
+	# 		done
+	# 	fi
+	# 	filenamend="${filename##*/}"
+	# 	filenamens=${filenamend%/*}
+	# 	filenameedited=${filenamens%.*}  # retain the part before the period
+	# 	filenameedited=${filenameedited:5}  # retain the part after the frist slash				
+	# 	git add .
+	# 	git commit -m $filenameedited
+	# 	)
+	# done
+
+	$gitcmd am --abort >/dev/null 2>&1
+	# Apply our patches on top Paper in our dirs
+    $gitcmd am --whitespace=fix --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+	cd $basedir
 
     if [ "$?" != "0" ]; then
         echo "  Something did not apply cleanly to $target."
@@ -91,5 +108,16 @@ function applyPatch {
     fi
 }
 
-(applyPatch Tuinity/Tuinity-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
-applyPatch Tuinity/Tuinity-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2) || exit 1
+rm -rf $basedir/Yatopia/Yatopia-Server
+
+rm -rf $basedir/Yatopia/Yatopia-API
+
+
+$1/scripts/resetToUpstream.sh $1
+$1/scripts/getUpstream.sh $1
+
+(applyPatch Yatopia/Yatopia-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
+applyPatch Yatopia/Yatopia-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
+enableCommitSigningIfNeeded
+exit 1 )
+

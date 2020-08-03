@@ -1,0 +1,97 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Wed, 26 Feb 2020 18:37:34 +0100
+Subject: [PATCH] Brandings
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
+index 74ed02fa9296583977bb721014b10ff8b708b43c..a13c7b2b5bc79ecaea404779149ed02c4600a61b 100644
+--- a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
++++ b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
+@@ -18,6 +18,7 @@ public final class PaperConsole extends SimpleTerminalConsole {
+     protected LineReader buildReader(LineReaderBuilder builder) {
+         return super.buildReader(builder
+                 .appName("Paper")
++                .appName("Yatopia") // Yatopia
+                 .variable(LineReader.HISTORY_FILE, java.nio.file.Paths.get(".console_history"))
+                 .completer(new ConsoleCommandCompleter(this.server))
+         );
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java b/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..523e3b50d535e91afe8b14fdb53966da030963dc
+--- /dev/null
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java
+@@ -0,0 +1,20 @@
++package dev.tr7zw.yatopia;
++
++import javax.annotation.Nonnull;
++
++import com.destroystokyo.paper.util.VersionFetcher;
++
++public class YatopiaVersionFetcher implements VersionFetcher {
++
++    @Override
++    public long getCacheTime() {
++        return Long.MAX_VALUE;
++    }
++
++    @Nonnull
++    @Override
++    public String getVersionMessage(@Nonnull String serverVersion) {
++        return "\u00AF\\_(\u30C4)_/\u00AF";
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index e17119d37577de42f8d52afcfdfee64c33996941..7cc402a4dfaa2a4bb123c897b05c09190cbdd489 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1515,7 +1515,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+     }
+ 
+     public String getServerModName() {
+-        return "Tuinity"; // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
++        return "Yatopia"; // Yatopia // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
+     }
+ 
+     public CrashReport b(CrashReport crashreport) {
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index d3cda38b5e87d433b18b2c28e4fb467a079160d3..4302ed03920773c2d097d0a0c3a853d1914e8032 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -217,7 +217,7 @@ import javax.annotation.Nullable; // Paper
+ import javax.annotation.Nonnull; // Paper
+ 
+ public final class CraftServer implements Server {
+-    private final String serverName = "Tuinity"; // Paper // Tuinity
++    private final String serverName = "Yatopia"; // Paper // Tuinity // Yatopia
+     private final String serverVersion;
+     private final String bukkitVersion = Versioning.getBukkitVersion();
+     private final Logger logger = Logger.getLogger("Minecraft");
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+index 90c1067ca23e566a96d71e06c273d44397928b64..60604e44911d4eb1b67f4a68f8ddad03bcaff95f 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
+@@ -326,7 +326,7 @@ public final class CraftMagicNumbers implements UnsafeValues {
+ 
+     @Override
+     public com.destroystokyo.paper.util.VersionFetcher getVersionFetcher() {
+-        return new com.destroystokyo.paper.PaperVersionFetcher();
++        return new dev.tr7zw.yatopia.YatopiaVersionFetcher(); //Yatopia
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
+index 001b1e5197eaa51bfff9031aa6c69876c9a47960..2e6cd1780d759a9f94dc4d740fa1b81faad2a1ee 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
+@@ -11,7 +11,7 @@ public final class Versioning {
+     public static String getBukkitVersion() {
+         String result = "Unknown-Version";
+ 
+-        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.tuinity/tuinity-api/pom.properties"); // Tuinity
++        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/dev.tr7zw.yatopia/yatopia-api/pom.properties"); // Yatopia
+         Properties properties = new Properties();
+ 
+         if (stream != null) {

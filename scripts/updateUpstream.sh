@@ -12,13 +12,13 @@ echo "  This will update and patch Paper, importing necessary sources for patchi
 echo "  "
 echo "  $(bashcolor 1 32)Projects:$(bashcolorend)"
 echo "  - $(bashcolor 1 32)1$(bashcolorend) : Paper"
-echo "  - $(bashcolor 1 32)2$(bashcolorend) : YAPFA"
+echo "  - $(bashcolor 1 32)2$(bashcolorend) : Yatopia"
 echo "----------------------------------------"
 # SCRIPT HEADER end
 
 # This script are capable of patching paper which have the same effect with renewing the source codes of paper to its corresponding remote/official state, and also are able to reset the patches of paper to its head commit to override dirty changes which needs a argument with --resetPaper.
 
-# After the patching, it will copying sources that do no exist in the YAPFA workspace but referenced in YAPFA patches into our workspace, depending on the content of our patches, this will be addressed by calling importSources.sh.
+# After the patching, it will copying sources that do no exist in the Yatopia workspace but referenced in Yatopia patches into our workspace, depending on the content of our patches, this will be addressed by calling importSources.sh.
 
 # Following by invoking generateImports.sh,  it will generate new added/imported files of paper compared to the original decompiled sources into mc-dev folder under the root dir of the project, whose intention is unclear yet.
 
@@ -27,18 +27,20 @@ set -e
 
 subtasks=1
 updatepaper=$2
-if [ "$updatepaper" == "1" ]; then
-    echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Update Git submodules.."
-    $gitcmd submodule update --init --remote
-fi
+#if [ "$updatepaper" == "1" ]; then
+    #echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Update Git submodules.."
+    #$gitcmd submodule update --init --remote
+#fi
 
-if [[ "$2" == "--resetPaper" ]]; then
-    echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Reset Paper submodule.."
-    paperdir
-    $gitcmd fetch && $gitcmd reset --hard origin/master
-    basedir
-    $gitcmd add Paper
-fi
+#if [[ "$2" == "--resetPaper" ]]; then
+    #echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Reset Paper submodule.."
+    #paperdir
+    #$gitcmd fetch && $gitcmd reset --hard origin/master
+    #basedir
+    #$gitcmd add Paper
+#fi
+
+$basedir/scripts/fetchUpstream.sh $basedir
 
 # patch paper
 echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Apply patches of Tuinity.."
@@ -80,7 +82,7 @@ paperdir
 #tag Paper-API $forcetag
 #tag Paper-Server $forcetag
 
-echo "  $(bashcolor 1 32)($subtasks/$subtasks) Succeed$(bashcolorend) - Submodules have been updated, regenerated and imported, run 'YAPFA patch' to test/fix patches, and by 'YAPFA rbp' to rebuild patches that fixed with the updated upstream."
+echo "  $(bashcolor 1 32)($subtasks/$subtasks) Succeed$(bashcolorend) - Submodules have been updated, regenerated and imported, run 'Yatopia patch' to test/fix patches, and by 'Yatopia rbp' to rebuild patches that fixed with the updated upstream."
 echo "  "
 
 # gitpush Paper-API $PAPER_API_REPO $tag

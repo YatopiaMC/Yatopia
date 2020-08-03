@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
-maintask=$2
-if [[ $maintask == "0" ]]; then
-    TASKTITLE="Import Sources"
-else
-    TASKTITLE="Import Sources (Subtask)"
-fi
+#maintask=$2
+#if [[ $maintask == "0" ]]; then
+#    TASKTITLE="Import Sources"
+#else
+#    TASKTITLE="Import Sources (Subtask)"
+#fi
 
 # SCRIPT HEADER start
 basedir=$1
+echo "$2"
 source "$basedir/scripts/functions.sh"
 echo "  "
 echo "----------------------------------------"
@@ -19,8 +20,9 @@ echo "----------------------------------------"
 
 # For a description of this script, see updateUpstream.sh.
 paperworkdir="$basedir/Tuinity/Paper/work"
-paperserverdir="$basedir/Tuinity/Tuinity-Server"
-papersrcdir="$paperserverdir/src/main/java"
+forkname="$2"
+paperserverdir="$basedir/Yatopia-Server"
+papersrcdir="$basedir/Yatopia-Server/src/main/java"
 papernmsdir="$papersrcdir/net/minecraft/server"
 
 (
@@ -82,23 +84,45 @@ function importLibraryToPaperWorkspace {
     # Reset to last NORMAL commit if already have imported before
     cd "$paperserverdir"
     lastcommit=$(git log -1 --pretty=oneline --abbrev-commit)
-    if [[ "$lastcommit" = *"Extra dev imports of YAPFA"* ]]; then
+    if [[ "$lastcommit" = *"Extra dev imports of $forkname"* ]]; then
         git reset --hard HEAD^
     fi
 )
 
 # Filter and import every files which have patch to modify
-patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 
-patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-
+if [[ $forkname != "Yatopia" ]]; then
+	if [[ $forkname != null ]]; then
+        echo "test: $forkname == Purpur"
+		patchedFiles=$(cat patches/$forkname/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+		patchedFilesNonNMS=$(cat patches/$forkname/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+	else
+        echo "test: $forkname == Yatopia"
+		patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+		patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+	fi
+else
+    echo "test: $forkname == Yatopia"
+	patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+	patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+fi
 (
     cd "$paperserverdir"
-    $gitcmd fetch --all &> /dev/null
+    #$gitcmd fetch --all &> /dev/null
 	# Create the upstream branch in Paper project with current state
-    $gitcmd checkout master >/dev/null 2>&1 # possibly already in
-	$gitcmd branch -D upstream &>/dev/null
-	$gitcmd branch -f upstream HEAD && $gitcmd checkout upstream
+    #$gitcmd checkout master >/dev/null 2>&1 # possibly already in
+    #if [[ $3 != "Yatopia" ]]; then
+	    #if [[ $3 != null ]]; then
+            #$gitcmd branch -D ${3}-upstream &>/dev/null
+	        #$gitcmd branch -f ${3}-upstream HEAD && $gitcmd checkout ${3}-upstream
+        #else
+	        #$gitcmd branch -D upstream &>/dev/null
+	        #$gitcmd branch -f upstream HEAD && $gitcmd checkout upstream
+        #fi
+    #else
+   	#$gitcmd branch -D upstream &>/dev/null
+	#$gitcmd branch -f upstream HEAD && $gitcmd checkout upstream   
+    #fi  
 )
 
 basedir
@@ -118,18 +142,16 @@ done
 
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
-importToPaperWorkspace PistonExtendsChecker
-importToPaperWorkspace EnumDirection
+
 # Library import format (multiple files are supported):
 # importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
-importLibraryToPaperWorkspace com.mojang authlib com/mojang/authlib yggdrasil/YggdrasilGameProfileRepository.java
-importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
 # Submit imports by commit with file descriptions
 (
     cd "$paperserverdir"
     # rm -rf nms-patches
     git add . &> /dev/null
-    echo -e "Extra dev imports of YAPFA\n\n$IMPORT_LOG" | git commit src -F - &> /dev/null
+    echo -e "Extra dev imports of $forkname\n\n$IMPORT_LOG"
+	git commit -m "Extra dev imports of $forkname"
 	echo "  $(bashcolor 1 32)Succeed$(bashcolorend) - Sources have been imported to Paper/Paper-Server (branch upstream)"
 	
     if [[ $maintask != "0" ]]; then # this is magical
