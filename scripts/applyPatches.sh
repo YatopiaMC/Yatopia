@@ -7,7 +7,7 @@ gpgsign="$($gitcmd config commit.gpgsign || echo "false")"
 echo "  "
 echo "----------------------------------------"
 echo "  $(bashcolor 1 32)Task$(bashcolorend) - Apply Patches"
-echo "  This will apply all of YAPFA patches on top of the Paper."
+echo "  This will apply all of Yatopia patches on top of the Paper."
 echo "  "
 echo "  $(bashcolor 1 32)Subtask:$(bashcolorend)"
 echo "  - Import Sources"
@@ -46,11 +46,11 @@ function applyPatch {
 	if [[ $needimport != "1" ]]; then
 	    if [ $baseproject != "Tuinity/Tuinity-API" ]; then
 	        echo "  $(bashcolor 1 32)($5/$6)$(bashcolorend) - Import new introduced NMS files.."
-			#cd $basedir/YAPFA-Server/
+			#cd $basedir/Yatopia-Server/
 			#branch_name="$(git symbolic-ref HEAD 2>/dev/null)"
 			#branch_name=${branch_name:-9}
 			#cd $basedir
-	        basedir && $scriptdir/importSources.sh $basedir "YAPFA" || exit 1
+	        basedir && $scriptdir/importSources.sh $basedir "Yatopia" || exit 1
 		fi
     fi
 	#$gitcmd branch $target
@@ -107,19 +107,19 @@ function applyPatch {
 		echo "  "
     fi
 }
-if [ -d "$basedir/YAPFA/YAPFA-Server" ]; then
-	rm -rf $basedir/YAPFA/YAPFA-Server
+if [ -d "$basedir/Yatopia/Yatopia-Server" ]; then
+	rm -rf $basedir/Yatopia/Yatopia-Server
 fi
 
-if [ -d "$basedir/YAPFA/YAPFA-API" ]; then
-	rm -rf $basedir/YAPFA/YAPFA-API
+if [ -d "$basedir/Yatopia/Yatopia-API" ]; then
+	rm -rf $basedir/Yatopia/Yatopia-API
 fi
 
 $1/scripts/resetToUpstream.sh $1
 $1/scripts/getUpstream.sh $1
 
-(applyPatch YAPFA/YAPFA-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
-applyPatch YAPFA/YAPFA-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
+(applyPatch Yatopia/Yatopia-API ${FORK_NAME}-API HEAD api $API_REPO 0 2 &&
+applyPatch Yatopia/Yatopia-Server ${FORK_NAME}-Server HEAD server $SERVER_REPO 1 2 && enableCommitSigningIfNeeded) || (
 enableCommitSigningIfNeeded
 exit 1 )
 

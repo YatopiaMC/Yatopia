@@ -4,13 +4,13 @@ Date: Sun, 2 Aug 2020 11:17:08 -0500
 Subject: [PATCH] Add config Yatopia command and basic settings
 
 
-diff --git a/src/main/java/de/tr7zw/yapfa/YapfaCommand.java b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
+diff --git a/src/main/java/de/tr7zw/yatopia/YapfaCommand.java b/src/main/java/de/tr7zw/yatopia/YapfaCommand.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..fe42f5682c03bcfec97f5c83aff76a0c5f23b9d6
 --- /dev/null
-+++ b/src/main/java/de/tr7zw/yapfa/YapfaCommand.java
++++ b/src/main/java/de/tr7zw/yatopia/YapfaCommand.java
 @@ -0,0 +1,129 @@
-+package de.tr7zw.yapfa;
++package dev.tr7zw.yatopia;
 +
 +import java.io.File;
 +import java.util.ArrayList;
@@ -38,9 +38,9 @@ index 0000000000000000000000000000000000000000..fe42f5682c03bcfec97f5c83aff76a0c
 +
 +    public YapfaCommand(String name) {
 +        super(name);
-+        this.description = "YAPFA related commands";
-+        this.usageMessage = "/yapfa [help | reload | info | version]";
-+        this.setPermission("bukkit.command.yapfa");
++        this.description = "Yatopia related commands";
++        this.usageMessage = "/yatopia [help | reload | info | version]";
++        this.setPermission("bukkit.command.yatopia");
 +    }
 +
 +    @Override
@@ -133,20 +133,20 @@ index 0000000000000000000000000000000000000000..fe42f5682c03bcfec97f5c83aff76a0c
 +        Command.broadcastCommandMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
 +
 +        MinecraftServer console = MinecraftServer.getServer();
-+        de.tr7zw.yapfa.YapfaConfig.init(new File("yapfa.yml"));
++        dev.tr7zw.yatopia.YapfaConfig.init(new File("yatopia.yml"));
 +        console.server.reloadCount++;
 +
-+        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "YAPFA config reload complete.");
++        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
 +    }
 +}
 \ No newline at end of file
-diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+diff --git a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b44b16013
 --- /dev/null
-+++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
++++ b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
 @@ -0,0 +1,209 @@
-+package de.tr7zw.yapfa;
++package dev.tr7zw.yatopia;
 +
 +import com.destroystokyo.paper.io.chunk.ChunkTaskManager;
 +import com.google.common.base.Strings;
@@ -182,8 +182,8 @@ index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b
 +public class YapfaConfig {
 +
 +    private static File CONFIG_FILE;
-+    private static final String HEADER = "This is the main configuration file for YAPFA.\n"
-+            + "YAPFA contains many breaking changes and settings, so know what you are doing!\n"
++    private static final String HEADER = "This is the main configuration file for Yatopia.\n"
++            + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
 +            + "You have been warned!\n";
 +    /*========================================================================*/
 +    public static YamlConfiguration config;
@@ -201,7 +201,7 @@ index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b
 +            config.load(CONFIG_FILE);
 +        } catch (IOException ex) {
 +        } catch (InvalidConfigurationException ex) {
-+            Bukkit.getLogger().log(Level.SEVERE, "Could not load yapfa.yml, please correct your syntax errors", ex);
++            Bukkit.getLogger().log(Level.SEVERE, "Could not load yatopia.yml, please correct your syntax errors", ex);
 +            throw Throwables.propagate(ex);
 +        }
 +        config.options().header(HEADER);
@@ -209,7 +209,7 @@ index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b
 +        verbose = getBoolean("verbose", false);
 +
 +        commands = new HashMap<String, Command>();
-+        commands.put("yapfa", new YapfaCommand("yapfa"));
++        commands.put("yatopia", new YapfaCommand("yatopia"));
 +
 +        version = getInt("config-version", 1);
 +        set("config-version", 1);
@@ -222,7 +222,7 @@ index 0000000000000000000000000000000000000000..e63d54b5179fe518536431e4d48c829b
 +
 +    protected static void fatal(String s) {
 +        fatalError = true;
-+        throw new RuntimeException("Fatal yapfa.yml config error: " + s);
++        throw new RuntimeException("Fatal yatopia.yml config error: " + s);
 +    }
 +
 +    protected static void log(String s) {
@@ -372,15 +372,15 @@ index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..c023ce245d68fcc085a5a38baa026ceb
          us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
          com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
  
-+        // YAPFA start
++        // Yatopia start
 +        try {
-+            de.tr7zw.yapfa.YapfaConfig.init(new File("yapfa.yml"));
++            dev.tr7zw.yatopia.YapfaConfig.init(new File("yatopia.yml"));
 +            } catch (Exception e) {
 +            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
 +            return false;
 +            }
-+        de.tr7zw.yapfa.YapfaConfig.registerCommands();
-+        // YAPFA end
++        dev.tr7zw.yatopia.YapfaConfig.registerCommands();
++        // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
@@ -393,7 +393,7 @@ index 98c5ecdf8b59670c872cb43593054f5a91d5e9fe..9d45b9697e3e31cbe31b0a773a1c52a0
          VoxelShape voxelshape = this.world.getWorldBorder().c();
          Stream<VoxelShape> stream = !this.world.getWorldBorder().isInBounds(axisalignedbb) ? Stream.empty() : Stream.of(voxelshape); // Paper
 -        Stream<VoxelShape> stream1 = this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
-+        Stream<VoxelShape> stream1 = de.tr7zw.yapfa.YapfaConfig.disableEntityCollisionboxes ? Stream.empty() : this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
++        Stream<VoxelShape> stream1 = dev.tr7zw.yatopia.YapfaConfig.disableEntityCollisionboxes ? Stream.empty() : this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
              return true;
          });
          StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
@@ -405,7 +405,7 @@ index d3b4726d37e900fa270d47dfb11c67f4738c687f..39d616e6bbce5bf055678262996dac45
          //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
          boolean flag = this instanceof EntityHuman;
  
-+        if(!de.tr7zw.yapfa.YapfaConfig.disableEntityStuckChecks) { // YAPFA start
++        if(!dev.tr7zw.yatopia.YapfaConfig.disableEntityStuckChecks) { // Yatopia start
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
@@ -413,7 +413,7 @@ index d3b4726d37e900fa270d47dfb11c67f4738c687f..39d616e6bbce5bf055678262996dac45
                  }
              }
          }
-+        } // YAPFA end
++        } // Yatopia end
  
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();

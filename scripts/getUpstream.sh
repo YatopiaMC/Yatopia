@@ -34,7 +34,7 @@ for D in */; do
 								fi
 								((i=i+1))
 								printf -v num "%04d" $i
-								echo "Making ${num}-${patch}.patch file for YAPFA"
+								echo "Making ${num}-${patch}.patch file for Yatopia"
 								cp $1/$dnoslash/patches/$file/$filenamens $1/patches/$dnoslash/$file/"${num}-${patch}.patch"	
 							fi
 						done

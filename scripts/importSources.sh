@@ -21,8 +21,8 @@ echo "----------------------------------------"
 # For a description of this script, see updateUpstream.sh.
 paperworkdir="$basedir/Tuinity/Paper/work"
 forkname="$2"
-paperserverdir="$basedir/YAPFA-Server"
-papersrcdir="$basedir/YAPFA-Server/src/main/java"
+paperserverdir="$basedir/Yatopia-Server"
+papersrcdir="$basedir/Yatopia-Server/src/main/java"
 papernmsdir="$papersrcdir/net/minecraft/server"
 
 (
@@ -91,18 +91,18 @@ function importLibraryToPaperWorkspace {
 
 # Filter and import every files which have patch to modify
 
-if [[ $forkname != "YAPFA" ]]; then
+if [[ $forkname != "Yatopia" ]]; then
 	if [[ $forkname != null ]]; then
         echo "test: $forkname == Purpur"
 		patchedFiles=$(cat patches/$forkname/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 		patchedFilesNonNMS=$(cat patches/$forkname/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	else
-        echo "test: $forkname == YAPFA"
+        echo "test: $forkname == Yatopia"
 		patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 		patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	fi
 else
-    echo "test: $forkname == YAPFA"
+    echo "test: $forkname == Yatopia"
 	patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 	patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 fi
@@ -111,7 +111,7 @@ fi
     #$gitcmd fetch --all &> /dev/null
 	# Create the upstream branch in Paper project with current state
     #$gitcmd checkout master >/dev/null 2>&1 # possibly already in
-    #if [[ $3 != "YAPFA" ]]; then
+    #if [[ $3 != "Yatopia" ]]; then
 	    #if [[ $3 != null ]]; then
             #$gitcmd branch -D ${3}-upstream &>/dev/null
 	        #$gitcmd branch -f ${3}-upstream HEAD && $gitcmd checkout ${3}-upstream

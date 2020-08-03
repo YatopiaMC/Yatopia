@@ -13,7 +13,7 @@ index 8a18dfcda3c785e9c8bd134f88515e077dbef7dc..5d9ca693387c4f20c0126af7844bdaf5
  import com.mojang.authlib.properties.Property;
  import com.mojang.authlib.properties.PropertyMap;
 +
-+import de.tr7zw.yapfa.events.GameProfileLookupEvent;
++import dev.tr7zw.yatopia.events.GameProfileLookupEvent;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.UserCache;
  import org.apache.commons.lang3.Validate;
@@ -33,7 +33,7 @@ index 8a18dfcda3c785e9c8bd134f88515e077dbef7dc..5d9ca693387c4f20c0126af7844bdaf5
 -            if (this.profile.isComplete()) {
 -                server.getUserCache().saveProfile(this.profile);
 -            }
-+		// YAPFA start
++		// Yatopia start
 +		GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
 +		Bukkit.getServer().getPluginManager().callEvent(event);
 +		if (event.getGameProfile() != null) {
@@ -47,7 +47,7 @@ index 8a18dfcda3c785e9c8bd134f88515e077dbef7dc..5d9ca693387c4f20c0126af7844bdaf5
 +                    server.getUserCache().saveProfile(this.profile);
 +                }
 +		}
-+		// YAPFA end
++		// Yatopia end
          }
          return profile.isComplete() && (!onlineMode || !textures || hasTextures());
      }
@@ -60,7 +60,7 @@ index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..b78dafae7c292e6b909757560a9023a2
  import com.mojang.authlib.minecraft.MinecraftSessionService;
  import com.mojang.authlib.properties.Property;
 +
-+import de.tr7zw.yapfa.events.GameProfileLookupEvent;
++import dev.tr7zw.yatopia.events.GameProfileLookupEvent;
 +
  import java.util.UUID;
  import javax.annotation.Nullable;
@@ -75,7 +75,7 @@ index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..b78dafae7c292e6b909757560a9023a2
                          if ( property == null )
                          {
 -                            profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
-+				// YAPFA start
++				// Yatopia start
 +				GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
 +				Bukkit.getServer().getPluginManager().callEvent(event);
 +				if (event.getGameProfile() != null) {
@@ -83,7 +83,7 @@ index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..b78dafae7c292e6b909757560a9023a2
 +				} else {
 +					profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
 +				}
-+				// YAPFA end
++				// Yatopia end
                          }
                      }
  

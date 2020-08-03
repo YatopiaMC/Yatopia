@@ -6,7 +6,7 @@ basename=$(basename $baseproject)
 branch=HEAD
 for type in ${searchtxts[@]}; do
 	baseproject=Tuinity/Tuinity-$type
-	target=YAPFA-$type
+	target=Yatopia-$type
 	echo "$baseproject, $target, $branch, $basedir, $type, $basename"
 	echo "Setup upstream project.."
 	echo "$basedir/$baseproject"

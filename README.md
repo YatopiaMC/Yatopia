@@ -41,7 +41,7 @@ Run the following commands in the root directory:
 
 ```
 git submodule update --init --recursive --force
-./yapfa jar
+./yatopia full
 ```
 
 ## LICENSE
