@@ -10,9 +10,26 @@
 
 ## Introduction ##
 
-This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami), [Origami(2)](https://github.com/Minebench/Origami), and [Purpur](https://github.com/pl3xgaming/Purpur) while adding a few more (optional via config) "extreme" patches that modify the vanilla Minecraft gameplay for more performance (notable killing entity pushing/collision boxes). This fork is based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
+A fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), current side upstreams are:
 
-## Config entries
+* [EMC](https://github.com/starlis/empirecraft)
+* [Lithium](https://github.com/jellysquid3/lithium-fabric)
+* [Akarin](https://github.com/Akarin-project/Akarin)
+* [Papercut](https://github.com/Minevictus/Papercut/)
+* [Origami](https://github.com/MrIvanPlays/Origami)
+* [Origami(2)](https://github.com/Minebench/Origami)
+* [Purpur](https://github.com/pl3xgaming/Purpur)
+
+Notable characteristics are: Async Pathfinding, Eigencraft Redstone (1.16), Async Advancements, Ability to disable collisions & collisionboxes, Major Hopper Performance Improvements + A lot more. For a full oversight: [Patches](https://github.com/tr7zw/Yatopia/tree/ver/1.16.1/patches/server)
+
+## Experience Greatness ##
+
+Available at the following options:
+
+* **[GitHub Actions](https://github.com/tr7zw/Yatopia/actions)** - 1.16.1
+* **[CodeMC](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)** - 1.15.2
+
+## Config Entries
 
 ### disableEntityStuckChecks
 ``Default``: ``false`` Entities don't check if they are stuck in a wall and should suffocate. E.g useful in hubs where player damage is canceled anyway.
