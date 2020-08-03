@@ -1,4 +1,4 @@
-<img src="https://i.imgur.com/FBAwLDc.png" alt="Yatopia" align="right">
+<img src="https://i.imgur.com/oKQjlHP.png" alt="Yatopia" align="right">
 <div align="center">
   <h1>Yatopia (Formerly YAPFA)</h1>
   <h3>The Most Powerful Minecraft Server Software</h3>
