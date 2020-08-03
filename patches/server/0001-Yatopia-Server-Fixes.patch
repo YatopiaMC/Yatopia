@@ -61,6 +61,46 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 -         this.timingTicking.startTiming();
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index fe7330fabe386966c2d203a190a00a785ea21be0..f2f2d17d4961b19ee5566dbce9059eaebdecde1a 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -112,6 +112,14 @@ public final class OrigamiConfig {
+             config.addDefault("worlds.default." + path, Double.valueOf(dfl));
+             return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
+         }
++        
++        public boolean tickEmptyHoppers = false;
++        public int fullHopperCooldown = 128;
++        private void hopperOptimizations() {
++            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
++            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
++        }
++        
+     }
+ 
+ }
+\ No newline at end of file
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej b/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
+deleted file mode 100644
+index 8428d4bd05075e86b281312fa38106882c54735b..0000000000000000000000000000000000000000
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
++++ /dev/null
+@@ -1,14 +0,0 @@
+-diff a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java	(rejected hunks)
+-@@ -169,6 +169,12 @@ public final class OrigamiConfig {
+-                 Bukkit.getLogger().info("Farm detection radius: " + pigmenFarmsRadius + ", count: " + pigmenFarmsCount);
+-             }
+-         }
+-+        public boolean tickEmptyHoppers = false;
+-+        public int fullHopperCooldown = 128;
+-+        private void hopperOptimizations() {
+-+            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
+-+            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
+-+        }
+-     }
+- 
+-     public static boolean teleportingOfVehiclesWithPassenger = true;
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 index ee10abb6bc4d957676e7eef377cdc68dc3f43370..c12f4326f68020fbb140e97f0ef43ddcf5a71072 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
