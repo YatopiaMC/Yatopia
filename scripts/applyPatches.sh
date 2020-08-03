@@ -107,13 +107,11 @@ function applyPatch {
 		echo "  "
     fi
 }
-if [ -d "$basedir/Yatopia/Yatopia-Server" ]; then
-	rm -rf $basedir/Yatopia/Yatopia-Server
-fi
 
-if [ -d "$basedir/Yatopia/Yatopia-API" ]; then
-	rm -rf $basedir/Yatopia/Yatopia-API
-fi
+rm -rf $basedir/Yatopia/Yatopia-Server
+
+rm -rf $basedir/Yatopia/Yatopia-API
+
 
 $1/scripts/resetToUpstream.sh $1
 $1/scripts/getUpstream.sh $1
