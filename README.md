@@ -1,9 +1,14 @@
-# Yatopia (formerly YAPFA)
-[![Github-CI](https://github.com/tr7zw/Yatopia/workflows/CI/badge.svg)](https://github.com/tr7zw/Yatopia/actions?query=workflow%3ACI) [![CodeMC-CI](https://ci.codemc.io/job/Tr7zw/job/Yatopia/badge/icon?style=plastic)](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)
+<img src="https://i.imgur.com/oKQjlHP.png" alt="Yatopia" align="right">
+<div align="center">
+  <h1>Yatopia (Formerly YAPFA)</h1>
+  <h3>The Most Powerful Minecraft Server Software</h3>
+
+[![Github-CI](https://github.com/tr7zw/Yatopia/workflows/CI/badge.svg)](https://github.com/tr7zw/Yatopia/actions?query=workflow%3ACI)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discordapp.com/invite/yk4caxM)
 [![Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2Ftr7zw%2Fpledges&style=for-the-badge)](https://www.patreon.com/tr7zw)
+</div>
 
-## What ##
+## Introduction ##
 
 This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami), [Origami(2)](https://github.com/Minebench/Origami), and [Purpur](https://github.com/pl3xgaming/Purpur) while adding a few more (optional via config) "extreme" patches that modify the vanilla Minecraft gameplay for more performance (notable killing entity pushing/collision boxes). This fork is based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
 
