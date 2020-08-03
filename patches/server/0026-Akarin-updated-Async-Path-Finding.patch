@@ -32,7 +32,7 @@ index 681465d8a74831461dce4615d2d19c7ed46bc299..f04411a2a295d2a982dca5851ae76a80
                          if (!this.a(pathtype)) {
                              return false;
 diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..407d3cd6d281da6974c7035d3e5c1ca07a3e485e 100644
+index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..f7013852e1da84fb10723148e903d8b58418bc4d 100644
 --- a/src/main/java/net/minecraft/server/NavigationAbstract.java
 +++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
 @@ -28,6 +28,15 @@ public abstract class NavigationAbstract {
@@ -111,16 +111,36 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..407d3cd6d281da6974c7035d3e5c1ca0
      public boolean a(double d0, double d1, double d2, double d3) {
          return this.a(this.a(d0, d1, d2, 1), d3);
      }
-@@ -257,7 +309,37 @@ public abstract class NavigationAbstract {
+@@ -228,7 +280,7 @@ public abstract class NavigationAbstract {
+         return this.c;
+     }
+ 
+-    public void c() {
++/*    public void c() {
+         ++this.e;
+         if (this.m) {
+             this.j();
+@@ -238,7 +290,7 @@ public abstract class NavigationAbstract {
+             Vec3D vec3d;
+ 
+             if (this.a()) {
+-                this.l();
++                //this.l();
+             } else if (this.c != null && this.c.f() < this.c.e()) {
+                 vec3d = this.b();
+                 Vec3D vec3d1 = this.c.a(this.a, this.c.f());
+@@ -256,9 +308,39 @@ public abstract class NavigationAbstract {
+                 this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a((IBlockAccess) this.b, blockposition), vec3d.z, this.d);
              }
          }
-     }
++    }*/
 +    // Akarin start - Async pathfinder, copied from above
 +    public void tickAsync() {
 +        ++this.e;
 +        this.doPathfindAsync();
-+    }
-+
+     }
+ 
+-    protected void l() {
 +    // This was copied from above partly with param
 +    public void doTickAsync(PathEntity pathEntity) {
 +        if (shouldContinuePathfind(pathEntity))
@@ -132,7 +152,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..407d3cd6d281da6974c7035d3e5c1ca0
 +        } else if (pathEntity.f() < pathEntity.e()) {
 +            vec3d = this.b();
 +            Vec3D vec3d1 = pathEntity.a(this.a, pathEntity.f());
- 
++
 +            if (vec3d.y > vec3d1.y && !this.a.isOnGround() && MathHelper.floor(vec3d.x) == MathHelper.floor(vec3d1.x) && MathHelper.floor(vec3d.z) == MathHelper.floor(vec3d1.z)) {
 +                pathEntity.c(pathEntity.f() + 1);
 +            }
@@ -146,13 +166,17 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..407d3cd6d281da6974c7035d3e5c1ca0
 +
 +        this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a((IBlockAccess) this.b, blockposition), vec3d.z, this.d);
 +    }
-     protected void l() {
++/*    protected void l() {
          Vec3D vec3d = this.b();
  
-@@ -275,6 +357,24 @@ public abstract class NavigationAbstract {
-         this.a(vec3d);
-     }
+         this.l = this.a.getWidth() > 0.75F ? this.a.getWidth() / 2.0F : 0.75F - this.a.getWidth() / 2.0F;
+@@ -273,8 +355,26 @@ public abstract class NavigationAbstract {
+         }
  
+         this.a(vec3d);
+-    }
++    }*/
++
 +    // Akarin start - Async pathfinder, copied from above with param
 +    protected void applyPath(PathEntity pathEntity) {
 +        Vec3D vec3d = this.b();
@@ -167,7 +191,7 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..407d3cd6d281da6974c7035d3e5c1ca0
 +        if (flag || this.a.b(pathEntity.h().l) && this.b(vec3d)) {
 +            pathEntity.c(pathEntity.f() + 1);
 +        }
-+
+ 
 +        this.applyPath0(pathEntity, vec3d);
 +    }
 +    // Akarin end
@@ -228,13 +252,24 @@ index 2405dc5e9a6a971a565c37710b61d5fc4737bdf8..407d3cd6d281da6974c7035d3e5c1ca0
          if (this.c != null && !this.c.b() && this.c.e() != 0) { // Tuinity - diff on change - needed for isViableForPathRecalculationChecking()
              PathPoint pathpoint = this.c.c();
 diff --git a/src/main/java/net/minecraft/server/NavigationFlying.java b/src/main/java/net/minecraft/server/NavigationFlying.java
-index 0c33a0c9d59d79a39826b5ee14144604717ffebe..709dea5992ba642cfd6e4712eb07890e85a6a0b2 100644
+index 0c33a0c9d59d79a39826b5ee14144604717ffebe..cf3f4c1a2a89cce0345566a62faa34ef7e93c603 100644
 --- a/src/main/java/net/minecraft/server/NavigationFlying.java
 +++ b/src/main/java/net/minecraft/server/NavigationFlying.java
-@@ -55,6 +55,31 @@ public class NavigationFlying extends NavigationAbstract {
-         }
+@@ -28,7 +28,7 @@ public class NavigationFlying extends NavigationAbstract {
+         return this.a(entity.getChunkCoordinates(), entity, i); // Paper - Forward target entity
      }
  
+-    @Override
++/*    @Override
+     public void c() {
+         ++this.e;
+         if (this.m) {
+@@ -53,6 +53,31 @@ public class NavigationFlying extends NavigationAbstract {
+                 this.a.getControllerMove().a(vec3d.x, vec3d.y, vec3d.z, this.d);
+             }
+         }
++    }*/
++
 +    // This was copied from above partly with param
 +    @Override
 +    public void doTickAsync(PathEntity pathEntity) {
@@ -258,11 +293,9 @@ index 0c33a0c9d59d79a39826b5ee14144604717ffebe..709dea5992ba642cfd6e4712eb07890e
 +        BlockPosition blockposition = new BlockPosition(vec3d);
 +
 +        this.a.getControllerMove().a(vec3d.x, vec3d.y, vec3d.z, this.d);
-+    }
-+
+     }
+ 
      @Override
-     protected boolean a(Vec3D vec3d, Vec3D vec3d1, int i, int j, int k) {
-         int l = MathHelper.floor(vec3d.x);
 diff --git a/src/main/java/net/minecraft/server/Pathfinder.java b/src/main/java/net/minecraft/server/Pathfinder.java
 index 1c3a8043e735ec4605635efcfc5deb08a35ea1fd..bf2ac046eebd7f88fcb1d953f37952e791e6ea83 100644
 --- a/src/main/java/net/minecraft/server/Pathfinder.java
