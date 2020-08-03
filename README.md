@@ -1,12 +1,11 @@
-# YAPFA
-## (Yet another ~~Paper~~ Tuinity fork attempt)
-[![Github-CI](https://github.com/tr7zw/YAPFA/workflows/CI/badge.svg)](https://github.com/tr7zw/YAPFA/actions?query=workflow%3ACI) [![CodeMC-CI](https://ci.codemc.io/job/Tr7zw/job/YAPFA/badge/icon?style=plastic)](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)
+# Yatopia (formerly YAPFA)
+[![Github-CI](https://github.com/tr7zw/Yatopia/workflows/CI/badge.svg)](https://github.com/tr7zw/Yatopia/actions?query=workflow%3ACI) [![CodeMC-CI](https://ci.codemc.io/job/Tr7zw/job/Yatopia/badge/icon?style=plastic)](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discordapp.com/invite/yk4caxM)
 [![Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2Ftr7zw%2Fpledges&style=for-the-badge)](https://www.patreon.com/tr7zw)
 
 ## What ##
 
-This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin) and [Purpur](https://github.com/pl3xgaming/Purpur) while adding a few more (optional via config) "extreme" patches that modify the vanilla Minecraft gameplay for more performance (notable killing entity pushing/collision boxes). This fork was based on [Paper](https://github.com/PaperMC/Paper) but is now based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
+This Fork tries to import universal/performance patches from [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami) and [Purpur](https://github.com/pl3xgaming/Purpur) while adding a few more (optional via config) "extreme" patches that modify the vanilla Minecraft gameplay for more performance (notable killing entity pushing/collision boxes). This fork is based on [Tuinity](https://github.com/Spottedleaf/Tuinity).
 
 ## Config entries
 
@@ -42,14 +41,14 @@ Run the following commands in the root directory:
 
 ```
 git submodule update --init --recursive --force
-./yapfa jar
+./yatopia full
 ```
 
 ## LICENSE
 
 Everything is licensed under the MIT license and is free to be used in your own fork.
 
-See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur) and [Tuinity](https://github.com/Spottedleaf/Tuinity)
+See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami) and [Tuinity](https://github.com/Spottedleaf/Tuinity)
 for the license of material used/modified by this project.
 
 **To use this project you'll have to accept the Mojang EULA!**

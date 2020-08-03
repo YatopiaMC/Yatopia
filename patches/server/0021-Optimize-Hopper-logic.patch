@@ -18,24 +18,24 @@ index 1ce89c28c2b54278dc8f1c17f2d0ccb743a27b34..1b360140b6161e9cae96752943d57420
  
                  if (iinventory == null) {
 diff --git a/src/main/java/net/minecraft/server/BlockHopper.java b/src/main/java/net/minecraft/server/BlockHopper.java
-index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..3a07fb76ebeddaf6b3676e04a995638cc43cf2f2 100644
+index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..7918382f26807f945dc7966b81c3c1e2f0fc3c41 100644
 --- a/src/main/java/net/minecraft/server/BlockHopper.java
 +++ b/src/main/java/net/minecraft/server/BlockHopper.java
 @@ -110,6 +110,12 @@ public class BlockHopper extends BlockTileEntity {
      @Override
      public void doPhysics(IBlockData iblockdata, World world, BlockPosition blockposition, Block block, BlockPosition blockposition1, boolean flag) {
          this.a(world, blockposition, iblockdata);
-+		//YAPFA start
++		//Yatopia start
 +		TileEntity tileEntity = world.getTileEntity(blockposition);
 +		if (tileEntity instanceof TileEntityHopper) {
 +			((TileEntityHopper)tileEntity).flushCaches();
 +		}
-+		// YAPFA end
++		// Yatopia end
      }
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456f2e81a58 100644
+index d68503f0291303f74ed3fc459a9f34ce44cf13d7..f05fed742957de7bdf6d056fdb243d286a1c1b0e 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -2,6 +2,7 @@ package net.minecraft.server;
@@ -74,7 +74,7 @@ index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456
      @Nullable
      public static IInventory b(IHopper ihopper) {
 -        return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A());
-+	//YAPFA start
++	//Yatopia start
 +	if(ihopper instanceof TileEntityHopper) {
 +		TileEntityHopper hopper = (TileEntityHopper) ihopper;
 +		if(hopper.cachedAbove != null) {
@@ -89,7 +89,7 @@ index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456
 +	} else {
 +		return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), false);
 +	}
-+        //YAPFA end
++        //Yatopia end
      }
  
      public static List<EntityItem> c(IHopper ihopper) {
@@ -100,17 +100,17 @@ index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456
 -    public static IInventory b(World world, BlockPosition blockposition) {
 -        return a(world, (double) blockposition.getX() + 0.5D, (double) blockposition.getY() + 0.5D, (double) blockposition.getZ() + 0.5D, true); // Paper
 +    public static IInventory b(World world, BlockPosition blockposition, boolean skipBlockCheck) {
-+        return a(world, (double) blockposition.getX() + 0.5D, (double) blockposition.getY() + 0.5D, (double) blockposition.getZ() + 0.5D, true, skipBlockCheck); // YAPFA // Paper
++        return a(world, (double) blockposition.getX() + 0.5D, (double) blockposition.getY() + 0.5D, (double) blockposition.getZ() + 0.5D, true, skipBlockCheck); // Yatopia // Paper
      }
  
      @Nullable
 -    public static IInventory a(World world, double d0, double d1, double d2) { return a(world, d0, d1, d2, false); } // Paper - overload to default false
 -    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities) { // Paper
 -        Object object = null;
-+    public static IInventory a(World world, double d0, double d1, double d2, boolean skipBlockCheck) { return a(world, d0, d1, d2, false, skipBlockCheck); } // YAPFA // Paper - overload to default false
-+    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities, boolean skipBlockCheck) { // YAPFA // Paper
++    public static IInventory a(World world, double d0, double d1, double d2, boolean skipBlockCheck) { return a(world, d0, d1, d2, false, skipBlockCheck); } // Yatopia // Paper - overload to default false
++    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities, boolean skipBlockCheck) { // Yatopia // Paper
 +	Object object = null;
-+	if(!skipBlockCheck) { // YAPFA
++	if(!skipBlockCheck) { // Yatopia
          BlockPosition blockposition = new BlockPosition(d0, d1, d2);
          if ( !world.isLoaded( blockposition ) ) return null; // Spigot
          IBlockData iblockdata = world.getType(blockposition);
@@ -121,7 +121,7 @@ index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456
 +	}
  
 -        if (object == null && (!optimizeEntities || !org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding())) { // Paper
-+        if (object == null && (!optimizeEntities || true/*!org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding()*/)) { // YAPFA // Paper
++        if (object == null && (!optimizeEntities || true/*!org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding()*/)) { // Yatopia // Paper
              List<Entity> list = world.getEntities((Entity) null, new AxisAlignedBB(d0 - 0.5D, d1 - 0.5D, d2 - 0.5D, d0 + 0.5D, d1 + 0.5D, d2 + 0.5D), IEntitySelector.d);
  
              if (!list.isEmpty()) {
@@ -130,7 +130,7 @@ index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456
          return new ContainerHopper(i, playerinventory, this);
      }
 +
-+    // YAPFA start
++    // Yatopia start
 +
 +    private IInventory cachedAbove = null;
 +    private IInventory cachedPush = null;
@@ -144,6 +144,6 @@ index d68503f0291303f74ed3fc459a9f34ce44cf13d7..3e7acf278bce0679014f92a392909456
 +	cachedPullAir = false;
 +    }
 +
-+    // YAPFA end
++    // Yatopia end
 +
  }

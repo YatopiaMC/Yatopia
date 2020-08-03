@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CONFIG set
-FORK_NAME="YAPFA"
+FORK_NAME="Yatopia"
 API_REPO=""
 SERVER_REPO=""
 PAPER_API_REPO=""

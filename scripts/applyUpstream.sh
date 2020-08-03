@@ -18,8 +18,8 @@ for D in ${searchtxts[@]}; do
 		echo $D
 		dnoslash=$D
 		echo "DnoS: $dnoslash"
-		echo "$1/YAPFA-$dnoslash"
-		cd $1/YAPFA-$dnoslash
+		echo "$1/Yatopia-$dnoslash"
+		cd $1/Yatopia-$dnoslash
 		echo "Appyling $2 $dnoslash files!"
 		dnoslashlower="${dnoslash,,}"
 		#git branch $2-upstream

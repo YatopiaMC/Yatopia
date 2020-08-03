@@ -4,10 +4,10 @@ Date: Fri, 31 Jul 2020 21:58:24 -0500
 Subject: [PATCH] Option for simpler Villagers
 
 
-diff --git a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
-index 09c906c6870d76442fbb7b79dcf75b4059e0d4ca..b21824dbe2653fbb78eafb0cc274f281c8f89a3c 100644
---- a/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
-+++ b/src/main/java/de/tr7zw/yapfa/YapfaConfig.java
+diff --git a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
+index 28878ab1b2417f73d46ea7300cf9070a345442f6..f49b1199b92a79b2431f9c05d356276f0aa685d7 100644
+--- a/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
++++ b/src/main/java/de/tr7zw/yatopia/YapfaConfig.java
 @@ -220,4 +220,13 @@ public class YapfaConfig {
      private static void itemStuckSleepTicks() {
          itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
@@ -24,7 +24,7 @@ index 09c906c6870d76442fbb7b79dcf75b4059e0d4ca..b21824dbe2653fbb78eafb0cc274f281
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d7f3e1724 100644
+index d906c5e530c2e7f779df079223aee619a73b5d51..bc3bcf223cc7d829d46dc85ba7c730a9b8d52547 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -7,6 +7,8 @@ import com.mojang.datafixers.util.Pair;
@@ -32,7 +32,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
  import com.mojang.serialization.Dynamic;
  import com.mojang.serialization.DynamicOps;
 +
-+import de.tr7zw.yapfa.YapfaConfig;
++import dev.tr7zw.yatopia.YapfaConfig;
  import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
  
  import java.util.*;
@@ -40,7 +40,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
  
  public class EntityVillager extends EntityVillagerAbstract implements ReputationHandler, VillagerDataHolder {
  
-+    //YAPFA
++    //Yatopia
 +	private boolean simplerVillagerBehavior = YapfaConfig.simplerVillagerBehavior; //get this during villager creation so a reloaded config doesn't get them into an invalid state
      private static final DataWatcherObject<VillagerData> by = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bw = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
@@ -59,7 +59,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
          this.setVillagerData(this.getVillagerData().withType(villagertype).withProfession(VillagerProfession.NONE));
          this.brainTickOffset = getRandom().nextInt(100); // Purpur
      }
-+    //YAPFA start
++    //Yatopia start
 +
 +    @Override
 +    protected void initPathfinder() {
@@ -91,7 +91,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
 +        this.goalSelector.a(9, new PathfinderGoalInteract(this, EntityHuman.class, 3.0F, 1.0F));
 +        this.goalSelector.a(10, new PathfinderGoalLookAtPlayer(this, EntityInsentient.class, 8.0F));
 +    }
-+    //YAPFA end
++    //Yatopia end
  
      @Override
      public BehaviorController<EntityVillager> getBehaviorController() {
@@ -99,7 +99,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
  
      @Override
      protected BehaviorController<?> a(Dynamic<?> dynamic) {
-+        if(simplerVillagerBehavior)return super.a(dynamic); //YAPFA Don't use behaviorcontroller for simple Villagers
++        if(simplerVillagerBehavior)return super.a(dynamic); //Yatopia Don't use behaviorcontroller for simple Villagers
          BehaviorController<EntityVillager> behaviorcontroller = this.cJ().a(dynamic);
  
          this.a(behaviorcontroller);
@@ -107,7 +107,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
          super.inactiveTick();
      }
      // Spigot End
-+    // YAPFA start
++    // Yatopia start
 +    private VillagerProfession getRandomProfession() {
 +        int type = random.nextInt(13);
 +        switch(type) {
@@ -128,12 +128,12 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
 +        }
 +    }
 +
-+// YAPFA end
++// Yatopia end
  
      @Override
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
-+        // YAPFA start
++        // Yatopia start
 +        if(simplerVillagerBehavior && this.getVillagerData().getProfession() == VillagerProfession.NONE)
 +            this.setVillagerData(this.getVillagerData().withProfession(getRandomProfession()));
 +        if(simplerVillagerBehavior) {
@@ -141,13 +141,13 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
 +                restUses();
 +            }
 +        }
-+        // YAPFA end
++        // Yatopia end
          //this.world.getMethodProfiler().enter("villagerBrain"); // Akarin - remove caller
          // Purpur start
          boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
          if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
          // Purpur end
-+        if(!simplerVillagerBehavior) // YAPFA
++        if(!simplerVillagerBehavior) // Yatopia
          if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
          if (this.bM) {
              this.bM = false;
@@ -155,7 +155,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
          return true;
      }
  
-+    public void restUses() {fb();} // YAPFA obf helper
++    public void restUses() {fb();} // Yatopia obf helper
 +
      public void fb() {
          this.fp();
@@ -164,7 +164,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
          return this.bK == 0 || this.bK < 2 && this.world.getTime() > this.bJ + 2400L;
      }
  
-+    public boolean canRefresh() {return fc();} // YAPFA obf helper
++    public boolean canRefresh() {return fc();} // Yatopia obf helper
 +
      public boolean fc() {
          long i = this.bJ + 12000L;
@@ -173,7 +173,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
      }
  
      private void a(Entity entity) {
-+	if(simplerVillagerBehavior)return; // YAPFA
++	if(simplerVillagerBehavior)return; // Yatopia
          if (this.world instanceof WorldServer) {
              Optional<List<EntityLiving>> optional = this.bn.getMemory(MemoryModuleType.VISIBLE_MOBS);
  
@@ -181,7 +181,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..1e6c1d8c7a827813e8d8b0c835734b6d
      }
  
      public void a(MemoryModuleType<GlobalPos> memorymoduletype) {
-+	if(simplerVillagerBehavior)return; // YAPFA
++	if(simplerVillagerBehavior)return; // Yatopia
          if (this.world instanceof WorldServer) {
              MinecraftServer minecraftserver = ((WorldServer) this.world).getMinecraftServer();
  

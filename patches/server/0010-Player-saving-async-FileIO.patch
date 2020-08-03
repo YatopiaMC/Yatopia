@@ -5,7 +5,7 @@ Subject: [PATCH] Player-saving-async-FileIO
 
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966465f380d 100644
+index 2e88442e13546e9005e3783b09feaddbed7cea16..0f05c8887f5ecd639021e90389e53891b6ad80fc 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -27,6 +27,8 @@ import java.util.List;
@@ -21,7 +21,7 @@ index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966
      @Nullable
      private Advancement l;
      private boolean m = true;
-+    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
++    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // Yatopia
  
      // Paper start - fix advancement data player leakage
      final Map<CriterionTriggerAbstract, Set<CriterionTrigger.a>> criterionData = Maps.newIdentityHashMap();
@@ -29,7 +29,7 @@ index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966
  
          jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
  
-+        // YAPFA start
++        // Yatopia start
 +        String gson = null;
          try {
 -            FileOutputStream fileoutputstream = new FileOutputStream(this.f);
@@ -133,19 +133,19 @@ index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966
 +		        }
 +		});
          }
-+        // YAPFA end
++        // Yatopia end
  
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..c9c5876a9192e263ed5103c0e88748b61f46529d 100644
+index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..767ecf5fe63d86522ef8de4c0b4cda2803a5145c 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -700,11 +700,23 @@ public abstract class EntityHuman extends EntityLiving {
  
      }
  
-+    // YAPFA start
++    // Yatopia start
 +    private NBTTagList inventorySnapshot = null;
 +    private NBTTagList enderchestSnapshot = null;
 +
@@ -155,14 +155,14 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..c9c5876a9192e263ed5103c0e88748b6
 +	enderchestSnapshot = this.enderChest.g();
 +    }
 +
-+    // YAPFA end
++    // Yatopia end
 +
      @Override
      public void saveData(NBTTagCompound nbttagcompound) {
          super.saveData(nbttagcompound);
          nbttagcompound.setInt("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
 -        nbttagcompound.set("Inventory", this.inventory.a(new NBTTagList()));
-+        nbttagcompound.set("Inventory", inventorySnapshot != null ? inventorySnapshot : this.inventory.a(new NBTTagList())); inventorySnapshot = null;// YAPFA
++        nbttagcompound.set("Inventory", inventorySnapshot != null ? inventorySnapshot : this.inventory.a(new NBTTagList())); inventorySnapshot = null;// Yatopia
          nbttagcompound.setInt("SelectedItemSlot", this.inventory.itemInHandIndex);
          nbttagcompound.setShort("SleepTimer", (short) this.sleepTicks);
          nbttagcompound.setFloat("XpP", this.exp);
@@ -171,12 +171,12 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..c9c5876a9192e263ed5103c0e88748b6
          this.foodData.b(nbttagcompound);
          this.abilities.a(nbttagcompound);
 -        nbttagcompound.set("EnderItems", this.enderChest.g());
-+        nbttagcompound.set("EnderItems", enderchestSnapshot != null ? enderchestSnapshot : this.enderChest.g()); enderchestSnapshot = null;// YAPFA
++        nbttagcompound.set("EnderItems", enderchestSnapshot != null ? enderchestSnapshot : this.enderChest.g()); enderchestSnapshot = null;// Yatopia
          if (!this.getShoulderEntityLeft().isEmpty()) {
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3eb8e087e3 100644
+index 8b64720f4acf5deb341074cd75f99ca7816f1e41..2e24e2210f91e69ead4f21f2426e5230fb887e53 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -20,6 +20,7 @@ import java.util.Optional;
@@ -192,7 +192,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3e
          }
          // Paper end
 +
-+        // YAPFA start - make sure all saves are done
++        // Yatopia start - make sure all saves are done
 +        try {
 +            ((WorldNBTStorage)playerFileData).saveThread.shutdown();
 +			boolean done = ((WorldNBTStorage)playerFileData).saveThread.awaitTermination(60, TimeUnit.SECONDS);
@@ -212,7 +212,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3e
 +		} catch (InterruptedException e) {
 +			e.printStackTrace();
 +		}
-+        // YAPFA end
++        // Yatopia end
      }
      // Paper end
  
@@ -221,7 +221,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3e
              File file1 = new File(file, uuid + ".json");
  
 -            if (!file1.exists()) {
-+            /*if (!file1.exists()) { // YAPFA dont check for old stats files with sync File IO
++            /*if (!file1.exists()) { // Yatopia dont check for old stats files with sync File IO
                  File file2 = new File(file, displayName + ".json"); // CraftBukkit
  
                  if (file2.exists() && file2.isFile()) {
@@ -233,7 +233,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3e
              serverstatisticmanager = new ServerStatisticManager(this.server, file1);
              // this.o.put(uuid, serverstatisticmanager); // CraftBukkit
 diff --git a/src/main/java/net/minecraft/server/ServerStatisticManager.java b/src/main/java/net/minecraft/server/ServerStatisticManager.java
-index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5e3aeec35 100644
+index 18725272f920eafb655de8b923a8a85dbdc704cf..5f222d8b90951c61e77ab7032f8728772ba8ab9d 100644
 --- a/src/main/java/net/minecraft/server/ServerStatisticManager.java
 +++ b/src/main/java/net/minecraft/server/ServerStatisticManager.java
 @@ -20,6 +20,10 @@ import java.util.Map;
@@ -251,7 +251,7 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
      private final File d;
      private final Set<Statistic<?>> e = Sets.newHashSet();
      private int f = -300;
-+    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
++    public static ExecutorService saveThread = Executors.newSingleThreadExecutor(); // Yatopia
  
      public ServerStatisticManager(MinecraftServer minecraftserver, File file) {
          this.c = minecraftserver;
@@ -261,7 +261,7 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
          }
 -        // Spigot end
 +        // Spigot ends
-+        // YAPFA start
++        // Yatopia start
 +        saveThread.submit(() -> {
          if (file.isFile()) {
              try {
@@ -276,7 +276,7 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
  
      public void save() {
          if ( org.spigotmc.SpigotConfig.disableStatSaving ) return; // Spigot
-+        // YAPFA start
++        // Yatopia start
 +        String str = this.b();
 +        saveThread.submit(() -> {
          try {
@@ -287,7 +287,7 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
          }
 -
 +        });
-+        // YAPFA end
++        // Yatopia end
      }
  
      @Override
@@ -296,12 +296,12 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
                                          if (nbttagcompound2.hasKeyOfType(s2, 99)) {
                                              SystemUtils.a(this.a(statisticwrapper, s2), (statistic) -> {
 -                                                this.a.put(statistic, nbttagcompound2.getInt(s2));
-+                                                this.a.put(statistic, nbttagcompound2.getInt(s2) + this.a.getOrDefault(statistic, 0)); // YAPFA fix async load
++                                                this.a.put(statistic, nbttagcompound2.getInt(s2) + this.a.getOrDefault(statistic, 0)); // Yatopia fix async load
                                              }, () -> {
                                                  ServerStatisticManager.LOGGER.warn("Invalid statistic in {}: Don't know what {} is", this.d, s2);
                                              });
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index be060f602f53344cf51c22eafacb4dc9219c8856..c644021bd91868c04ffcdf15663438d398d076e9 100644
+index be060f602f53344cf51c22eafacb4dc9219c8856..b14f3d44a76ccac791b7be353bb2899fc59f70ec 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -11,6 +11,10 @@ import org.apache.logging.log4j.LogManager;
@@ -319,7 +319,7 @@ index be060f602f53344cf51c22eafacb4dc9219c8856..c644021bd91868c04ffcdf15663438d3
      private static final Logger LOGGER = LogManager.getLogger();
      private final File playerDir;
      protected final DataFixer a;
-+    public ExecutorService saveThread = Executors.newSingleThreadExecutor(); // YAPFA
++    public ExecutorService saveThread = Executors.newSingleThreadExecutor(); // Yatopia
  
      public WorldNBTStorage(Convertable.ConversionSession convertable_conversionsession, DataFixer datafixer) {
          this.a = datafixer;
@@ -335,7 +335,7 @@ index be060f602f53344cf51c22eafacb4dc9219c8856..c644021bd91868c04ffcdf15663438d3
 -            File file2 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat_old");
 -
 -            SystemUtils.a(file1, file, file2);
-+		// YAPFA start
++		// Yatopia start
 +		entityhuman.takeInventorySnapshot(); // Take a sync inventory/enderchest snapshot to prevent duping
 +            saveThread.submit(() -> { // Save the tag async
 +		try {
@@ -350,7 +350,7 @@ index be060f602f53344cf51c22eafacb4dc9219c8856..c644021bd91868c04ffcdf15663438d3
 +                    WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
 +                }
 +            });
-+            // YAPFA end
++            // Yatopia end
          } catch (Exception exception) {
              WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
          }
