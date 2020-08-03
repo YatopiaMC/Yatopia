@@ -5,7 +5,7 @@ Subject: [PATCH] Player-saving-async-FileIO
 
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966465f380d 100644
+index 2e88442e13546e9005e3783b09feaddbed7cea16..0f05c8887f5ecd639021e90389e53891b6ad80fc 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -27,6 +27,8 @@ import java.util.List;
@@ -138,7 +138,7 @@ index 2e88442e13546e9005e3783b09feaddbed7cea16..15cea86fd88ddb4524abd8b673406966
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..c9c5876a9192e263ed5103c0e88748b61f46529d 100644
+index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..767ecf5fe63d86522ef8de4c0b4cda2803a5145c 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -700,11 +700,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -176,7 +176,7 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..c9c5876a9192e263ed5103c0e88748b6
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3eb8e087e3 100644
+index 8b64720f4acf5deb341074cd75f99ca7816f1e41..2e24e2210f91e69ead4f21f2426e5230fb887e53 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -20,6 +20,7 @@ import java.util.Optional;
@@ -233,7 +233,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..c2de0bc970b30e3267b739aad735ea3e
              serverstatisticmanager = new ServerStatisticManager(this.server, file1);
              // this.o.put(uuid, serverstatisticmanager); // CraftBukkit
 diff --git a/src/main/java/net/minecraft/server/ServerStatisticManager.java b/src/main/java/net/minecraft/server/ServerStatisticManager.java
-index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5e3aeec35 100644
+index 18725272f920eafb655de8b923a8a85dbdc704cf..5f222d8b90951c61e77ab7032f8728772ba8ab9d 100644
 --- a/src/main/java/net/minecraft/server/ServerStatisticManager.java
 +++ b/src/main/java/net/minecraft/server/ServerStatisticManager.java
 @@ -20,6 +20,10 @@ import java.util.Map;
@@ -301,7 +301,7 @@ index 18725272f920eafb655de8b923a8a85dbdc704cf..5033db43e3df5e92c45f87d6ff2ee8a5
                                                  ServerStatisticManager.LOGGER.warn("Invalid statistic in {}: Don't know what {} is", this.d, s2);
                                              });
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index be060f602f53344cf51c22eafacb4dc9219c8856..c644021bd91868c04ffcdf15663438d398d076e9 100644
+index be060f602f53344cf51c22eafacb4dc9219c8856..b14f3d44a76ccac791b7be353bb2899fc59f70ec 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -11,6 +11,10 @@ import org.apache.logging.log4j.LogManager;
