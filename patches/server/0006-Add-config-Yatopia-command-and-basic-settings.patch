@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
-Date: Sun, 2 Aug 2020 11:17:08 -0500
+Date: Tue, 4 Aug 2020 19:19:20 -0500
 Subject: [PATCH] Add config Yatopia command and basic settings
 
 
@@ -357,7 +357,7 @@ index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..9ba65a7528755f54b9a1c4b1323b6e75de867f14 100644
+index 77b6e4dd34893f0959574f95078bc3fa6896e69c..f8033f57cdf8528199203506a9db92be7b1351ac 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -7,6 +7,7 @@ import com.mojang.authlib.GameProfileRepository;
@@ -368,9 +368,9 @@ index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..9ba65a7528755f54b9a1c4b1323b6e75
  import java.io.IOException;
  import java.io.InputStreamReader;
  import java.net.InetAddress;
-@@ -184,6 +185,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
-         com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
+@@ -182,6 +183,16 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
  
 +        // Yatopia start
 +        try {
@@ -381,6 +381,7 @@ index ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327..9ba65a7528755f54b9a1c4b1323b6e75
 +            }
 +        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
 +        // Yatopia end
++
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
@@ -398,7 +399,7 @@ index 98c5ecdf8b59670c872cb43593054f5a91d5e9fe..c77bb0b092cf4198edb6334520fd5704
          });
          StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index d83ad80c08ef7c8a55bae6fd86aefa128c9c8a20..9f2aab1cb100cb6f9048d840db6fc15947a26847 100644
+index c52afcb107c4d444d9553ed186899adf0bc248ba..a1cbdd38925e2e6e530c8ec4d319a9ea34a542f8 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {

@@ -1,37 +1,21 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
-Date: Fri, 31 Jul 2020 22:39:43 -0500
+Date: Tue, 4 Aug 2020 19:15:55 -0500
 Subject: [PATCH] Yatopia Server Fixes
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 841a8d2b392acdcef90592b841cbbcb2237c6901..c9cd3f6e6bb779ecaf0412c21e0dc654321eb44f 100644
+index 841a8d2b392acdcef90592b841cbbcb2237c6901..ff2351b57e96c8c17701a0608c9f2596d0adae6e 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
-@@ -232,6 +232,8 @@ public class TimingsExport extends Thread {
+@@ -232,6 +232,7 @@ public class TimingsExport extends Thread {
              pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
              pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
              , pair("akarin", mapAsJSON(Bukkit.spigot().getAkarinConfig(), null)) // Akarin - Server config
-+            , pair("papercut", mapAsJSON(Bukkit.spigot().getPapercutConfig(), null)) // Papercut
 +            , pair("origami", mapAsJSON(Bukkit.spigot().getOrigamiConfig(), null)) // Origami
          ));
  
          new TimingsExport(listeners, parent, history).start();
-diff --git a/src/main/java/co/aikar/timings/TimingsExport.java.rej b/src/main/java/co/aikar/timings/TimingsExport.java.rej
-deleted file mode 100644
-index aad8019b2c23b72bfad58a507671cd750bdc1a20..0000000000000000000000000000000000000000
---- a/src/main/java/co/aikar/timings/TimingsExport.java.rej
-+++ /dev/null
-@@ -1,9 +0,0 @@
--diff a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java	(rejected hunks)
--@@ -231,6 +231,7 @@ public class TimingsExport extends Thread {
--             pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
--             pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
--             pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
--+            , pair("papercut", mapAsJSON(Bukkit.spigot().getPapercutConfig(), null)) // Papercut
--         ));
-- 
--         new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 index dee9655b89d061ec8218ea2c54660c6003e8548f..253b73cfc597d4c7106d969be7b18c68166128ae 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
@@ -62,26 +46,26 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..3b3c7053c73ac31eb00585c4e1fc19933467205a 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..bd107a376eaf660ba1ad61c035f8ed2d9d04749c 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
 @@ -112,6 +112,19 @@ public final class OrigamiConfig {
              config.addDefault("worlds.default." + path, Double.valueOf(dfl));
              return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
          }
-+        
++
 +        public boolean tickEmptyHoppers = false;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
 +            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
 +            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
 +        }
-+        
++
 +        public boolean fastFeatureSearchDontLoad = false;
 +        private void fastFeatureSearchDontLoad() {
-+        	fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", fastFeatureSearchDontLoad);
++		fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", fastFeatureSearchDontLoad);
 +        }
-+        
++
      }
  
  }
@@ -145,34 +129,42 @@ index d1152585c5f482e554966f965561626c78ac4d3a..00000000000000000000000000000000
 -             this.world.timings.countNaturalMobs.startTiming(); // Paper - timings
 -             int l = this.chunkMapDistance.b();
 -             // Paper start - per player mob spawning
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 77b6e4dd34893f0959574f95078bc3fa6896e69c..ad1af2905e4f3e3d05a0dc63859a6e2f3bc43327 100644
---- a/src/main/java/net/minecraft/server/DedicatedServer.java
-+++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -181,6 +181,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         // Paper end
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
-+        us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
-+        com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
- 
-         this.setPVP(dedicatedserverproperties.pvp);
-         this.setAllowFlight(dedicatedserverproperties.allowFlight);
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java.rej b/src/main/java/net/minecraft/server/DedicatedServer.java.rej
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
+index e19bb5ce5c32d9c08336f802fa9058603e23c6ab..d73ef98330c4ae643950b16341b3cde0d52928ce 100644
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java
++++ b/src/main/java/net/minecraft/server/EntityInsentient.java
+@@ -758,7 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
+         this.goalSelector.doTick();
+         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         //this.world.getMethodProfiler().enter("navigation"); // Akarin - remove caller
+-        this.navigation.c();
++        // Paper start - async navigation
++        if (this.navigation instanceof AsyncNavigationAbstract)
++             ((AsyncNavigationAbstract) this.navigation).asyncTick();
++        else
++        // Paper end
+         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         //this.world.getMethodProfiler().enter("mob tick"); // Akarin - remove caller
+         this.mobTick();
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java.rej b/src/main/java/net/minecraft/server/EntityInsentient.java.rej
 deleted file mode 100644
-index 6b1dd973eb1e44e530d525981fbe4c698088b9b8..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/DedicatedServer.java.rej
+index de5ec59cb607030703e7b0361b1fa615b95e289e..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java.rej
 +++ /dev/null
-@@ -1,9 +0,0 @@
--diff a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java	(rejected hunks)
--@@ -171,6 +171,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
--         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
--         // Paper end
--         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
--+        us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
-- 
--         this.setPVP(dedicatedserverproperties.pvp);
--         this.setAllowFlight(dedicatedserverproperties.allowFlight);
+@@ -1,13 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java	(rejected hunks)
+-@@ -757,6 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
+-         this.goalSelector.doTick();
+-         this.world.getMethodProfiler().exit();
+-         this.world.getMethodProfiler().enter("navigation");
+-+        // Paper start - async navigation
+-+        if (this.navigation instanceof AsyncNavigationAbstract)
+-+            ((AsyncNavigationAbstract) this.navigation).asyncTick();
+-+        else
+-+            // Paper end
+-         this.navigation.c();
+-         this.world.getMethodProfiler().exit();
+-         this.world.getMethodProfiler().enter("mob tick");
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 index 70ae2923e21d7a0312e629a903ca9e380d6c6114..d906c5e530c2e7f779df079223aee619a73b5d51 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
@@ -292,8 +284,103 @@ index b005dd817e9ecffcf2172b4a807b0ecc632570b0..00000000000000000000000000000000
 -                     this.sleepForTick();
 -                     this.methodProfiler.exit();
 -                     this.methodProfiler.b();
+diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
+index 2f2f8d74acef3cdaeda0faab67ace0d28e2d4627..d155d843c03ee1e16180657886a87844e6b34aa6 100644
+--- a/src/main/java/net/minecraft/server/NavigationAbstract.java
++++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
+@@ -8,25 +8,25 @@ import javax.annotation.Nullable;
+ 
+ public abstract class NavigationAbstract {
+ 
+-    protected final EntityInsentient a; public Entity getEntity() { return a; } // Paper - OBFHELPER
+-    protected final World b;
++    protected final EntityInsentient a; public EntityInsentient getEntity() { return a; } // Paper - OBFHELPER
++    protected final World b; protected final World getWorld() { return this.b; } // Paper - OBFHELPER
+     @Nullable
+-    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } // Paper - OBFHELPER
+-    protected double d;
+-    protected int e;
+-    protected int f;
+-    protected Vec3D g;
+-    protected BaseBlockPosition h;
+-    protected long i;
+-    protected long j;
+-    protected double k;
+-    protected float l;
++    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } protected final void setCurrentPath(PathEntity path) { this.c = path; } // Paper - OBFHELPER
++    protected double d; protected final double getSpeed() { return this.d; } // Paper - OBFHELPER
++    protected int e; protected final int getCurrentTick() { return this.e; } protected final void incrementTick() { ++this.e; } // Paper - OBFHELPER
++    protected int f; protected final int getCurrentPathStartTime() { return this.f; } protected final void setCurrentPathStartTime(int time) { this.f = time; } // Paper - OBFHELPER
++    protected Vec3D g; protected final Vec3D getCurrentPathStartPosition() { return this.g; } protected final void setCurrentPathStartPosition(Vec3D position) { this.g = position; } // Paper - OBFHELPER
++    protected BaseBlockPosition h; protected final BaseBlockPosition getLastNodePosition() { return this.h; } protected final void setLastNodePosition(BaseBlockPosition position) { this.h = position; } // Paper - OBFHELPER
++    protected long i; protected final long getCurrentNodeStartTickMs() { return this.i; } protected final void addToCurrentNodeStartTickMs(long amount) { this.i += amount; } // Paper - OBFHELPER
++    protected long j; protected final long getLastActiveTickMs() { return this.j; } protected final void setLastActiveTickMs(long ms) { this.j = ms; } // Paper - OBFHELPER
++    protected double k; protected final double getCurrentNodeTimeout() { return this.k; } protected final void setCurrentNodeTimeout(double timeout) { this.k = timeout; } // Paper - OBFHELPER
++    protected float l; protected final float getChebyshevMinimumReachProximity() { return this.l; } protected final void setChebyshevMinimumReachProximity(float proximity) { this.l = proximity; } // Paper - OBFHELPER
+     protected boolean m; protected final boolean needsPathRecalculation() { return this.m; } // Tuinity - OBFHELPER
+     protected long n;
+-    protected PathfinderAbstract o;
+-    private BlockPosition p;
+-    private int q;
+-    private float r;
++    protected PathfinderAbstract o; protected final PathfinderAbstract getNodeCreator() { return this.o; } // Paper - OBFHELPER
++    private BlockPosition p; protected final BlockPosition getCurrentTarget() { return this.p; } protected final void setCurrentTarget(BlockPosition target) { this.p = target; } // Paper - OBFHELPER
++    private int q; protected final int getCurrentDistance() { return this.q; } // Paper - OBFHELPER
++    private float r; protected final float getRangeMultiplier() { return this.r; } // Paper - OBFHELPER
+     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
+ 
+     // Tuinity start
+diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java.rej b/src/main/java/net/minecraft/server/NavigationAbstract.java.rej
+deleted file mode 100644
+index 3b706d3951c187dfdd158b7c4c73014d271855ca..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/NavigationAbstract.java.rej
++++ /dev/null
+@@ -1,43 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java	(rejected hunks)
+-@@ -8,25 +8,25 @@ import javax.annotation.Nullable;
+- 
+- public abstract class NavigationAbstract {
+- 
+--    protected final EntityInsentient a; public Entity getEntity() { return a; } // Paper - OBFHELPER
+--    protected final World b;
+-+    protected final EntityInsentient a; public EntityInsentient getEntity() { return a; } // Paper - OBFHELPER
+-+    protected final World b; protected final World getWorld() { return this.b; } // Paper - OBFHELPER
+-     @Nullable
+--    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } // Paper - OBFHELPER
+--    protected double d;
+--    protected int e;
+--    protected int f;
+--    protected Vec3D g;
+--    protected BaseBlockPosition h;
+--    protected long i;
+--    protected long j;
+--    protected double k;
+--    protected float l;
+-+    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } protected final void setCurrentPath(PathEntity path) { this.c = path; } // Paper - OBFHELPER
+-+    protected double d; protected final double getSpeed() { return this.d; } // Paper - OBFHELPER
+-+    protected int e; protected final int getCurrentTick() { return this.e; } protected final void incrementTick() { ++this.e; } // Paper - OBFHELPER
+-+    protected int f; protected final int getCurrentPathStartTime() { return this.f; } protected final void setCurrentPathStartTime(int time) { this.f = time; } // Paper - OBFHELPER
+-+    protected Vec3D g; protected final Vec3D getCurrentPathStartPosition() { return this.g; } protected final void setCurrentPathStartPosition(Vec3D position) { this.g = position; } // Paper - OBFHELPER
+-+    protected BaseBlockPosition h; protected final BaseBlockPosition getLastNodePosition() { return this.h; } protected final void setLastNodePosition(BaseBlockPosition position) { this.h = position; } // Paper - OBFHELPER
+-+    protected long i; protected final long getCurrentNodeStartTickMs() { return this.i; } protected final void addToCurrentNodeStartTickMs(long amount) { this.i += amount; } // Paper - OBFHELPER
+-+    protected long j; protected final long getLastActiveTickMs() { return this.j; } protected final void setLastActiveTickMs(long ms) { this.j = ms; } // Paper - OBFHELPER
+-+    protected double k; protected final double getCurrentNodeTimeout() { return this.k; } protected final void setCurrentNodeTimeout(double timeout) { this.k = timeout; } // Paper - OBFHELPER
+-+    protected float l; protected final float getChebyshevMinimumReachProximity() { return this.l; } protected final void setChebyshevMinimumReachProximity(float proximity) { this.l = proximity; } // Paper - OBFHELPER
+-     protected boolean m;
+-     protected long n;
+--    protected PathfinderAbstract o;
+--    private BlockPosition p;
+--    private int q;
+--    private float r;
+-+    protected PathfinderAbstract o; protected final PathfinderAbstract getNodeCreator() { return this.o; } // Paper - OBFHELPER
+-+    private BlockPosition p; protected final BlockPosition getCurrentTarget() { return this.p; } protected final void setCurrentTarget(BlockPosition target) { this.p = target; } // Paper - OBFHELPER
+-+    private int q; protected final int getCurrentDistance() { return this.q; } // Paper - OBFHELPER
+-+    private float r; protected final float getRangeMultiplier() { return this.r; } // Paper - OBFHELPER
+-     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
+- 
+-     public NavigationAbstract(EntityInsentient entityinsentient, World world) {
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index a91b540a9e35efc8746f74f039a8ab6cfbd37206..546f4c942b047a39e0aec10cc2009b90573484dd 100644
+index 3da442fca229f4abae5c1f7725e60286140061b4..038f4e85e7a7e612d72f21f530f9160dc2f7474f 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -1169,7 +1169,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -361,10 +448,10 @@ index 8b5d001fb8ecb4a5b96bda6532cf8d5900816290..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 7e06324777617d38be18e80b8498a74b1b0eb97f..d87d3f274ba1525c13875a92eec9d4c1bd265fa5 100644
+index 2fbbc1588c2943c8998550db4da6642e666650d8..3ff61141aede4b5a09bf83153222de0d14db5ad0 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
-@@ -514,6 +514,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -508,6 +508,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
                  entityitem = (EntityItem) iterator.next();
              } while (!a((IInventory) ihopper, entityitem));
  
@@ -440,7 +527,7 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index ce7a742f2a3b5c169b956c1a91819882b9b57955..542b7cb89ac6b216d02bac6563df60d53cc7e9f1 100644
+index b32638165798a4b6022fc41e9c9ac8d5dac507a5..5111875cdb28b6958dec09215d4d4b8c8cbaad5a 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -464,37 +551,46 @@ index ce7a742f2a3b5c169b956c1a91819882b9b57955..542b7cb89ac6b216d02bac6563df60d5
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
          this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
-@@ -646,6 +653,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -636,6 +643,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+ 
+     public void b(BlockPosition blockposition, IBlockData iblockdata, IBlockData iblockdata1) {}
+ 
++
+     public void applyPhysics(BlockPosition blockposition, Block block) {
+         if (captureBlockStates) { return; } // Paper - Cancel all physics during placement
+         this.a(blockposition.west(), block, blockposition);
+@@ -645,7 +653,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         this.a(blockposition.north(), block, blockposition);
          this.a(blockposition.south(), block, blockposition);
      }
- 
-+    public void neighborChanged(BlockPosition pos, Block block, BlockPosition parent) { a(pos, block, parent); } // Origami - OBFHELPER
+-
++    
      public void a(BlockPosition blockposition, Block block, EnumDirection enumdirection) {
          if (enumdirection != EnumDirection.WEST) {
              this.a(blockposition.west(), block, blockposition);
+@@ -673,6 +681,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+ 
+     }
+ 
++    public void neighborChanged(BlockPosition pos, Block blockIn, BlockPosition fromPos) { a(pos, blockIn, fromPos); } // Paper - OBFHELPER
+     public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
+         if (!this.isClientSide) {
+             IBlockData iblockdata = this.getTypeIfLoaded(blockposition); // EMC
 diff --git a/src/main/java/net/minecraft/server/World.java.rej b/src/main/java/net/minecraft/server/World.java.rej
 deleted file mode 100644
-index 6f7cf093021998e6ae0178fa851e82437d4f7f86..0000000000000000000000000000000000000000
+index c632cd030e36d8abfd92a14948e4893d885823ad..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/World.java.rej
 +++ /dev/null
-@@ -1,17 +0,0 @@
+@@ -1,9 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java	(rejected hunks)
--@@ -95,6 +95,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
--     public final ChunkPacketBlockController chunkPacketBlockController; // Paper - Anti-Xray
+-@@ -646,6 +646,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
 - 
--     public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
--+    public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
+-     }
 - 
--     public final co.aikar.timings.WorldTimingsHandler timings; // Paper
--     public static BlockPosition lastPhysicsProblem; // Spigot
--@@ -124,6 +125,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
--         this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.spigotConfig); // Paper
--         this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this.paperConfig, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
--         this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
--+        this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
--         this.generator = gen;
--         this.world = new CraftWorld((WorldServer) this, gen, env);
--         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
+-+    public void neighborChanged(BlockPosition pos, Block blockIn, BlockPosition fromPos) { a(pos, blockIn, fromPos); } // Paper - OBFHELPER
+-     public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
+-         if (!this.isClientSide) {
+-             IBlockData iblockdata = this.getType(blockposition);
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
 index 64f7fc40a6847ebc6c84b3c179614e186f861e1f..3782d329dc62a9e834f16a9009f4102b5b4aad6f 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
@@ -696,21 +792,19 @@ index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index afaa6ab4744190b134aeb616a1355cefd1333e37..b06f72228df2bd047e378ba750936a1138e72ade 100644
+index d290bc1b8bea4fac9d4e14a1ccdf954055291e66..5bdde162b6f2aa81d136d82504ab5890e5262279 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -836,6 +836,10 @@ public final class CraftServer implements Server {
+@@ -842,6 +842,8 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          app.akarin.server.Config.init((File) console.options.valueOf("akarin-settings")); // Akarin - Server Config
-+        us.minevict.papercut.PapercutConfig.init((File) console.options.valueOf("papercut-settings")); // Papercut
 +        net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
-+        com.mrivanplays.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
 +        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -872,6 +876,9 @@ public final class CraftServer implements Server {
+@@ -878,6 +880,9 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
              world.akarinConfig.init(); // Akarin - Server Config
@@ -720,7 +814,7 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..b06f72228df2bd047e378ba750936a11
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2249,6 +2256,25 @@ public final class CraftServer implements Server {
+@@ -2255,6 +2260,25 @@ public final class CraftServer implements Server {
          }
          // Akarin End - Server Config
  
@@ -746,7 +840,7 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..b06f72228df2bd047e378ba750936a11
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2388,4 +2414,11 @@ public final class CraftServer implements Server {
+@@ -2394,4 +2418,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -777,7 +871,7 @@ index b9d3fb83434a48b328cf0a0ae1ec29d93e87aa3e..00000000000000000000000000000000
 -     // Purpur end
 - }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 5d9197e6b27c5fcb5ef5244a82b45052a5dd5b40..2c3f96e9d5e7c2cfd4a3d1aeba27f25c6e8b891b 100644
+index 2d12ad72be927712d38d6fb6991f4af7a196fb9b..1a454f74b322605b1006da5be13760b13cc5f931 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -138,6 +138,7 @@ public class Main {
@@ -792,13 +886,13 @@ index 5d9197e6b27c5fcb5ef5244a82b45052a5dd5b40..2c3f96e9d5e7c2cfd4a3d1aeba27f25c
                          .describedAs("Yml file");
                  // Akarin End - Server Config
  
-+                // Papercut start
-+                acceptsAll(asList("papercut", "papercut-settings"), "File for papercut settings")
++                // Origami Start - Server Config
++                        acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
 +                        .withRequiredArg()
-+                        .ofType(File.class)
-+                        .defaultsTo(new File("papercut.yml"))
-+                        .describedAs("Yml file");
-+                // Papercut end
++                    .ofType(File.class)
++                    .defaultsTo(new File("origami.yml"))
++                    .describedAs("Yml file");
++                // Origami end - Server Config
 +
 +                // Purpur Start
 +                acceptsAll(asList("purpur", "purpur-settings"), "File for purpur settings")
@@ -811,20 +905,6 @@ index 5d9197e6b27c5fcb5ef5244a82b45052a5dd5b40..2c3f96e9d5e7c2cfd4a3d1aeba27f25c
                  // Paper start
                  acceptsAll(asList("server-name"), "Name of the server")
                          .withRequiredArg()
-@@ -168,6 +185,13 @@ public class Main {
-                         .defaultsTo(new File("origami.yml"))
-                         .describedAs("Yml file");
-                 // Origami end
-+                // Origami Start - Server Config
-+                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
-+                        .withRequiredArg()
-+                        .ofType(File.class)
-+                        .defaultsTo(new File("origami.yml"))
-+                        .describedAs("Yml file");
-+                // Origami end - Server Config
-             }
-         };
- 
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java.rej b/src/main/java/org/bukkit/craftbukkit/Main.java.rej
 deleted file mode 100644
 index 5d35899d1bedbb8643a601a2e1731a9bc66c7b61..0000000000000000000000000000000000000000

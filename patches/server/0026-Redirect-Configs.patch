@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: tr7zw <tr7zw@live.de>
-Date: Mon, 3 Aug 2020 17:38:07 +0200
+Date: Tue, 4 Aug 2020 19:26:12 -0500
 Subject: [PATCH] Redirect Configs
 
 
@@ -40,42 +40,8 @@ index 1742facec843dd87897d62e4aab819835fab4a38..358ac3361c814b7cf5f9650a6a49c6ef
      }
  
      public static void load(final YamlConfiguration config) {
-diff --git a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
-index 111fa3cd586c31eb0ab9fd425179d1f54a40a0f4..9038b3324c50982e85c5e1992de99df6ba902a89 100644
---- a/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
-+++ b/src/main/java/com/mrivanplays/origami/OrigamiConfig.java
-@@ -2,6 +2,8 @@ package com.mrivanplays.origami;
- 
- import com.destroystokyo.paper.util.SneakyThrow;
- 
-+import dev.tr7zw.yatopia.YatopiaConfig;
-+
- import java.io.File;
- import java.io.IOException;
- import java.lang.reflect.Method;
-@@ -23,7 +25,7 @@ public final class OrigamiConfig {
-     private static int configVersion;
- 
-     public static void init(final File file) {
--        OrigamiConfig.configFile = file;
-+        /*OrigamiConfig.configFile = file;
-         final YamlConfiguration config = new YamlConfiguration();
-         config.options().header(CONFIG_HEADER);
-         config.options().copyDefaults(true);
-@@ -42,8 +44,9 @@ public final class OrigamiConfig {
-                 SneakyThrow.sneaky(e);
-                 throw new RuntimeException(e); // unreachable
-             }
--        }
--        load(config);
-+        }*/
-+	configFile = YatopiaConfig.CONFIG_FILE;
-+        load(YatopiaConfig.config);
-     }
- 
-     public static void load(final YamlConfiguration config) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 3b3c7053c73ac31eb00585c4e1fc19933467205a..5c904da2c49098eed9ea2b0ed133bf1322225c4d 100644
+index bd107a376eaf660ba1ad61c035f8ed2d9d04749c..157a5c1be65b6b39787e5be11d1a8d5ea4aeb2b8 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
 @@ -3,6 +3,8 @@ package de.minebench.origami;
@@ -121,7 +87,7 @@ index 9f04500e167b8403c7487044a4ae03a6be61062a..fb3bf0731512b5517ca7ccb3240085b4
              + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
              + "You have been warned!\n";
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 9ba65a7528755f54b9a1c4b1323b6e75de867f14..d6e0d9dd98efadb46e7888af2e0cd2ff7736df83 100644
+index f8033f57cdf8528199203506a9db92be7b1351ac..d6f7d31418459fedaf486f2eeaa0d7ec0151552c 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -169,6 +169,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
@@ -140,12 +106,11 @@ index 9ba65a7528755f54b9a1c4b1323b6e75de867f14..d6e0d9dd98efadb46e7888af2e0cd2ff
          // Purpur start
          try {
              net.pl3x.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
-@@ -184,16 +193,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -182,16 +191,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         // Paper end
+         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
          app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
-         us.minevict.papercut.PapercutConfig.init((java.io.File) options.valueOf("papercut-settings")); // Papercut
-         com.mrivanplays.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - server config
-+        de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
- 
+-
 -        // Yatopia start
 -        try {
 -            dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
@@ -155,14 +120,15 @@ index 9ba65a7528755f54b9a1c4b1323b6e75de867f14..d6e0d9dd98efadb46e7888af2e0cd2ff
 -            }
 -        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
 -        // Yatopia end
++        de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
+ 
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
-         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 2c3f96e9d5e7c2cfd4a3d1aeba27f25c6e8b891b..01ad4f9881623639aa247a064c600b78952ba1be 100644
+index 1a454f74b322605b1006da5be13760b13cc5f931..6820905bf16eb4e8a97615a7ef49b6d3337ab247 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -318,7 +318,7 @@ public class Main {
+@@ -304,7 +304,7 @@ public class Main {
                  }
                  // Paper end
                  System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
@@ -171,42 +137,3 @@ index 2c3f96e9d5e7c2cfd4a3d1aeba27f25c6e8b891b..01ad4f9881623639aa247a064c600b78
                  System.out.println("Loading libraries, please wait...");
                  net.minecraft.server.Main.main(options);
              } catch (Throwable t) {
-diff --git a/src/main/java/us/minevict/papercut/PapercutConfig.java b/src/main/java/us/minevict/papercut/PapercutConfig.java
-index 1256b689481f9d31dc2fbbf6072293c293ed6c2e..f242810198a48e82838e67dd356da596e3288f8e 100644
---- a/src/main/java/us/minevict/papercut/PapercutConfig.java
-+++ b/src/main/java/us/minevict/papercut/PapercutConfig.java
-@@ -1,6 +1,9 @@
- package us.minevict.papercut;
- 
- import com.destroystokyo.paper.util.SneakyThrow;
-+
-+import dev.tr7zw.yatopia.YatopiaConfig;
-+
- import java.io.File;
- import java.lang.reflect.Method;
- import java.lang.reflect.Modifier;
-@@ -20,7 +23,7 @@ public final class PapercutConfig {
-   private static int configVersion;
- 
-   public static void init(final File file) {
--    final File papercutConfig = new File(file.getParent(), "papercut.yml");
-+    /*final File papercutConfig = new File(file.getParent(), "papercut.yml");
-     if (!papercutConfig.exists()) {
-       final File oldConfig = new File(file.getParent(), "papercut.yml");
-       oldConfig.renameTo(papercutConfig);
-@@ -42,11 +45,12 @@ public final class PapercutConfig {
-       } catch (final Exception ex) {
-         Bukkit.getLogger().log(Level.SEVERE, "Failure to load papercut config", ex);
-         SneakyThrow.sneaky(ex); /* Rethrow, this is critical */
--        throw new RuntimeException(ex); // unreachable
-+    /*    throw new RuntimeException(ex); // unreachable
-       }
--    }
-+    }*/
- 
--    PapercutConfig.load(config);
-+	  configFile = YatopiaConfig.CONFIG_FILE;
-+    PapercutConfig.load(YatopiaConfig.config);
-   }
- 
-   public static void load(final YamlConfiguration config) {
