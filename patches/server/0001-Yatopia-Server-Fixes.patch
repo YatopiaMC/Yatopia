@@ -33,7 +33,7 @@ index 572780ca665c0fb254cc7431af3dd7759a94f26c..00000000000000000000000000000000
 - 
 -         new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
-index f81bd67a323f2e72bdad76c52016993a0bf88307..415be72e83e0638bee1dd7e03807194554e6e08c 100644
+index f81bd67a323f2e72bdad76c52016993a0bf88307..200ef278c7822cda12f8382bd4453c32d8f47536 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperCommand.java
 @@ -439,18 +439,18 @@ public class PaperCommand extends Command {
@@ -49,7 +49,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..415be72e83e0638bee1dd7e038071945
  
                      MutablePair<Integer, Map<ChunkCoordIntPair, Integer>> info = list.computeIfAbsent(key, k -> MutablePair.of(0, Maps.newHashMap()));
 -                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(e.chunkX, e.chunkZ);
-+                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(entity.getChunkX(), entity.getChunkZ());
++                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(entity.chunkX(), entity.chunkZ());
                      info.left++;
                      info.right.put(chunk, info.right.getOrDefault(chunk, 0) + 1);
 -                    if (!chunkProviderServer.isInEntityTickingChunk(e)) {
@@ -992,7 +992,7 @@ index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index afaa6ab4744190b134aeb616a1355cefd1333e37..157ac689deda71cddb8baea224e88be0f5180211 100644
+index afaa6ab4744190b134aeb616a1355cefd1333e37..51c59159e04c6f48cb99f691cb64245973d8e628 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -836,6 +836,9 @@ public final class CraftServer implements Server {
@@ -1015,7 +1015,7 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..157ac689deda71cddb8baea224e88be0
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2249,6 +2255,27 @@ public final class CraftServer implements Server {
+@@ -2249,6 +2255,25 @@ public final class CraftServer implements Server {
          }
          // Akarin End - Server Config
  
@@ -1037,13 +1037,11 @@ index afaa6ab4744190b134aeb616a1355cefd1333e37..157ac689deda71cddb8baea224e88be0
 +        }*/
 +        // Purpur end
 +
-+        @Override
-+        public YamlConfiguration getOrigamiConfig() { return com.mrivanplays.origami.OrigamiConfig.config; } // Origami - add config to timings report
-+
++    
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2388,4 +2415,11 @@ public final class CraftServer implements Server {
+@@ -2388,4 +2413,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
