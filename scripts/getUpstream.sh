@@ -43,9 +43,9 @@ for D in */; do
 							done
 						done
 						IFS=' '
-					done
-					$1/scripts/applyUpstream.sh $1 $dnoslash || exit 1
-				fi
+					fi	
+				done
+				$1/scripts/applyUpstream.sh $1 $dnoslash || exit 1
 			fi
 		fi
     fi

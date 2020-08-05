@@ -1,6 +1,6 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
-Date: Wed, 5 Aug 2020 08:01:22 -0500
+Date: Wed, 5 Aug 2020 14:21:05 -0500
 Subject: [PATCH] Yatopia Server Fixes
 
 
@@ -32,6 +32,67 @@ index 572780ca665c0fb254cc7431af3dd7759a94f26c..00000000000000000000000000000000
 -         ));
 - 
 -         new TimingsExport(listeners, parent, history).start();
+diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
+index f81bd67a323f2e72bdad76c52016993a0bf88307..415be72e83e0638bee1dd7e03807194554e6e08c 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
++++ b/src/main/java/com/destroystokyo/paper/PaperCommand.java
+@@ -439,18 +439,18 @@ public class PaperCommand extends Command {
+                 ChunkProviderServer chunkProviderServer = world.getChunkProvider();
+ 
+                 Collection<Entity> entities = world.entitiesById.values();
+-                entities.forEach(e -> {
+-                    MinecraftKey key = e.getMinecraftKey();
+-                    if (e.shouldBeRemoved) return; // Paper
++                for (Entity entity : entities) {
++                    MinecraftKey key = entity.getMinecraftKey();
++                    if (entity.shouldBeRemoved) continue;
+ 
+                     MutablePair<Integer, Map<ChunkCoordIntPair, Integer>> info = list.computeIfAbsent(key, k -> MutablePair.of(0, Maps.newHashMap()));
+-                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(e.chunkX, e.chunkZ);
++                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(entity.getChunkX(), entity.getChunkZ());
+                     info.left++;
+                     info.right.put(chunk, info.right.getOrDefault(chunk, 0) + 1);
+-                    if (!chunkProviderServer.isInEntityTickingChunk(e)) {
++                    if (!chunkProviderServer.isInEntityTickingChunk(entity)) {
+                         nonEntityTicking.merge(key, Integer.valueOf(1), Integer::sum);
+                     }
+-                });
++                }
+ 
+                 if (names.size() == 1) {
+                     MinecraftKey name = names.iterator().next();
+diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej b/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej
+deleted file mode 100644
+index 8f31dba6a29514aad6e74e265bf000014cd1e3c3..0000000000000000000000000000000000000000
+--- a/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej
++++ /dev/null
+@@ -1,26 +0,0 @@
+-diff a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java	(rejected hunks)
+-@@ -429,18 +439,18 @@ public class PaperCommand extends Command {
+-                 ChunkProviderServer chunkProviderServer = world.getChunkProvider();
+- 
+-                 Collection<Entity> entities = world.entitiesById.values();
+--                entities.forEach(e -> {
+--                    MinecraftKey key = e.getMinecraftKey();
+--                    if (e.shouldBeRemoved) return; // Paper
+-+                for (Entity entity : entities) {
+-+                    MinecraftKey key = entity.getMinecraftKey();
+-+                    if (entity.shouldBeRemoved) continue;
+- 
+-                     MutablePair<Integer, Map<ChunkCoordIntPair, Integer>> info = list.computeIfAbsent(key, k -> MutablePair.of(0, Maps.newHashMap()));
+--                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(e.getChunkX(), e.getChunkZ());
+-+                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(entity.getChunkX(), entity.getChunkZ());
+-                     info.left++;
+-                     info.right.put(chunk, info.right.getOrDefault(chunk, 0) + 1);
+--                    if (!chunkProviderServer.isInEntityTickingChunk(e)) {
+-+                    if (!chunkProviderServer.isInEntityTickingChunk(entity)) {
+-                         nonEntityTicking.merge(key, Integer.valueOf(1), Integer::sum);
+-                     }
+--                });
+-+                }
+- 
+-                 if (names.size() == 1) {
+-                     MinecraftKey name = names.iterator().next();
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 index dee9655b89d061ec8218ea2c54660c6003e8548f..253b73cfc597d4c7106d969be7b18c68166128ae 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
@@ -173,7 +234,7 @@ index 4c2d5b3e080c925d687733ec40d4fb4b22552c96..00000000000000000000000000000000
 -         this.setPVP(dedicatedserverproperties.pvp);
 -         this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index e19bb5ce5c32d9c08336f802fa9058603e23c6ab..d73ef98330c4ae643950b16341b3cde0d52928ce 100644
+index 83e232deaeb78f0c97bce42d67fc220e8fb88368..bbcded1e80a4b0e4618affd77bcaa6e41589b9fe 100644
 --- a/src/main/java/net/minecraft/server/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/server/EntityInsentient.java
 @@ -758,7 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
@@ -287,7 +348,7 @@ index 74d10212e547adf96762155adb03c0158df00a16..00000000000000000000000000000000
 -             ran = true;
 -         }
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index de1845b3585d7cf96bf26f5859e1cb4820ad2d56..e17119d37577de42f8d52afcfdfee64c33996941 100644
+index ff1692c131b43f217de1fb6657a8274136a3dd08..5960ed2e91008b363dad900c72064055413eafd9 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1001,7 +1001,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -423,10 +484,66 @@ index 3b706d3951c187dfdd158b7c4c73014d271855ca..00000000000000000000000000000000
 - 
 -     public NavigationAbstract(EntityInsentient entityinsentient, World world) {
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 3da442fca229f4abae5c1f7725e60286140061b4..038f4e85e7a7e612d72f21f530f9160dc2f7474f 100644
+index fe43603ecdc52f26fdaf4c94f14ea27e76b5a71b..a794e4523decded103b88433a5f63213fc243683 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1169,7 +1169,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -505,40 +505,40 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         double playerChunkZ = MathHelper.floor(player.locZ()) >> 4;
+         pos.setValues(player.locX(), 0, player.locZ());
+         double twoThirdModifier = 2D / 3D;
+-        MCUtil.getSpiralOutChunks(pos, Math.min(6, viewDistance)).forEach(coord -> {
+-            if (shouldSkipPrioritization(coord)) return;
++        for (ChunkCoordIntPair coordIntPair : MCUtil.getSpiralOutChunks(pos, Math.min(6, viewDistance))) {
++            if (shouldSkipPrioritization(coordIntPair)) continue;
+ 
+-            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
++            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coordIntPair.x, 0, coordIntPair.z);
+             // Prioritize immediate
+             if (dist <= 4 * 4) {
+-                updateChunkPriorityMap(priorities, coord.pair(), (int) (27 - Math.sqrt(dist)));
+-                return;
++                updateChunkPriorityMap(priorities, coordIntPair.pair(), (int) (27 - Math.sqrt(dist)));
++                continue;
+             }
+ 
+             // Prioritize nearby chunks
+-            updateChunkPriorityMap(priorities, coord.pair(), (int) (20 - Math.sqrt(dist) * twoThirdModifier));
+-        });
++            updateChunkPriorityMap(priorities, coordIntPair.pair(), (int) (20 - Math.sqrt(dist) * twoThirdModifier));
++        }
+ 
+         // Prioritize Frustum near 3
+         ChunkCoordIntPair front3 = player.getChunkInFront(3);
+         pos.setValues(front3.x << 4, 0, front3.z << 4);
+-        MCUtil.getSpiralOutChunks(pos, Math.min(5, viewDistance)).forEach(coord -> {
+-            if (shouldSkipPrioritization(coord)) return;
++        for (ChunkCoordIntPair chunkCoordIntPair : MCUtil.getSpiralOutChunks(pos, Math.min(5, viewDistance))) {
++            if (shouldSkipPrioritization(chunkCoordIntPair)) continue;
+ 
+-            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+-            updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+-        });
++            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, chunkCoordIntPair.x, 0, chunkCoordIntPair.z);
++            updateChunkPriorityMap(priorities, chunkCoordIntPair.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
++        }
+ 
+         // Prioritize Frustum near 5
+         if (viewDistance > 4) {
+             ChunkCoordIntPair front5 = player.getChunkInFront(5);
+             pos.setValues(front5.x << 4, 0, front5.z << 4);
+-            MCUtil.getSpiralOutChunks(pos, 4).forEach(coord -> {
+-                if (shouldSkipPrioritization(coord)) return;
++            for (ChunkCoordIntPair coord : MCUtil.getSpiralOutChunks(pos, 3)) {
++                if (shouldSkipPrioritization(coord)) continue;
+ 
+                 double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+                 updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+-            });
++            }
+         }
+ 
+         // Prioritize Frustum far 7
+@@ -1168,7 +1168,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                  }
  
                  this.getVillagePlace().loadInData(chunkcoordintpair, chunkHolder.poiData);
@@ -439,11 +556,83 @@ index 3da442fca229f4abae5c1f7725e60286140061b4..038f4e85e7a7e612d72f21f530f9160d
                  if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej b/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej
 deleted file mode 100644
-index 06b502a43f0e89b1b2cef8c3adb0a4229511846f..0000000000000000000000000000000000000000
+index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej
 +++ /dev/null
-@@ -1,12 +0,0 @@
+@@ -1,84 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java	(rejected hunks)
+-@@ -480,53 +471,53 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+-         double playerChunkZ = MathHelper.floor(player.locZ()) >> 4;
+-         pos.setValues(player.locX(), 0, player.locZ());
+-         double twoThirdModifier = 2D / 3D;
+--        MCUtil.getSpiralOutChunks(pos, Math.min(6, viewDistance)).forEach(coord -> {
+--            if (shouldSkipPrioritization(coord)) return;
+-+        for (ChunkCoordIntPair coordIntPair : MCUtil.getSpiralOutChunks(pos, Math.min(6, viewDistance))) {
+-+            if (shouldSkipPrioritization(coordIntPair)) continue;
+- 
+--            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+-+            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coordIntPair.x, 0, coordIntPair.z);
+-             // Prioritize immediate
+-             if (dist <= 4 * 4) {
+--                updateChunkPriorityMap(priorities, coord.pair(), (int) (27 - Math.sqrt(dist)));
+--                return;
+-+                updateChunkPriorityMap(priorities, coordIntPair.pair(), (int) (27 - Math.sqrt(dist)));
+-+                continue;
+-             }
+- 
+-             // Prioritize nearby chunks
+--            updateChunkPriorityMap(priorities, coord.pair(), (int) (20 - Math.sqrt(dist) * twoThirdModifier));
+--        });
+-+            updateChunkPriorityMap(priorities, coordIntPair.pair(), (int) (20 - Math.sqrt(dist) * twoThirdModifier));
+-+        }
+- 
+-         // Prioritize Frustum near 3
+-         ChunkCoordIntPair front3 = player.getChunkInFront(3);
+-         pos.setValues(front3.x << 4, 0, front3.z << 4);
+--        MCUtil.getSpiralOutChunks(pos, Math.min(5, viewDistance)).forEach(coord -> {
+--            if (shouldSkipPrioritization(coord)) return;
+-+        for (ChunkCoordIntPair chunkCoordIntPair : MCUtil.getSpiralOutChunks(pos, Math.min(5, viewDistance))) {
+-+            if (shouldSkipPrioritization(chunkCoordIntPair)) continue;
+- 
+--            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+--            updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+--        });
+-+            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, chunkCoordIntPair.x, 0, chunkCoordIntPair.z);
+-+            updateChunkPriorityMap(priorities, chunkCoordIntPair.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+-+        }
+- 
+-         // Prioritize Frustum near 5
+-         if (viewDistance > 4) {
+-             ChunkCoordIntPair front5 = player.getChunkInFront(5);
+-             pos.setValues(front5.x << 4, 0, front5.z << 4);
+--            MCUtil.getSpiralOutChunks(pos, 4).forEach(coord -> {
+--                if (shouldSkipPrioritization(coord)) return;
+-+            for (ChunkCoordIntPair coord : MCUtil.getSpiralOutChunks(pos, 4)) {
+-+                if (shouldSkipPrioritization(coord)) continue;
+- 
+-                 double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+-                 updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+--            });
+-+            }
+-         }
+- 
+-         // Prioritize Frustum far 7
+-         if (viewDistance > 6) {
+-             ChunkCoordIntPair front7 = player.getChunkInFront(7);
+-             pos.setValues(front7.x << 4, 0, front7.z << 4);
+--            MCUtil.getSpiralOutChunks(pos, 3).forEach(coord -> {
+-+            for (ChunkCoordIntPair coord : MCUtil.getSpiralOutChunks(pos, 3)) {
+-                 if (shouldSkipPrioritization(coord)) {
+--                    return;
+-+                    continue;
+-                 }
+-                 double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+-                 updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+--            });
+-+            }
+-         }
+- 
+-         pos.close();
 -@@ -1122,7 +1131,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
 -                 if (ioThrowable != null) {
 -                     com.destroystokyo.paper.util.SneakyThrow.sneaky(ioThrowable);
@@ -517,30 +706,6 @@ index cc8866ec1ccbc131e8491c50eda4f85590bb667b..00000000000000000000000000000000
 -             return true;
 -         }
 -     }
-diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
-index 7fe085e48b6ad625a510edf33b112bef24f7d7ad..9459efde54d507231b4aacb7cba14e9905ebb4d7 100644
---- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
-+++ b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
-@@ -11,7 +11,18 @@ import org.bukkit.entity.HumanEntity;
- 
- public class TileEntityShulkerBox extends TileEntityLootable implements IWorldInventory, ITickable {
- 
--    private static final int[] a = IntStream.range(0, 27).toArray();
-+    private static final int[] a;
-+
-+    static {
-+        int[] arr = new int[10];
-+        int count = 0;
-+        for (int i1 = 0; i1 < 27; i1++) {
-+            if (arr.length == count) arr = Arrays.copyOf(arr, count * 2);
-+            arr[count++] = i1;
-+        }
-+        arr = Arrays.copyOfRange(arr, 0, count);
-+        a = arr;
-+    }
-     private NonNullList<ItemStack> contents;
-     public int c; // PAIL private -> public, rename viewerCount
-     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
 deleted file mode 100644
 index bada470cba41cce9beb9eb04227b42c1d489d731..0000000000000000000000000000000000000000
@@ -570,7 +735,7 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 409861c52461b7138eee3df75e43f0f02d2fcfed..742625adc828bb1d4afa9542895bd9e71a065c15 100644
+index 0890bca50858ec8d544be2e1ff4ac2da73c7d830..44af511da96b265a8441052cc87e356e630699a6 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -97,6 +97,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

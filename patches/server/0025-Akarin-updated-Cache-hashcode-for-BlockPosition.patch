@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Sotr <i@omc.hk>
-Date: Fri, 31 Jul 2020 22:31:08 -0500
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Wed, 5 Aug 2020 14:33:51 -0500
 Subject: [PATCH] Akarin updated Cache hashcode for BlockPosition
 
 
 diff --git a/src/main/java/net/minecraft/server/BaseBlockPosition.java b/src/main/java/net/minecraft/server/BaseBlockPosition.java
-index dab89b0c69ddff24d37cee06107bdc464012c6bb..1e0acca45d0c8f7873176a46018b38eba02aa667 100644
+index e69b7dbc7a954374f9e2374ffe7faebfed2b0644..531bad98fecee11fd149e15974dfd58eb3acc6bb 100644
 --- a/src/main/java/net/minecraft/server/BaseBlockPosition.java
 +++ b/src/main/java/net/minecraft/server/BaseBlockPosition.java
 @@ -28,6 +28,7 @@ public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
@@ -40,7 +40,7 @@ index dab89b0c69ddff24d37cee06107bdc464012c6bb..1e0acca45d0c8f7873176a46018b38eb
      public int compareTo(BaseBlockPosition baseblockposition) {
          return this.getY() == baseblockposition.getY() ? (this.getZ() == baseblockposition.getZ() ? this.getX() - baseblockposition.getX() : this.getZ() - baseblockposition.getZ()) : this.getY() - baseblockposition.getY();
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
-index 7ff4948a47be03c65c162ca04b2338cdcdafe7c4..14a626f98fb1faf38cf3d3e9d0bc79baf14559ac 100644
+index c77f71b6de87757900b3734feda819754e9408b1..ba4811d2018a4898a72d3654c9e75782ef69288b 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
 +++ b/src/main/java/net/minecraft/server/BlockPosition.java
 @@ -438,7 +438,9 @@ public class BlockPosition extends BaseBlockPosition {
@@ -54,23 +54,34 @@ index 7ff4948a47be03c65c162ca04b2338cdcdafe7c4..14a626f98fb1faf38cf3d3e9d0bc79ba
          }
  
          public BlockPosition.MutableBlockPosition a(EnumDirection.EnumAxis enumdirection_enumaxis, int i, int j) {
-@@ -469,16 +471,19 @@ public class BlockPosition extends BaseBlockPosition {
-         // Tuinity - moved up
-         public final void o(int i) { // Tuinity
+@@ -458,24 +460,30 @@ public class BlockPosition extends BaseBlockPosition {
+         // only expose set on the mutable blockpos
+         public final void setX(int value) {
+             ((BaseBlockPosition)this).a = value;
++            this.recalcHashCode();
+         }
+         public final void setY(int value) {
+             ((BaseBlockPosition)this).b = value;
++            this.recalcHashCode();
+         }
+         public final void setZ(int value) {
+             ((BaseBlockPosition)this).e = value;
++            this.recalcHashCode();
+         }
+ 
+         public final void o(int i) {
              ((BaseBlockPosition)this).a = i; // need cast thanks to name conflict
 +            this.recalcHashCode();
          }
  
-         // Tuinity - moved up
-         public final void p(int i) { // Tuinity
-             ((BaseBlockPosition)this).b = i; // Tuinity
+         public final void p(int i) {
+             ((BaseBlockPosition)this).b = i;
 +            this.recalcHashCode();
          }
  
-         // Tuinity - moved up
-         public final void q(int i) { // Tuinity
-             ((BaseBlockPosition)this).e = i; // Tuinity
+         public final void q(int i) {
+             ((BaseBlockPosition)this).e = i;
 +            this.recalcHashCode();
          }
+         // Tuinity end
  
-         @Override
