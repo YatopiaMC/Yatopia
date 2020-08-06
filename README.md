@@ -24,7 +24,7 @@ A blazing fast fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), featur
 
 Available at the following options:
 
-* **[GitHub Releases/(https://github.com/tr7zw/Yatopia/releases/tag/1.16.1)** - 1.16.1
+* **[GitHub Releases](https://github.com/tr7zw/Yatopia/releases/tag/1.16.1)** - 1.16.1
 * **[GitHub Actions](https://github.com/tr7zw/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2
 * ~~**[CodeMC](https://ci.codemc.io/job/Tr7zw/job/YAPFA/)** - 1.15.2~~ (Not up-to-date)
 
