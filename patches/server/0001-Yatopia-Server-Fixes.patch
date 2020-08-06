@@ -706,34 +706,30 @@ index cc8866ec1ccbc131e8491c50eda4f85590bb667b..00000000000000000000000000000000
 -             return true;
 -         }
 -     }
-diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
-deleted file mode 100644
-index bada470cba41cce9beb9eb04227b42c1d489d731..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
-+++ /dev/null
-@@ -1,22 +0,0 @@
--diff a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java	(rejected hunks)
--@@ -10,7 +11,19 @@ import org.bukkit.entity.HumanEntity;
-- 
-- public class TileEntityShulkerBox extends TileEntityLootable implements IWorldInventory, ITickable {
-- 
---    private static final int[] a = IntStream.range(0, 27).toArray();
--+    private static final int[] a;
--+
--+    static {
--+        int[] arr = new int[10];
--+        int count = 0;
--+        for (int i1 = 0; i1 < 27; i1++) {
--+            if (arr.length == count) arr = Arrays.copyOf(arr, count * 2);
--+            arr[count++] = i1;
--+        }
--+        arr = Arrays.copyOfRange(arr, 0, count);
--+        a = arr;
--+    }
--+
--     private NonNullList<ItemStack> contents;
--     private int c;
--     private TileEntityShulkerBox.AnimationPhase i;
+diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
+index 7fe085e48b6ad625a510edf33b112bef24f7d7ad..9459efde54d507231b4aacb7cba14e9905ebb4d7 100644
+--- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
++++ b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
+@@ -11,7 +11,18 @@ import org.bukkit.entity.HumanEntity;
+ 
+ public class TileEntityShulkerBox extends TileEntityLootable implements IWorldInventory, ITickable {
+ 
+-    private static final int[] a = IntStream.range(0, 27).toArray();
++    private static final int[] a;
++
++    static {
++        int[] arr = new int[10];
++        int count = 0;
++        for (int i1 = 0; i1 < 27; i1++) {
++            if (arr.length == count) arr = Arrays.copyOf(arr, count * 2);
++            arr[count++] = i1;
++        }
++        arr = Arrays.copyOfRange(arr, 0, count);
++        a = arr;
++    }
+     private NonNullList<ItemStack> contents;
+     public int c; // PAIL private -> public, rename viewerCount
+     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
 index 0890bca50858ec8d544be2e1ff4ac2da73c7d830..44af511da96b265a8441052cc87e356e630699a6 100644
 --- a/src/main/java/net/minecraft/server/World.java
