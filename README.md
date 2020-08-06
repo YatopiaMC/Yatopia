@@ -45,4 +45,4 @@ git submodule update --init --recursive --force
 
 ## LICENSE
 
-Can be found here: 
+License information can be found [here](https://github.com/tr7zw/Yatopia/blob/ver/1.16.1/Licensing/LICENSE.md).
