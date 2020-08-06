@@ -45,9 +45,4 @@ git submodule update --init --recursive --force
 
 ## LICENSE
 
-Everything is licensed under the MIT license and is free to be used in your own fork.
-
-See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Rainforest](https://github.com/Proximyst/Rainforest), [Origami](https://github.com/Minebench/Origami), and [Tuinity](https://github.com/Spottedleaf/Tuinity)
-for the license of material used/modified by this project.
-
-**To use this project you'll have to accept the Mojang EULA!**
+Can be found here: 
