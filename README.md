@@ -33,6 +33,8 @@ Available at the following options:
 
 You can find a full explanation of the Yatopia configuration file on the [Wiki](https://github.com/tr7zw/Yatopia/wiki)
 
+Also check out the list of patches included in this Project and who created them [here](PATCHES.md)!
+
 ## Building and setting up
 Run the following commands in the root directory:
 
