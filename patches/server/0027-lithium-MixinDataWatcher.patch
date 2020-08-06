@@ -9,7 +9,7 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/net/minecraft/server/DataWatcher.java b/src/main/java/net/minecraft/server/DataWatcher.java
-index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d754e314c3191b8313e35d0559bdc8b865d07eeb 100644
+index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fdb4381c42 100644
 --- a/src/main/java/net/minecraft/server/DataWatcher.java
 +++ b/src/main/java/net/minecraft/server/DataWatcher.java
 @@ -6,6 +6,7 @@ import io.netty.handler.codec.DecoderException;
@@ -28,7 +28,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d754e314c3191b8313e35d0559bdc8b8
 +    private static final int DEFAULT_ENTRY_COUNT = 10, GROW_FACTOR = 8;
 +    /** Mirrors the vanilla backing entries map. Each DataWatcher.Item can be accessed in this array through its ID. **/
 +    private DataWatcher.Item<?>[] entriesArray = new DataWatcher.Item<?>[DEFAULT_ENTRY_COUNT];
-+    
++
 +    /**
 +     * We redirect the call to add a tracked data to the internal map so we can add it to our new storage structure. This
 +     * should only ever occur during entity initialization. Type-erasure is a bit of a pain here since we must redirect
@@ -92,9 +92,9 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d754e314c3191b8313e35d0559bdc8b8
 +
 +        return new ReportedException(report);
 +    }
-+    
++
 +    // Yatopia lithium end
-+    
++
      public DataWatcher(Entity entity) {
          this.entity = entity;
      }
@@ -113,7 +113,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d754e314c3191b8313e35d0559bdc8b8
  
      public <T> T get(DataWatcherObject<T> datawatcherobject) {
 -        return this.b(datawatcherobject).b();
-+    	return getEntry(datawatcherobject).b(); // Yatopia
++	return getEntry(datawatcherobject).b(); // Yatopia
 +        //return this.b(datawatcherobject).b();
      }
  

@@ -5,23 +5,23 @@ Subject: [PATCH] Fix lead fall dmg config
 
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index fb3bf0731512b5517ca7ccb3240085b40e7f2abb..4d8cab6f218582ebf870543e1d74e833cdf6f7b2 100644
+index fb3bf0731512b5517ca7ccb3240085b40e7f2abb..40f0bc601f0d11b0bfb15162fce17aaa70991f14 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -229,4 +229,10 @@ public class YatopiaConfig {
      private static void villagersHideAtNight() {
          villagersHideAtNight = getBoolean("settings.villager.villagersHideAtNight", false);
      }
-+    
++
 +    public static boolean fixFallDistance = false;
 +    private static void fixFallDistance() {
-+    	fixFallDistance = getBoolean("settings.fixFallDistance", false);
++	fixFallDistance = getBoolean("settings.fixFallDistance", false);
 +    }
-+    
++
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index c77bb0b092cf4198edb6334520fd57042b4e171c..2f2d35154f0f2bcc6c5d4e3e417647921106870a 100644
+index ec84bc4dceff76fd2f823a6a9548fdf180291584..de745c8678f5dca0a939afcd45f2cab5fae3c4f1 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -2,6 +2,8 @@ package net.minecraft.server;
@@ -38,7 +38,7 @@ index c77bb0b092cf4198edb6334520fd57042b4e171c..2f2d35154f0f2bcc6c5d4e3e41764792
          } else if (d0 < 0.0D) {
              this.fallDistance = (float) ((double) this.fallDistance - d0);
 +        }else if (d0 > 0.0D && YatopiaConfig.fixFallDistance) { // Yatopia
-+        	this.fallDistance = 0.0F;
++		this.fallDistance = 0.0F;
          }
  
      }
