@@ -14,7 +14,7 @@ git config commit.gpgsign false
 cd $1/patches/$2
 for D in ${searchtxts[@]}; do
 	echo "IMPORTANT:!!! $D"
-    if [ true ]; then
+    if [ -d $1/patches/$2/$dnoslashlower ]; then
 		echo $D
 		dnoslash=$D
 		echo "DnoS: $dnoslash"
