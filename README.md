@@ -8,6 +8,12 @@
 [![Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.herokuapp.com%2Ftr7zw%2Fpledges&style=for-the-badge)](https://www.patreon.com/tr7zw)
 </div>
 
+## Performance ##
+Yatopia is 4.4x times faster at generating chunks than spigot, 1.51x faster at generating chunks than paper. It's even 1.24x faster than Tuinity! 
+
+### How it was tested
+It was tested in a Raspberry Pi 4 4gb overclocked to 2ghz with openjdk 14 compiled with O3 and compiler optimizations like LTO.
+
 ## Introduction ##
 
 A fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), current side upstreams are:
