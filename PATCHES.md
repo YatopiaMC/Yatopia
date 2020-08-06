@@ -8,6 +8,7 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
+| server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | Bud Gidiere |  |
@@ -18,37 +19,55 @@ This is an overview over all patches that are currently used.
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add option for only players to have collisions with      | tr7zw |  |
+| server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
+| server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | api |  Add server configuration      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
 | server |  Akarin configuration      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
+| server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Apply advancements async      | Mariell Hoversholm |  |
-| server |  Async navigation      | &#61;?UTF-8?q?&#61;E3&#61;84&#61;97&#61;E3&#61;84&#61;A0&#61;CB&#61;8B |  |
+| server |  Async navigation      | &quot;tsao-chi@the-lingo.org&quot; |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Brandings      | tr7zw |  |
+| server |  Configurable TPS Catchup      | William Blake Galbreath |  |
+| server |  Configurable villager brain ticks      | William Blake Galbreath |  |
+| api |  Default permissions      | William Blake Galbreath |  |
 | server |  Disable the Snooper      | Sotr |  |
+| server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
+| server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
+| server |  Dont send useless entity packets      | William Blake Galbreath |  |
+| server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | api |  Fix PlayerInteractEvent for Armor Stands      | Aikar |  |
+| server |  Fix lead fall dmg config      | tr7zw |  |
+| server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
+| server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve Hopper Performance      | Aikar |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
+| server |  Lagging threshold      | William Blake Galbreath |  |
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Optimize Hopper logic      | tr7zw |  |
 | server |  Optimize Pathfinder - Remove Streams / Optimized collections      | Aikar |  |
 | server |  Optimize TileEntity loading      | Bud Gidiere |  |
+| server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize redstone algorithm      | theosib | egg82 |
 | server |  Option for simpler Villagers      | tr7zw |  |
+| server |  Origami Server Config      | Phoenix616 |  |
 | server |  Player-saving-async-FileIO      | tr7zw |  |
+| server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | Bud Gidiere |  |
 | api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove a few more streams      | Sotr |  |
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
+| server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tweak Explosions      | Aikar |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
@@ -60,3 +79,5 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
+| server |  lithium-MixinChunkGeneratorAbstract      | JellySquid | tr7zw |
+| server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |
