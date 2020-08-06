@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+git submodule update --init -f
 cd $1
 cd Tuinity
 git clean -fx

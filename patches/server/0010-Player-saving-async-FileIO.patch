@@ -5,7 +5,7 @@ Subject: [PATCH] Player-saving-async-FileIO
 
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 2e88442e13546e9005e3783b09feaddbed7cea16..0f05c8887f5ecd639021e90389e53891b6ad80fc 100644
+index cf539c98073b475eb5b769c8cc11d48a7e6d58f1..5442c28c56f933c63bd611f579d0392876ecc2ef 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -27,6 +27,8 @@ import java.util.List;
@@ -138,7 +138,7 @@ index 2e88442e13546e9005e3783b09feaddbed7cea16..0f05c8887f5ecd639021e90389e53891
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..767ecf5fe63d86522ef8de4c0b4cda2803a5145c 100644
+index e411f6280d07e3f6a953e1fcaffaaa49f85dc7cc..3966bf7160ef5a7ec6944397ffbf51f583875860 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -700,11 +700,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -176,10 +176,10 @@ index 2cada09ced1660526e9c112c2c8d92bbf9d6ea98..767ecf5fe63d86522ef8de4c0b4cda28
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 8b64720f4acf5deb341074cd75f99ca7816f1e41..2e24e2210f91e69ead4f21f2426e5230fb887e53 100644
+index 33c40bf94e74d1ee268fb8ffb809f45b31621df9..c10a1d15bcfe0cb1c2ff6ee7f2881bc2040bcd1d 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -20,6 +20,7 @@ import java.util.Optional;
+@@ -19,6 +19,7 @@ import java.util.Optional;
  import java.util.Set;
  import java.util.UUID;
  import java.util.concurrent.CompletableFuture;
@@ -187,7 +187,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..2e24e2210f91e69ead4f21f2426e5230
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -1262,6 +1263,28 @@ public abstract class PlayerList {
+@@ -1260,6 +1261,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -216,7 +216,7 @@ index 8b64720f4acf5deb341074cd75f99ca7816f1e41..2e24e2210f91e69ead4f21f2426e5230
      }
      // Paper end
  
-@@ -1299,13 +1322,13 @@ public abstract class PlayerList {
+@@ -1297,13 +1320,13 @@ public abstract class PlayerList {
              File file = this.server.a(SavedFile.STATS).toFile();
              File file1 = new File(file, uuid + ".json");
  

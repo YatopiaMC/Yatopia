@@ -15,9 +15,8 @@ A fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), current side upstre
 * [EMC](https://github.com/starlis/empirecraft)
 * [Lithium](https://github.com/jellysquid3/lithium-fabric)
 * [Akarin](https://github.com/Akarin-project/Akarin)
-* [Papercut](https://github.com/Minevictus/Papercut/)
-* [Origami](https://github.com/MrIvanPlays/Origami)
-* [Origami(2)](https://github.com/Minebench/Origami)
+* [Rainforest](https://github.com/Proximyst/Rainforest)
+* [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 
 Notable features are: Async & Optimized Pathfinding, Eigencraft Redstone (1.16), Async Advancements, Optimizer Pathfinder, Ability to slow down villager brains, Ability to disable collisions & collisionboxes, Major Hopper Performance Improvements, Nether TNT Bug + A lot more that all contribute towards ultimate performance.
@@ -70,7 +69,7 @@ git submodule update --init --recursive --force
 
 Everything is licensed under the MIT license and is free to be used in your own fork.
 
-See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Papercut](https://github.com/Minevictus/Papercut/), [Origami](https://github.com/MrIvanPlays/Origami), [Origami(2)](https://github.com/Minebench/Origami), and [Tuinity](https://github.com/Spottedleaf/Tuinity)
+See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Rainforest](https://github.com/Proximyst/Rainforest), [Origami](https://github.com/Minebench/Origami), and [Tuinity](https://github.com/Spottedleaf/Tuinity)
 for the license of material used/modified by this project.
 
 **To use this project you'll have to accept the Mojang EULA!**
