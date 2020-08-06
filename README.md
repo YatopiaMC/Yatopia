@@ -15,7 +15,7 @@ A fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), current side upstre
 * [EMC](https://github.com/starlis/empirecraft)
 * [Lithium](https://github.com/jellysquid3/lithium-fabric)
 * [Akarin](https://github.com/Akarin-project/Akarin)
-* [Rainforest](https://github.com/Proixmyst/Rainforest)
+* [Rainforest](https://github.com/Proximyst/Rainforest)
 * [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 
@@ -69,7 +69,7 @@ git submodule update --init --recursive --force
 
 Everything is licensed under the MIT license and is free to be used in your own fork.
 
-See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Rainforest](https://github.com/Proixmyst/Rainforest), [Origami](https://github.com/Minebench/Origami), and [Tuinity](https://github.com/Spottedleaf/Tuinity)
+See [EMC](https://github.com/starlis/empirecraft), [Lithium](https://github.com/jellysquid3/lithium-fabric), [Akarin](https://github.com/Akarin-project/Akarin), [Purpur](https://github.com/pl3xgaming/Purpur), [Rainforest](https://github.com/Proximyst/Rainforest), [Origami](https://github.com/Minebench/Origami), and [Tuinity](https://github.com/Spottedleaf/Tuinity)
 for the license of material used/modified by this project.
 
 **To use this project you'll have to accept the Mojang EULA!**

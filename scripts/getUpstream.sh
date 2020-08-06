@@ -16,7 +16,6 @@ for D in */; do
 						i=0
 						rm -rf -f "$1/patches/$dnoslash/$file/"
 						echo "Looking for $file file!"
-						echo "$(cat $patchdir/$dnoslash/$file.txt)"
 						IFS='&'
 						read -ra ADDR <<< $(cat $patchdir/$dnoslash/$file.txt)
 						for patch in ${ADDR[@]}; do
