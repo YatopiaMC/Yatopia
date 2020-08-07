@@ -11,11 +11,11 @@ This is an overview over all patches that are currently used.
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
-| server |  Add GameProfileLookupEvent      | Bud Gidiere |  |
+| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add NBT API as a first class lib      | tr7zw |  |
 | server |  Add NBT-API as first-class lib      | tr7zw |  |
 | server |  Add Rainforest config      | Mariell Hoversholm |  |
-| server |  Add config Yatopia command and basic settings      | Bud Gidiere |  |
+| server |  Add config Yatopia command and basic settings      | tr7zw |  |
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add option for only players to have collisions with      | tr7zw |  |
@@ -24,10 +24,10 @@ This is an overview over all patches that are currently used.
 | api |  Add server configuration      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
 | server |  Akarin configuration      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Akarin updated Async Path Finding      | tsao chi | Bud Gidiere |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Apply advancements async      | Mariell Hoversholm |  |
-| server |  Async navigation      | &quot;tsao-chi@the-lingo.org&quot; |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Brandings      | tr7zw |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
@@ -39,7 +39,6 @@ This is an overview over all patches that are currently used.
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
-| api |  Fix PlayerInteractEvent for Armor Stands      | Aikar |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
@@ -53,15 +52,14 @@ This is an overview over all patches that are currently used.
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Optimize Hopper logic      | tr7zw |  |
-| server |  Optimize Pathfinder - Remove Streams / Optimized collections      | Aikar |  |
-| server |  Optimize TileEntity loading      | Bud Gidiere |  |
+| server |  Optimize TileEntity loading      | tr7zw |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize redstone algorithm      | theosib | egg82 |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  Player-saving-async-FileIO      | tr7zw |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
-| server |  Redirect Configs      | Bud Gidiere |  |
+| server |  Redirect Configs      | tr7zw |  |
 | api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove a few more streams      | Sotr |  |
@@ -71,7 +69,7 @@ This is an overview over all patches that are currently used.
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tweak Explosions      | Aikar |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
-| server |  Yatopia Server Fixes      | Bud Gidiere |  |
+| server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium MixinBiome      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
