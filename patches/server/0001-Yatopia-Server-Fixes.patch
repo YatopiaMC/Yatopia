@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
-Date: Wed, 5 Aug 2020 14:21:05 -0500
-Subject: [PATCH] Yatopia Server Fixes
+Date: Thu, 6 Aug 2020 19:47:50 -0500
+Subject: [PATCH] Yatopia-Server-Fixes
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
@@ -233,42 +233,6 @@ index 4c2d5b3e080c925d687733ec40d4fb4b22552c96..00000000000000000000000000000000
 - 
 -         this.setPVP(dedicatedserverproperties.pvp);
 -         this.setAllowFlight(dedicatedserverproperties.allowFlight);
-diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index 83e232deaeb78f0c97bce42d67fc220e8fb88368..bbcded1e80a4b0e4618affd77bcaa6e41589b9fe 100644
---- a/src/main/java/net/minecraft/server/EntityInsentient.java
-+++ b/src/main/java/net/minecraft/server/EntityInsentient.java
-@@ -758,7 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
-         this.goalSelector.doTick();
-         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
-         //this.world.getMethodProfiler().enter("navigation"); // Akarin - remove caller
--        this.navigation.c();
-+        // Paper start - async navigation
-+        if (this.navigation instanceof AsyncNavigationAbstract)
-+             ((AsyncNavigationAbstract) this.navigation).asyncTick();
-+        else
-+        // Paper end
-         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
-         //this.world.getMethodProfiler().enter("mob tick"); // Akarin - remove caller
-         this.mobTick();
-diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java.rej b/src/main/java/net/minecraft/server/EntityInsentient.java.rej
-deleted file mode 100644
-index de5ec59cb607030703e7b0361b1fa615b95e289e..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/EntityInsentient.java.rej
-+++ /dev/null
-@@ -1,13 +0,0 @@
--diff a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java	(rejected hunks)
--@@ -757,6 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
--         this.goalSelector.doTick();
--         this.world.getMethodProfiler().exit();
--         this.world.getMethodProfiler().enter("navigation");
--+        // Paper start - async navigation
--+        if (this.navigation instanceof AsyncNavigationAbstract)
--+            ((AsyncNavigationAbstract) this.navigation).asyncTick();
--+        else
--+            // Paper end
--         this.navigation.c();
--         this.world.getMethodProfiler().exit();
--         this.world.getMethodProfiler().enter("mob tick");
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 index 70ae2923e21d7a0312e629a903ca9e380d6c6114..d906c5e530c2e7f779df079223aee619a73b5d51 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
@@ -388,101 +352,6 @@ index b005dd817e9ecffcf2172b4a807b0ecc632570b0..00000000000000000000000000000000
 -                     this.sleepForTick();
 -                     this.methodProfiler.exit();
 -                     this.methodProfiler.b();
-diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 2f2f8d74acef3cdaeda0faab67ace0d28e2d4627..d155d843c03ee1e16180657886a87844e6b34aa6 100644
---- a/src/main/java/net/minecraft/server/NavigationAbstract.java
-+++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
-@@ -8,25 +8,25 @@ import javax.annotation.Nullable;
- 
- public abstract class NavigationAbstract {
- 
--    protected final EntityInsentient a; public Entity getEntity() { return a; } // Paper - OBFHELPER
--    protected final World b;
-+    protected final EntityInsentient a; public EntityInsentient getEntity() { return a; } // Paper - OBFHELPER
-+    protected final World b; protected final World getWorld() { return this.b; } // Paper - OBFHELPER
-     @Nullable
--    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } // Paper - OBFHELPER
--    protected double d;
--    protected int e;
--    protected int f;
--    protected Vec3D g;
--    protected BaseBlockPosition h;
--    protected long i;
--    protected long j;
--    protected double k;
--    protected float l;
-+    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } protected final void setCurrentPath(PathEntity path) { this.c = path; } // Paper - OBFHELPER
-+    protected double d; protected final double getSpeed() { return this.d; } // Paper - OBFHELPER
-+    protected int e; protected final int getCurrentTick() { return this.e; } protected final void incrementTick() { ++this.e; } // Paper - OBFHELPER
-+    protected int f; protected final int getCurrentPathStartTime() { return this.f; } protected final void setCurrentPathStartTime(int time) { this.f = time; } // Paper - OBFHELPER
-+    protected Vec3D g; protected final Vec3D getCurrentPathStartPosition() { return this.g; } protected final void setCurrentPathStartPosition(Vec3D position) { this.g = position; } // Paper - OBFHELPER
-+    protected BaseBlockPosition h; protected final BaseBlockPosition getLastNodePosition() { return this.h; } protected final void setLastNodePosition(BaseBlockPosition position) { this.h = position; } // Paper - OBFHELPER
-+    protected long i; protected final long getCurrentNodeStartTickMs() { return this.i; } protected final void addToCurrentNodeStartTickMs(long amount) { this.i += amount; } // Paper - OBFHELPER
-+    protected long j; protected final long getLastActiveTickMs() { return this.j; } protected final void setLastActiveTickMs(long ms) { this.j = ms; } // Paper - OBFHELPER
-+    protected double k; protected final double getCurrentNodeTimeout() { return this.k; } protected final void setCurrentNodeTimeout(double timeout) { this.k = timeout; } // Paper - OBFHELPER
-+    protected float l; protected final float getChebyshevMinimumReachProximity() { return this.l; } protected final void setChebyshevMinimumReachProximity(float proximity) { this.l = proximity; } // Paper - OBFHELPER
-     protected boolean m; protected final boolean needsPathRecalculation() { return this.m; } // Tuinity - OBFHELPER
-     protected long n;
--    protected PathfinderAbstract o;
--    private BlockPosition p;
--    private int q;
--    private float r;
-+    protected PathfinderAbstract o; protected final PathfinderAbstract getNodeCreator() { return this.o; } // Paper - OBFHELPER
-+    private BlockPosition p; protected final BlockPosition getCurrentTarget() { return this.p; } protected final void setCurrentTarget(BlockPosition target) { this.p = target; } // Paper - OBFHELPER
-+    private int q; protected final int getCurrentDistance() { return this.q; } // Paper - OBFHELPER
-+    private float r; protected final float getRangeMultiplier() { return this.r; } // Paper - OBFHELPER
-     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
- 
-     // Tuinity start
-diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java.rej b/src/main/java/net/minecraft/server/NavigationAbstract.java.rej
-deleted file mode 100644
-index 3b706d3951c187dfdd158b7c4c73014d271855ca..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/NavigationAbstract.java.rej
-+++ /dev/null
-@@ -1,43 +0,0 @@
--diff a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java	(rejected hunks)
--@@ -8,25 +8,25 @@ import javax.annotation.Nullable;
-- 
-- public abstract class NavigationAbstract {
-- 
---    protected final EntityInsentient a; public Entity getEntity() { return a; } // Paper - OBFHELPER
---    protected final World b;
--+    protected final EntityInsentient a; public EntityInsentient getEntity() { return a; } // Paper - OBFHELPER
--+    protected final World b; protected final World getWorld() { return this.b; } // Paper - OBFHELPER
--     @Nullable
---    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } // Paper - OBFHELPER
---    protected double d;
---    protected int e;
---    protected int f;
---    protected Vec3D g;
---    protected BaseBlockPosition h;
---    protected long i;
---    protected long j;
---    protected double k;
---    protected float l;
--+    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } protected final void setCurrentPath(PathEntity path) { this.c = path; } // Paper - OBFHELPER
--+    protected double d; protected final double getSpeed() { return this.d; } // Paper - OBFHELPER
--+    protected int e; protected final int getCurrentTick() { return this.e; } protected final void incrementTick() { ++this.e; } // Paper - OBFHELPER
--+    protected int f; protected final int getCurrentPathStartTime() { return this.f; } protected final void setCurrentPathStartTime(int time) { this.f = time; } // Paper - OBFHELPER
--+    protected Vec3D g; protected final Vec3D getCurrentPathStartPosition() { return this.g; } protected final void setCurrentPathStartPosition(Vec3D position) { this.g = position; } // Paper - OBFHELPER
--+    protected BaseBlockPosition h; protected final BaseBlockPosition getLastNodePosition() { return this.h; } protected final void setLastNodePosition(BaseBlockPosition position) { this.h = position; } // Paper - OBFHELPER
--+    protected long i; protected final long getCurrentNodeStartTickMs() { return this.i; } protected final void addToCurrentNodeStartTickMs(long amount) { this.i += amount; } // Paper - OBFHELPER
--+    protected long j; protected final long getLastActiveTickMs() { return this.j; } protected final void setLastActiveTickMs(long ms) { this.j = ms; } // Paper - OBFHELPER
--+    protected double k; protected final double getCurrentNodeTimeout() { return this.k; } protected final void setCurrentNodeTimeout(double timeout) { this.k = timeout; } // Paper - OBFHELPER
--+    protected float l; protected final float getChebyshevMinimumReachProximity() { return this.l; } protected final void setChebyshevMinimumReachProximity(float proximity) { this.l = proximity; } // Paper - OBFHELPER
--     protected boolean m;
--     protected long n;
---    protected PathfinderAbstract o;
---    private BlockPosition p;
---    private int q;
---    private float r;
--+    protected PathfinderAbstract o; protected final PathfinderAbstract getNodeCreator() { return this.o; } // Paper - OBFHELPER
--+    private BlockPosition p; protected final BlockPosition getCurrentTarget() { return this.p; } protected final void setCurrentTarget(BlockPosition target) { this.p = target; } // Paper - OBFHELPER
--+    private int q; protected final int getCurrentDistance() { return this.q; } // Paper - OBFHELPER
--+    private float r; protected final float getRangeMultiplier() { return this.r; } // Paper - OBFHELPER
--     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
-- 
--     public NavigationAbstract(EntityInsentient entityinsentient, World world) {
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 index fe43603ecdc52f26fdaf4c94f14ea27e76b5a71b..a794e4523decded103b88433a5f63213fc243683 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
@@ -730,6 +599,34 @@ index 7fe085e48b6ad625a510edf33b112bef24f7d7ad..9459efde54d507231b4aacb7cba14e99
      private NonNullList<ItemStack> contents;
      public int c; // PAIL private -> public, rename viewerCount
      private TileEntityShulkerBox.AnimationPhase i;
+diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
+deleted file mode 100644
+index bada470cba41cce9beb9eb04227b42c1d489d731..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
++++ /dev/null
+@@ -1,22 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java	(rejected hunks)
+-@@ -10,7 +11,19 @@ import org.bukkit.entity.HumanEntity;
+- 
+- public class TileEntityShulkerBox extends TileEntityLootable implements IWorldInventory, ITickable {
+- 
+--    private static final int[] a = IntStream.range(0, 27).toArray();
+-+    private static final int[] a;
+-+
+-+    static {
+-+        int[] arr = new int[10];
+-+        int count = 0;
+-+        for (int i1 = 0; i1 < 27; i1++) {
+-+            if (arr.length == count) arr = Arrays.copyOf(arr, count * 2);
+-+            arr[count++] = i1;
+-+        }
+-+        arr = Arrays.copyOfRange(arr, 0, count);
+-+        a = arr;
+-+    }
+-+
+-     private NonNullList<ItemStack> contents;
+-     private int c;
+-     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
 index 0890bca50858ec8d544be2e1ff4ac2da73c7d830..44af511da96b265a8441052cc87e356e630699a6 100644
 --- a/src/main/java/net/minecraft/server/World.java
