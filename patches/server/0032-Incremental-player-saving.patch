@@ -1,0 +1,98 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Sun, 9 Aug 2020 21:19:15 +0300
+Subject: [PATCH] Incremental player saving
+
+Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
+Ported to Yatopia and 1.16.1 by MrIvanPlays
+
+diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+index 7503322478048cdcca7659202596aea4d95fd835..6d3a2c874077f3abaeda1e365963ce601c901085 100644
+--- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
++++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+@@ -223,4 +223,15 @@ public class YatopiaConfig {
+ 	fixFallDistance = getBoolean("settings.fixFallDistance", false);
+     }
+ 
++    public static int maxPlayerAutoSavePerTick = 10;
++    public static int playerAutoSaveRate = -1;
++    private static void incrementalPlayerdataSaving() {
++        playerAutoSaveRate = getInt("settings.player-auto-save-rate", -1);
++        maxPlayerAutoSavePerTick = getInt("settings.max-player-auto-save-per-tick", -1);
++        if (maxPlayerAutoSavePerTick == -1) { // -1 Automatic / "Recommended"
++            // 10 should be safe for everyone unless you mass spamming player auto save
++            maxPlayerAutoSavePerTick = (playerAutoSaveRate == -1 || playerAutoSaveRate > 100) ? 10 : 20;
++        }
++    }
++
+ }
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index f143624c072ddd300591bdadd3173c97e16973fe..348f25fb974a99e991090747cedb0acd7eade8e9 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -29,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
+ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
++    public long lastSave = MinecraftServer.currentTick; // Yatopia
+     public PlayerConnection playerConnection;
+     public NetworkManager networkManager; // Paper
+     public final MinecraftServer server;
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 440c7f15e2e081ec13d6ab32177c70ef4959e8bb..6a151e60b7f203b629c55c80ac998a80fef2f67d 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1282,9 +1282,15 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         //if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // CraftBukkit // Paper - move down
+             //MinecraftServer.LOGGER.debug("Autosave started"); // Paper
+             serverAutoSave = (autosavePeriod > 0 && this.ticks % autosavePeriod == 0); // Paper
++            // Yatopia start
++            int playerSaveInterval = dev.tr7zw.yatopia.YatopiaConfig.playerAutoSaveRate;
++            if (playerSaveInterval < 0) {
++                playerSaveInterval = autosavePeriod;
++            }
++            // Yatopia end
+             //this.methodProfiler.enter("save"); // Akarin - remove caller
+-            if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // Paper
+-            this.playerList.savePlayers();
++            if (playerSaveInterval > 0) { // Yatopia
++            this.playerList.savePlayers(playerSaveInterval); // Yatopia
+             }// Paper
+             // Paper start
+             for (WorldServer world : getWorlds()) {
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 8498324704ea2e3178a46149b2cc2fd37682dbff..7ac8e538e98b027b5aea20231b2aad79f49e5cb5 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -468,6 +468,7 @@ public abstract class PlayerList {
+     protected void savePlayerFile(EntityPlayer entityplayer) {
+         if (!entityplayer.getBukkitEntity().isPersistent()) return; // CraftBukkit
+         if (!entityplayer.didPlayerJoinEvent) return; // Paper - If we never fired PJE, we disconnected during login. Data has not changed, and additionally, our saved vehicle is not loaded! If we save now, we will lose our vehicle (CraftBukkit bug)
++        entityplayer.lastSave = MinecraftServer.currentTick; // Yatopia
+         this.playerFileData.save(entityplayer);
+         ServerStatisticManager serverstatisticmanager = entityplayer.getStatisticManager(); // CraftBukkit
+ 
+@@ -1114,10 +1115,21 @@ public abstract class PlayerList {
+     }
+ 
+     public void savePlayers() {
++        // Yatopia start - incremental player saving
++        savePlayers(null);
++    }
++    public void savePlayers(Integer interval) {
+         MCUtil.ensureMain("Save Players" , () -> { // Paper - Ensure main
+         MinecraftTimings.savePlayers.startTiming(); // Paper
++        int numSaved = 0;
++        long now = MinecraftServer.currentTick;
+         for (int i = 0; i < this.players.size(); ++i) {
+-            this.savePlayerFile(this.players.get(i));
++            EntityPlayer entityplayer = this.players.get(i);
++            if (interval == null || now - entityplayer.lastSave >= interval) {
++                this.savePlayerFile(entityplayer);
++                if (interval != null && ++numSaved <= dev.tr7zw.yatopia.YatopiaConfig.maxPlayerAutoSavePerTick) { break; }
++            }
++            // Yatopia end
+         }
+         MinecraftTimings.savePlayers.stopTiming(); // Paper
+         return null; }); // Paper - ensure main
