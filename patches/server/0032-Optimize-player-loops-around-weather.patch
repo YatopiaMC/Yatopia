@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sun, 9 Aug 2020 21:33:37 +0300
+Subject: [PATCH] Optimize player loops around weather
+
+
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 988ce5aab920e0660098941e4bc89f0128cef23d..2eb59319360592145172a1cfd2395bb548c3b780 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -823,12 +823,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+             this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
+         }
+         // */
+-        for (int idx = 0; idx < this.players.size(); ++idx) {
+-            if (this.players.get(idx).world == this) {
+-                this.players.get(idx).tickWeather();
++        // Yatopia start
++        for (EntityPlayer player : players) {
++            if (player.world == this) {
++                player.tickWeather();
++                player.updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
++                if (flag != this.isRaining()) player.setPlayerWeather((!flag ? WeatherType.DOWNFALL : WeatherType.CLEAR), false);
++                // Yatopia end
+             }
+         }
+ 
++        /* // Yatopia start - moved up
+         if (flag != this.isRaining()) {
+             // Only send weather packets to those affected
+             for (int idx = 0; idx < this.players.size(); ++idx) {
+@@ -842,6 +847,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 this.players.get(idx).updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
+             }
+         }
++         */ // Yatopia end
+         // CraftBukkit end
+ 
+         if (this.everyoneSleeping) {
