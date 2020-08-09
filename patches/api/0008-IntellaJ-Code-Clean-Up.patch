@@ -5,6 +5,20 @@ Subject: [PATCH] IntellaJ Code Clean Up
 
 Do not try to update this. Just rebuild it.
 
+diff --git a/src/main/java/com/destroystokyo/paper/ParticleBuilder.java b/src/main/java/com/destroystokyo/paper/ParticleBuilder.java
+index d5d2fa20ed54e4989d0120c9239d3b54b7985a3b..2adf76a877451626c959c9dcce4e08ada99b1f16 100644
+--- a/src/main/java/com/destroystokyo/paper/ParticleBuilder.java
++++ b/src/main/java/com/destroystokyo/paper/ParticleBuilder.java
+@@ -88,8 +88,7 @@ public class ParticleBuilder {
+      * @return If this particle is going to be sent to someone
+      */
+     public boolean hasReceivers() {
+-        return (receivers == null && !location.getWorld().getPlayers().isEmpty()) || (
+-            receivers != null && !receivers.isEmpty());
++        return receivers == null ? !location.getWorld().getPlayers().isEmpty() : !receivers.isEmpty();
+     }
+ 
+     /**
 diff --git a/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java b/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java
 index 9db0056ab94145819628b3ad8d8d26130d117fcf..b27281a6538cb223f6dffbf3859366dedbbf75f1 100644
 --- a/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java
@@ -53,6 +67,37 @@ index bd0d18d24b94f7412782749e94f73958396bc363..31cd3923cf88ed6f862bd67a3331217d
              FLICKER, flicker,
              TRAIL, trail,
              COLORS, colors,
+diff --git a/src/main/java/org/bukkit/Location.java b/src/main/java/org/bukkit/Location.java
+index 14f93ff9b7d650fbfbd6a0e697bf526085810817..f7a442f1675cf7a609b6bee1adb8973e6b09a5c0 100644
+--- a/src/main/java/org/bukkit/Location.java
++++ b/src/main/java/org/bukkit/Location.java
+@@ -1012,10 +1012,7 @@ public class Location implements Cloneable, ConfigurationSerializable {
+         if (Float.floatToIntBits(this.pitch) != Float.floatToIntBits(other.pitch)) {
+             return false;
+         }
+-        if (Float.floatToIntBits(this.yaw) != Float.floatToIntBits(other.yaw)) {
+-            return false;
+-        }
+-        return true;
++        return Float.floatToIntBits(this.yaw) == Float.floatToIntBits(other.yaw);
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/Note.java b/src/main/java/org/bukkit/Note.java
+index 9885fc7dc2baa31f207e4c1681f94a9d383db381..55ab6a68ccf4b4418735db57d149824f8216e8b9 100644
+--- a/src/main/java/org/bukkit/Note.java
++++ b/src/main/java/org/bukkit/Note.java
+@@ -272,9 +272,7 @@ public class Note {
+         if (getClass() != obj.getClass())
+             return false;
+         Note other = (Note) obj;
+-        if (note != other.note)
+-            return false;
+-        return true;
++        return note == other.note;
+     }
+ 
+     @Override
 diff --git a/src/main/java/org/bukkit/Registry.java b/src/main/java/org/bukkit/Registry.java
 index 495c36aee4c2590c62355d62daa8787ea057d191..2f91103a7615e7049031e70665e871d54e707841 100644
 --- a/src/main/java/org/bukkit/Registry.java
@@ -118,6 +163,22 @@ index 555c6f37d5b9daf0f7231070ee79fcfd36e87bfc..b3bb35d0b0f134fb1ce0c6e9ac4cf88e
          } catch (YAMLException e) {
              throw new InvalidConfigurationException(e);
          } catch (ClassCastException e) {
+diff --git a/src/main/java/org/bukkit/enchantments/Enchantment.java b/src/main/java/org/bukkit/enchantments/Enchantment.java
+index f61fc5faf2e8a663272c7b5f63cdc3b612dec2ea..b5add226c1eb23d1e0e930d276af700ad6252f0a 100644
+--- a/src/main/java/org/bukkit/enchantments/Enchantment.java
++++ b/src/main/java/org/bukkit/enchantments/Enchantment.java
+@@ -305,10 +305,7 @@ public abstract class Enchantment implements Keyed {
+             return false;
+         }
+         final Enchantment other = (Enchantment) obj;
+-        if (!this.key.equals(other.key)) {
+-            return false;
+-        }
+-        return true;
++        return this.key.equals(other.key);
+     }
+ 
+     @Override
 diff --git a/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java b/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java
 index f4f4ef18198c1fc40826df8f1327e0c8d6cbc69d..6fa5256ad04996aec1109af790d6accca18c2be1 100644
 --- a/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java
@@ -144,9 +205,27 @@ index 860363507f4c5f7ffb5e8b65a4f6cec1cdfbc0b6..490cd398fe120744e3e3d415a732cd75
      }
  }
 diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
-index 428ceabb5355794317c855e962d7988c8b837c7f..0ee6b21151c306dbaed267e49dc4a3289bc1e962 100644
+index 428ceabb5355794317c855e962d7988c8b837c7f..9071e04c2ce49a397879bf842dd6f2b3ca361b73 100644
 --- a/src/main/java/org/bukkit/inventory/ItemStack.java
 +++ b/src/main/java/org/bukkit/inventory/ItemStack.java
+@@ -291,7 +291,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+             return true;
+         }
+         Material comparisonType = (this.type.isLegacy()) ? Bukkit.getUnsafe().fromLegacy(this.getData(), true) : this.type; // This may be called from legacy item stacks, try to get the right material
+-        return comparisonType == stack.getType() && getDurability() == stack.getDurability() && hasItemMeta() == stack.hasItemMeta() && (hasItemMeta() ? Bukkit.getItemFactory().equals(getItemMeta(), stack.getItemMeta()) : true);
++        return comparisonType == stack.getType() && getDurability() == stack.getDurability() && hasItemMeta() == stack.hasItemMeta() && (!hasItemMeta() || Bukkit.getItemFactory().equals(getItemMeta(), stack.getItemMeta()));
+     }
+ 
+     @NotNull
+@@ -334,7 +334,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+      * @return True if this has the given enchantment
+      */
+     public boolean containsEnchantment(@NotNull Enchantment ench) {
+-        return meta == null ? false : meta.hasEnchant(ench);
++        return meta != null && meta.hasEnchant(ench);
+     }
+ 
+     /**
 @@ -354,7 +354,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
       */
      @NotNull
@@ -165,6 +244,34 @@ index 428ceabb5355794317c855e962d7988c8b837c7f..0ee6b21151c306dbaed267e49dc4a328
  
              byte dataVal = (type != null && type.getMaxDurability() == 0) ? (byte) damage : 0; // Actually durable items get a 0 passed into conversion
              type = Bukkit.getUnsafe().fromLegacy(new MaterialData(type, dataVal), true);
+diff --git a/src/main/java/org/bukkit/inventory/RecipeChoice.java b/src/main/java/org/bukkit/inventory/RecipeChoice.java
+index 92255656afc140220522261f82ed4b954d542dd8..84b02bf4dac091e3c2666b38f101aa186d9551e7 100644
+--- a/src/main/java/org/bukkit/inventory/RecipeChoice.java
++++ b/src/main/java/org/bukkit/inventory/RecipeChoice.java
+@@ -128,10 +128,7 @@ public interface RecipeChoice extends Predicate<ItemStack>, Cloneable {
+                 return false;
+             }
+             final MaterialChoice other = (MaterialChoice) obj;
+-            if (!Objects.equals(this.choices, other.choices)) {
+-                return false;
+-            }
+-            return true;
++            return Objects.equals(this.choices, other.choices);
+         }
+ 
+         @Override
+@@ -224,10 +221,7 @@ public interface RecipeChoice extends Predicate<ItemStack>, Cloneable {
+                 return false;
+             }
+             final ExactChoice other = (ExactChoice) obj;
+-            if (!Objects.equals(this.choices, other.choices)) {
+-                return false;
+-            }
+-            return true;
++            return Objects.equals(this.choices, other.choices);
+         }
+ 
+         @Override
 diff --git a/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java b/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java
 index 9c59aec2525e1a71def39fd3dc71d40dc0b55dcb..42ccc6468d5f3430b9f6294f18c27bf216acfc47 100644
 --- a/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java
@@ -178,6 +285,19 @@ index 9c59aec2525e1a71def39fd3dc71d40dc0b55dcb..42ccc6468d5f3430b9f6294f18c27bf2
      }
  
      /**
+diff --git a/src/main/java/org/bukkit/map/MinecraftFont.java b/src/main/java/org/bukkit/map/MinecraftFont.java
+index 55655aecdad629cbcec9216d83c37b7fe0d18b3f..18610c2af6323c8ff530b6f1986112265822f260 100644
+--- a/src/main/java/org/bukkit/map/MinecraftFont.java
++++ b/src/main/java/org/bukkit/map/MinecraftFont.java
+@@ -302,7 +302,7 @@ public class MinecraftFont extends MapFont {
+             }
+ 
+             if (ch == ' ') {
+-                setChar(ch, new CharacterSprite(spaceSize, 8, new boolean[spaceSize * 8]));
++                setChar(' ', new CharacterSprite(spaceSize, 8, new boolean[spaceSize * 8]));
+                 continue;
+             }
+ 
 diff --git a/src/main/java/org/bukkit/material/Mushroom.java b/src/main/java/org/bukkit/material/Mushroom.java
 index 2b45156ee38abd9ec5a350fa59dfbef61bf07d90..2313d8f4d6bdfb3c86919d2c76bc2fccfec07337 100644
 --- a/src/main/java/org/bukkit/material/Mushroom.java
@@ -327,6 +447,93 @@ index aaa95ca8b99d62b3dfb7b689e09d077b75aa90b5..093dcc0ec5df5ab683636a15697a85ab
          }
      }
  
+diff --git a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+index 571e68010c3e76dd7ea777fd55ad5ce36af96262..5316029b7f929ad50b0fc3ce273c0f30fbbd1804 100644
+--- a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+@@ -49,7 +49,7 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
+         ClassLoader.registerAsParallelCapable();
+     }
+ 
+-    PluginClassLoader(@NotNull final JavaPluginLoader loader, @Nullable final ClassLoader parent, @NotNull final PluginDescriptionFile description, @NotNull final File dataFolder, @NotNull final File file) throws IOException, InvalidPluginException, MalformedURLException {
++    PluginClassLoader(@NotNull final JavaPluginLoader loader, @Nullable final ClassLoader parent, @NotNull final PluginDescriptionFile description, @NotNull final File dataFolder, @NotNull final File file) throws IOException, InvalidPluginException {
+         super(new URL[] {file.toURI().toURL()}, parent);
+         Validate.notNull(loader, "Loader cannot be null");
+ 
+diff --git a/src/main/java/org/bukkit/plugin/messaging/PluginMessageListenerRegistration.java b/src/main/java/org/bukkit/plugin/messaging/PluginMessageListenerRegistration.java
+index 1d002967245e5b98d5cb929e725ea34540136409..428024b8a414ec90b4a9ef811854180a7a673904 100644
+--- a/src/main/java/org/bukkit/plugin/messaging/PluginMessageListenerRegistration.java
++++ b/src/main/java/org/bukkit/plugin/messaging/PluginMessageListenerRegistration.java
+@@ -90,10 +90,7 @@ public final class PluginMessageListenerRegistration {
+         if (!this.channel.equals(other.channel)) {
+             return false;
+         }
+-        if (this.listener != other.listener && !this.listener.equals(other.listener)) {
+-            return false;
+-        }
+-        return true;
++        return this.listener == other.listener || this.listener.equals(other.listener);
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/potion/PotionEffectType.java b/src/main/java/org/bukkit/potion/PotionEffectType.java
+index 0e9e16ee08deb20da11dfe1d00bc69093a8ee04d..11f6f8e3c7b8f11c314b5efbf01f28fb88e08264 100644
+--- a/src/main/java/org/bukkit/potion/PotionEffectType.java
++++ b/src/main/java/org/bukkit/potion/PotionEffectType.java
+@@ -247,10 +247,7 @@ public abstract class PotionEffectType {
+             return false;
+         }
+         final PotionEffectType other = (PotionEffectType) obj;
+-        if (this.id != other.id) {
+-            return false;
+-        }
+-        return true;
++        return this.id == other.id;
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/util/BoundingBox.java b/src/main/java/org/bukkit/util/BoundingBox.java
+index be64e9e6f54e6497c9b6fd5397bc1962be7f3f3d..62f3c32d8ee7fd7b8bdd1535ea5d71fb439addcd 100644
+--- a/src/main/java/org/bukkit/util/BoundingBox.java
++++ b/src/main/java/org/bukkit/util/BoundingBox.java
+@@ -983,8 +983,7 @@ public class BoundingBox implements Cloneable, ConfigurationSerializable {
+         if (Double.doubleToLongBits(maxZ) != Double.doubleToLongBits(other.maxZ)) return false;
+         if (Double.doubleToLongBits(minX) != Double.doubleToLongBits(other.minX)) return false;
+         if (Double.doubleToLongBits(minY) != Double.doubleToLongBits(other.minY)) return false;
+-        if (Double.doubleToLongBits(minZ) != Double.doubleToLongBits(other.minZ)) return false;
+-        return true;
++        return Double.doubleToLongBits(minZ) == Double.doubleToLongBits(other.minZ);
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/util/RayTraceResult.java b/src/main/java/org/bukkit/util/RayTraceResult.java
+index 29869f846337a6833b033b7d2ccd4ff368c334e9..82171b6e047aded6a8b5b94b603cfe7f012c2971 100644
+--- a/src/main/java/org/bukkit/util/RayTraceResult.java
++++ b/src/main/java/org/bukkit/util/RayTraceResult.java
+@@ -142,8 +142,7 @@ public class RayTraceResult {
+         if (!hitPosition.equals(other.hitPosition)) return false;
+         if (!Objects.equals(hitBlock, other.hitBlock)) return false;
+         if (!Objects.equals(hitBlockFace, other.hitBlockFace)) return false;
+-        if (!Objects.equals(hitEntity, other.hitEntity)) return false;
+-        return true;
++        return Objects.equals(hitEntity, other.hitEntity);
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/bukkit/util/io/BukkitObjectInputStream.java b/src/main/java/org/bukkit/util/io/BukkitObjectInputStream.java
+index e5d45a99bc999a8ce9e493364a40358d666c09eb..ea57237b3b4ea7acdccf4d3b727686bfde37b39b 100644
+--- a/src/main/java/org/bukkit/util/io/BukkitObjectInputStream.java
++++ b/src/main/java/org/bukkit/util/io/BukkitObjectInputStream.java
+@@ -57,8 +57,7 @@ public class BukkitObjectInputStream extends ObjectInputStream {
+     }
+ 
+     private static IOException newIOException(String string, Throwable cause) {
+-        IOException exception = new IOException(string);
+-        exception.initCause(cause);
++        IOException exception = new IOException(string, cause);
+         return exception;
+     }
+ }
 diff --git a/src/test/java/org/bukkit/ChatColorTest.java b/src/test/java/org/bukkit/ChatColorTest.java
 index a39d52e724879a97ca09ebe215897f3ece302552..027be750a811d4681407221405430255047064b1 100644
 --- a/src/test/java/org/bukkit/ChatColorTest.java

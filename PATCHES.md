@@ -45,6 +45,10 @@ This is an overview over all patches that are currently used.
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve Hopper Performance      | Aikar |  |
+| api |  IntellaJ Code Clean Up      | Bud Gidiere |  |
+| server |  IntellaJ Code Clean Up      | Bud Gidiere |  |
+| api |  IntellaJ Optimize Imports      | Bud Gidiere |  |
+| server |  IntellaJ Optimize Imports      | Bud Gidiere |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
