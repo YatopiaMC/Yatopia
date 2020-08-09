@@ -1,0 +1,415 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Sat, 8 Aug 2020 18:32:49 -0500
+Subject: [PATCH] IntellaJ Code Clean Up
+
+Do not try to update this. Just rebuild it.
+
+diff --git a/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java b/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java
+index 9db0056ab94145819628b3ad8d8d26130d117fcf..b27281a6538cb223f6dffbf3859366dedbbf75f1 100644
+--- a/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java
++++ b/src/main/java/com/destroystokyo/paper/util/SneakyThrow.java
+@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
+ public class SneakyThrow {
+ 
+     public static void sneaky(@NotNull Throwable exception) {
+-        SneakyThrow.<RuntimeException>throwSneaky(exception);
++        SneakyThrow.throwSneaky(exception);
+     }
+ 
+     @SuppressWarnings("unchecked")
+diff --git a/src/main/java/org/bukkit/Color.java b/src/main/java/org/bukkit/Color.java
+index a0c4535901de29653cc10f8ec7b1349160d27256..b874623c0b3c9f342d4d099d6a0bd5dfedadd308 100644
+--- a/src/main/java/org/bukkit/Color.java
++++ b/src/main/java/org/bukkit/Color.java
+@@ -323,7 +323,7 @@ public final class Color implements ConfigurationSerializable {
+     @Override
+     @NotNull
+     public Map<String, Object> serialize() {
+-        return ImmutableMap.<String, Object>of(
++        return ImmutableMap.of(
+             "RED", getRed(),
+             "BLUE", getBlue(),
+             "GREEN", getGreen()
+diff --git a/src/main/java/org/bukkit/FireworkEffect.java b/src/main/java/org/bukkit/FireworkEffect.java
+index bd0d18d24b94f7412782749e94f73958396bc363..31cd3923cf88ed6f862bd67a3331217de4e3164f 100644
+--- a/src/main/java/org/bukkit/FireworkEffect.java
++++ b/src/main/java/org/bukkit/FireworkEffect.java
+@@ -287,7 +287,7 @@ public final class FireworkEffect implements ConfigurationSerializable {
+                 flicker,
+                 trail,
+                 colors.build(),
+-                fadeColors == null ? ImmutableList.<Color>of() : fadeColors.build(),
++                fadeColors == null ? ImmutableList.of() : fadeColors.build(),
+                 type
+             );
+         }
+@@ -386,7 +386,7 @@ public final class FireworkEffect implements ConfigurationSerializable {
+     @NotNull
+     @Override
+     public Map<String, Object> serialize() {
+-        return ImmutableMap.<String, Object>of(
++        return ImmutableMap.of(
+             FLICKER, flicker,
+             TRAIL, trail,
+             COLORS, colors,
+diff --git a/src/main/java/org/bukkit/Registry.java b/src/main/java/org/bukkit/Registry.java
+index 495c36aee4c2590c62355d62daa8787ea057d191..2f91103a7615e7049031e70665e871d54e707841 100644
+--- a/src/main/java/org/bukkit/Registry.java
++++ b/src/main/java/org/bukkit/Registry.java
+@@ -174,7 +174,7 @@ public interface Registry<T extends Keyed> extends Iterable<T> {
+         private final Map<NamespacedKey, T> map;
+ 
+         protected SimpleRegistry(@NotNull Class<T> type) {
+-            this(type, Predicates.<T>alwaysTrue());
++            this(type, Predicates.alwaysTrue());
+         }
+ 
+         protected SimpleRegistry(@NotNull Class<T> type, @NotNull Predicate<T> predicate) {
+diff --git a/src/main/java/org/bukkit/block/banner/Pattern.java b/src/main/java/org/bukkit/block/banner/Pattern.java
+index e5327b59cfb7b5ed547e34a8c02d293a9b6fd22d..4de1b440cdab5dd53cdde26074c2b19690f08039 100644
+--- a/src/main/java/org/bukkit/block/banner/Pattern.java
++++ b/src/main/java/org/bukkit/block/banner/Pattern.java
+@@ -51,7 +51,7 @@ public class Pattern implements ConfigurationSerializable {
+     @NotNull
+     @Override
+     public Map<String, Object> serialize() {
+-        return ImmutableMap.<String, Object>of(
++        return ImmutableMap.of(
+             COLOR, color.toString(),
+             PATTERN, pattern.getIdentifier()
+         );
+diff --git a/src/main/java/org/bukkit/command/SimpleCommandMap.java b/src/main/java/org/bukkit/command/SimpleCommandMap.java
+index fcbc298043614da5f4bd849e9f65961da276e15e..839bc98509faa25cbbc8d0d6a312c485ce7e36af 100644
+--- a/src/main/java/org/bukkit/command/SimpleCommandMap.java
++++ b/src/main/java/org/bukkit/command/SimpleCommandMap.java
+@@ -227,7 +227,7 @@ public class SimpleCommandMap implements CommandMap {
+             return null;
+         }
+ 
+-        String[] args = cmdLine.substring(spaceIndex + 1, cmdLine.length()).split(" ", -1);
++        String[] args = cmdLine.substring(spaceIndex + 1).split(" ", -1);
+ 
+         try {
+             return target.tabComplete(sender, commandName, args, location);
+diff --git a/src/main/java/org/bukkit/command/defaults/HelpCommand.java b/src/main/java/org/bukkit/command/defaults/HelpCommand.java
+index e9da1efa1229ef0ffad16478dcb0679731585104..a3a2acd3cc2effc7b29075be597913c6d58bf0e8 100644
+--- a/src/main/java/org/bukkit/command/defaults/HelpCommand.java
++++ b/src/main/java/org/bukkit/command/defaults/HelpCommand.java
+@@ -24,7 +24,7 @@ public class HelpCommand extends BukkitCommand {
+         super("help");
+         this.description = "Shows the help menu";
+         this.usageMessage = "/help <pageNumber>\n/help <topic>\n/help <topic> <pageNumber>";
+-        this.setAliases(Arrays.asList(new String[]{"?"}));
++        this.setAliases(Arrays.asList("?"));
+         this.setPermission("bukkit.command.help");
+     }
+ 
+diff --git a/src/main/java/org/bukkit/configuration/file/YamlConfiguration.java b/src/main/java/org/bukkit/configuration/file/YamlConfiguration.java
+index 555c6f37d5b9daf0f7231070ee79fcfd36e87bfc..b3bb35d0b0f134fb1ce0c6e9ac4cf88edaf34950 100644
+--- a/src/main/java/org/bukkit/configuration/file/YamlConfiguration.java
++++ b/src/main/java/org/bukkit/configuration/file/YamlConfiguration.java
+@@ -55,7 +55,7 @@ public class YamlConfiguration extends FileConfiguration {
+         Map<?, ?> input;
+         try {
+             loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE); // SPIGOT-5881: Not ideal, but was default pre SnakeYAML 1.26
+-            input = (Map<?, ?>) yaml.load(contents);
++            input = yaml.load(contents);
+         } catch (YAMLException e) {
+             throw new InvalidConfigurationException(e);
+         } catch (ClassCastException e) {
+diff --git a/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java b/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java
+index f4f4ef18198c1fc40826df8f1327e0c8d6cbc69d..6fa5256ad04996aec1109af790d6accca18c2be1 100644
+--- a/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java
++++ b/src/main/java/org/bukkit/event/entity/PotionSplashEvent.java
+@@ -38,7 +38,7 @@ public class PotionSplashEvent extends ProjectileHitEvent implements Cancellable
+      */
+     @NotNull
+     public ThrownPotion getPotion() {
+-        return (ThrownPotion) getEntity();
++        return getEntity();
+     }
+ 
+     /**
+diff --git a/src/main/java/org/bukkit/inventory/FurnaceRecipe.java b/src/main/java/org/bukkit/inventory/FurnaceRecipe.java
+index 860363507f4c5f7ffb5e8b65a4f6cec1cdfbc0b6..490cd398fe120744e3e3d415a732cd758a0d35ec 100644
+--- a/src/main/java/org/bukkit/inventory/FurnaceRecipe.java
++++ b/src/main/java/org/bukkit/inventory/FurnaceRecipe.java
+@@ -97,6 +97,6 @@ public class FurnaceRecipe extends CookingRecipe<FurnaceRecipe> {
+     @NotNull
+     @Override
+     public FurnaceRecipe setInputChoice(@NotNull RecipeChoice input) {
+-        return (FurnaceRecipe) super.setInputChoice(input);
++        return super.setInputChoice(input);
+     }
+ }
+diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
+index 428ceabb5355794317c855e962d7988c8b837c7f..0ee6b21151c306dbaed267e49dc4a3289bc1e962 100644
+--- a/src/main/java/org/bukkit/inventory/ItemStack.java
++++ b/src/main/java/org/bukkit/inventory/ItemStack.java
+@@ -354,7 +354,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+      */
+     @NotNull
+     public Map<Enchantment, Integer> getEnchantments() {
+-        return meta == null ? ImmutableMap.<Enchantment, Integer>of() : meta.getEnchants();
++        return meta == null ? ImmutableMap.of() : meta.getEnchants();
+     }
+ 
+     /**
+@@ -492,7 +492,7 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+ 
+         Material type;
+         if (version < 0) {
+-            type = Material.getMaterial(Material.LEGACY_PREFIX + (String) args.get("type"));
++            type = Material.getMaterial(Material.LEGACY_PREFIX + args.get("type"));
+ 
+             byte dataVal = (type != null && type.getMaxDurability() == 0) ? (byte) damage : 0; // Actually durable items get a 0 passed into conversion
+             type = Bukkit.getUnsafe().fromLegacy(new MaterialData(type, dataVal), true);
+diff --git a/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java b/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java
+index 9c59aec2525e1a71def39fd3dc71d40dc0b55dcb..42ccc6468d5f3430b9f6294f18c27bf216acfc47 100644
+--- a/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java
++++ b/src/main/java/org/bukkit/inventory/StonecuttingRecipe.java
+@@ -73,7 +73,7 @@ public class StonecuttingRecipe implements Recipe, Keyed {
+     @NotNull
+     public StonecuttingRecipe setInputChoice(@NotNull RecipeChoice input) {
+         this.ingredient = input;
+-        return (StonecuttingRecipe) this;
++        return this;
+     }
+ 
+     /**
+diff --git a/src/main/java/org/bukkit/material/Mushroom.java b/src/main/java/org/bukkit/material/Mushroom.java
+index 2b45156ee38abd9ec5a350fa59dfbef61bf07d90..2313d8f4d6bdfb3c86919d2c76bc2fccfec07337 100644
+--- a/src/main/java/org/bukkit/material/Mushroom.java
++++ b/src/main/java/org/bukkit/material/Mushroom.java
+@@ -106,7 +106,7 @@ public class Mushroom extends MaterialData {
+      */
+     @Deprecated
+     public void setStem() {
+-        setData((byte) MushroomBlockTexture.STEM_SIDES.getData());
++        setData(MushroomBlockTexture.STEM_SIDES.getData());
+     }
+ 
+     /**
+diff --git a/src/main/java/org/bukkit/material/Wood.java b/src/main/java/org/bukkit/material/Wood.java
+index 5d51c9286dbf71ff4bb8717d5e83431b1815770e..aa5ab880c9063d01e4cb3bec4bcaae8501f58d07 100644
+--- a/src/main/java/org/bukkit/material/Wood.java
++++ b/src/main/java/org/bukkit/material/Wood.java
+@@ -74,7 +74,7 @@ public class Wood extends MaterialData {
+         switch (getItemType()) {
+             case LEGACY_WOOD:
+             case LEGACY_WOOD_DOUBLE_STEP:
+-                return TreeSpecies.getByData((byte) getData());
++                return TreeSpecies.getByData(getData());
+             case LEGACY_LOG:
+             case LEGACY_LEAVES:
+                 return TreeSpecies.getByData((byte) (getData() & 0x3));
+diff --git a/src/main/java/org/bukkit/metadata/MetadataStoreBase.java b/src/main/java/org/bukkit/metadata/MetadataStoreBase.java
+index 9a40bea9e4b0a6123e33a4bc49774c841c28a5b5..80524019873e6b334e1a29b312f10886e3d4fcb9 100644
+--- a/src/main/java/org/bukkit/metadata/MetadataStoreBase.java
++++ b/src/main/java/org/bukkit/metadata/MetadataStoreBase.java
+@@ -136,9 +136,7 @@ public abstract class MetadataStoreBase<T> {
+         Validate.notNull(owningPlugin, "Plugin cannot be null");
+         for (Iterator<Map<Plugin, MetadataValue>> iterator = metadataMap.values().iterator(); iterator.hasNext(); ) {
+             Map<Plugin, MetadataValue> values = iterator.next();
+-            if (values.containsKey(owningPlugin)) {
+-                values.remove(owningPlugin);
+-            }
++            values.remove(owningPlugin);
+             if (values.isEmpty()) {
+                 iterator.remove();
+             }
+diff --git a/src/main/java/org/bukkit/plugin/PluginDescriptionFile.java b/src/main/java/org/bukkit/plugin/PluginDescriptionFile.java
+index 9d7ba043bf971e78f30ba751ea036ea54b54fe7d..3ca512bef3d31af56aee17e78c4ebe3bcf6ebde9 100644
+--- a/src/main/java/org/bukkit/plugin/PluginDescriptionFile.java
++++ b/src/main/java/org/bukkit/plugin/PluginDescriptionFile.java
+@@ -849,7 +849,7 @@ public final class PluginDescriptionFile {
+     public List<Permission> getPermissions() {
+         if (permissions == null) {
+             if (lazyPermissions == null) {
+-                permissions = ImmutableList.<Permission>of();
++                permissions = ImmutableList.of();
+             } else {
+                 permissions = ImmutableList.copyOf(Permission.loadPermissions(lazyPermissions, "Permission node '%s' in plugin description file for " + getFullName() + " is invalid", defaultPerm));
+                 lazyPermissions = null;
+@@ -1005,15 +1005,15 @@ public final class PluginDescriptionFile {
+         }
+ 
+         if (map.get("commands") != null) {
+-            ImmutableMap.Builder<String, Map<String, Object>> commandsBuilder = ImmutableMap.<String, Map<String, Object>>builder();
++            ImmutableMap.Builder<String, Map<String, Object>> commandsBuilder = ImmutableMap.builder();
+             try {
+                 for (Map.Entry<?, ?> command : ((Map<?, ?>) map.get("commands")).entrySet()) {
+-                    ImmutableMap.Builder<String, Object> commandBuilder = ImmutableMap.<String, Object>builder();
++                    ImmutableMap.Builder<String, Object> commandBuilder = ImmutableMap.builder();
+                     if (command.getValue() != null) {
+                         for (Map.Entry<?, ?> commandEntry : ((Map<?, ?>) command.getValue()).entrySet()) {
+                             if (commandEntry.getValue() instanceof Iterable) {
+                                 // This prevents internal alias list changes
+-                                ImmutableList.Builder<Object> commandSubList = ImmutableList.<Object>builder();
++                                ImmutableList.Builder<Object> commandSubList = ImmutableList.builder();
+                                 for (Object commandSubListItem : (Iterable<?>) commandEntry.getValue()) {
+                                     if (commandSubListItem != null) {
+                                         commandSubList.add(commandSubListItem);
+@@ -1060,7 +1060,7 @@ public final class PluginDescriptionFile {
+         }
+ 
+         if (map.get("authors") != null) {
+-            ImmutableList.Builder<String> authorsBuilder = ImmutableList.<String>builder();
++            ImmutableList.Builder<String> authorsBuilder = ImmutableList.builder();
+             if (map.get("author") != null) {
+                 authorsBuilder.add(map.get("author").toString());
+             }
+@@ -1077,11 +1077,11 @@ public final class PluginDescriptionFile {
+         } else if (map.get("author") != null) {
+             authors = ImmutableList.of(map.get("author").toString());
+         } else {
+-            authors = ImmutableList.<String>of();
++            authors = ImmutableList.of();
+         }
+ 
+         if (map.get("contributors") != null) {
+-            ImmutableList.Builder<String> contributorsBuilder = ImmutableList.<String>builder();
++            ImmutableList.Builder<String> contributorsBuilder = ImmutableList.builder();
+             try {
+                 for (Object o : (Iterable<?>) map.get("contributors")) {
+                     contributorsBuilder.add(o.toString());
+@@ -1091,7 +1091,7 @@ public final class PluginDescriptionFile {
+             }
+             contributors = contributorsBuilder.build();
+         } else {
+-            contributors = ImmutableList.<String>of();
++            contributors = ImmutableList.of();
+         }
+ 
+         if (map.get("default-permission") != null) {
+@@ -1138,7 +1138,7 @@ public final class PluginDescriptionFile {
+             return ImmutableList.of();
+         }
+ 
+-        final ImmutableList.Builder<String> builder = ImmutableList.<String>builder();
++        final ImmutableList.Builder<String> builder = ImmutableList.builder();
+         try {
+             for (final Object entry : (Iterable<?>) value) {
+                 builder.add(entry.toString().replace(' ', '_'));
+diff --git a/src/main/java/org/bukkit/plugin/SimpleServicesManager.java b/src/main/java/org/bukkit/plugin/SimpleServicesManager.java
+index aaa95ca8b99d62b3dfb7b689e09d077b75aa90b5..093dcc0ec5df5ab683636a15697a85abb6d3a4e3 100644
+--- a/src/main/java/org/bukkit/plugin/SimpleServicesManager.java
++++ b/src/main/java/org/bukkit/plugin/SimpleServicesManager.java
+@@ -242,7 +242,7 @@ public class SimpleServicesManager implements ServicesManager {
+     @Override
+     @NotNull
+     public List<RegisteredServiceProvider<?>> getRegistrations(@NotNull Plugin plugin) {
+-        ImmutableList.Builder<RegisteredServiceProvider<?>> ret = ImmutableList.<RegisteredServiceProvider<?>>builder();
++        ImmutableList.Builder<RegisteredServiceProvider<?>> ret = ImmutableList.builder();
+         synchronized (providers) {
+             for (List<RegisteredServiceProvider<?>> registered : providers.values()) {
+                 for (RegisteredServiceProvider<?> provider : registered) {
+@@ -272,10 +272,10 @@ public class SimpleServicesManager implements ServicesManager {
+             List<RegisteredServiceProvider<?>> registered = providers.get(service);
+ 
+             if (registered == null) {
+-                return ImmutableList.<RegisteredServiceProvider<T>>of();
++                return ImmutableList.of();
+             }
+ 
+-            ret = ImmutableList.<RegisteredServiceProvider<T>>builder();
++            ret = ImmutableList.builder();
+ 
+             for (RegisteredServiceProvider<?> provider : registered) {
+                 ret.add((RegisteredServiceProvider<T>) provider);
+@@ -295,7 +295,7 @@ public class SimpleServicesManager implements ServicesManager {
+     @NotNull
+     public Set<Class<?>> getKnownServices() {
+         synchronized (providers) {
+-            return ImmutableSet.<Class<?>>copyOf(providers.keySet());
++            return ImmutableSet.copyOf(providers.keySet());
+         }
+     }
+ 
+diff --git a/src/test/java/org/bukkit/ChatColorTest.java b/src/test/java/org/bukkit/ChatColorTest.java
+index a39d52e724879a97ca09ebe215897f3ece302552..027be750a811d4681407221405430255047064b1 100644
+--- a/src/test/java/org/bukkit/ChatColorTest.java
++++ b/src/test/java/org/bukkit/ChatColorTest.java
+@@ -17,7 +17,7 @@ public class ChatColorTest {
+ 
+     @Test(expected = IllegalArgumentException.class)
+     public void getByStringWithNull() {
+-        ChatColor.getByChar((String) null);
++        ChatColor.getByChar(null);
+     }
+ 
+     @Test(expected = IllegalArgumentException.class)
+diff --git a/src/test/java/org/bukkit/LocationTest.java b/src/test/java/org/bukkit/LocationTest.java
+index a5b56467755d87c270a7f84fc2326e7a92343bc1..804b91c617e4d73b43db6d02c5a48a3d2ffa25df 100644
+--- a/src/test/java/org/bukkit/LocationTest.java
++++ b/src/test/java/org/bukkit/LocationTest.java
+@@ -43,7 +43,7 @@ public class LocationTest {
+     public static List<Object[]> data() {
+         Random RANDOM = new Random(1L); // Test is deterministic
+         int r = 0;
+-        return ImmutableList.<Object[]>of(
++        return ImmutableList.of(
+             new Object[]{"X",
+                 1, 0, 0,
+                 270, 0
+diff --git a/src/test/java/org/bukkit/event/PlayerChatTabCompleteEventTest.java b/src/test/java/org/bukkit/event/PlayerChatTabCompleteEventTest.java
+index 66008139243be58101354e2194f6d876de97213f..4347062453e6c583ec67d039249ebc39f48dd025 100644
+--- a/src/test/java/org/bukkit/event/PlayerChatTabCompleteEventTest.java
++++ b/src/test/java/org/bukkit/event/PlayerChatTabCompleteEventTest.java
+@@ -22,6 +22,6 @@ public class PlayerChatTabCompleteEventTest {
+     }
+ 
+     private String getToken(String message) {
+-        return new PlayerChatTabCompleteEvent(TestPlayer.getInstance(), message, ImmutableList.<String>of()).getLastToken();
++        return new PlayerChatTabCompleteEvent(TestPlayer.getInstance(), message, ImmutableList.of()).getLastToken();
+     }
+ }
+diff --git a/src/test/java/org/bukkit/util/StringUtilStartsWithTest.java b/src/test/java/org/bukkit/util/StringUtilStartsWithTest.java
+index 2e6af3a7389a51dce97ed57bb86661fb8907ae10..2a2f18f4f59456b1e5f66b8c0c67d83cb70491ad 100644
+--- a/src/test/java/org/bukkit/util/StringUtilStartsWithTest.java
++++ b/src/test/java/org/bukkit/util/StringUtilStartsWithTest.java
+@@ -17,7 +17,7 @@ public class StringUtilStartsWithTest {
+ 
+     @Parameters(name = "{index}: {0} startsWith {1} == {2}")
+     public static List<Object[]> data() {
+-        return ImmutableList.<Object[]>of(
++        return ImmutableList.of(
+             new Object[] {
+                 "Apple",
+                 "Apples",
+diff --git a/src/test/java/org/bukkit/util/StringUtilTest.java b/src/test/java/org/bukkit/util/StringUtilTest.java
+index e269e7615cf88930f84fb73fe461f1bbe2387203..84c08fc7d54e41d71bdfb49c556f890dce421412 100644
+--- a/src/test/java/org/bukkit/util/StringUtilTest.java
++++ b/src/test/java/org/bukkit/util/StringUtilTest.java
+@@ -25,7 +25,7 @@ public class StringUtilTest {
+ 
+     @Test(expected = IllegalArgumentException.class)
+     public void nullCollectionTest() {
+-        StringUtil.copyPartialMatches("Token", ImmutableList.<String>of(), null);
++        StringUtil.copyPartialMatches("Token", ImmutableList.of(), null);
+     }
+ 
+     @Test(expected = IllegalArgumentException.class)
+@@ -35,7 +35,7 @@ public class StringUtilTest {
+ 
+     @Test(expected = IllegalArgumentException.class)
+     public void nullTokenTest() {
+-        StringUtil.copyPartialMatches(null, ImmutableList.<String>of(), new ArrayList<String>());
++        StringUtil.copyPartialMatches(null, ImmutableList.of(), new ArrayList<String>());
+     }
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/util/io/BukkitObjectStreamTest.java b/src/test/java/org/bukkit/util/io/BukkitObjectStreamTest.java
+index 2f42b8bf14c6ed01a430096e36fc3fcc0026fc2a..ab83aa3685137d3d0bd3a6fe12ae4e01b89dfc3d 100644
+--- a/src/test/java/org/bukkit/util/io/BukkitObjectStreamTest.java
++++ b/src/test/java/org/bukkit/util/io/BukkitObjectStreamTest.java
+@@ -25,7 +25,7 @@ public class BukkitObjectStreamTest {
+ 
+     @Parameters(name = "{index}: {0}")
+     public static List<Object[]> data() {
+-        return ImmutableList.<Object[]>of(
++        return ImmutableList.of(
+             new Object[] {
+                 Color.class.getName(),
+                 "rO0ABXNyADZjb20uZ29vZ2xlLmNvbW1vbi5jb2xsZWN0LkltbXV0YWJsZUxpc3QkU2VyaWFsaXplZEZvcm0AAAAAAAAAAAIAAVsACGVsZW1lbnRzdAATW0xqYXZhL2xhbmcvT2JqZWN0O3hwdXIAE1tMamF2YS5sYW5nLk9iamVjdDuQzlifEHMpbAIAAHhwAAAABXNyABpvcmcuYnVra2l0LnV0aWwuaW8uV3JhcHBlcvJQR+zxEm8FAgABTAADbWFwdAAPTGphdmEvdXRpbC9NYXA7eHBzcgA1Y29tLmdvb2dsZS5jb21tb24uY29sbGVjdC5JbW11dGFibGVNYXAkU2VyaWFsaXplZEZvcm0AAAAAAAAAAAIAAlsABGtleXNxAH4AAVsABnZhbHVlc3EAfgABeHB1cQB+AAMAAAAEdAACPT10AANSRUR0AARCTFVFdAAFR1JFRU51cQB+AAMAAAAEdAAFQ29sb3JzcgARamF2YS5sYW5nLkludGVnZXIS4qCk94GHOAIAAUkABXZhbHVleHIAEGphdmEubGFuZy5OdW1iZXKGrJUdC5TgiwIAAHhwAAAA/3NxAH4AEQAAAP9zcQB+ABEAAAD/c3EAfgAFc3EAfgAIdXEAfgADAAAABHEAfgALcQB+AAxxAH4ADXEAfgAOdXEAfgADAAAABHEAfgAQc3EAfgARAAAAAHNxAH4AEQAAAIBzcQB+ABEAAACAc3EAfgAFc3EAfgAIdXEAfgADAAAABHEAfgALcQB+AAxxAH4ADXEAfgAOdXEAfgADAAAABHEAfgAQc3EAfgARAAAAgHNxAH4AEQAAAIBxAH4AGnNxAH4ABXNxAH4ACHVxAH4AAwAAAARxAH4AC3EAfgAMcQB+AA1xAH4ADnVxAH4AAwAAAARxAH4AEHNxAH4AEQAAAP9xAH4AGnEAfgAac3EAfgAFc3EAfgAIdXEAfgADAAAABHEAfgALcQB+AAxxAH4ADXEAfgAOdXEAfgADAAAABHEAfgAQc3EAfgARAAAA/3EAfgAac3EAfgARAAAApQ==",
