@@ -1,16 +1,16 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Aikar <aikar@aikar.co>
-Date: Sun, 9 Aug 2020 21:19:15 +0300
+Date: Sun, 9 Aug 2020 16:44:48 -0500
 Subject: [PATCH] Incremental player saving
 
-Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
 Ported to Yatopia and 1.16.1 by MrIvanPlays
+Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index 7503322478048cdcca7659202596aea4d95fd835..6d3a2c874077f3abaeda1e365963ce601c901085 100644
+index 40f0bc601f0d11b0bfb15162fce17aaa70991f14..8b659311e3b6f45c0ee798efb6adb85cdeb710b0 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -223,4 +223,15 @@ public class YatopiaConfig {
+@@ -235,4 +235,15 @@ public class YatopiaConfig {
  	fixFallDistance = getBoolean("settings.fixFallDistance", false);
      }
  
@@ -28,10 +28,10 @@ index 7503322478048cdcca7659202596aea4d95fd835..6d3a2c874077f3abaeda1e365963ce60
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index f143624c072ddd300591bdadd3173c97e16973fe..348f25fb974a99e991090747cedb0acd7eade8e9 100644
+index 597419c23721059378943970b55d7a0dcb535037..f6ce27a5d1a44b2c6ec42842d51cb769138862f5 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -29,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
+@@ -43,6 +43,7 @@ import org.bukkit.inventory.MainHand;
  public class EntityPlayer extends EntityHuman implements ICrafting {
  
      private static final Logger LOGGER = LogManager.getLogger();
@@ -40,10 +40,10 @@ index f143624c072ddd300591bdadd3173c97e16973fe..348f25fb974a99e991090747cedb0acd
      public NetworkManager networkManager; // Paper
      public final MinecraftServer server;
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 440c7f15e2e081ec13d6ab32177c70ef4959e8bb..6a151e60b7f203b629c55c80ac998a80fef2f67d 100644
+index 26ee6e9219059c9f7175148e934d2adec2b336a0..f3e67e96bea9059aad60c896d7f376f727a5a158 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1282,9 +1282,15 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1294,9 +1294,15 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          //if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // CraftBukkit // Paper - move down
              //MinecraftServer.LOGGER.debug("Autosave started"); // Paper
              serverAutoSave = (autosavePeriod > 0 && this.ticks % autosavePeriod == 0); // Paper
@@ -62,18 +62,18 @@ index 440c7f15e2e081ec13d6ab32177c70ef4959e8bb..6a151e60b7f203b629c55c80ac998a80
              // Paper start
              for (WorldServer world : getWorlds()) {
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 8498324704ea2e3178a46149b2cc2fd37682dbff..7ac8e538e98b027b5aea20231b2aad79f49e5cb5 100644
+index c10a1d15bcfe0cb1c2ff6ee7f2881bc2040bcd1d..1dfd274e3af26792d5da88c59c0ebc71d8b9feb4 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -468,6 +468,7 @@ public abstract class PlayerList {
+@@ -484,6 +484,7 @@ public abstract class PlayerList {
      protected void savePlayerFile(EntityPlayer entityplayer) {
          if (!entityplayer.getBukkitEntity().isPersistent()) return; // CraftBukkit
          if (!entityplayer.didPlayerJoinEvent) return; // Paper - If we never fired PJE, we disconnected during login. Data has not changed, and additionally, our saved vehicle is not loaded! If we save now, we will lose our vehicle (CraftBukkit bug)
 +        entityplayer.lastSave = MinecraftServer.currentTick; // Yatopia
          this.playerFileData.save(entityplayer);
-         ServerStatisticManager serverstatisticmanager = entityplayer.getStatisticManager(); // CraftBukkit
+         ServerStatisticManager serverstatisticmanager = (ServerStatisticManager) entityplayer.getStatisticManager(); // CraftBukkit
  
-@@ -1114,10 +1115,21 @@ public abstract class PlayerList {
+@@ -1130,10 +1131,21 @@ public abstract class PlayerList {
      }
  
      public void savePlayers() {
@@ -86,12 +86,12 @@ index 8498324704ea2e3178a46149b2cc2fd37682dbff..7ac8e538e98b027b5aea20231b2aad79
 +        int numSaved = 0;
 +        long now = MinecraftServer.currentTick;
          for (int i = 0; i < this.players.size(); ++i) {
--            this.savePlayerFile(this.players.get(i));
+-            this.savePlayerFile((EntityPlayer) this.players.get(i));
 +            EntityPlayer entityplayer = this.players.get(i);
 +            if (interval == null || now - entityplayer.lastSave >= interval) {
 +                this.savePlayerFile(entityplayer);
 +                if (interval != null && ++numSaved <= dev.tr7zw.yatopia.YatopiaConfig.maxPlayerAutoSavePerTick) { break; }
-+            }
++                }
 +            // Yatopia end
          }
          MinecraftTimings.savePlayers.stopTiming(); // Paper

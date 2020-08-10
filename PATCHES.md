@@ -45,15 +45,22 @@ This is an overview over all patches that are currently used.
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve Hopper Performance      | Aikar |  |
+| server |  Incremental player saving      | Aikar | MrIvanPlays |
+| api |  IntellaJ Code Clean Up      | Bud Gidiere |  |
+| api |  IntellaJ Optimize Imports      | Bud Gidiere |  |
+| server |  Intellij Code Clean Up      | Bud Gidiere |  |
+| server |  Intellij Optimize Imports.      | Bud Gidiere |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
+| server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize Hopper logic      | tr7zw |  |
 | server |  Optimize TileEntity loading      | tr7zw |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
+| server |  Optimize player loops around weather      | MrIvanPlays |  |
 | server |  Optimize redstone algorithm      | theosib | egg82 |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Origami Server Config      | Phoenix616 |  |

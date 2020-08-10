@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize BehaviorController
 
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
-index ae2905b403a63396d9cdc61444586ea5548f2974..ac1deaa9e15cdd05f34b8ee413be826855432a86 100644
+index ae2905b403a63396d9cdc61444586ea5548f2974..4ad7f42158bb945088a4d1c574c63dd6c15fa53c 100644
 --- a/src/main/java/net/minecraft/server/BehaviorController.java
 +++ b/src/main/java/net/minecraft/server/BehaviorController.java
 @@ -53,13 +53,16 @@ public class BehaviorController<E extends EntityLiving> {
@@ -73,7 +73,7 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..ac1deaa9e15cdd05f34b8ee413be8268
                  return recordbuilder;
              }
          }).fieldOf("memories").codec());
-@@ -158,6 +155,14 @@ public class BehaviorController<E extends EntityLiving> {
+@@ -158,6 +155,15 @@ public class BehaviorController<E extends EntityLiving> {
          return ((Codec) this.b.get()).encodeStart(dynamicops, this);
      }
  
@@ -85,10 +85,11 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..ac1deaa9e15cdd05f34b8ee413be8268
 +        }
 +        return ret;
 +    }
++    // Yatopia end
      private Stream<BehaviorController.a<?>> j() {
          return this.memories.entrySet().stream().map((entry) -> {
              return BehaviorController.a.b((MemoryModuleType) entry.getKey(), (Optional) entry.getValue());
-@@ -196,7 +201,7 @@ public class BehaviorController<E extends EntityLiving> {
+@@ -196,7 +202,7 @@ public class BehaviorController<E extends EntityLiving> {
      }
  
      public <U> Optional<U> getMemory(MemoryModuleType<U> memorymoduletype) {
@@ -97,7 +98,7 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..ac1deaa9e15cdd05f34b8ee413be8268
      }
  
      public <U> boolean b(MemoryModuleType<U> memorymoduletype, U u0) {
-@@ -535,7 +540,7 @@ public class BehaviorController<E extends EntityLiving> {
+@@ -535,7 +541,7 @@ public class BehaviorController<E extends EntityLiving> {
          private final MemoryModuleType<U> a;
          private final Optional<? extends ExpirableMemory<U>> b;
  
