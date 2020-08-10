@@ -1,0 +1,603 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Mon, 10 Aug 2020 14:11:47 -0500
+Subject: [PATCH] IntelliJ Remove Streams
+
+Do not update, just regen.
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorGate.java b/src/main/java/net/minecraft/server/BehaviorGate.java
+index 46e910581210421c8699637431804dc2f43eb4a6..945c7d0957e5fcdd4dc3b3ac95e274bdee23bf3f 100644
+--- a/src/main/java/net/minecraft/server/BehaviorGate.java
++++ b/src/main/java/net/minecraft/server/BehaviorGate.java
+@@ -19,9 +19,9 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
+         this.b = set;
+         this.c = behaviorgate_order;
+         this.d = behaviorgate_execution;
+-        list.forEach((pair) -> {
+-            this.e.a(pair.getFirst(), (Integer) pair.getSecond());
+-        });
++        for (Pair<Behavior<? super E>, Integer> pair : list) {
++            this.e.a(pair.getFirst(), pair.getSecond());
++        }
+     }
+ 
+     @Override
+@@ -62,7 +62,10 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
+         });
+         BehaviorController behaviorcontroller = e0.getBehaviorController();
+ 
+-        this.b.forEach(behaviorcontroller::removeMemory); // Paper - decomp fix
++        // Paper - decomp fix
++        for (MemoryModuleType<?> memoryModuleType : this.b) {
++            behaviorcontroller.removeMemory(memoryModuleType);
++        }
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/ChunkConverter.java b/src/main/java/net/minecraft/server/ChunkConverter.java
+index 5366314e5f889b5b8d7740bbd0f024d9b7b9d643..a238b269eec03e2d81688907329a04bbb07943cf 100644
+--- a/src/main/java/net/minecraft/server/ChunkConverter.java
++++ b/src/main/java/net/minecraft/server/ChunkConverter.java
+@@ -70,9 +70,9 @@ public class ChunkConverter {
+ 
+         World world = chunk.getWorld();
+ 
+-        ChunkConverter.g.forEach((chunkconverter_a) -> {
++        for (ChunkConverter.a chunkconverter_a : ChunkConverter.g) {
+             chunkconverter_a.a(world);
+-        });
++        }
+     }
+ 
+     private static void a(Chunk chunk, EnumDirection8 enumdirection8) {
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
+index 7c9bb358c9967e6c7c02b96e17764f2418df7979..f4a6b6ebf09bcb5e5209f39113dbb99937a0b8cb 100644
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java
++++ b/src/main/java/net/minecraft/server/EntityInsentient.java
+@@ -675,11 +675,23 @@ public abstract class EntityInsentient extends EntityLiving {
+     }
+ 
+     public boolean b(ItemStack itemstack, ItemStack itemstack1) {
+-        return itemstack.getDamage() >= itemstack1.getDamage() && (!itemstack.hasTag() || itemstack1.hasTag()) ? (itemstack.hasTag() && itemstack1.hasTag() ? itemstack.getTag().getKeys().stream().anyMatch((s) -> {
+-            return !s.equals("Damage");
+-        }) && !itemstack1.getTag().getKeys().stream().anyMatch((s) -> {
+-            return !s.equals("Damage");
+-        }) : false) : true;
++        if (itemstack.getDamage() >= itemstack1.getDamage() && (!itemstack.hasTag() || itemstack1.hasTag())) {
++            if (itemstack.hasTag() && itemstack1.hasTag()) {
++                if (itemstack.getTag().getKeys().stream().noneMatch((s) -> {
++                    return !s.equals("Damage");
++                })) return false;
++                for (String s : itemstack1.getTag().getKeys()) {
++                    if (!s.equals("Damage")) {
++                        return (false);
++                    }
++                }
++                return (true);
++            } else {
++                return (false);
++            }
++        } else {
++            return true;
++        }
+     }
+ 
+     public boolean canPickup(ItemStack itemstack) {
+diff --git a/src/main/java/net/minecraft/server/EnumDirection.java b/src/main/java/net/minecraft/server/EnumDirection.java
+index 1aa9d9fd074c186b209696ee46e0dda181372f4b..315b4b6afa1870490200c602dc6f30ccbcf16d94 100644
+--- a/src/main/java/net/minecraft/server/EnumDirection.java
++++ b/src/main/java/net/minecraft/server/EnumDirection.java
+@@ -4,12 +4,8 @@ import com.google.common.collect.Iterators;
+ import com.mojang.serialization.Codec;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+-import java.util.Arrays;
+-import java.util.Comparator;
+-import java.util.Iterator;
+-import java.util.Locale;
+-import java.util.Map;
+-import java.util.Random;
++
++import java.util.*;
+ import java.util.function.Predicate;
+ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+@@ -27,28 +23,57 @@ public enum EnumDirection implements INamable {
+     private final EnumDirection.EnumAxisDirection l;
+     private final BaseBlockPosition m;
+     private static final EnumDirection[] n = values(); private static final EnumDirection[] ALL = n;// Yatopia OBF HELPER
+-    private static final Map<String, EnumDirection> o = (Map) Arrays.stream(EnumDirection.n).collect(Collectors.toMap(EnumDirection::m, (enumdirection) -> {
+-        return enumdirection;
+-    }));
+-    private static final EnumDirection[] p = (EnumDirection[]) Arrays.stream(EnumDirection.n).sorted(Comparator.comparingInt((enumdirection) -> {
+-        return enumdirection.g;
+-    })).toArray((i) -> {
+-        return new EnumDirection[i];
+-    });
+-    private static final EnumDirection[] q = (EnumDirection[]) Arrays.stream(EnumDirection.n).filter((enumdirection) -> {
+-        return enumdirection.n().d();
+-    }).sorted(Comparator.comparingInt((enumdirection) -> {
+-        return enumdirection.i;
+-    })).toArray((i) -> {
+-        return new EnumDirection[i];
+-    });
+-    private static final Long2ObjectMap<EnumDirection> r = (Long2ObjectMap) Arrays.stream(EnumDirection.n).collect(Collectors.toMap((enumdirection) -> {
+-        return (new BlockPosition(enumdirection.p())).asLong();
+-    }, (enumdirection) -> {
+-        return enumdirection;
+-    }, (enumdirection, enumdirection1) -> {
+-        throw new IllegalArgumentException("Duplicate keys");
+-    }, Long2ObjectOpenHashMap::new));
++    private static final Map<String, EnumDirection> o;
++
++    static {
++        Map<String, EnumDirection> map = new HashMap<>();
++        for (EnumDirection enumdirection : EnumDirection.n) {
++            if (map.put(enumdirection.m(), enumdirection) != null) {
++                throw new IllegalStateException("Duplicate key");
++            }
++        }
++        o = (Map) map;
++    }
++
++    private static final EnumDirection[] p;
++
++    static {
++        List<EnumDirection> list = new ArrayList<>();
++        for (EnumDirection enumDirection : EnumDirection.n) {
++            list.add(enumDirection);
++        }
++        list.sort(Comparator.comparingInt((enumdirection) -> {
++            return enumdirection.g;
++        }));
++        p = (EnumDirection[]) list.toArray(new EnumDirection[0]);
++    }
++
++    private static final EnumDirection[] q;
++
++    static {
++        List<EnumDirection> list = new ArrayList<>();
++        for (EnumDirection enumDirection : EnumDirection.n) {
++            if (enumDirection.n().d()) {
++                list.add(enumDirection);
++            }
++        }
++        list.sort(Comparator.comparingInt((enumdirection) -> {
++            return enumdirection.i;
++        }));
++        q = (EnumDirection[]) list.toArray(new EnumDirection[0]);
++    }
++
++    private static final Long2ObjectMap<EnumDirection> r;
++
++    static {
++        Long2ObjectOpenHashMap<EnumDirection> map = new Long2ObjectOpenHashMap<>();
++        for (EnumDirection enumDirection : EnumDirection.n) {
++            map.merge((new BlockPosition(enumDirection.p())).asLong(), enumDirection, (enumdirection, enumdirection1) -> {
++                throw new IllegalArgumentException("Duplicate keys");
++            });
++        }
++        r = (Long2ObjectMap) map;
++    }
+ 
+     private EnumDirection(int i, int j, int k, String s, EnumDirection.EnumAxisDirection enumdirection_enumaxisdirection, EnumDirection.EnumAxis enumdirection_enumaxis, BaseBlockPosition baseblockposition) {
+         this.g = i;
+@@ -340,9 +365,18 @@ public enum EnumDirection implements INamable {
+ 
+         private static final EnumDirection.EnumAxis[] e = values();
+         public static final Codec<EnumDirection.EnumAxis> d = INamable.a(EnumDirection.EnumAxis::values, EnumDirection.EnumAxis::a);
+-        private static final Map<String, EnumDirection.EnumAxis> f = (Map) Arrays.stream(EnumDirection.EnumAxis.e).collect(Collectors.toMap(EnumDirection.EnumAxis::b, (enumdirection_enumaxis) -> {
+-            return enumdirection_enumaxis;
+-        }));
++        private static final Map<String, EnumDirection.EnumAxis> f;
++
++        static {
++            Map<String, EnumAxis> map = new HashMap<>();
++            for (EnumAxis enumdirection_enumaxis : EnumAxis.e) {
++                if (map.put(enumdirection_enumaxis.b(), enumdirection_enumaxis) != null) {
++                    throw new IllegalStateException("Duplicate key");
++                }
++            }
++            f = (Map) map;
++        }
++
+         private final String g;
+ 
+         private EnumAxis(String s) {
+diff --git a/src/main/java/net/minecraft/server/EnumProtocol.java b/src/main/java/net/minecraft/server/EnumProtocol.java
+index ec3c8ec6a7c0a835d0bab9872d0ead68b2ff54df..b3cee9bc82aacba99f91ffb4c955ed5321e8250f 100644
+--- a/src/main/java/net/minecraft/server/EnumProtocol.java
++++ b/src/main/java/net/minecraft/server/EnumProtocol.java
+@@ -65,15 +65,17 @@ public enum EnumProtocol {
+             }
+ 
+             EnumProtocol.e[k - -1] = enumprotocol;
+-            enumprotocol.h.forEach((enumprotocoldirection, enumprotocol_a) -> {
+-                enumprotocol_a.a().forEach((oclass) -> {
++            for (Map.Entry<EnumProtocolDirection, a<?>> entry : enumprotocol.h.entrySet()) {
++                EnumProtocolDirection enumprotocoldirection = entry.getKey();
++                a<?> enumprotocol_a = entry.getValue();
++                for (Class<? extends Packet<?>> oclass : enumprotocol_a.a()) {
+                     if (EnumProtocol.f.containsKey(oclass) && EnumProtocol.f.get(oclass) != enumprotocol) {
+                         throw new IllegalStateException("Packet " + oclass + " is already assigned to protocol " + EnumProtocol.f.get(oclass) + " - can't reassign to " + enumprotocol);
+                     } else {
+                         EnumProtocol.f.put(oclass, enumprotocol);
+                     }
+-                });
+-            });
++                }
++            }
+         }
+ 
+     }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 74998ea20176c2753a0ebb03833f13f3f58a186a..7702169fcf0c2cf72f19ef9472ac435cea05cd21 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -546,13 +546,13 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         if (viewDistance > 6) {
+             ChunkCoordIntPair front7 = player.getChunkInFront(7);
+             pos.setValues(front7.x << 4, 0, front7.z << 4);
+-            MCUtil.getSpiralOutChunks(pos, 3).forEach(coord -> {
++            for (ChunkCoordIntPair coord : MCUtil.getSpiralOutChunks(pos, 3)) {
+                 if (shouldSkipPrioritization(coord)) {
+-                    return;
++                    continue;
+                 }
+                 double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
+                 updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+-            });
++            }
+         }
+ 
+         if (priorities.isEmpty()) return;
+diff --git a/src/main/java/net/minecraft/server/Reputation.java b/src/main/java/net/minecraft/server/Reputation.java
+index dffac0dc85fe7d093c58663f91ad687a6be50ad5..5f6a4281204c60f059437e9f04725afa9ff0578d 100644
+--- a/src/main/java/net/minecraft/server/Reputation.java
++++ b/src/main/java/net/minecraft/server/Reputation.java
+@@ -100,14 +100,14 @@ public class Reputation {
+     public void a(Reputation reputation, Random random, int i) {
+         Collection<Reputation.b> collection = reputation.a(random, i);
+ 
+-        collection.forEach((reputation_b) -> {
++        for (b reputation_b : collection) {
+             int j = reputation_b.c - reputation_b.b.j;
+ 
+             if (j >= 2) {
+                 this.a(reputation_b.a).a.mergeInt(reputation_b.b, j, Reputation::a);
+             }
+ 
+-        });
++        }
+     }
+ 
+     public int a(UUID uuid, Predicate<ReputationType> predicate) {
+diff --git a/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java b/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
+index cab7b9aefd200857f69036b4cad21a7828eabcd5..c27c5a1965c74c328f0b99bb22f7e23a1856ffd5 100644
+--- a/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
++++ b/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
+@@ -1,6 +1,8 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.ImmutableSet;
++
++import java.util.ArrayList;
+ import java.util.Comparator;
+ import java.util.List;
+ import java.util.Set;
+@@ -23,9 +25,13 @@ public class SensorNearestLivingEntities extends Sensor<EntityLiving> {
+         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+ 
+         behaviorcontroller.setMemory(MemoryModuleType.MOBS, (Object) list);
+-        behaviorcontroller.setMemory(MemoryModuleType.VISIBLE_MOBS, list.stream().filter((entityliving1) -> {
+-            return SensorNearestLivingEntities.a.a(entityliving, entityliving1);
+-        }).collect(Collectors.toList()));
++        List<EntityLiving> result = new ArrayList<>();
++        for (EntityLiving entityliving1 : list) {
++            if (SensorNearestLivingEntities.a.a(entityliving, entityliving1)) {
++                result.add(entityliving1);
++            }
++        }
++        behaviorcontroller.setMemory(MemoryModuleType.VISIBLE_MOBS, result);
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/TagRegistry.java b/src/main/java/net/minecraft/server/TagRegistry.java
+index c836cd8f7945d9209c71ca7f1afebb43b931da18..f212315a694325714096d18d56d4737975c386d6 100644
+--- a/src/main/java/net/minecraft/server/TagRegistry.java
++++ b/src/main/java/net/minecraft/server/TagRegistry.java
+@@ -2,7 +2,11 @@ package net.minecraft.server;
+ 
+ import com.google.common.collect.HashMultimap;
+ import com.google.common.collect.Multimap;
++
++import java.util.ArrayList;
++import java.util.List;
+ import java.util.Map;
++import java.util.StringJoiner;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.Executor;
+ import java.util.stream.Collectors;
+@@ -82,9 +86,17 @@ public class TagRegistry implements IReloadListener {
+             multimap.putAll("fluids", TagsFluid.b(this.fluidTags));
+             multimap.putAll("entity_types", TagsEntity.b(this.entityTags));
+             if (!multimap.isEmpty()) {
+-                throw new IllegalStateException("Missing required tags: " + (String) multimap.entries().stream().map((entry) -> {
+-                    return (String) entry.getKey() + ":" + entry.getValue();
+-                }).sorted().collect(Collectors.joining(",")));
++                List<String> toSort = new ArrayList<>();
++                for (Map.Entry<String, MinecraftKey> entry : multimap.entries()) {
++                    String s = entry.getKey() + ":" + entry.getValue();
++                    toSort.add(s);
++                }
++                toSort.sort(null);
++                StringJoiner joiner = new StringJoiner(",");
++                for (String s : toSort) {
++                    joiner.add(s);
++                }
++                throw new IllegalStateException("Missing required tags: " + (String) joiner.toString());
+             }
+         }, executor1);
+     }
+diff --git a/src/main/java/net/minecraft/server/TickListChunk.java b/src/main/java/net/minecraft/server/TickListChunk.java
+index 8af1229c3da63a838b0bec1cafde1e41cf5cf551..7ee8534bc656e117fa2a21a39693d53ac8a776b8 100644
+--- a/src/main/java/net/minecraft/server/TickListChunk.java
++++ b/src/main/java/net/minecraft/server/TickListChunk.java
+@@ -84,9 +84,9 @@ public class TickListChunk<T> implements TickList<T> {
+     }
+ 
+     public void a(TickList<T> ticklist) {
+-        this.a.forEach((ticklistchunk_a) -> {
++        for (TickListChunk.a<T> ticklistchunk_a : this.a) {
+             ticklist.a(ticklistchunk_a.a, ticklistchunk_a.d, ticklistchunk_a.b, ticklistchunk_a.c);
+-        });
++        }
+     }
+ 
+     static class a<T> {
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+index 3aaba7fcaf83a491b9da60d156b7f2379f5a6aeb..5151876951d0089fa2ae229c7fee6e418fea3636 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+@@ -52,7 +52,9 @@ public class VillagePlaceSection {
+         this.c = Maps.newHashMap();
+         this.d = runnable;
+         this.e = flag;
+-        list.forEach(this::a);
++        for (VillagePlaceRecord villagePlaceRecord : list) {
++            a(villagePlaceRecord);
++        }
+     }
+ 
+     public Stream<VillagePlaceRecord> a(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy villageplace_occupancy) {
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceType.java b/src/main/java/net/minecraft/server/VillagePlaceType.java
+index 1fb87bf395ced15bc3ef383dae46a42c5e4d2547..5be0e3485bb7a398f4abbaf1a3b6fc57e827aa8e 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceType.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceType.java
+@@ -115,13 +115,13 @@ public class VillagePlaceType {
+     }
+ 
+     private static VillagePlaceType a(VillagePlaceType villageplacetype) {
+-        villageplacetype.C.forEach((iblockdata) -> {
+-            VillagePlaceType villageplacetype1 = (VillagePlaceType) VillagePlaceType.A.put(iblockdata, villageplacetype);
++        for (IBlockData iblockdata : villageplacetype.C) {
++            VillagePlaceType villageplacetype1 = VillagePlaceType.A.put(iblockdata, villageplacetype);
+ 
+             if (villageplacetype1 != null) {
+-                throw (IllegalStateException) SystemUtils.c(new IllegalStateException(String.format("%s is defined in too many tags", iblockdata)));
++                throw SystemUtils.c(new IllegalStateException(String.format("%s is defined in too many tags", iblockdata)));
+             }
+-        });
++        }
+         return villageplacetype;
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
+index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..0879d6f82803e7da963b029eb1ff6c190ab02b8a 100644
+--- a/src/main/java/net/minecraft/server/WeightedList.java
++++ b/src/main/java/net/minecraft/server/WeightedList.java
+@@ -50,7 +50,9 @@ public class WeightedList<U> {
+     public WeightedList<U> a(Random random) {
+         // Paper start - make concurrent safe, work off a clone of the list
+         List<WeightedList.a<U>> list = isUnsafe ? new java.util.ArrayList<WeightedList.a<U>>(this.list) : this.list;
+-        list.forEach((weightedlist_a) -> weightedlist_a.a(random.nextFloat()));
++        for (a<U> weightedlist_a : list) {
++            weightedlist_a.a(random.nextFloat());
++        }
+         list.sort(Comparator.comparingDouble(a::c));
+         return isUnsafe ? new WeightedList<>(list, isUnsafe) : this;
+         // Paper end
+diff --git a/src/main/java/net/pl3x/purpur/command/PurpurCommand.java b/src/main/java/net/pl3x/purpur/command/PurpurCommand.java
+index 4904be939c7a4b1d1583fd7b6232c930b79caba6..9ccc8601b1354436001167518df85d28e6cda5cb 100644
+--- a/src/main/java/net/pl3x/purpur/command/PurpurCommand.java
++++ b/src/main/java/net/pl3x/purpur/command/PurpurCommand.java
+@@ -9,6 +9,8 @@ import org.bukkit.command.Command;
+ import org.bukkit.command.CommandSender;
+ 
+ import java.io.File;
++import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Collections;
+ import java.util.List;
+ import java.util.stream.Collectors;
+@@ -25,9 +27,13 @@ public class PurpurCommand extends Command {
+     @Override
+     public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
+         if (args.length == 1) {
+-            return Stream.of("reload", "version")
+-                    .filter(arg -> arg.startsWith(args[0].toLowerCase()))
+-                    .collect(Collectors.toList());
++            List<String> list = new ArrayList<>();
++            for (String arg : Arrays.asList("reload", "version")) {
++                if (arg.startsWith(args[0].toLowerCase())) {
++                    list.add(arg);
++                }
++            }
++            return list;
+         }
+         return Collections.emptyList();
+     }
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+index adf918fd757fe3147f897de3ade64a9adf1d3203..3e175ba71086ee587e86a1b732ea3297772e6b05 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+@@ -925,7 +925,9 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+     @Override
+     public Set<NamespacedKey> getDiscoveredRecipes() {
+         ImmutableSet.Builder<NamespacedKey> bukkitRecipeKeys = ImmutableSet.builder();
+-        getHandle().B().a.forEach(key -> bukkitRecipeKeys.add(CraftNamespacedKey.fromMinecraft(key)));
++        for (MinecraftKey key : getHandle().B().a) {
++            bukkitRecipeKeys.add(CraftNamespacedKey.fromMinecraft(key));
++        }
+         return bukkitRecipeKeys.build();
+     }
+ 
+diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+index 6b01f0493c4905142c2c2038e8e57adc3d37c02b..f33ca5d451240a882cbb95873fe37fc61b20c268 100644
+--- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
++++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
+@@ -296,7 +296,12 @@ public class CraftEventFactory {
+      * Player Harvest Block Event
+      */
+     public static PlayerHarvestBlockEvent callPlayerHarvestBlockEvent(World world, BlockPosition blockposition, EntityHuman who, List<ItemStack> itemsToHarvest) {
+-        List<org.bukkit.inventory.ItemStack> bukkitItemsToHarvest = new ArrayList<>(itemsToHarvest.stream().map(CraftItemStack::asBukkitCopy).collect(Collectors.toList()));
++        List<org.bukkit.inventory.ItemStack> list = new ArrayList<>();
++        for (ItemStack itemStack : itemsToHarvest) {
++            org.bukkit.inventory.ItemStack stack = CraftItemStack.asBukkitCopy(itemStack);
++            list.add(stack);
++        }
++        List<org.bukkit.inventory.ItemStack> bukkitItemsToHarvest = new ArrayList<>(list);
+         Player player = (Player) who.getBukkitEntity();
+         PlayerHarvestBlockEvent playerHarvestBlockEvent = new PlayerHarvestBlockEvent(player, CraftBlock.at(world, blockposition), bukkitItemsToHarvest);
+         Bukkit.getPluginManager().callEvent(playerHarvestBlockEvent);
+diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java b/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java
+index fe27e2f51a7d734cb874f9fd87c15ccb6f5c63fa..07302e136fcc7df9a837c929d2cd9b3543cecda6 100644
+--- a/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java
++++ b/src/main/java/org/bukkit/craftbukkit/inventory/CraftMetaItem.java
+@@ -26,6 +26,9 @@ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ import javax.annotation.Nonnull;
+ import javax.annotation.Nullable;
++
++import net.md_5.bungee.api.chat.BaseComponent;
++import net.md_5.bungee.chat.ComponentSerializer;
+ import net.minecraft.server.ChatComponentText;
+ import net.minecraft.server.EnumItemSlot;
+ import net.minecraft.server.IChatBaseComponent;
+@@ -1014,9 +1017,17 @@ class CraftMetaItem implements ItemMeta, Damageable, Repairable, BlockDataMeta {
+     // Paper start
+     @Override
+     public List<net.md_5.bungee.api.chat.BaseComponent[]> getLoreComponents() {
+-        return this.lore == null ? null : new ArrayList<>(this.lore.stream().map(entry ->
+-            net.md_5.bungee.chat.ComponentSerializer.parse(IChatBaseComponent.ChatSerializer.componentToJson(entry)
+-        )).collect(java.util.stream.Collectors.toList()));
++        if (this.lore == null) {
++            return null;
++        } else {
++            List<BaseComponent[]> list = new ArrayList<>();
++            for (IChatBaseComponent entry : this.lore) {
++                BaseComponent[] parse = ComponentSerializer.parse(IChatBaseComponent.ChatSerializer.componentToJson(entry)
++                );
++                list.add(parse);
++            }
++            return new ArrayList<>(list);
++        }
+     }
+     // Paper end
+     @Override
+diff --git a/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java b/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java
+index 232c382b586b0812c9f7161565c0d382177adf7d..ac1c7160d45f88008bba68184045e79b5e647fa9 100644
+--- a/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java
++++ b/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java
+@@ -43,11 +43,15 @@ public class VanillaMobGoalTest {
+             classes = scanResult.getSubclasses("net.minecraft.server.PathfinderGoal").loadClasses();
+         }
+ 
+-        List<GoalKey<?>> vanillaNames = classes.stream()
+-            .filter(VanillaMobGoalTest::hasNoEnclosingClass)
+-            .filter(clazz -> !Modifier.isAbstract(clazz.getModifiers()))
+-            .map(goalClass -> MobGoalHelper.getKey((Class<? extends PathfinderGoal>) goalClass))
+-            .collect(Collectors.toList());
++        List<GoalKey<?>> vanillaNames = new ArrayList<>();
++        for (Class<?> clazz : classes) {
++            if (hasNoEnclosingClass(clazz)) {
++                if (!Modifier.isAbstract(clazz.getModifiers())) {
++                    GoalKey<Mob> mobGoalKey = MobGoalHelper.getKey((Class<? extends PathfinderGoal>) clazz);
++                    vanillaNames.add(mobGoalKey);
++                }
++            }
++        }
+ 
+         List<GoalKey<?>> missingFromAPI = new ArrayList<>(vanillaNames);
+         missingFromAPI.removeAll(keys);
+@@ -66,13 +70,17 @@ public class VanillaMobGoalTest {
+         }
+         if (missingFromVanilla.size() != 0) {
+             System.out.println("Missing from vanilla: ");
+-            missingFromVanilla.forEach(System.out::println);
++            for (GoalKey<?> goalKey : missingFromVanilla) {
++                System.out.println(goalKey);
++            }
+             shouldFail = true;
+         }
+ 
+         if (deprecated.size() != 0) {
+             System.out.println("Deprecated (might want to remove them at some point): ");
+-            deprecated.forEach(System.out::println);
++            for (GoalKey<?> goalKey : deprecated) {
++                System.out.println(goalKey);
++            }
+         }
+ 
+         if (shouldFail) Assert.fail("See above");
+diff --git a/src/test/java/org/bukkit/MaterialTest.java b/src/test/java/org/bukkit/MaterialTest.java
+index efac35cb7b5931c21d42306009ff6e92c2260677..caa977d75f2ad909d5b335ee69dd24a4bae4a9b9 100644
+--- a/src/test/java/org/bukkit/MaterialTest.java
++++ b/src/test/java/org/bukkit/MaterialTest.java
+@@ -65,10 +65,16 @@ public class MaterialTest extends AbstractTestingBase {
+                 .forEach(expectedOrder::add);
+ 
+         // Then legacy materials in order of ID
+-        Arrays.stream(Material.values())
+-                .filter(Material::isLegacy)
+-                .sorted(Comparator.comparingInt(Material::getId))
+-                .forEach(expectedOrder::add);
++        List<Material> toSort = new ArrayList<>();
++        for (Material material : Material.values()) {
++            if (material.isLegacy()) {
++                toSort.add(material);
++            }
++        }
++        toSort.sort(Comparator.comparingInt(Material::getId));
++        for (Material material : toSort) {
++            expectedOrder.add(material);
++        }
+ 
+         assertArrayEquals(Material.values(), expectedOrder.toArray());
+     }
+diff --git a/src/test/java/org/bukkit/entity/EntityTypesTest.java b/src/test/java/org/bukkit/entity/EntityTypesTest.java
+index af570ccfd671d4b4654df1fcf22ef91218e293e2..8f07b5344e6460ddfc121a4f6414c9d956c467ed 100644
+--- a/src/test/java/org/bukkit/entity/EntityTypesTest.java
++++ b/src/test/java/org/bukkit/entity/EntityTypesTest.java
+@@ -1,6 +1,7 @@
+ package org.bukkit.entity;
+ 
+ import java.util.Arrays;
++import java.util.HashSet;
+ import java.util.Set;
+ import java.util.stream.Collectors;
+ import net.minecraft.server.EntityTypes;
+@@ -14,7 +15,12 @@ public class EntityTypesTest extends AbstractTestingBase {
+ 
+     @Test
+     public void testMaps() {
+-        Set<EntityType> allBukkit = Arrays.stream(EntityType.values()).filter((b) -> b.getName() != null).collect(Collectors.toSet());
++        Set<EntityType> allBukkit = new HashSet<>();
++        for (EntityType b : EntityType.values()) {
++            if (b.getName() != null) {
++                allBukkit.add(b);
++            }
++        }
+ 
+         for (EntityTypes<?> nms : IRegistry.ENTITY_TYPE) {
+             MinecraftKey key = EntityTypes.getName(nms);
