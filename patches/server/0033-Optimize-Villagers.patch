@@ -263,31 +263,29 @@ index e82dcdbce698e2e9bc449fa639b7219821844e14..3aaba7fcaf83a491b9da60d156b7f237
                  return villageplacesection.e;
              }), VillagePlaceRecord.a(runnable).listOf().fieldOf("Records").forGetter((villageplacesection) -> {
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceType.java b/src/main/java/net/minecraft/server/VillagePlaceType.java
-index 5bd3bcc2b96f7da21d363809a547b0567407ee75..8041c4535fe96efdcc00c8c434aa1024a00ef09c 100644
+index 5bd3bcc2b96f7da21d363809a547b0567407ee75..17a42bd9a9eed259d2492bf1353411b509271baa 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceType.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceType.java
-@@ -14,8 +14,19 @@ import java.util.stream.Collectors;
+@@ -14,11 +14,17 @@ import java.util.stream.Collectors;
  
  public class VillagePlaceType {
  
 +    static Set<VillagePlaceType> professionCache; // Yatopia
      private static final Supplier<Set<VillagePlaceType>> y = Suppliers.memoize(() -> {
--        return (Set) IRegistry.VILLAGER_PROFESSION.e().map(VillagerProfession::b).collect(Collectors.toSet());
-+        // Yatopia start
-+        if (professionCache == null) {
-+            professionCache = new java.util.HashSet<>();
-+            java.util.Iterator<VillagerProfession> iterator = IRegistry.VILLAGER_PROFESSION.iterator();
-+            while (iterator.hasNext()) {
-+                VillagerProfession profession = iterator.next();
-+                professionCache.add(profession.getPlaceType());
-+            }
-+        }
-+        return professionCache;
-+        // Yatopia end
+         return (Set) IRegistry.VILLAGER_PROFESSION.e().map(VillagerProfession::b).collect(Collectors.toSet());
      });
      public static final Predicate<VillagePlaceType> a = (villageplacetype) -> {
-         return ((Set) VillagePlaceType.y.get()).contains(villageplacetype);
-@@ -83,10 +94,12 @@ public class VillagePlaceType {
+-        return ((Set) VillagePlaceType.y.get()).contains(villageplacetype);
++        // Yatopia start
++        if (professionCache == null) {
++            professionCache = IRegistry.VILLAGER_PROFESSION.e().map(VillagerProfession::getPlaceType).collect(Collectors.toSet());
++        }
++        return professionCache.contains(villageplacetype);
++        // Yatopia end
+     };
+     public static final Predicate<VillagePlaceType> b = (villageplacetype) -> {
+         return true;
+@@ -83,10 +89,12 @@ public class VillagePlaceType {
          return this.D;
      }
  
