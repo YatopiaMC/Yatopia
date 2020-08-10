@@ -1,0 +1,322 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Mon, 10 Aug 2020 17:12:02 +0300
+Subject: [PATCH] Optimize Villagers
+
+This change reimplements the entire BehaviorFindPosition method to
+get rid of all of the streams, and implement the logic in a more sane way.
+
+We keep vanilla behavior 100% the same with this change, just wrote more
+optimal, as we can abort iterating POI's as soon as we find a match...
+
+One slight change is that Minecraft adds a random delay before a POI is
+attempted again. I've increased the amount of that delay based on the distance
+to said POI, so farther POI's will not be attempted as often.
+
+Additionally, we spiral out, so we favor local POI's before  we ever favor farther POI's.
+
+We also try to pathfind 1 POI at a time instead of collecting multiple POI's then tossing them
+all to the pathfinder, so that once we get a match we can return before even looking at other
+POI's.
+
+This benefits us in that ideally, a villager will constantly find the near POI's and
+not even try to pathfind to the farther POI. Trying to pathfind to distant POI's is
+what causes significant lag.
+
+Other improvements here is to stop spamming the POI manager with empty nullables.
+Vanilla used them to represent if they needed to load POI data off disk or not.
+
+Well, we load POI data async on chunk load, so we have it, and we surely do not ever
+want to load POI data sync either for unloaded chunks!
+
+So this massively reduces object count in the POI hashmaps, resulting in less hash collions,
+and also less memory use.
+
+Additionally, unemployed villagers were using significant time due to major inefficiency in
+the code rebuilding data that is static every single invocation of every POI type...
+
+So we cache that and only rebuild it if professions change, which should be never unless
+a plugin manipulates and adds custom professions, which it will handle by rebuilding.
+
+Ported to Yatopia and 1.16.1 by MrIvanPlays
+Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+index 84a872dfd35249972129130083d51d71d75bff1e..ec0062a7aa40cdcb00b6341d8a5bdb24c4bf1d1f 100644
+--- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
++++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+@@ -45,7 +45,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+         if (this.d && entitycreature.isBaby()) {
+             return false;
+         } else if (this.e == 0L) {
+-            this.e = entitycreature.world.getTime() + (long) worldserver.random.nextInt(20);
++            this.e = entitycreature.world.getTime() + (long) java.util.concurrent.ThreadLocalRandom.current().nextInt(20); // Yatopia
+             return false;
+         } else {
+             return worldserver.getTime() >= this.e;
+@@ -53,12 +53,57 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+     }
+ 
+     protected void a(WorldServer worldserver, EntityCreature entitycreature, long i) {
+-        this.e = i + 20L + (long) worldserver.getRandom().nextInt(20);
++        this.e = i + 20L + (long) java.util.concurrent.ThreadLocalRandom.current().nextInt(20); // Yatopia
+         VillagePlace villageplace = worldserver.x();
+ 
++        // Yatopia start - replace implementation completely
++        BlockPosition blockposition2 = new BlockPosition(entitycreature.locX(), entitycreature.locY(), entitycreature.locZ());
++        int dist = 48;
++        int requiredDist = dist * dist;
++        int cdist = Math.floorDiv(dist, 16);
++        Predicate<VillagePlaceType> predicate = this.b.getPredicate();
++        int maxPoiAttempts = 4;
++        int poiAttempts = 0;
++        OUT:
++        for (ChunkCoordIntPair chunkcoordintpair : MCUtil.getSpiralOutChunks(blockposition2, cdist)) {
++            for (int i1 = 0; i1 < 16; i1++) {
++                java.util.Optional<VillagePlaceSection> section = villageplace.getSection(SectionPosition.a(chunkcoordintpair, i1).asLong());
++                if (section == null || !section.isPresent()) continue;
++                for (java.util.Map.Entry<VillagePlaceType, java.util.Set<VillagePlaceRecord>> e : section.get().getRecords().entrySet()) {
++                    if (predicate.test(e.getKey())) continue;
++                    for (VillagePlaceRecord record : e.getValue()) {
++                        if (!record.hasVacany()) continue;
++
++                        BlockPosition pos = record.getPosition();
++                        long key = pos.asLong();
++                        if (this.f.containsKey(key)) {
++                            continue;
++                        }
++                        double poiDist = pos.distanceSquared(blockposition2);
++                        if (poiDist <= (double) requiredDist) {
++                            this.f.put(key, new BehaviorFindPosition.a(java.util.concurrent.ThreadLocalRandom.current(), (long) (this.e + Math.sqrt(poiDist) * 4))); // use dist instead of 40 to blacklist longer if farther distance
++                            ++poiAttempts;
++                            PathEntity pathentity = entitycreature.getNavigation().a(com.google.common.collect.ImmutableSet.of(pos), 8, false, this.b.getValidRange());
++
++                            if (pathentity != null && pathentity.canReach()) {
++                                record.decreaseVacany();
++                                GlobalPos globalPos = GlobalPos.create(worldserver.getDimensionKey(), pos);
++                                entitycreature.getBehaviorController().setMemory(c, globalPos);
++                                break OUT;
++                            }
++                            if (poiAttempts >= maxPoiAttempts) {
++                                break OUT;
++                            }
++                        }
++                    }
++                }
++            }
++        }
++
+         this.f.long2ObjectEntrySet().removeIf((entry) -> {
+-            return !((BehaviorFindPosition.a) entry.getValue()).b(i);
++            return entry.getValue().b < e;
+         });
++        /*
+         Predicate<BlockPosition> predicate = (blockposition) -> {
+             BehaviorFindPosition.a behaviorfindposition_a = (BehaviorFindPosition.a) this.f.get(blockposition.asLong());
+ 
+@@ -96,6 +141,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+                 });
+             }
+         }
++         */ // Yatopia end
+ 
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/PathEntity.java b/src/main/java/net/minecraft/server/PathEntity.java
+index 9154c01a22bc7b6d2dd390bb7b6e21ef52c8006c..e86e09be4990bc6b7a36ab1ad74dba7022f49428 100644
+--- a/src/main/java/net/minecraft/server/PathEntity.java
++++ b/src/main/java/net/minecraft/server/PathEntity.java
+@@ -106,6 +106,7 @@ public class PathEntity {
+         }
+     }
+ 
++    public final boolean canReach() { return i(); } // Yatopia - OBFHELPER
+     public boolean i() {
+         return this.h;
+     }
+diff --git a/src/main/java/net/minecraft/server/RegionFileSection.java b/src/main/java/net/minecraft/server/RegionFileSection.java
+index bd0ff1e43a07a3332f9ade49fec2f76275a25c7f..f99be13169cfbca05cc440e7abef2197036b3d7d 100644
+--- a/src/main/java/net/minecraft/server/RegionFileSection.java
++++ b/src/main/java/net/minecraft/server/RegionFileSection.java
+@@ -52,10 +52,12 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+ 
+     @Nullable
+     protected Optional<R> c(long i) {
+-        return (Optional) this.c.get(i);
++        return this.c.getOrDefault(i, Optional.empty()); // Yatopia
+     }
+ 
++    protected final Optional<R> getSection(long i) { return d(i); } // Yatopia - OBFHELPER
+     protected Optional<R> d(long i) {
++        /* // Yatopia start - replaced logic
+         SectionPosition sectionposition = SectionPosition.a(i);
+ 
+         if (this.b(sectionposition)) {
+@@ -75,6 +77,10 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+                 }
+             }
+         }
++         */
++        // Never load POI data sync, we load this in chunk load already, reduce ops
++        // If it's an unloaded chunk, well too bad.
++        return c(i);
+     }
+ 
+     protected boolean b(SectionPosition sectionposition) {
+@@ -117,9 +123,11 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+ 
+     private <T> void a(ChunkCoordIntPair chunkcoordintpair, DynamicOps<T> dynamicops, @Nullable T t0) {
+         if (t0 == null) {
++            /* // Yatopia start - NO!!!
+             for (int i = 0; i < 16; ++i) {
+                 this.c.put(SectionPosition.a(chunkcoordintpair, i).s(), Optional.empty());
+             }
++             */ // Yatopia end
+         } else {
+             Dynamic<T> dynamic = new Dynamic(dynamicops, t0);
+             int j = a(dynamic);
+@@ -140,7 +148,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+                     return dataresult.resultOrPartial(logger::error);
+                 });
+ 
+-                this.c.put(i1, optional);
++                if (optional.isPresent()) this.c.put(i1, optional); // Yatopia - NO!!!
+                 optional.ifPresent((object) -> {
+                     this.b(i1);
+                     if (flag) {
+@@ -213,7 +221,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+         if (optional != null && optional.isPresent()) {
+             this.d.add(i);
+         } else {
+-            RegionFileSection.LOGGER.warn("No data for position: {}", SectionPosition.a(i));
++            //RegionFileSection.LOGGER.warn("No data for position: {}", SectionPosition.a(i)); // Yatopia - hush
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/SectionPosition.java b/src/main/java/net/minecraft/server/SectionPosition.java
+index 7806f3c351cba3f0388da11888f900c48004dadf..6556533acb04f57284f7493c7683232e9dddbd48 100644
+--- a/src/main/java/net/minecraft/server/SectionPosition.java
++++ b/src/main/java/net/minecraft/server/SectionPosition.java
+@@ -145,6 +145,7 @@ public class SectionPosition extends BaseBlockPosition {
+         return (((long) i & 4194303L) << 42) | (((long) j & 1048575L)) | (((long) k & 4194303L) << 20); // Paper - Simplify to reduce instruction count
+     }
+ 
++    public long asLong() { return s(); } // Yatopia - OBFHELPER
+     public long s() {
+         return (((long) getX() & 4194303L) << 42) | (((long) getY() & 1048575L)) | (((long) getZ() & 4194303L) << 20); // Paper - Simplify to reduce instruction count
+     }
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceRecord.java b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
+index e5d2304808b2bb93041523968f0b88e020c61c1e..2647dc3646e332189a88d17e08831882e40f2910 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceRecord.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
+@@ -34,6 +34,7 @@ public class VillagePlaceRecord {
+         this(blockposition, villageplacetype, villageplacetype.b(), runnable);
+     }
+ 
++    public final boolean decreaseVacany() { return b(); } // Yatopia - OBFHELPER
+     protected boolean b() {
+         if (this.c <= 0) {
+             return false;
+@@ -44,6 +45,7 @@ public class VillagePlaceRecord {
+         }
+     }
+ 
++    public final boolean increaseVacany() { return c(); } // Yatopia - OBFHELPER
+     protected boolean c() {
+         if (this.c >= this.b.b()) {
+             return false;
+@@ -54,14 +56,17 @@ public class VillagePlaceRecord {
+         }
+     }
+ 
++    public final boolean hasVacany() { return d(); } // Yatopia - OBFHELPER
+     public boolean d() {
+         return this.c > 0;
+     }
+ 
++    public final boolean isOccupied() { return e(); } // Yatopia - OBFHELPER
+     public boolean e() {
+         return this.c != this.b.b();
+     }
+ 
++    public final BlockPosition getPosition() { return f(); } // Yatopia - OBFHELPER
+     public BlockPosition f() {
+         return this.a;
+     }
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+index e82dcdbce698e2e9bc449fa639b7219821844e14..3aaba7fcaf83a491b9da60d156b7f2379f5a6aeb 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+@@ -23,12 +23,12 @@ public class VillagePlaceSection {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     private final Short2ObjectMap<VillagePlaceRecord> b;
+-    private final Map<VillagePlaceType, Set<VillagePlaceRecord>> c;
++    private final Map<VillagePlaceType, Set<VillagePlaceRecord>> c; public final Map<VillagePlaceType, Set<VillagePlaceRecord>> getRecords() { return c; } // Yatopia - OBFHELPER
+     private final Runnable d;
+     private boolean e;
+ 
+     public static Codec<VillagePlaceSection> a(Runnable runnable) {
+-        Codec codec = RecordCodecBuilder.create((instance) -> {
++        Codec<VillagePlaceSection> codec = RecordCodecBuilder.create((instance) -> { // Yatopia - decompile fix
+             return instance.group(RecordCodecBuilder.point(runnable), Codec.BOOL.optionalFieldOf("Valid", false).forGetter((villageplacesection) -> {
+                 return villageplacesection.e;
+             }), VillagePlaceRecord.a(runnable).listOf().fieldOf("Records").forGetter((villageplacesection) -> {
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceType.java b/src/main/java/net/minecraft/server/VillagePlaceType.java
+index 5bd3bcc2b96f7da21d363809a547b0567407ee75..8041c4535fe96efdcc00c8c434aa1024a00ef09c 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceType.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceType.java
+@@ -14,8 +14,19 @@ import java.util.stream.Collectors;
+ 
+ public class VillagePlaceType {
+ 
++    static Set<VillagePlaceType> professionCache; // Yatopia
+     private static final Supplier<Set<VillagePlaceType>> y = Suppliers.memoize(() -> {
+-        return (Set) IRegistry.VILLAGER_PROFESSION.e().map(VillagerProfession::b).collect(Collectors.toSet());
++        // Yatopia start
++        if (professionCache == null) {
++            professionCache = new java.util.HashSet<>();
++            java.util.Iterator<VillagerProfession> iterator = IRegistry.VILLAGER_PROFESSION.iterator();
++            while (iterator.hasNext()) {
++                VillagerProfession profession = iterator.next();
++                professionCache.add(profession.getPlaceType());
++            }
++        }
++        return professionCache;
++        // Yatopia end
+     });
+     public static final Predicate<VillagePlaceType> a = (villageplacetype) -> {
+         return ((Set) VillagePlaceType.y.get()).contains(villageplacetype);
+@@ -83,10 +94,12 @@ public class VillagePlaceType {
+         return this.D;
+     }
+ 
++    public final Predicate<VillagePlaceType> getPredicate() { return c(); } // Yatopia - OBFHELPER
+     public Predicate<VillagePlaceType> c() {
+         return this.E;
+     }
+ 
++    public final int getValidRange() { return d(); } // Yatopia - OBFHELPER
+     public int d() {
+         return this.F;
+     }
+diff --git a/src/main/java/net/minecraft/server/VillagerProfession.java b/src/main/java/net/minecraft/server/VillagerProfession.java
+index 3c60da7ac6faebe9d964e893974e42613c59b4c1..1b012914cb3fcbc4bb456195ade96668b6742cfd 100644
+--- a/src/main/java/net/minecraft/server/VillagerProfession.java
++++ b/src/main/java/net/minecraft/server/VillagerProfession.java
+@@ -35,6 +35,7 @@ public class VillagerProfession {
+         this.t = soundeffect;
+     }
+ 
++    public final VillagePlaceType getPlaceType() { return b(); } // Yatopia - OBFHELPER
+     public VillagePlaceType b() {
+         return this.q;
+     }
+@@ -61,6 +62,7 @@ public class VillagerProfession {
+     }
+ 
+     static VillagerProfession a(String s, VillagePlaceType villageplacetype, ImmutableSet<Item> immutableset, ImmutableSet<Block> immutableset1, @Nullable SoundEffect soundeffect) {
++        VillagePlaceType.professionCache = null; // Yatopia
+         return (VillagerProfession) IRegistry.a((IRegistry) IRegistry.VILLAGER_PROFESSION, new MinecraftKey(s), (Object) (new VillagerProfession(s, villageplacetype, immutableset, immutableset1, soundeffect)));
+     }
+ }
