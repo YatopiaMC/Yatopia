@@ -272,36 +272,6 @@ index dffac0dc85fe7d093c58663f91ad687a6be50ad5..5f6a4281204c60f059437e9f04725afa
      }
  
      public int a(UUID uuid, Predicate<ReputationType> predicate) {
-diff --git a/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java b/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
-index cab7b9aefd200857f69036b4cad21a7828eabcd5..c27c5a1965c74c328f0b99bb22f7e23a1856ffd5 100644
---- a/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
-+++ b/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
-@@ -1,6 +1,8 @@
- package net.minecraft.server;
- 
- import com.google.common.collect.ImmutableSet;
-+
-+import java.util.ArrayList;
- import java.util.Comparator;
- import java.util.List;
- import java.util.Set;
-@@ -23,9 +25,13 @@ public class SensorNearestLivingEntities extends Sensor<EntityLiving> {
-         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
- 
-         behaviorcontroller.setMemory(MemoryModuleType.MOBS, (Object) list);
--        behaviorcontroller.setMemory(MemoryModuleType.VISIBLE_MOBS, list.stream().filter((entityliving1) -> {
--            return SensorNearestLivingEntities.a.a(entityliving, entityliving1);
--        }).collect(Collectors.toList()));
-+        List<EntityLiving> result = new ArrayList<>();
-+        for (EntityLiving entityliving1 : list) {
-+            if (SensorNearestLivingEntities.a.a(entityliving, entityliving1)) {
-+                result.add(entityliving1);
-+            }
-+        }
-+        behaviorcontroller.setMemory(MemoryModuleType.VISIBLE_MOBS, result);
-     }
- 
-     @Override
 diff --git a/src/main/java/net/minecraft/server/TagRegistry.java b/src/main/java/net/minecraft/server/TagRegistry.java
 index c836cd8f7945d9209c71ca7f1afebb43b931da18..f212315a694325714096d18d56d4737975c386d6 100644
 --- a/src/main/java/net/minecraft/server/TagRegistry.java
