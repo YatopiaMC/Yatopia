@@ -143,7 +143,7 @@ done
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
 if [ $forkname = "Yatopia" ]; then
-    importToPaperWorkspace SensorNearestLivingEntities
+    
 fi
 # Library import format (multiple files are supported):
 # importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
