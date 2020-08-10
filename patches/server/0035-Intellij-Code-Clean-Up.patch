@@ -24993,7 +24993,7 @@ index d18359567b46e4bbd807ad8eeadb8bfeff533bf8..951c3f0368024d79d5856040e563b2b2
          }
  
 diff --git a/src/main/java/net/minecraft/server/PathEntity.java b/src/main/java/net/minecraft/server/PathEntity.java
-index d786c3d2eb4e06e20b5125b7ef8fa7d929eb4d01..63b02823bf0dcc79a0cd565b5bccdcd053ff1016 100644
+index 1660f6a0eeb061ce426b89e2d11f05c882abe582..059543cd32ed205d2720372f86855a22556e30b0 100644
 --- a/src/main/java/net/minecraft/server/PathEntity.java
 +++ b/src/main/java/net/minecraft/server/PathEntity.java
 @@ -17,7 +17,7 @@ public class PathEntity {
@@ -27861,19 +27861,10 @@ index a4c1eb60ab7349cb3146018642cc753f403b61d9..7aaea270a9414f79ab3f880a3aadc15c
  
      @FunctionalInterface
 diff --git a/src/main/java/net/minecraft/server/RegionFileSection.java b/src/main/java/net/minecraft/server/RegionFileSection.java
-index 41e1f7c8e22fadc7fe45e03f480f5ee9fef192b2..046ff8ec7f04089d913b561afb68e93120161b5a 100644
+index ea2897eadb4c8bdd7fdc6ae55a51a77d545fc847..4795e549b7b2740361c8cef088191ebca090a05b 100644
 --- a/src/main/java/net/minecraft/server/RegionFileSection.java
 +++ b/src/main/java/net/minecraft/server/RegionFileSection.java
-@@ -49,7 +49,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
- 
-     @Nullable
-     protected Optional<R> c(long i) {
--        return (Optional) this.c.get(i);
-+        return this.c.get(i);
-     }
- 
-     protected Optional<R> d(long i) {
-@@ -66,7 +66,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -68,7 +68,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
                  this.b(sectionposition.r());
                  optional = this.c(i);
                  if (optional == null) {
@@ -27882,7 +27873,7 @@ index 41e1f7c8e22fadc7fe45e03f480f5ee9fef192b2..046ff8ec7f04089d913b561afb68e931
                  } else {
                      return optional;
                  }
-@@ -152,7 +152,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -160,7 +160,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
  
      private void d(ChunkCoordIntPair chunkcoordintpair) {
          Dynamic<NBTBase> dynamic = this.a(chunkcoordintpair, DynamicOpsNBT.a); // Paper - conflict here to avoid adding obfhelpers :)
@@ -27891,7 +27882,7 @@ index 41e1f7c8e22fadc7fe45e03f480f5ee9fef192b2..046ff8ec7f04089d913b561afb68e931
  
          if (nbtbase instanceof NBTTagCompound) {
              try { this.write(chunkcoordintpair, (NBTTagCompound) nbtbase); } catch (IOException ioexception) { RegionFileSection.LOGGER.error("Error writing data to disk", ioexception); } // Paper - nuke IOWorker // TODO make this write async
-@@ -165,7 +165,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -173,7 +173,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
      // Paper start - internal get data function, copied from above
      private NBTTagCompound getDataInternal(ChunkCoordIntPair chunkcoordintpair) {
          Dynamic<NBTBase> dynamic = this.a(chunkcoordintpair, DynamicOpsNBT.a);
@@ -27900,7 +27891,7 @@ index 41e1f7c8e22fadc7fe45e03f480f5ee9fef192b2..046ff8ec7f04089d913b561afb68e931
  
          if (nbtbase instanceof NBTTagCompound) {
              return (NBTTagCompound)nbtbase;
-@@ -183,7 +183,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -191,7 +191,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
              long j = SectionPosition.a(chunkcoordintpair, i).s();
  
              this.d.remove(j);
@@ -27909,7 +27900,7 @@ index 41e1f7c8e22fadc7fe45e03f480f5ee9fef192b2..046ff8ec7f04089d913b561afb68e931
  
              if (optional != null && optional.isPresent()) {
                  DataResult<T> dataresult = ((Codec) this.e.apply(() -> {
-@@ -205,7 +205,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -213,7 +213,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
      protected void b(long i) {}
  
      protected void a(long i) {
@@ -28167,10 +28158,10 @@ index cf15f7038ab4c392623b39ef676d3a24227f6e51..3bbabe64acff9ea947e76e8e57303067
                  entityplayer.playerConnection.sendPacket(packet);
              }
 diff --git a/src/main/java/net/minecraft/server/SectionPosition.java b/src/main/java/net/minecraft/server/SectionPosition.java
-index 7806f3c351cba3f0388da11888f900c48004dadf..bba26f988c34c675ca6d570033848816546967bb 100644
+index 6556533acb04f57284f7493c7683232e9dddbd48..f09ff3b08d9e10bd7f4c0938e876fd08c3ec8a39 100644
 --- a/src/main/java/net/minecraft/server/SectionPosition.java
 +++ b/src/main/java/net/minecraft/server/SectionPosition.java
-@@ -162,7 +162,7 @@ public class SectionPosition extends BaseBlockPosition {
+@@ -163,7 +163,7 @@ public class SectionPosition extends BaseBlockPosition {
      }
  
      public static Stream<SectionPosition> a(final int i, final int j, final int k, final int l, final int i1, final int j1) {
