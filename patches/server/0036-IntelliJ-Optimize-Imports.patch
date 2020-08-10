@@ -8485,7 +8485,7 @@ index 75f2da314b348ccf807975d9a7faeb71934a6e3b..e70ee0c75877760317598d511200684e
                  }, s4);
  
 diff --git a/src/main/java/net/minecraft/server/PiglinAI.java b/src/main/java/net/minecraft/server/PiglinAI.java
-index e76a6514bf050ca9ab155087b41bad5edfb3d18d..114e883cc4af478cb72f7e091ee4462d3e960db4 100644
+index 2a0a2c2d7eebbf515e01923e948bd17acb37a7ba..33813ba80ee8e14875234c099fccc61a582a46f0 100644
 --- a/src/main/java/net/minecraft/server/PiglinAI.java
 +++ b/src/main/java/net/minecraft/server/PiglinAI.java
 @@ -3,12 +3,8 @@ package net.minecraft.server;
@@ -16408,11 +16408,61 @@ index ac1c7160d45f88008bba68184045e79b5e647fa9..14818e9c08c09bef38841aa447e38bc2
  
  public class VanillaMobGoalTest {
  
+diff --git a/src/test/java/org/bukkit/ArtTest.java b/src/test/java/org/bukkit/ArtTest.java
+index 39e3d2150aa0da327ab8980d18e1a0d0e77ae3a9..5eb2cc27695da52a702f831057ec0cf5b4a5dab5 100644
+--- a/src/test/java/org/bukkit/ArtTest.java
++++ b/src/test/java/org/bukkit/ArtTest.java
+@@ -1,13 +1,6 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import com.google.common.collect.Lists;
+-import java.util.Collections;
+-import java.util.EnumMap;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+ import net.minecraft.server.IRegistry;
+ import net.minecraft.server.MinecraftKey;
+ import net.minecraft.server.Paintings;
+@@ -15,6 +8,13 @@ import org.bukkit.craftbukkit.CraftArt;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import java.util.*;
++
++import static org.hamcrest.Matchers.is;
++import static org.hamcrest.Matchers.nullValue;
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertThat;
++
+ public class ArtTest extends AbstractTestingBase {
+     private static final int UNIT_MULTIPLIER = 16;
+ 
 diff --git a/src/test/java/org/bukkit/BlockDataConversionTest.java b/src/test/java/org/bukkit/BlockDataConversionTest.java
-index 46cc26b316f0ab17f676bae98ffbd109928c85dd..e3c0a1073da056efde7aba50aabbae1fa4dcfb93 100644
+index 46cc26b316f0ab17f676bae98ffbd109928c85dd..71dd4587f2b1303dc613a48852f99709c5dfa8ac 100644
 --- a/src/test/java/org/bukkit/BlockDataConversionTest.java
 +++ b/src/test/java/org/bukkit/BlockDataConversionTest.java
-@@ -22,7 +22,7 @@ public class BlockDataConversionTest extends AbstractTestingBase {
+@@ -1,7 +1,5 @@
+ package org.bukkit;
+ 
+-import java.util.ArrayList;
+-import java.util.List;
+ import net.minecraft.server.Block;
+ import net.minecraft.server.IBlockData;
+ import net.minecraft.server.IRegistry;
+@@ -12,6 +10,9 @@ import org.junit.Test;
+ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
+ /**
+  * This test class ensures that all Blocks (as registered in IRegistry.BLOCK)
+  * can be converted into their CraftBlockData equivalent.
+@@ -22,7 +23,7 @@ public class BlockDataConversionTest extends AbstractTestingBase {
      @Parameterized.Parameters(name = "{index}: {0}")
      public static List<Object[]> args() {
          List<Object[]> list = new ArrayList<>();
@@ -16421,11 +16471,299 @@ index 46cc26b316f0ab17f676bae98ffbd109928c85dd..e3c0a1073da056efde7aba50aabbae1f
              list.add(new Object[]{block.getBlockData()});
          }
          return list;
+diff --git a/src/test/java/org/bukkit/BlockDataTest.java b/src/test/java/org/bukkit/BlockDataTest.java
+index 00b8ad356f013943396ef971641ea121babb3ffb..7758303ee7622463ef5cabcff9dbb3bc924c2f4a 100644
+--- a/src/test/java/org/bukkit/BlockDataTest.java
++++ b/src/test/java/org/bukkit/BlockDataTest.java
+@@ -1,6 +1,5 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+ import net.minecraft.server.BlockCake;
+ import net.minecraft.server.BlockChest;
+ import net.minecraft.server.Blocks;
+@@ -14,6 +13,9 @@ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Assert;
+ import org.junit.Test;
+ 
++import static org.hamcrest.Matchers.is;
++import static org.hamcrest.Matchers.not;
++
+ public class BlockDataTest extends AbstractTestingBase {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/ChatTest.java b/src/test/java/org/bukkit/ChatTest.java
+index 95bc1d598d01b982847dda1a8531fb21a1cec423..d5251ac1cb8e85756b97a7c47a4b43a7d7695741 100644
+--- a/src/test/java/org/bukkit/ChatTest.java
++++ b/src/test/java/org/bukkit/ChatTest.java
+@@ -1,12 +1,13 @@
+ package org.bukkit;
+ 
+-import static org.junit.Assert.*;
+ import net.minecraft.server.EnumChatFormat;
+ import net.minecraft.server.IChatBaseComponent;
+ import org.bukkit.craftbukkit.util.CraftChatMessage;
+ import org.junit.Assert;
+ import org.junit.Test;
+ 
++import static org.junit.Assert.assertEquals;
++
+ public class ChatTest {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/DyeColorsTest.java b/src/test/java/org/bukkit/DyeColorsTest.java
+index 9bd05a702585566b90a778afb1ff0bf32c0c71f5..eedde20db9ded0ddacaba306c9f413f4c8152b14 100644
+--- a/src/test/java/org/bukkit/DyeColorsTest.java
++++ b/src/test/java/org/bukkit/DyeColorsTest.java
+@@ -1,9 +1,5 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+-import java.util.ArrayList;
+-import java.util.List;
+ import net.minecraft.server.EnumColor;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+@@ -12,6 +8,12 @@ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameter;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
++import static org.hamcrest.Matchers.is;
++import static org.junit.Assert.assertThat;
++
+ @RunWith(Parameterized.class)
+ public class DyeColorsTest extends AbstractTestingBase {
+ 
+diff --git a/src/test/java/org/bukkit/GameRuleTest.java b/src/test/java/org/bukkit/GameRuleTest.java
+index ca598c58b400aacbf1c1801cf29fd7b0b7c12d63..c9a81c742bd679698992451a98a1ccc924afc924 100644
+--- a/src/test/java/org/bukkit/GameRuleTest.java
++++ b/src/test/java/org/bukkit/GameRuleTest.java
+@@ -1,11 +1,12 @@
+ package org.bukkit;
+ 
+-import java.util.Map;
+ import net.minecraft.server.GameRules;
+ import org.bukkit.craftbukkit.CraftWorld;
+ import org.junit.Assert;
+ import org.junit.Test;
+ 
++import java.util.Map;
++
+ public class GameRuleTest {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/MaterialTest.java b/src/test/java/org/bukkit/MaterialTest.java
+index caa977d75f2ad909d5b335ee69dd24a4bae4a9b9..de7c865e540550a36dc57be10d7ba2ea601143d3 100644
+--- a/src/test/java/org/bukkit/MaterialTest.java
++++ b/src/test/java/org/bukkit/MaterialTest.java
+@@ -1,16 +1,6 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import com.google.common.collect.Maps;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collections;
+-import java.util.Comparator;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.stream.StreamSupport;
+ import net.minecraft.server.IRegistry;
+ import net.minecraft.server.Item;
+ import net.minecraft.server.MinecraftKey;
+@@ -18,6 +8,12 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import java.util.*;
++import java.util.stream.StreamSupport;
++
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.*;
++
+ public class MaterialTest extends AbstractTestingBase {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/NibbleArrayTest.java b/src/test/java/org/bukkit/NibbleArrayTest.java
+index 40ba97fb77dddafe7c792249ca343d5abee3e5d0..460a3e64ecf3efeaecbcbbb86d1ad221fcc35365 100644
+--- a/src/test/java/org/bukkit/NibbleArrayTest.java
++++ b/src/test/java/org/bukkit/NibbleArrayTest.java
+@@ -1,10 +1,11 @@
+ package org.bukkit;
+ 
+-import java.util.Random;
+ import net.minecraft.server.NibbleArray;
+ import org.junit.Assert;
+ import org.junit.Test;
+ 
++import java.util.Random;
++
+ public class NibbleArrayTest {
+ 
+     private static final int NIBBLE_SIZE = 4096;
+diff --git a/src/test/java/org/bukkit/PerMaterialTest.java b/src/test/java/org/bukkit/PerMaterialTest.java
+index b99ad0faf3b4a8390dcc5af5346b68daed75d4ed..c503a44ef32e1076a1fdc542aab55e3b1b3a42ff 100644
+--- a/src/test/java/org/bukkit/PerMaterialTest.java
++++ b/src/test/java/org/bukkit/PerMaterialTest.java
+@@ -1,24 +1,7 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import com.google.common.collect.Lists;
+-import java.util.List;
+-import java.util.Map;
+-import net.minecraft.server.Block;
+-import net.minecraft.server.BlockAccessAir;
+-import net.minecraft.server.BlockBase;
+-import net.minecraft.server.BlockFalling;
+-import net.minecraft.server.BlockFire;
+-import net.minecraft.server.BlockPosition;
+-import net.minecraft.server.Blocks;
+-import net.minecraft.server.EntityHuman;
+-import net.minecraft.server.EnumHand;
+-import net.minecraft.server.IBlockData;
+-import net.minecraft.server.Item;
+-import net.minecraft.server.ItemRecord;
+-import net.minecraft.server.MovingObjectPositionBlock;
+-import net.minecraft.server.TileEntityFurnace;
++import net.minecraft.server.*;
+ import org.bukkit.craftbukkit.inventory.CraftItemStack;
+ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
+ import org.bukkit.enchantments.EnchantmentTarget;
+@@ -32,6 +15,12 @@ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameter;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.List;
++import java.util.Map;
++
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.*;
++
+ @RunWith(Parameterized.class)
+ public class PerMaterialTest extends AbstractTestingBase {
+     private static Map<Block, Integer> fireValues;
+diff --git a/src/test/java/org/bukkit/SoundTest.java b/src/test/java/org/bukkit/SoundTest.java
+index f8e87443438eadd7d95da05027c2bb78114f9c47..b361c0d119afefa0d049587059422522fda8fc21 100644
+--- a/src/test/java/org/bukkit/SoundTest.java
++++ b/src/test/java/org/bukkit/SoundTest.java
+@@ -1,13 +1,15 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import net.minecraft.server.IRegistry;
+ import net.minecraft.server.MinecraftKey;
+ import org.bukkit.craftbukkit.CraftSound;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertThat;
++
+ public class SoundTest extends AbstractTestingBase {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java b/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java
+index f45fa3fd632a7bcea7ef51b26d6ae5e3fb67fc6f..5c5b7db9d7e694fd899f64cf40b087e64c8f6b4b 100644
+--- a/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java
++++ b/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java
+@@ -1,7 +1,5 @@
+ package org.bukkit;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import com.google.common.collect.HashMultiset;
+ import net.minecraft.server.EntityTypes;
+ import net.minecraft.server.IRegistry;
+@@ -11,6 +9,10 @@ import org.bukkit.entity.EntityType;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertThat;
++
+ public class StatisticsAndAchievementsTest extends AbstractTestingBase {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/StructureTypeTest.java b/src/test/java/org/bukkit/StructureTypeTest.java
+index f25e13c08ac20da2e1fcc817cadd3a86c411915c..8fe4d3ecf6075bd95806407628f711bac6f921df 100644
+--- a/src/test/java/org/bukkit/StructureTypeTest.java
++++ b/src/test/java/org/bukkit/StructureTypeTest.java
+@@ -1,6 +1,5 @@
+ package org.bukkit;
+ 
+-import java.util.Map;
+ import net.minecraft.server.IRegistry;
+ import net.minecraft.server.MinecraftKey;
+ import org.bukkit.support.AbstractTestingBase;
+@@ -8,6 +7,8 @@ import org.junit.Assert;
+ import org.junit.BeforeClass;
+ import org.junit.Test;
+ 
++import java.util.Map;
++
+ /**
+  * This test makes sure that Bukkit always has Minecraft structure types up to
+  * date.
+diff --git a/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java b/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java
+index b59b28aa9c3824d352b89394eb3a506a11a0dff6..f0773b14258c8555c6f3c2e983609e39767d7670 100644
+--- a/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java
+@@ -1,11 +1,12 @@
+ package org.bukkit.craftbukkit.generator;
+ 
+-import static org.junit.Assert.*;
+ import org.bukkit.Material;
+ import org.bukkit.block.data.BlockData;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import static org.junit.Assert.assertTrue;
++
+ public class ChunkDataTest extends AbstractTestingBase {
+ 
+     private static final BlockData RED_WOOL = Material.RED_WOOL.createBlockData();
 diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java b/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java
-index 4a85b083b4185e25a6da38d299d01b0a0eca117f..b7362731db4f74506121a8189db060d729d7ec62 100644
+index 4a85b083b4185e25a6da38d299d01b0a0eca117f..5de9423776f04897b1ba527462e870e43d716e07 100644
 --- a/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java
 +++ b/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java
-@@ -64,7 +64,7 @@ public class CompositeSerialization extends AbstractTestingBase {
+@@ -1,10 +1,5 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.ChatColor;
+ import org.bukkit.Material;
+ import org.bukkit.configuration.InvalidConfigurationException;
+@@ -15,6 +10,14 @@ import org.bukkit.inventory.meta.ItemMeta;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++
++import static org.hamcrest.Matchers.hasSize;
++import static org.hamcrest.Matchers.is;
++import static org.junit.Assert.assertThat;
++
+ 
+ public class CompositeSerialization extends AbstractTestingBase {
+ 
+@@ -64,7 +67,7 @@ public class CompositeSerialization extends AbstractTestingBase {
          assertThat(stacks, hasSize(raw.size()));
  
          for (int i = 0; i < raw.size(); i++) {
@@ -16434,17 +16772,549 @@ index 4a85b083b4185e25a6da38d299d01b0a0eca117f..b7362731db4f74506121a8189db060d7
          }
      }
  }
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java
+index 0ab65ac7310cfc184b1d41b417c0a1db184f199e..8ae0a4a862094bcc0ac2894f10da12c56c69b0c2 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java
+@@ -1,11 +1,5 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.junit.Assert.*;
+-import java.io.StringReader;
+-import java.lang.reflect.Array;
+-import java.nio.ByteBuffer;
+-import java.util.Map;
+-import java.util.UUID;
+ import net.minecraft.server.NBTTagCompound;
+ import org.bukkit.Bukkit;
+ import org.bukkit.Material;
+@@ -20,6 +14,14 @@ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Before;
+ import org.junit.Test;
+ 
++import java.io.StringReader;
++import java.lang.reflect.Array;
++import java.nio.ByteBuffer;
++import java.util.Map;
++import java.util.UUID;
++
++import static org.junit.Assert.*;
++
+ public class DeprecatedItemMetaCustomValueTest extends AbstractTestingBase {
+ 
+     private static NamespacedKey VALID_KEY;
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java
+index c279579c2bd54363090c6c99fbd92798a6b97c79..1eeca7324d755ef45b353dfb167b2faa17c7dfc6 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java
+@@ -1,9 +1,5 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+-import java.util.ArrayList;
+-import java.util.List;
+ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemFactory;
+ import org.bukkit.inventory.ItemStack;
+@@ -15,6 +11,13 @@ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameter;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.ArrayList;
++import java.util.List;
++
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.assertThat;
++import static org.junit.Assert.assertTrue;
++
+ @RunWith(Parameterized.class)
+ public class FactoryItemMaterialTest extends AbstractTestingBase {
+     static final ItemFactory factory = CraftItemFactory.instance();
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java
+index cefedd7d1e568d046b2e6f2ee75ffcf13754c5bb..bd8240c24b6addc45475a7de6f2f90624c5442a9 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java
+@@ -1,11 +1,15 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+-import java.lang.reflect.Method;
+ import org.bukkit.Material;
+ import org.junit.Test;
+ 
++import java.lang.reflect.Method;
++
++import static org.hamcrest.Matchers.equalTo;
++import static org.hamcrest.Matchers.is;
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertThat;
++
+ public class ItemMetaCloneTest {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java
+index 61ac1fb7c5beee7b7adbaafd6ea20e2e6bc778e5..ff1476c0a8a993d572ca8c2276f0bc1459bca4b3 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java
+@@ -1,11 +1,5 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+-import java.lang.reflect.Method;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.concurrent.Callable;
+ import org.bukkit.Material;
+ import org.bukkit.configuration.serialization.DelegateDeserialization;
+ import org.bukkit.craftbukkit.Overridden;
+@@ -15,6 +9,14 @@ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameter;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.lang.reflect.Method;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.concurrent.Callable;
++
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.assertThat;
++
+ @RunWith(Parameterized.class)
+ public class ItemMetaImplementationOverrideTest {
+     static final Class<CraftMetaItem> parent = CraftMetaItem.class;
 diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java
-index b0edd62eb9066d145cfc52272c71d5f00b7e928d..ae2a20799fbcd02cc200fede004b49efe1e0e6fe 100644
+index b0edd62eb9066d145cfc52272c71d5f00b7e928d..4ac41485ee0ceaedaee99fc61443f11c8d5bee45 100644
 --- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java
 +++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java
-@@ -169,7 +169,7 @@ public class ItemMetaTest extends AbstractTestingBase {
+@@ -1,25 +1,9 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+-
+-import java.util.*;
+-
+-import com.destroystokyo.paper.inventory.meta.ArmorStandMeta; // Paper
+-import net.minecraft.server.Block;
+-import net.minecraft.server.IRegistry;
+-import net.minecraft.server.ITileEntity;
+-import net.minecraft.server.Item;
+-import net.minecraft.server.ItemBlock;
+-import net.minecraft.server.ItemBlockWallable;
+-import net.minecraft.server.NBTTagCompound;
+-import org.bukkit.Bukkit;
+-import org.bukkit.Color;
+-import org.bukkit.DyeColor;
+-import org.bukkit.FireworkEffect;
+-import org.bukkit.FireworkEffect.Type;
++import net.minecraft.server.*;
++import org.bukkit.*;
+ import org.bukkit.Material;
+-import org.bukkit.NamespacedKey;
++import org.bukkit.FireworkEffect.Type;
+ import org.bukkit.attribute.Attribute;
+ import org.bukkit.attribute.AttributeModifier;
+ import org.bukkit.block.banner.Pattern;
+@@ -32,26 +16,18 @@ import org.bukkit.craftbukkit.inventory.ItemStackTest.StackWrapper;
+ import org.bukkit.enchantments.Enchantment;
+ import org.bukkit.entity.TropicalFish;
+ import org.bukkit.inventory.ItemStack;
+-import org.bukkit.inventory.meta.BannerMeta;
+-import org.bukkit.inventory.meta.BlockDataMeta;
+-import org.bukkit.inventory.meta.BlockStateMeta;
+-import org.bukkit.inventory.meta.BookMeta;
+-import org.bukkit.inventory.meta.CrossbowMeta;
+-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+-import org.bukkit.inventory.meta.FireworkEffectMeta;
+-import org.bukkit.inventory.meta.FireworkMeta;
+-import org.bukkit.inventory.meta.ItemMeta;
+-import org.bukkit.inventory.meta.KnowledgeBookMeta;
+-import org.bukkit.inventory.meta.LeatherArmorMeta;
+-import org.bukkit.inventory.meta.MapMeta;
+-import org.bukkit.inventory.meta.PotionMeta;
+-import org.bukkit.inventory.meta.TropicalFishBucketMeta;
++import org.bukkit.inventory.meta.*;
+ import org.bukkit.potion.PotionData;
+ import org.bukkit.potion.PotionEffectType;
+ import org.bukkit.potion.PotionType;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import java.util.*;
++
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.*;
++
+ public class ItemMetaTest extends AbstractTestingBase {
+ 
+     static final int MAX_FIREWORK_POWER = 127; // Please update ItemStackFireworkTest if/when this gets changed.
+@@ -169,7 +145,7 @@ public class ItemMetaTest extends AbstractTestingBase {
          craft.setItemMeta(craft.getItemMeta());
          ItemStack bukkit = new ItemStack(craft);
          assertThat(craft, is(bukkit));
 -        assertThat(bukkit, is((ItemStack) craft));
 +        assertThat(bukkit, is(craft));
      }
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java
+index c7d10b08925c0b4e7c49876d37f009fff546f7ea..4f55cb6ce350f2b53c25b15858da6e929a4ff663 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.meta.BookMeta;
+@@ -10,6 +8,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackBookTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java
+index 157eef07ee1603ac0002d4fe213b74df24391f4c..e8add3611a2f10fb8e8ebfba5bc5e68b9770972f 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Material;
+ import org.bukkit.enchantments.Enchantment;
+ import org.bukkit.inventory.ItemStack;
+@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackEnchantStorageTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java
+index 1515ec20020111435403d3f3f7da6158a9c614e1..0605caa8f31683d8d338acc74e0c08d4d8daf17a 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Color;
+ import org.bukkit.FireworkEffect;
+ import org.bukkit.FireworkEffect.Type;
+@@ -13,6 +11,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackFireworkChargeTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java
+index 31fc6046af46033d9e9ed2c414f78dbc214490bd..98512257f9fc703c8570b17788faafa08d58e9ef 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Color;
+ import org.bukkit.FireworkEffect;
+ import org.bukkit.FireworkEffect.Type;
+@@ -13,6 +11,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackFireworkTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java
+index 9dea89e756029cf2c800dd05e9f00473a2cc45e6..4b6124ea821697e186fff945bc26dad787434450 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Color;
+ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemStack;
+@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackLeatherTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java
+index 339b45191d8edd26e173bff45b4e6400f3739a1a..359e17b91f8e4cd74bb211fcd0dd91e43373fe2a 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.enchantments.Enchantment;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.meta.ItemMeta;
+@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackLoreEnchantmentTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java
+index fb36575b05596aaa5587093ec49c421a17f4b181..1c0df97be887c312469417be4940ab2b340ffea2 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.meta.MapMeta;
+@@ -10,6 +8,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackMapTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java
+index f7cf39fdd1d180374f2edcf7596f8df8fa204671..f239b34b6578f4def1028446ff6733c1ed90e86c 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.meta.PotionMeta;
+@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackPotionsTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java
+index 0ac5e8cb5717b81760ed57461a05f0c5bd2325d8..dd753e0729bc5ee72f425831aeed55064f47b2da 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java
+@@ -1,8 +1,6 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+ import com.google.common.base.Joiner;
+-import java.util.Arrays;
+-import java.util.List;
+ import org.bukkit.Material;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.meta.SkullMeta;
+@@ -10,6 +8,9 @@ import org.junit.runner.RunWith;
+ import org.junit.runners.Parameterized;
+ import org.junit.runners.Parameterized.Parameters;
+ 
++import java.util.Arrays;
++import java.util.List;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackSkullTest extends ItemStackTest {
+ 
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java
+index 1add9c7d39c9e02c9dcdfe14e204d9a1e32d68b0..163b2509ec131fb9dcc86649a8c12195b079873b 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java
+@@ -1,20 +1,7 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.bukkit.support.Matchers.*;
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import com.google.common.base.Joiner;
+ import com.google.common.collect.ImmutableList;
+-import java.io.ByteArrayInputStream;
+-import java.io.ByteArrayOutputStream;
+-import java.io.IOException;
+-import java.io.ObjectInputStream;
+-import java.io.ObjectOutputStream;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+ import org.bukkit.Material;
+ import org.bukkit.configuration.InvalidConfigurationException;
+ import org.bukkit.configuration.file.YamlConfiguration;
+@@ -31,6 +18,13 @@ import org.junit.runners.Parameterized.Parameter;
+ import org.junit.runners.Parameterized.Parameters;
+ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
+ 
++import java.io.*;
++import java.util.*;
++
++import static org.bukkit.support.Matchers.sameHash;
++import static org.hamcrest.Matchers.*;
++import static org.junit.Assert.assertThat;
++
+ @RunWith(Parameterized.class)
+ public class ItemStackTest extends AbstractTestingBase {
+     abstract static class StackProvider {
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java
+index 5f5781230dab9e151ccf3260f1c42e906b655e7e..5328814ecad8e15fe099cba67455ff7c2d8d6d5b 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java
+@@ -1,12 +1,13 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import net.minecraft.server.Enchantments;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import static org.hamcrest.Matchers.is;
++import static org.junit.Assert.assertThat;
++
+ public class NMSCraftItemStackTest extends AbstractTestingBase {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java
+index 6feee747e1ee0fc7fb57dc7ee91b7290d6cc348d..f169a98dbcb968cd5d672c4384eb523e65442d65 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java
+@@ -1,11 +1,5 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.junit.Assert.*;
+-import java.io.StringReader;
+-import java.lang.reflect.Array;
+-import java.nio.ByteBuffer;
+-import java.util.Map;
+-import java.util.UUID;
+ import net.minecraft.server.NBTTagCompound;
+ import org.bukkit.Bukkit;
+ import org.bukkit.Material;
+@@ -20,6 +14,14 @@ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Before;
+ import org.junit.Test;
+ 
++import java.io.StringReader;
++import java.lang.reflect.Array;
++import java.nio.ByteBuffer;
++import java.util.Map;
++import java.util.UUID;
++
++import static org.junit.Assert.*;
++
+ public class PersistentDataContainerTest extends AbstractTestingBase {
+ 
+     private static NamespacedKey VALID_KEY;
+diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java
+index 6f56e56afb58cd227231027aa22bbfeb390b3420..7610865e695df2000f4f2efb1f9ab488a0c55b12 100644
+--- a/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java
+@@ -1,12 +1,13 @@
+ package org.bukkit.craftbukkit.inventory;
+ 
+-import static org.junit.Assert.*;
+ import net.minecraft.server.ItemStack;
+ import net.minecraft.server.Items;
+ import net.minecraft.server.PlayerInventory;
+ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Test;
+ 
++import static org.junit.Assert.assertEquals;
++
+ public class PlayerInventoryTest extends AbstractTestingBase {
+ 
+     @Test
+diff --git a/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java b/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java
+index e39b87ae6de87d4a9776aa960cf8b1c4305b1db0..02e6cabc2c6904e0bfeb7154f94e90d048d3aeca 100644
+--- a/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java
+@@ -1,8 +1,5 @@
+ package org.bukkit.craftbukkit.legacy;
+ 
+-import java.util.Arrays;
+-import java.util.HashSet;
+-import java.util.Set;
+ import org.bukkit.Material;
+ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
+ import org.bukkit.material.MaterialData;
+@@ -10,6 +7,10 @@ import org.bukkit.support.AbstractTestingBase;
+ import org.junit.Assert;
+ import org.junit.Test;
+ 
++import java.util.Arrays;
++import java.util.HashSet;
++import java.util.Set;
++
+ public class LegacyTest extends AbstractTestingBase {
+ 
+     private final Set<Material> INVALIDATED_MATERIALS = new HashSet<>(Arrays.asList(Material.ACACIA_BUTTON, Material.ACACIA_PRESSURE_PLATE, Material.ACACIA_TRAPDOOR, Material.AIR, Material.ATTACHED_MELON_STEM, Material.ATTACHED_PUMPKIN_STEM,
+diff --git a/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java b/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java
+index e4a98f441e6d7213e4c8642cc8a7c0b57fc7d75a..34beafde38a55348eaafa0d822e130a4436ae4f4 100644
+--- a/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java
++++ b/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java
+@@ -1,10 +1,11 @@
+ package org.bukkit.craftbukkit.util;
+ 
+-import static org.junit.Assert.assertEquals;
+ import net.minecraft.server.IChatBaseComponent;
+ import net.minecraft.server.IChatMutableComponent;
+ import org.junit.Test;
+ 
++import static org.junit.Assert.assertEquals;
++
+ public class CraftChatMessageTest {
  
      @Test
 diff --git a/src/test/java/org/bukkit/entity/EntityTypesTest.java b/src/test/java/org/bukkit/entity/EntityTypesTest.java
@@ -16471,6 +17341,26 @@ index 8f07b5344e6460ddfc121a4f6414c9d956c467ed..7e47da60b484c4563c33d7d267b213da
  public class EntityTypesTest extends AbstractTestingBase {
  
      @Test
+diff --git a/src/test/java/org/bukkit/entity/TropicalFishTest.java b/src/test/java/org/bukkit/entity/TropicalFishTest.java
+index aa70881a77fd7c2d6b1058d9dba4d70e3ae12ba8..48313ae6e3629972bd44099e2321e184bfdcb995 100644
+--- a/src/test/java/org/bukkit/entity/TropicalFishTest.java
++++ b/src/test/java/org/bukkit/entity/TropicalFishTest.java
+@@ -1,12 +1,13 @@
+ package org.bukkit.entity;
+ 
+-import static org.hamcrest.Matchers.*;
+-import static org.junit.Assert.*;
+ import org.bukkit.DyeColor;
+ import org.bukkit.craftbukkit.entity.CraftTropicalFish;
+ import org.bukkit.entity.TropicalFish.Pattern;
+ import org.junit.Test;
+ 
++import static org.hamcrest.Matchers.is;
++import static org.junit.Assert.assertThat;
++
+ public class TropicalFishTest {
+ 
+     @Test
 diff --git a/src/test/java/org/bukkit/map/MapTest.java b/src/test/java/org/bukkit/map/MapTest.java
 index 2dde26d3fd4a51828a0aa6e40831ba33aaebeccc..46ab6a50abd5d1231fcdb69bbb74cd7ba684cd24 100644
 --- a/src/test/java/org/bukkit/map/MapTest.java
@@ -16493,3 +17383,89 @@ index 2dde26d3fd4a51828a0aa6e40831ba33aaebeccc..46ab6a50abd5d1231fcdb69bbb74cd7b
  public class MapTest {
  
      private static final Logger logger = Logger.getLogger("MapTest");
+diff --git a/src/test/java/org/bukkit/potion/PotionTest.java b/src/test/java/org/bukkit/potion/PotionTest.java
+index ebd2efa5ae21b790695775b068207336da60e549..50cbb7da1a96d3bb0ce60c28405152ce89f8ee84 100644
+--- a/src/test/java/org/bukkit/potion/PotionTest.java
++++ b/src/test/java/org/bukkit/potion/PotionTest.java
+@@ -1,16 +1,14 @@
+ package org.bukkit.potion;
+ 
+-import static org.junit.Assert.*;
++import net.minecraft.server.*;
++import org.bukkit.support.AbstractTestingBase;
++import org.junit.Test;
++
+ import java.util.EnumMap;
+ import java.util.List;
+ import java.util.Map;
+-import net.minecraft.server.IRegistry;
+-import net.minecraft.server.MinecraftKey;
+-import net.minecraft.server.MobEffect;
+-import net.minecraft.server.MobEffectList;
+-import net.minecraft.server.PotionRegistry;
+-import org.bukkit.support.AbstractTestingBase;
+-import org.junit.Test;
++
++import static org.junit.Assert.*;
+ 
+ public class PotionTest extends AbstractTestingBase {
+     @Test
+diff --git a/src/test/java/org/bukkit/support/AbstractTestingBase.java b/src/test/java/org/bukkit/support/AbstractTestingBase.java
+index d3281c81a4e8e0b8c2ad3a8d6628faf546746a2f..bb3400d2ccce6fb73550f80ef1df5a4869e58b9a 100644
+--- a/src/test/java/org/bukkit/support/AbstractTestingBase.java
++++ b/src/test/java/org/bukkit/support/AbstractTestingBase.java
+@@ -2,21 +2,15 @@ package org.bukkit.support;
+ 
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.util.concurrent.MoreExecutors;
+-import java.util.Collections;
+-import java.util.List;
+-import java.util.concurrent.CompletableFuture;
+-import net.minecraft.server.DispenserRegistry;
+-import net.minecraft.server.EnumResourcePackType;
+-import net.minecraft.server.LootPredicateManager;
+-import net.minecraft.server.LootTableRegistry;
+-import net.minecraft.server.ResourceManager;
+-import net.minecraft.server.ResourcePackVanilla;
+-import net.minecraft.server.TagRegistry;
+-import net.minecraft.server.Unit;
++import net.minecraft.server.*;
+ import org.bukkit.Material;
+ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
+ import org.junit.Assert;
+ 
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++
+ /**
+  *  If you are getting: java.lang.ExceptionInInitializerError
+  *    at net.minecraft.server.StatisticList.&lt;clinit&gt;(SourceFile:58)
+diff --git a/src/test/java/org/bukkit/support/DummyServer.java b/src/test/java/org/bukkit/support/DummyServer.java
+index 97eb5fa880d009bef973467403323d022bea5d7a..1036bd4e8fcf5e7ae65388cdc54b770c125e2547 100644
+--- a/src/test/java/org/bukkit/support/DummyServer.java
++++ b/src/test/java/org/bukkit/support/DummyServer.java
+@@ -1,10 +1,5 @@
+ package org.bukkit.support;
+ 
+-import java.lang.reflect.InvocationHandler;
+-import java.lang.reflect.Method;
+-import java.lang.reflect.Proxy;
+-import java.util.HashMap;
+-import java.util.logging.Logger;
+ import org.bukkit.Bukkit;
+ import org.bukkit.Material;
+ import org.bukkit.NamespacedKey;
+@@ -16,6 +11,12 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
+ import org.bukkit.craftbukkit.util.CraftNamespacedKey;
+ import org.bukkit.craftbukkit.util.Versioning;
+ 
++import java.lang.reflect.InvocationHandler;
++import java.lang.reflect.Method;
++import java.lang.reflect.Proxy;
++import java.util.HashMap;
++import java.util.logging.Logger;
++
+ public final class DummyServer implements InvocationHandler {
+     private static interface MethodHandler {
+         Object handle(DummyServer server, Object[] args);
