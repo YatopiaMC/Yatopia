@@ -154,7 +154,7 @@ index 0000000000000000000000000000000000000000..eca581513324401e1c6b3e818ba9ea6e
 \ No newline at end of file
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b8e09815829fe7c66b90bbf799c5aa04ea3ffc4f
+index 0000000000000000000000000000000000000000..556cf9f17501f13a19a05bf804edcb9c9bf7fe4e
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -0,0 +1,210 @@
@@ -190,9 +190,9 @@ index 0000000000000000000000000000000000000000..b8e09815829fe7c66b90bbf799c5aa04
 +            + "You have been warned!\n";
 +    /*========================================================================*/
 +    public static YamlConfiguration config;
-+    static int version;
++    public static int version; // since we're remapping sidestreams' configs we need this public
 +    static Map<String, Command> commands;
-+    private static boolean verbose;
++    public static boolean verbose; // since we're remapping sidestreams' configs we need this public
 +    private static boolean fatalError;
 +    /*========================================================================*/
 +    private static boolean metricsStarted;
@@ -422,37 +422,25 @@ index 732a7747fd0360deec8237c80bc93fb9f06b5320..c30fee13723cef0f03eb5a87851158cf
  
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
-diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index f37d538ddc33b4224eaa5353c17931b66adb7c5b..46b300a0625f1cc4bf8ed4d263e3c86ed36d5f16 100644
---- a/src/main/java/net/minecraft/server/World.java
-+++ b/src/main/java/net/minecraft/server/World.java
-@@ -129,7 +129,6 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
-         this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
-         this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami - World Config
- 
--
-         this.generator = gen;
-         this.world = new CraftWorld((WorldServer) this, gen, env);
-         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index d8953918cf15f6a3d227e2e07a25306c92aedf24..13caf31e84517b0f4d9b621fdf7001bc557bed8b 100644
+index 856e0ba3cfe6225d9928cb99b2d7a00a8fcd6a03..6f4c1bbf39af205ad15318eac667117dd332bb12 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -837,6 +837,7 @@ public final class CraftServer implements Server {
-         com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
+@@ -838,6 +838,7 @@ public final class CraftServer implements Server {
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
          de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
+         com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
 +        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index cd0cf981e5a9e292bb247fd0f0175a0c7f3f2ae4..09256438034d27ee5e25215bc6f87d74bb6c874d 100644
+index 5ba71b957001a91c46970b5aab30dadb7a488f0d..c4495f89898861c385b32e70d3b6a3f12b91bdd3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -171,6 +171,14 @@ public class Main {
+@@ -179,6 +179,14 @@ public class Main {
                          .describedAs("Yml file");
-                 // Purpur end
+                 // Rainforest end
  
 +                // Yatopia start
 +                acceptsAll(asList("yatopia", "yatopia-settings"), "File for yatopia settings")

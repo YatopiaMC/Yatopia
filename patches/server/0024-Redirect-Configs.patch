@@ -4,41 +4,83 @@ Date: Wed, 5 Aug 2020 08:17:46 -0500
 Subject: [PATCH] Redirect Configs
 
 
+diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
+index 0d854bda9611b45d78815f9fe9cafb8901de210f..c4092282040d4e7cd960b6922feb8b179a6a8ada 100644
+--- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
++++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
+@@ -37,6 +37,8 @@ public final class RainforestConfig {
+   private static boolean fatalError;
+ 
+   public static void init(File configFile) {
++    // Yatopia start
++    /*
+     CONFIG_FILE = configFile;
+     config = new YamlConfiguration();
+     try {
+@@ -56,7 +58,13 @@ public final class RainforestConfig {
+ 
+     version = getInt("config-version", 1);
+     set("config-version", 1);
+-    readConfig(RainforestConfig.class, null);
++     */
++    config = dev.tr7zw.yatopia.YatopiaConfig.config;
++    CONFIG_FILE = dev.tr7zw.yatopia.YatopiaConfig.CONFIG_FILE;
++    verbose = dev.tr7zw.yatopia.YatopiaConfig.verbose;
++    version = dev.tr7zw.yatopia.YatopiaConfig.version;
++    //readConfig(RainforestConfig.class, null); // todo: when options actually get ported, uncomment this
++    // Yatopia end
+   }
+ 
+   protected static void logError(String s) {
+diff --git a/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java b/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java
+index 22d920686418e86aec8be37f125123682af023a3..081a5344b86e300ae7aa722b9b0ca84c77844e49 100644
+--- a/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java
++++ b/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java
+@@ -22,7 +22,7 @@ public final class RainforestWorldConfig {
+ 
+   public void init() {
+     log("-------- World Settings For [" + worldName + "] --------");
+-    RainforestConfig.readConfig(RainforestWorldConfig.class, this);
++    //RainforestConfig.readConfig(RainforestWorldConfig.class, this); // Yatopia - todo: when options are ported, uncomment this
+   }
+ 
+   private void set(String path, Object val) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index bdeb72c04831209466742b9fb6747ebefbe7ca48..a62d7b94aeafea54c1b110fdb279364878f3081a 100644
+index bdeb72c04831209466742b9fb6747ebefbe7ca48..0f9f9554b00e7bda2e1ec34bcca325d4fcf983b9 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -3,6 +3,8 @@ package de.minebench.origami;
- import org.bukkit.Bukkit;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-+import dev.tr7zw.yatopia.YatopiaConfig;
-+
- import java.io.File;
- import java.lang.reflect.Method;
- import java.lang.reflect.Modifier;
-@@ -20,7 +22,7 @@ public final class OrigamiConfig {
+@@ -20,6 +20,8 @@ public final class OrigamiConfig {
      private static int configVersion;
  
      public static void init(final File file) {
--        OrigamiConfig.configFile = file;
-+        /*OrigamiConfig.configFile = file;
++        // Yatopia start
++        /*
+         OrigamiConfig.configFile = file;
          OrigamiConfig.config = new YamlConfiguration();
          config.options().header(CONFIG_HEADER);
-         config.options().copyDefaults(true);
-@@ -39,7 +41,9 @@ public final class OrigamiConfig {
+@@ -39,13 +41,16 @@ public final class OrigamiConfig {
                  System.out.println("Failure to load origami config");
                  throw new RuntimeException(ex);
              }
 -        }
+-
+-        OrigamiConfig.load(OrigamiConfig.class, null);
 +        }*/
-+	config = YatopiaConfig.config;
-+	configFile = YatopiaConfig.CONFIG_FILE;
- 
-         OrigamiConfig.load(OrigamiConfig.class, null);
++	    config = dev.tr7zw.yatopia.YatopiaConfig.config;
++	    configFile = dev.tr7zw.yatopia.YatopiaConfig.CONFIG_FILE;
++	    configVersion = dev.tr7zw.yatopia.YatopiaConfig.version;
++	    //OrigamiConfig.load(OrigamiConfig.class, null); // todo: uncomment when config options are ported
++        // Yatopia end
      }
+ 
+     public static void load(Class<?> clazz, Object instance) {
+-        OrigamiConfig.configVersion = OrigamiConfig.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
++        //OrigamiConfig.configVersion = OrigamiConfig.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION); // Yatopia - NO
+ 
+         for (final Method method : clazz.getDeclaredMethods()) {
+             if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index 150c9eb081f1f10e23bdccfea875ef92942311db..3f5489244ccbd5ff0cbcdf97d0f66365d748729a 100644
+index 02ef2cbc0599461a1c693ef71d2310bb3e6d1fc0..16de5a03d7c182766052e118c2912c013e06c54c 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -24,7 +24,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
@@ -51,22 +93,23 @@ index 150c9eb081f1f10e23bdccfea875ef92942311db..3f5489244ccbd5ff0cbcdf97d0f66365
              + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
              + "You have been warned!\n";
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index c3becefce8143f34ed2b1093dd22227b7309629c..d972d7128fbd8c1a6cac3d6bbae501b26bbf9327 100644
+index c3becefce8143f34ed2b1093dd22227b7309629c..b045cfc0e8ade9632cfde5cffe8fe93b5ee08b27 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -189,6 +189,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -189,6 +189,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
              return false;
          }
          dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
 +        de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
++        com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings"));
          // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 09256438034d27ee5e25215bc6f87d74bb6c874d..60ce9f6c4405cec8a990ade7761d6d74c45329d2 100644
+index c4495f89898861c385b32e70d3b6a3f12b91bdd3..4fce6ed06fccc65ab022cff3623f06f40b49372b 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -312,7 +312,7 @@ public class Main {
+@@ -320,7 +320,7 @@ public class Main {
                  }
                  // Paper end
                  System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
