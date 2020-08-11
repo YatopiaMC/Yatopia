@@ -5,27 +5,6 @@ Subject: [PATCH] Intellij Optimize Imports.
 
 Do not update, just regen.
 
-diff --git a/src/main/java/app/akarin/server/Config.java b/src/main/java/app/akarin/server/Config.java
-index 358ac3361c814b7cf5f9650a6a49c6efce7dd56a..90408487112519791540f9d7968e7e0b1f541472 100644
---- a/src/main/java/app/akarin/server/Config.java
-+++ b/src/main/java/app/akarin/server/Config.java
-@@ -1,15 +1,13 @@
- package app.akarin.server;
- 
-+import dev.tr7zw.yatopia.YatopiaConfig;
- import org.bukkit.Bukkit;
- import org.bukkit.configuration.ConfigurationSection;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
--import dev.tr7zw.yatopia.YatopiaConfig;
--
- import java.io.File;
- import java.lang.reflect.Method;
- import java.lang.reflect.Modifier;
--import java.util.List;
- import java.util.logging.Level;
- 
- public final class Config {
 diff --git a/src/main/java/co/aikar/timings/MinecraftTimings.java b/src/main/java/co/aikar/timings/MinecraftTimings.java
 index 85b25eace786fa0d7694afa405f9d2bdf4937b6e..6c65b2fddf70d51735ecf7fab4548f4279e13a5d 100644
 --- a/src/main/java/co/aikar/timings/MinecraftTimings.java
@@ -948,14 +927,13 @@ index 9e26fa3bff387e362a6748266df8742cf5682af6..86550dfcc77dce295ecdffee6f83e9eb
    public RainforestCommand(String name) {
      super(name);
 diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-index 04f5751f7972ed04f97c3f911277a30f14344801..5855bb241841ea1295cf97dac97413213442550a 100644
+index c4092282040d4e7cd960b6922feb8b179a6a8ada..0ba65e2e76b6680e8ea1b36989a402c3dac5eed9 100644
 --- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
 +++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-@@ -1,24 +1,22 @@
+@@ -1,22 +1,21 @@
  package com.proximyst.rainforest;
  
  import com.google.common.base.Throwables;
-+import dev.tr7zw.yatopia.YatopiaConfig;
 +import net.minecraft.server.MinecraftServer;
 +import org.bukkit.Bukkit;
 +import org.bukkit.command.Command;
@@ -977,13 +955,11 @@ index 04f5751f7972ed04f97c3f911277a30f14344801..5855bb241841ea1295cf97dac9741321
 -import org.bukkit.command.Command;
 -import org.bukkit.configuration.InvalidConfigurationException;
 -import org.bukkit.configuration.file.YamlConfiguration;
--
--import dev.tr7zw.yatopia.YatopiaConfig;
  
  // Based on PaperConfig
  public final class RainforestConfig {
 diff --git a/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java b/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java
-index 22d920686418e86aec8be37f125123682af023a3..9a9fe8f4e440b7bc66fd19a4915fc4360146c225 100644
+index 081a5344b86e300ae7aa722b9b0ca84c77844e49..bc5e25f4b4ebb4fee8635c92c3b35841c01137f8 100644
 --- a/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java
 +++ b/src/main/java/com/proximyst/rainforest/RainforestWorldConfig.java
 @@ -1,11 +1,12 @@
@@ -1074,17 +1050,14 @@ index 76593df295e5f462adcbc223d791316a849fffeb..2fb99e8626b962184854c2850d0507f7
  import java.util.List;
  
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 1c1d624065162ef5b97ed5ff3d0a24b73975ed2e..d022cf1498ed371eaad779b849aac4bc1065f7a8 100644
+index 0f9f9554b00e7bda2e1ec34bcca325d4fcf983b9..43bc9c06da57866a7c9c38e3287d40e1b7d69a9a 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -1,14 +1,11 @@
+@@ -1,12 +1,10 @@
  package de.minebench.origami;
  
 -import org.bukkit.Bukkit;
--import org.bukkit.configuration.file.YamlConfiguration;
--
- import dev.tr7zw.yatopia.YatopiaConfig;
-+import org.bukkit.configuration.file.YamlConfiguration;
+ import org.bukkit.configuration.file.YamlConfiguration;
  
  import java.io.File;
  import java.lang.reflect.Method;
@@ -1093,8 +1066,29 @@ index 1c1d624065162ef5b97ed5ff3d0a24b73975ed2e..d022cf1498ed371eaad779b849aac4bc
  
  public final class OrigamiConfig {
  
+diff --git a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
+index e6617833a7aea4803b78bc55b633fac9698688bd..43def748a996fea8caf56ee58a3585da7f8c14e3 100644
+--- a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
++++ b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
+@@ -1,15 +1,8 @@
+ package dev.tr7zw.yatopia;
+ 
+ import com.google.common.base.Predicates;
+-
+ import de.minebench.origami.OrigamiConfig;
+-
+-import net.minecraft.server.Entity;
+-import net.minecraft.server.EntityTypes;
+-import net.minecraft.server.EnumCreatureType;
+-import net.minecraft.server.IEntitySelector;
+-import net.minecraft.server.ScoreboardTeamBase;
+-import net.minecraft.server.World;
++import net.minecraft.server.*;
+ 
+ import java.util.function.Predicate;
+ 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
-index 1e88bc1a89eada5008ffe88f7ed32e107b2fb10c..c58ab7f9030bb2a3f6af3a7f327a5e7654972c9f 100644
+index eca581513324401e1c6b3e818ba9ea6e9925490f..d9b6faea9adbe246eaede7c0db77a4eba05b82af 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 @@ -1,26 +1,18 @@
@@ -1132,16 +1126,15 @@ index 1e88bc1a89eada5008ffe88f7ed32e107b2fb10c..c58ab7f9030bb2a3f6af3a7f327a5e76
  public class YatopiaCommand extends Command {
  
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index 8b659311e3b6f45c0ee798efb6adb85cdeb710b0..a7ffc8705040572555625fd0d375126667dd1b61 100644
+index d20ed58b781462ea667f75a2ac99b78cb23e283c..f2acc0a5c24165e2e90f1a53107d2027dade584e 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -1,36 +1,24 @@
+@@ -1,8 +1,11 @@
  package dev.tr7zw.yatopia;
  
--import com.destroystokyo.paper.io.chunk.ChunkTaskManager;
--import com.google.common.base.Strings;
  import com.google.common.base.Throwables;
-+import net.minecraft.server.MinecraftServer;
+-
+ import net.minecraft.server.MinecraftServer;
 +import org.bukkit.Bukkit;
 +import org.bukkit.command.Command;
 +import org.bukkit.configuration.InvalidConfigurationException;
@@ -1149,30 +1142,15 @@ index 8b659311e3b6f45c0ee798efb6adb85cdeb710b0..a7ffc8705040572555625fd0d3751266
  
  import java.io.File;
  import java.io.IOException;
- import java.lang.reflect.InvocationTargetException;
- import java.lang.reflect.Method;
- import java.lang.reflect.Modifier;
--import java.nio.charset.StandardCharsets;
- import java.util.HashMap;
- import java.util.List;
- import java.util.Map;
--import java.util.Set;
- import java.util.concurrent.TimeUnit;
+@@ -16,12 +19,6 @@ import java.util.concurrent.TimeUnit;
  import java.util.logging.Level;
  import java.util.regex.Pattern;
  
--import com.google.common.collect.Lists;
 -import net.minecraft.server.MinecraftServer;
 -import org.bukkit.Bukkit;
--import org.bukkit.ChatColor;
 -import org.bukkit.command.Command;
--import org.bukkit.configuration.ConfigurationSection;
 -import org.bukkit.configuration.InvalidConfigurationException;
 -import org.bukkit.configuration.file.YamlConfiguration;
--import co.aikar.timings.Timings;
--import co.aikar.timings.TimingsManager;
--import org.spigotmc.SpigotConfig;
--import org.spigotmc.WatchdogThread;
 -
  public class YatopiaConfig {
  
@@ -1193,6 +1171,18 @@ index 523e3b50d535e91afe8b14fdb53966da030963dc..a2c92daeab053dd3785b8389a101c21f
  public class YatopiaVersionFetcher implements VersionFetcher {
  
      @Override
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
+index 8ee0c5982c3ec957ba043c0d7819ecbe586ac3f5..94c356e055851f4e8f01e10989e1f4a2242ce4df 100644
+--- a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
+@@ -1,7 +1,5 @@
+ package me.jellysquid.mods.lithium.common.util.collections;
+ 
+-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+-
+ import java.util.*;
+ 
+ /**
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/noise/SimplexNoiseCache.java b/src/main/java/me/jellysquid/mods/lithium/common/world/noise/SimplexNoiseCache.java
 index 167498cfab7aed0deb32232082ae06a123b7a039..a28486e5ad4a86bd02219f1db696d8049b6955bf 100644
 --- a/src/main/java/me/jellysquid/mods/lithium/common/world/noise/SimplexNoiseCache.java
@@ -1558,6 +1548,23 @@ index 54a555509e3d83e9749609dc35897ad151bca681..9f2350c5b20f9e611c1ccadc01b7acb6
 +import java.util.List;
  
  public class BehaviorFarm extends Behavior<EntityVillager> {
+ 
+diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+index 15ea264e49609de61be131d41ae68e65957d002b..9c86546798cbb50422f012f7403da3f7a826b20c 100644
+--- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
++++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+@@ -4,11 +4,9 @@ import com.google.common.collect.ImmutableMap;
+ import com.google.common.collect.ImmutableMap.Builder;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+-import java.util.Iterator;
++
+ import java.util.Random;
+-import java.util.Set;
+ import java.util.function.Predicate;
+-import java.util.stream.Collectors;
+ 
+ public class BehaviorFindPosition extends Behavior<EntityCreature> {
  
 diff --git a/src/main/java/net/minecraft/server/BehaviorGate.java b/src/main/java/net/minecraft/server/BehaviorGate.java
 index 46e910581210421c8699637431804dc2f43eb4a6..f6e60fc77cfe40dd3824abb9aaa4d8e76d8edd97 100644
@@ -3692,10 +3699,10 @@ index d8147567b4dfdc48b86f6349fca084fdb4381c42..d3105bf3dd35ad26d3df64c03174cedc
  
      private static final Logger LOGGER = LogManager.getLogger();
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 73f4d52f24d042e287dab351edd4bfa4e22046b4..7ae538a6a7a9766f8443c0dd7cf908a028d3f9bb 100644
+index b045cfc0e8ade9632cfde5cffe8fe93b5ee08b27..8974915ea2e0d2e831d2fb25a5402c439320965d 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -1,38 +1,28 @@
+@@ -1,37 +1,27 @@
  package net.minecraft.server;
  
 +import co.aikar.timings.MinecraftTimings;
@@ -3715,7 +3722,6 @@ index 73f4d52f24d042e287dab351edd4bfa4e22046b4..7ae538a6a7a9766f8443c0dd7cf908a0
 +import org.bukkit.event.server.ServerCommandEvent;
 +
 +import javax.annotation.Nullable;
- import java.io.File;
  import java.io.IOException;
 -import java.io.InputStreamReader;
  import java.net.InetAddress;
@@ -4717,7 +4723,7 @@ index b1b8748fa95aab25562c2f5397cb6454737fa508..71cc6953091119dda28003a8199e9814
  public class EntityLightning extends Entity {
  
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index ef77e7864e7e49684a9bd2a7c9f07717800e3e89..a37badcd92afd03a4b622048921618dbca2db8b4 100644
+index 173d04df808d9ed1fdd4767c25c2ebe130303d7f..71a0ec28b1e6077a232f37c56847485f5482ed81 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -1,6 +1,7 @@
@@ -9595,6 +9601,55 @@ index f1e791c87457bcdf31a70f6f06bf865f556f12e7..1e75251c2a47f524ad7f2dbb864674c7
  import java.util.function.BiConsumer;
  import java.util.function.BooleanSupplier;
  import java.util.function.Predicate;
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceRecord.java b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
+index 2647dc3646e332189a88d17e08831882e40f2910..2c9b617e903c4c070cd13d1ee759e3a40a7a60b8 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceRecord.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
+@@ -2,6 +2,7 @@ package net.minecraft.server;
+ 
+ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.codecs.RecordCodecBuilder;
++
+ import java.util.Objects;
+ 
+ public class VillagePlaceRecord {
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+index 3aaba7fcaf83a491b9da60d156b7f2379f5a6aeb..9834465a5a6c6dd386b91f3e43a298b719c207b4 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+@@ -7,6 +7,10 @@ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.codecs.RecordCodecBuilder;
+ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
+ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++import org.apache.logging.log4j.util.Supplier;
++
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Optional;
+@@ -15,9 +19,6 @@ import java.util.function.BiConsumer;
+ import java.util.function.Consumer;
+ import java.util.function.Predicate;
+ import java.util.stream.Stream;
+-import org.apache.logging.log4j.LogManager;
+-import org.apache.logging.log4j.Logger;
+-import org.apache.logging.log4j.util.Supplier;
+ 
+ public class VillagePlaceSection {
+ 
+diff --git a/src/main/java/net/minecraft/server/VillagePlaceType.java b/src/main/java/net/minecraft/server/VillagePlaceType.java
+index 1fb87bf395ced15bc3ef383dae46a42c5e4d2547..c720b82faae3d5fe1249f01d42e8d5cbdbab7cd6 100644
+--- a/src/main/java/net/minecraft/server/VillagePlaceType.java
++++ b/src/main/java/net/minecraft/server/VillagePlaceType.java
+@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.ImmutableSet;
+ import com.google.common.collect.Maps;
+ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
++
+ import java.util.Map;
+ import java.util.Optional;
+ import java.util.Set;
 diff --git a/src/main/java/net/minecraft/server/VillageSiege.java b/src/main/java/net/minecraft/server/VillageSiege.java
 index b1081e441023f5d24091321b1267b5651adeb331..31783b9b1fe53ccb3ae39149bc066037b3074843 100644
 --- a/src/main/java/net/minecraft/server/VillageSiege.java
@@ -9609,6 +9664,18 @@ index b1081e441023f5d24091321b1267b5651adeb331..31783b9b1fe53ccb3ae39149bc066037
  
  public class VillageSiege implements MobSpawner {
  
+diff --git a/src/main/java/net/minecraft/server/VillagerProfession.java b/src/main/java/net/minecraft/server/VillagerProfession.java
+index 1b012914cb3fcbc4bb456195ade96668b6742cfd..9dac1d6be967968ca3f83dca349af1c5759f586d 100644
+--- a/src/main/java/net/minecraft/server/VillagerProfession.java
++++ b/src/main/java/net/minecraft/server/VillagerProfession.java
+@@ -1,6 +1,7 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.ImmutableSet;
++
+ import javax.annotation.Nullable;
+ 
+ public class VillagerProfession {
 diff --git a/src/main/java/net/minecraft/server/VillagerTrades.java b/src/main/java/net/minecraft/server/VillagerTrades.java
 index d0c2ec4050458e26d1bd85cc09b1a3fdca8488c6..9eb3996a0e927276327402653de395f6cfa3669f 100644
 --- a/src/main/java/net/minecraft/server/VillagerTrades.java
@@ -9687,16 +9754,14 @@ index 34a180361e817b5cbd37d206fbc7cfd5ad2a468b..fa35fe79d1d35a6862151aca0dba0923
  import java.util.Objects;
  import java.util.stream.Stream;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 2977dadc19fa6bcafaa6f44a883eec235db8653d..f4058e70aea8295942c16041e0eb332b59894cd2 100644
+index cc40e3ef589cd636225941ac755b5849520f7b70..922ef8752a4aad8f0669f43ad0333713fde45f24 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -1,33 +1,15 @@
+@@ -1,30 +1,14 @@
  package net.minecraft.server;
  
 -import co.aikar.timings.Timing;
 -import co.aikar.timings.Timings;
--import me.jellysquid.mods.lithium.common.util.collections.HashedList;
--
 -import com.destroystokyo.paper.antixray.ChunkPacketBlockController; // Paper - Anti-Xray
 -import com.destroystokyo.paper.antixray.ChunkPacketBlockControllerAntiXray; // Paper - Anti-Xray
 +import com.destroystokyo.paper.antixray.ChunkPacketBlockController;
@@ -9708,7 +9773,6 @@ index 2977dadc19fa6bcafaa6f44a883eec235db8653d..f4058e70aea8295942c16041e0eb332b
  import com.mojang.serialization.Codec;
  import com.proximyst.rainforest.RainforestWorldConfig;
 -import java.io.IOException;
--import java.util.ArrayList;
 -import java.util.Collection;
 -import java.util.Iterator;
 -import java.util.List;
@@ -9717,7 +9781,6 @@ index 2977dadc19fa6bcafaa6f44a883eec235db8653d..f4058e70aea8295942c16041e0eb332b
 -import java.util.function.Predicate;
 -import java.util.function.Supplier;
 -import javax.annotation.Nullable;
-+import me.jellysquid.mods.lithium.common.util.collections.HashedList;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
 -
@@ -9727,7 +9790,7 @@ index 2977dadc19fa6bcafaa6f44a883eec235db8653d..f4058e70aea8295942c16041e0eb332b
  import org.bukkit.Bukkit;
  import org.bukkit.craftbukkit.CraftServer;
  import org.bukkit.craftbukkit.CraftWorld;
-@@ -35,6 +17,13 @@ import org.bukkit.craftbukkit.block.CapturedBlockState;
+@@ -32,6 +16,13 @@ import org.bukkit.craftbukkit.block.CapturedBlockState;
  import org.bukkit.craftbukkit.block.CraftBlockState;
  import org.bukkit.craftbukkit.block.data.CraftBlockData;
  import org.bukkit.event.block.BlockPhysicsEvent;
@@ -10043,873 +10106,8 @@ index 7cde55ae407012b3445f11b07a0ebc9d00e031e3..23cbd9a980ce65c99cdfd1cbade3ffa5
  import static net.pl3x.purpur.PurpurConfig.log;
  
  public class PurpurWorldConfig {
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
-index 06e42b7db5385f9a357183552259e7b4491d9fd0..523314656144ce4a79a788130152ddfcdba7b252 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
-@@ -2,27 +2,7 @@ package org.bukkit.craftbukkit;
- 
- import com.google.common.base.Preconditions;
- import com.google.common.base.Predicates;
--import java.lang.ref.WeakReference;
--import java.util.Arrays;
--import java.util.Collection;
--import java.util.function.Predicate;
--import net.minecraft.server.BiomeStorage;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.Blocks;
--import net.minecraft.server.ChunkCoordIntPair;
--import net.minecraft.server.ChunkSection;
--import net.minecraft.server.DataPaletteBlock;
--import net.minecraft.server.EnumSkyBlock;
--import net.minecraft.server.GameProfileSerializer;
--import net.minecraft.server.HeightMap;
--import net.minecraft.server.IBlockData;
--import net.minecraft.server.LightEngine;
--import net.minecraft.server.NBTTagCompound;
--import net.minecraft.server.NibbleArray;
--import net.minecraft.server.SectionPosition;
--import net.minecraft.server.SeededRandom;
--import net.minecraft.server.WorldChunkManager;
--import net.minecraft.server.WorldServer;
-+import net.minecraft.server.*;
- import org.bukkit.Chunk;
- import org.bukkit.ChunkSnapshot;
- import org.bukkit.World;
-@@ -35,6 +15,11 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.entity.Entity;
- import org.bukkit.plugin.Plugin;
- 
-+import java.lang.ref.WeakReference;
-+import java.util.Arrays;
-+import java.util.Collection;
-+import java.util.function.Predicate;
-+
- public class CraftChunk implements Chunk {
-     private WeakReference<net.minecraft.server.Chunk> weakChunk;
-     private final WorldServer worldServer;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java b/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java
-index 31c81b4b52f79892de5c1315358ec161c5a0c204..9f3ff7b613ea0b69519999346eb63390b5e00a05 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftChunkSnapshot.java
-@@ -2,12 +2,7 @@ package org.bukkit.craftbukkit;
- 
- import com.google.common.base.Preconditions;
- import com.google.common.base.Predicates;
--import java.util.function.Predicate;
--import net.minecraft.server.BiomeStorage;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.DataPaletteBlock;
--import net.minecraft.server.HeightMap;
--import net.minecraft.server.IBlockData;
-+import net.minecraft.server.*;
- import org.bukkit.ChunkSnapshot;
- import org.bukkit.Material;
- import org.bukkit.block.Biome;
-@@ -16,6 +11,8 @@ import org.bukkit.craftbukkit.block.CraftBlock;
- import org.bukkit.craftbukkit.block.data.CraftBlockData;
- import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- 
-+import java.util.function.Predicate;
-+
- /**
-  * Represents a static, thread-safe snapshot of chunk of blocks
-  * Purpose is to allow clean, efficient copy of a chunk data to be made, and then handed off for processing in another thread (e.g. map rendering)
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftCrashReport.java b/src/main/java/org/bukkit/craftbukkit/CraftCrashReport.java
-index 7511e38130f38703164395a670f12d1af648ff04..54b9b61f814a4987406661a1eacd7a1ffbd26924 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftCrashReport.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftCrashReport.java
-@@ -1,10 +1,5 @@
- package org.bukkit.craftbukkit;
- 
--import java.io.PrintWriter;
--import java.io.StringWriter;
--import java.util.Arrays;
--import java.util.Collection;
--import java.util.Map;
- import net.minecraft.server.CrashReportCallable;
- import net.minecraft.server.MinecraftServer;
- import org.bukkit.Bukkit;
-@@ -14,6 +9,12 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.plugin.Plugin;
- import org.bukkit.plugin.PluginDescriptionFile;
- 
-+import java.io.PrintWriter;
-+import java.io.StringWriter;
-+import java.util.Arrays;
-+import java.util.Collection;
-+import java.util.Map;
-+
- public class CraftCrashReport implements CrashReportCallable<Object> {
- 
-     @Override
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftIpBanEntry.java b/src/main/java/org/bukkit/craftbukkit/CraftIpBanEntry.java
-index 372404cd185d2e85617db673edcd8eeab4401f2b..040a779017cf33192d17913b26651d246e95d4d0 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftIpBanEntry.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftIpBanEntry.java
-@@ -1,12 +1,13 @@
- package org.bukkit.craftbukkit;
- 
--import java.io.IOException;
--import java.util.Date;
--import java.util.logging.Level;
- import net.minecraft.server.IpBanEntry;
- import net.minecraft.server.IpBanList;
- import org.bukkit.Bukkit;
- 
-+import java.io.IOException;
-+import java.util.Date;
-+import java.util.logging.Level;
-+
- public final class CraftIpBanEntry implements org.bukkit.BanEntry {
-     private final IpBanList list;
-     private final String target;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftIpBanList.java b/src/main/java/org/bukkit/craftbukkit/CraftIpBanList.java
-index 101a32555a632f8c023594319a76861b794d1a46..af277342d96367cb7c6e9f80a0120181d7297024 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftIpBanList.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftIpBanList.java
-@@ -1,17 +1,18 @@
- package org.bukkit.craftbukkit;
- 
- import com.google.common.collect.ImmutableSet;
--import java.io.IOException;
--import java.net.InetSocketAddress;
--import java.util.Date;
--import java.util.Set;
--import java.util.logging.Level;
- import net.minecraft.server.IpBanEntry;
- import net.minecraft.server.IpBanList;
- import org.apache.commons.lang.StringUtils;
- import org.apache.commons.lang.Validate;
- import org.bukkit.Bukkit;
- 
-+import java.io.IOException;
-+import java.net.InetSocketAddress;
-+import java.util.Date;
-+import java.util.Set;
-+import java.util.logging.Level;
-+
- public class CraftIpBanList implements org.bukkit.BanList {
-     private final IpBanList list;
- 
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java b/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
-index 584ca998e077a0a8aef5be05f5b4f15879aab397..3ff9fa7173d64950769db96c41f9b7d651d6e3b0 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
-@@ -1,20 +1,6 @@
- package org.bukkit.craftbukkit;
- 
--import java.util.ArrayList;
--import java.util.Collection;
--import java.util.List;
--import java.util.Random;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.DamageSource;
--import net.minecraft.server.Entity;
--import net.minecraft.server.EntityHuman;
--import net.minecraft.server.IInventory;
--import net.minecraft.server.LootContextParameter;
--import net.minecraft.server.LootContextParameterSet;
--import net.minecraft.server.LootContextParameters;
--import net.minecraft.server.LootTable;
--import net.minecraft.server.LootTableInfo;
--import net.minecraft.server.WorldServer;
-+import net.minecraft.server.*;
- import org.bukkit.Location;
- import org.bukkit.NamespacedKey;
- import org.bukkit.craftbukkit.entity.CraftEntity;
-@@ -25,6 +11,11 @@ import org.bukkit.inventory.Inventory;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.loot.LootContext;
- 
-+import java.util.ArrayList;
-+import java.util.Collection;
-+import java.util.List;
-+import java.util.Random;
-+
- public class CraftLootTable implements org.bukkit.loot.LootTable {
- 
-     private final LootTable handle;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java b/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
-index 5770d4183c1b9ab6119a25930283c0235250ed6e..1b2f7dc78d8f969169718d289662361c50a38327 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
-@@ -1,22 +1,11 @@
- package org.bukkit.craftbukkit;
- 
- import com.mojang.authlib.GameProfile;
--import java.io.File;
--import java.util.LinkedHashMap;
--import java.util.List;
--import java.util.Map;
--import java.util.UUID;
- import net.minecraft.server.NBTTagCompound;
- import net.minecraft.server.ServerStatisticManager;
- import net.minecraft.server.WhiteListEntry;
- import net.minecraft.server.WorldNBTStorage;
--import org.bukkit.BanList;
--import org.bukkit.Bukkit;
--import org.bukkit.Location;
--import org.bukkit.Material;
--import org.bukkit.OfflinePlayer;
--import org.bukkit.Server;
--import org.bukkit.Statistic;
-+import org.bukkit.*;
- import org.bukkit.configuration.serialization.ConfigurationSerializable;
- import org.bukkit.configuration.serialization.SerializableAs;
- import org.bukkit.entity.EntityType;
-@@ -24,6 +13,12 @@ import org.bukkit.entity.Player;
- import org.bukkit.metadata.MetadataValue;
- import org.bukkit.plugin.Plugin;
- 
-+import java.io.File;
-+import java.util.LinkedHashMap;
-+import java.util.List;
-+import java.util.Map;
-+import java.util.UUID;
-+
- @SerializableAs("Player")
- public class CraftOfflinePlayer implements OfflinePlayer, ConfigurationSerializable {
-     private final GameProfile profile;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftParticle.java b/src/main/java/org/bukkit/craftbukkit/CraftParticle.java
-index 54800bbed574655db8bae174c85cb3f5e9602434..caf28d3450324af516e6805e9b8668af7ab4a6d3 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftParticle.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftParticle.java
-@@ -3,15 +3,7 @@ package org.bukkit.craftbukkit;
- import com.google.common.base.Preconditions;
- import com.google.common.collect.BiMap;
- import com.google.common.collect.HashBiMap;
--import java.util.HashMap;
--import java.util.Map;
--import net.minecraft.server.IRegistry;
--import net.minecraft.server.MinecraftKey;
--import net.minecraft.server.ParticleParam;
--import net.minecraft.server.ParticleParamBlock;
--import net.minecraft.server.ParticleParamItem;
--import net.minecraft.server.ParticleParamRedstone;
--import net.minecraft.server.ParticleType;
-+import net.minecraft.server.*;
- import org.bukkit.Color;
- import org.bukkit.Particle;
- import org.bukkit.block.data.BlockData;
-@@ -21,6 +13,9 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.material.MaterialData;
- 
-+import java.util.HashMap;
-+import java.util.Map;
-+
- public enum CraftParticle {
- 
-     EXPLOSION_NORMAL("poof"),
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftProfileBanEntry.java b/src/main/java/org/bukkit/craftbukkit/CraftProfileBanEntry.java
-index bbe91bca15ee1506ff9ea33169286fa2ed2dd267..62964b62ea3f9e1dbee670c991f475b5299d3520 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftProfileBanEntry.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftProfileBanEntry.java
-@@ -1,13 +1,14 @@
- package org.bukkit.craftbukkit;
- 
- import com.mojang.authlib.GameProfile;
--import java.io.IOException;
--import java.util.Date;
--import java.util.logging.Level;
- import net.minecraft.server.GameProfileBanEntry;
- import net.minecraft.server.GameProfileBanList;
- import org.bukkit.Bukkit;
- 
-+import java.io.IOException;
-+import java.util.Date;
-+import java.util.logging.Level;
-+
- public final class CraftProfileBanEntry implements org.bukkit.BanEntry {
-     private final GameProfileBanList list;
-     private final GameProfile profile;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftProfileBanList.java b/src/main/java/org/bukkit/craftbukkit/CraftProfileBanList.java
-index 492a5bad8549d781e3aee47f22421da186d45760..6239d96d78c35d1231d68b5f60fdb7dbb9214585 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftProfileBanList.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftProfileBanList.java
-@@ -2,11 +2,6 @@ package org.bukkit.craftbukkit;
- 
- import com.google.common.collect.ImmutableSet;
- import com.mojang.authlib.GameProfile;
--import java.io.IOException;
--import java.util.Date;
--import java.util.Set;
--import java.util.UUID;
--import java.util.logging.Level;
- import net.minecraft.server.GameProfileBanEntry;
- import net.minecraft.server.GameProfileBanList;
- import net.minecraft.server.JsonListEntry;
-@@ -15,6 +10,12 @@ import org.apache.commons.lang.StringUtils;
- import org.apache.commons.lang.Validate;
- import org.bukkit.Bukkit;
- 
-+import java.io.IOException;
-+import java.util.Date;
-+import java.util.Set;
-+import java.util.UUID;
-+import java.util.logging.Level;
-+
- public class CraftProfileBanList implements org.bukkit.BanList {
-     private final GameProfileBanList list;
- 
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftRaid.java b/src/main/java/org/bukkit/craftbukkit/CraftRaid.java
-index 360a4901f5159a3f0606214f1abf2f8cee2ecbe1..96b4380d6bbda6b52259440b33d56b3d3bede4ef 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftRaid.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftRaid.java
-@@ -2,11 +2,6 @@ package org.bukkit.craftbukkit;
- 
- import com.google.common.base.Preconditions;
- import com.google.common.collect.ImmutableList;
--import java.util.Collections;
--import java.util.List;
--import java.util.Set;
--import java.util.UUID;
--import java.util.function.Function;
- import net.minecraft.server.BlockPosition;
- import net.minecraft.server.EntityRaider;
- import net.minecraft.server.World;
-@@ -14,6 +9,12 @@ import org.bukkit.Location;
- import org.bukkit.Raid;
- import org.bukkit.entity.Raider;
- 
-+import java.util.Collections;
-+import java.util.List;
-+import java.util.Set;
-+import java.util.UUID;
-+import java.util.function.Function;
-+
- public final class CraftRaid implements Raid {
- 
-     private final net.minecraft.server.Raid handle;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 24b0fe67f2ea0a109fa32feb6ced0290cac7e8b7..f35258fdc19a0fdb5940e3bd2339427cb1ca8a45 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -3,11 +3,7 @@ package org.bukkit.craftbukkit;
- import com.google.common.base.Charsets;
- import com.google.common.base.Function;
- import com.google.common.base.Preconditions;
--import com.google.common.collect.ImmutableList;
--import com.google.common.collect.ImmutableSet;
--import com.google.common.collect.Iterators;
--import com.google.common.collect.Lists;
--import com.google.common.collect.MapMaker;
-+import com.google.common.collect.*;
- import com.mojang.authlib.GameProfile;
- import com.mojang.brigadier.StringReader;
- import com.mojang.brigadier.exceptions.CommandSyntaxException;
-@@ -19,106 +15,18 @@ import io.netty.buffer.ByteBuf;
- import io.netty.buffer.ByteBufOutputStream;
- import io.netty.buffer.Unpooled;
- import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
--import java.awt.image.BufferedImage;
--import java.io.File;
--import java.io.FileInputStream;
--import java.io.FileNotFoundException;
--import java.io.IOException;
--import java.io.InputStreamReader;
--import java.nio.ByteBuffer;
--import java.nio.charset.StandardCharsets;
--import java.util.*;
--import java.util.function.Consumer;
--import java.util.logging.Level;
--import java.util.logging.Logger;
--import javax.imageio.ImageIO;
--//import jline.console.ConsoleReader; // Paper
--import net.minecraft.server.Advancement;
--import net.minecraft.server.ArgumentEntity;
--import net.minecraft.server.BiomeManager;
--import net.minecraft.server.Block;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.BossBattleCustom;
--import net.minecraft.server.CommandDispatcher;
--import net.minecraft.server.CommandListenerWrapper;
--import net.minecraft.server.CommandReload;
--import net.minecraft.server.Convertable;
--import net.minecraft.server.DataConverterRegistry;
--import net.minecraft.server.DedicatedPlayerList;
--import net.minecraft.server.DedicatedServer;
--import net.minecraft.server.DedicatedServerProperties;
--import net.minecraft.server.DedicatedServerSettings;
--import net.minecraft.server.DimensionManager;
--import net.minecraft.server.DynamicOpsNBT;
--import net.minecraft.server.Enchantments;
--import net.minecraft.server.EntityPlayer;
--import net.minecraft.server.EnumDifficulty;
--import net.minecraft.server.EnumGamemode;
--import net.minecraft.server.GameRules;
--import net.minecraft.server.GeneratorSettings;
--import net.minecraft.server.IRecipe;
--import net.minecraft.server.IRegistry;
--import net.minecraft.server.IRegistryCustom;
--import net.minecraft.server.Item;
--import net.minecraft.server.ItemWorldMap;
--import net.minecraft.server.Items;
--import net.minecraft.server.JsonListEntry;
--import net.minecraft.server.LootTableRegistry;
--import net.minecraft.server.MapIcon;
--import net.minecraft.server.MinecraftKey;
--import net.minecraft.server.MinecraftServer;
--import net.minecraft.server.MobEffects;
--import net.minecraft.server.MobSpawner;
--import net.minecraft.server.MobSpawnerCat;
--import net.minecraft.server.MobSpawnerPatrol;
--import net.minecraft.server.MobSpawnerPhantom;
--import net.minecraft.server.MobSpawnerTrader;
--import net.minecraft.server.NBTBase;
--import net.minecraft.server.PlayerList;
--import net.minecraft.server.RegistryMaterials;
--import net.minecraft.server.RegistryReadOps;
--import net.minecraft.server.ResourceKey;
--import net.minecraft.server.SaveData;
--import net.minecraft.server.ServerCommand;
--import net.minecraft.server.TagsServer;
--import net.minecraft.server.TicketType;
--import net.minecraft.server.Vec3D;
--import net.minecraft.server.VillageSiege;
--import net.minecraft.server.WorldDataServer;
--import net.minecraft.server.WorldDimension;
--import net.minecraft.server.WorldMap;
--import net.minecraft.server.WorldNBTStorage;
--import net.minecraft.server.WorldServer;
--import net.minecraft.server.WorldSettings;
-+import net.md_5.bungee.api.chat.BaseComponent;
-+import net.minecraft.server.*;
- import org.apache.commons.lang.Validate;
- import org.apache.commons.lang3.StringUtils;
--import org.bukkit.BanList;
--import org.bukkit.Bukkit;
--import org.bukkit.ChatColor;
--import org.bukkit.GameMode;
--import org.bukkit.Keyed;
--import org.bukkit.Location;
--import org.bukkit.NamespacedKey;
--import org.bukkit.OfflinePlayer;
--import org.bukkit.Server;
--import org.bukkit.StructureType;
--import org.bukkit.UnsafeValues;
--import org.bukkit.Warning.WarningState;
-+import org.bukkit.*;
- import org.bukkit.World;
-+import org.bukkit.Warning.WarningState;
- import org.bukkit.World.Environment;
--import org.bukkit.WorldCreator;
- import org.bukkit.block.data.BlockData;
--import org.bukkit.boss.BarColor;
--import org.bukkit.boss.BarFlag;
--import org.bukkit.boss.BarStyle;
--import org.bukkit.boss.BossBar;
--import org.bukkit.boss.KeyedBossBar;
--import org.bukkit.command.Command;
-+import org.bukkit.boss.*;
- import org.bukkit.command.CommandException;
--import org.bukkit.command.CommandSender;
--import org.bukkit.command.ConsoleCommandSender;
--import org.bukkit.command.PluginCommand;
--import org.bukkit.command.SimpleCommandMap;
-+import org.bukkit.command.*;
- import org.bukkit.configuration.ConfigurationSection;
- import org.bukkit.configuration.file.YamlConfiguration;
- import org.bukkit.configuration.serialization.ConfigurationSerialization;
-@@ -132,19 +40,7 @@ import org.bukkit.craftbukkit.command.VanillaCommandWrapper;
- import org.bukkit.craftbukkit.entity.CraftPlayer;
- import org.bukkit.craftbukkit.generator.CraftChunkData;
- import org.bukkit.craftbukkit.help.SimpleHelpMap;
--import org.bukkit.craftbukkit.inventory.CraftBlastingRecipe;
--import org.bukkit.craftbukkit.inventory.CraftCampfireRecipe;
--import org.bukkit.craftbukkit.inventory.CraftFurnaceRecipe;
--import org.bukkit.craftbukkit.inventory.CraftItemFactory;
--import org.bukkit.craftbukkit.inventory.CraftItemStack;
--import org.bukkit.craftbukkit.inventory.CraftMerchantCustom;
--import org.bukkit.craftbukkit.inventory.CraftRecipe;
--import org.bukkit.craftbukkit.inventory.CraftShapedRecipe;
--import org.bukkit.craftbukkit.inventory.CraftShapelessRecipe;
--import org.bukkit.craftbukkit.inventory.CraftSmithingRecipe;
--import org.bukkit.craftbukkit.inventory.CraftSmokingRecipe;
--import org.bukkit.craftbukkit.inventory.CraftStonecuttingRecipe;
--import org.bukkit.craftbukkit.inventory.RecipeIterator;
-+import org.bukkit.craftbukkit.inventory.*;
- import org.bukkit.craftbukkit.inventory.util.CraftInventoryCreator;
- import org.bukkit.craftbukkit.map.CraftMapView;
- import org.bukkit.craftbukkit.metadata.EntityMetadataStore;
-@@ -155,16 +51,11 @@ import org.bukkit.craftbukkit.scheduler.CraftScheduler;
- import org.bukkit.craftbukkit.scoreboard.CraftScoreboardManager;
- import org.bukkit.craftbukkit.tag.CraftBlockTag;
- import org.bukkit.craftbukkit.tag.CraftItemTag;
--import org.bukkit.craftbukkit.util.CraftChatMessage;
--import org.bukkit.craftbukkit.util.CraftIconCache;
--import org.bukkit.craftbukkit.util.CraftMagicNumbers;
--import org.bukkit.craftbukkit.util.CraftNamespacedKey;
--import org.bukkit.craftbukkit.util.DatFileFilter;
--import org.bukkit.craftbukkit.util.Versioning;
-+import org.bukkit.craftbukkit.util.*;
- import org.bukkit.craftbukkit.util.permissions.CraftDefaultPermissions;
- import org.bukkit.entity.Entity;
- import org.bukkit.entity.Player;
--import org.bukkit.event.command.UnknownCommandEvent; // Paper
-+import org.bukkit.event.command.UnknownCommandEvent;
- import org.bukkit.event.inventory.InventoryType;
- import org.bukkit.event.player.PlayerChatTabCompleteEvent;
- import org.bukkit.event.server.BroadcastMessageEvent;
-@@ -175,30 +66,14 @@ import org.bukkit.event.world.WorldLoadEvent;
- import org.bukkit.event.world.WorldUnloadEvent;
- import org.bukkit.generator.ChunkGenerator;
- import org.bukkit.help.HelpMap;
--import org.bukkit.inventory.BlastingRecipe;
--import org.bukkit.inventory.CampfireRecipe;
--import org.bukkit.inventory.ComplexRecipe;
- import org.bukkit.inventory.FurnaceRecipe;
--import org.bukkit.inventory.Inventory;
--import org.bukkit.inventory.InventoryHolder;
- import org.bukkit.inventory.ItemStack;
--import org.bukkit.inventory.Merchant;
--import org.bukkit.inventory.Recipe;
--import org.bukkit.inventory.ShapedRecipe;
--import org.bukkit.inventory.ShapelessRecipe;
--import org.bukkit.inventory.SmithingRecipe;
--import org.bukkit.inventory.SmokingRecipe;
--import org.bukkit.inventory.StonecuttingRecipe;
-+import org.bukkit.inventory.*;
- import org.bukkit.loot.LootTable;
- import org.bukkit.map.MapView;
- import org.bukkit.permissions.Permissible;
- import org.bukkit.permissions.Permission;
--import org.bukkit.plugin.Plugin;
--import org.bukkit.plugin.PluginLoadOrder;
--import org.bukkit.plugin.PluginManager;
--import org.bukkit.plugin.ServicesManager;
--import org.bukkit.plugin.SimplePluginManager;
--import org.bukkit.plugin.SimpleServicesManager;
-+import org.bukkit.plugin.*;
- import org.bukkit.plugin.java.JavaPluginLoader;
- import org.bukkit.plugin.messaging.Messenger;
- import org.bukkit.plugin.messaging.StandardMessenger;
-@@ -211,10 +86,17 @@ import org.yaml.snakeyaml.Yaml;
- import org.yaml.snakeyaml.constructor.SafeConstructor;
- import org.yaml.snakeyaml.error.MarkedYAMLException;
- 
--import net.md_5.bungee.api.chat.BaseComponent; // Spigot
--
--import javax.annotation.Nullable; // Paper
--import javax.annotation.Nonnull; // Paper
-+import javax.annotation.Nonnull;
-+import javax.annotation.Nullable;
-+import javax.imageio.ImageIO;
-+import java.awt.image.BufferedImage;
-+import java.io.*;
-+import java.nio.ByteBuffer;
-+import java.nio.charset.StandardCharsets;
-+import java.util.*;
-+import java.util.function.Consumer;
-+import java.util.logging.Level;
-+import java.util.logging.Logger;
- 
- public final class CraftServer implements Server {
-     private final String serverName = "Yatopia"; // Paper // Tuinity // Yatopia
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftStatistic.java b/src/main/java/org/bukkit/craftbukkit/CraftStatistic.java
-index 2758eee2be30ce7df40a98d396b0a810b00d703a..2a0d035b7c16ac96213319a963dc9da253fa219f 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftStatistic.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftStatistic.java
-@@ -3,13 +3,7 @@ package org.bukkit.craftbukkit;
- import com.google.common.base.Preconditions;
- import com.google.common.collect.BiMap;
- import com.google.common.collect.ImmutableBiMap;
--import net.minecraft.server.Block;
--import net.minecraft.server.EntityTypes;
--import net.minecraft.server.IRegistry;
--import net.minecraft.server.Item;
--import net.minecraft.server.MinecraftKey;
--import net.minecraft.server.ServerStatisticManager;
--import net.minecraft.server.StatisticList;
-+import net.minecraft.server.*;
- import org.apache.commons.lang.Validate;
- import org.bukkit.Material;
- import org.bukkit.Statistic;
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 077f4793cd121701ea3912a1f601508827fa98dc..ad8627fd5e04d93ba78f0e0dbeba956f1d5d9fee 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -5,112 +5,15 @@ import com.google.common.collect.ImmutableList;
- import com.google.common.collect.ImmutableMap;
- import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
- import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
--import java.io.File;
--import java.io.IOException;
--import java.util.ArrayList;
--import java.util.Collection;
--import java.util.Collections;
--import java.util.HashMap;
--import java.util.HashSet;
--import java.util.Iterator;
--import java.util.List;
--import java.util.Map;
--import java.util.Objects;
--import java.util.Random;
--import java.util.Set;
--import java.util.UUID;
--import java.util.concurrent.CompletableFuture;
--import java.util.function.Predicate;
--import java.util.stream.Collectors;
--import net.minecraft.server.ArraySetSorted;
--import net.minecraft.server.AxisAlignedBB;
--import net.minecraft.server.BiomeBase;
--import net.minecraft.server.BiomeDecoratorGroups;
--import net.minecraft.server.BlockChorusFlower;
--import net.minecraft.server.BlockDiodeAbstract;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.Blocks;
--import net.minecraft.server.ChunkCoordIntPair;
--import net.minecraft.server.ChunkMapDistance;
--import net.minecraft.server.ChunkStatus;
--import net.minecraft.server.EntityAreaEffectCloud;
--import net.minecraft.server.EntityArmorStand;
--import net.minecraft.server.EntityArrow;
--import net.minecraft.server.EntityBoat;
--import net.minecraft.server.EntityEgg;
--import net.minecraft.server.EntityEnderSignal;
--import net.minecraft.server.EntityEvokerFangs;
--import net.minecraft.server.EntityExperienceOrb;
--import net.minecraft.server.EntityFallingBlock;
--import net.minecraft.server.EntityFireball;
--import net.minecraft.server.EntityFireworks;
--import net.minecraft.server.EntityHanging;
--import net.minecraft.server.EntityHuman;
--import net.minecraft.server.EntityInsentient;
--import net.minecraft.server.EntityItem;
--import net.minecraft.server.EntityItemFrame;
--import net.minecraft.server.EntityLeash;
--import net.minecraft.server.EntityLightning;
--import net.minecraft.server.EntityMinecartChest;
--import net.minecraft.server.EntityMinecartCommandBlock;
--import net.minecraft.server.EntityMinecartFurnace;
--import net.minecraft.server.EntityMinecartHopper;
--import net.minecraft.server.EntityMinecartMobSpawner;
--import net.minecraft.server.EntityMinecartRideable;
--import net.minecraft.server.EntityMinecartTNT;
--import net.minecraft.server.EntityPainting;
--import net.minecraft.server.EntityPotion;
--import net.minecraft.server.EntitySnowball;
--import net.minecraft.server.EntityTNTPrimed;
--import net.minecraft.server.EntityTippedArrow;
--import net.minecraft.server.EntityTypes;
--import net.minecraft.server.EntityZombie;
--import net.minecraft.server.EnumDifficulty;
--import net.minecraft.server.EnumDirection;
--import net.minecraft.server.EnumMobSpawn;
--import net.minecraft.server.Explosion;
--import net.minecraft.server.GameRules;
--import net.minecraft.server.GroupDataEntity;
--import net.minecraft.server.IBlockData;
--import net.minecraft.server.IChunkAccess;
--import net.minecraft.server.MCUtil;
--import net.minecraft.server.MinecraftKey;
--import net.minecraft.server.MinecraftServer;
--import net.minecraft.server.MovingObjectPosition;
--import net.minecraft.server.PacketPlayOutCustomSoundEffect;
--import net.minecraft.server.PacketPlayOutUpdateTime;
--import net.minecraft.server.PacketPlayOutWorldEvent;
--import net.minecraft.server.PersistentRaid;
--import net.minecraft.server.PlayerChunk;
--import net.minecraft.server.ProtoChunkExtension;
--import net.minecraft.server.RayTrace;
--import net.minecraft.server.SavedFile;
- import net.minecraft.server.SoundCategory;
--import net.minecraft.server.StructureGenerator;
--import net.minecraft.server.Ticket;
--import net.minecraft.server.TicketType;
--import net.minecraft.server.Unit;
--import net.minecraft.server.Vec3D;
--import net.minecraft.server.WorldGenFeatureHugeFungiConfiguration;
--import net.minecraft.server.WorldGenerator;
--import net.minecraft.server.WorldServer;
-+import net.minecraft.server.*;
- import org.apache.commons.lang.Validate;
--import org.bukkit.BlockChangeDelegate;
--import org.bukkit.Bukkit;
- import org.bukkit.Chunk;
--import org.bukkit.ChunkSnapshot;
--import org.bukkit.Difficulty;
--import org.bukkit.Effect;
--import org.bukkit.FluidCollisionMode;
--import org.bukkit.GameRule;
--import org.bukkit.Location;
- import org.bukkit.Particle;
- import org.bukkit.Raid;
--import org.bukkit.Sound;
--import org.bukkit.StructureType;
--import org.bukkit.TreeType;
- import org.bukkit.World;
- import org.bukkit.WorldBorder;
-+import org.bukkit.*;
- import org.bukkit.block.Biome;
- import org.bukkit.block.Block;
- import org.bukkit.block.BlockFace;
-@@ -128,129 +31,9 @@ import org.bukkit.craftbukkit.metadata.BlockMetadataStore;
- import org.bukkit.craftbukkit.potion.CraftPotionUtil;
- import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.craftbukkit.util.CraftRayTraceResult;
--import org.bukkit.entity.AbstractArrow;
--import org.bukkit.entity.AbstractHorse;
--import org.bukkit.entity.AbstractVillager;
--import org.bukkit.entity.Ambient;
--import org.bukkit.entity.AreaEffectCloud;
--import org.bukkit.entity.ArmorStand;
--import org.bukkit.entity.Arrow;
--import org.bukkit.entity.Bat;
--import org.bukkit.entity.Bee;
--import org.bukkit.entity.Blaze;
--import org.bukkit.entity.Boat;
--import org.bukkit.entity.Cat;
--import org.bukkit.entity.CaveSpider;
--import org.bukkit.entity.ChestedHorse;
--import org.bukkit.entity.Chicken;
--import org.bukkit.entity.Cod;
--import org.bukkit.entity.ComplexLivingEntity;
--import org.bukkit.entity.Cow;
--import org.bukkit.entity.Creeper;
--import org.bukkit.entity.Dolphin;
--import org.bukkit.entity.Donkey;
--import org.bukkit.entity.DragonFireball;
--import org.bukkit.entity.Drowned;
--import org.bukkit.entity.Egg;
--import org.bukkit.entity.ElderGuardian;
--import org.bukkit.entity.EnderCrystal;
--import org.bukkit.entity.EnderDragon;
--import org.bukkit.entity.EnderPearl;
--import org.bukkit.entity.EnderSignal;
--import org.bukkit.entity.Enderman;
--import org.bukkit.entity.Endermite;
- import org.bukkit.entity.Entity;
--import org.bukkit.entity.EntityType;
--import org.bukkit.entity.Evoker;
--import org.bukkit.entity.EvokerFangs;
--import org.bukkit.entity.ExperienceOrb;
--import org.bukkit.entity.FallingBlock;
--import org.bukkit.entity.Fireball;
--import org.bukkit.entity.Firework;
--import org.bukkit.entity.Fish;
--import org.bukkit.entity.Fox;
--import org.bukkit.entity.Ghast;
--import org.bukkit.entity.Giant;
--import org.bukkit.entity.Golem;
--import org.bukkit.entity.Guardian;
--import org.bukkit.entity.Hanging;
--import org.bukkit.entity.Hoglin;
--import org.bukkit.entity.HumanEntity;
--import org.bukkit.entity.Husk;
--import org.bukkit.entity.Illager;
--import org.bukkit.entity.Illusioner;
--import org.bukkit.entity.IronGolem;
--import org.bukkit.entity.ItemFrame;
--import org.bukkit.entity.LeashHitch;
--import org.bukkit.entity.LightningStrike;
--import org.bukkit.entity.LingeringPotion;
--import org.bukkit.entity.LivingEntity;
--import org.bukkit.entity.Llama;
--import org.bukkit.entity.LlamaSpit;
--import org.bukkit.entity.MagmaCube;
--import org.bukkit.entity.Minecart;
--import org.bukkit.entity.Mule;
--import org.bukkit.entity.MushroomCow;
--import org.bukkit.entity.Ocelot;
--import org.bukkit.entity.Painting;
--import org.bukkit.entity.Panda;
--import org.bukkit.entity.Parrot;
--import org.bukkit.entity.Phantom;
--import org.bukkit.entity.Pig;
--import org.bukkit.entity.PigZombie;
--import org.bukkit.entity.Piglin;
--import org.bukkit.entity.Pillager;
--import org.bukkit.entity.Player;
--import org.bukkit.entity.PolarBear;
--import org.bukkit.entity.Projectile;
--import org.bukkit.entity.PufferFish;
--import org.bukkit.entity.Rabbit;
--import org.bukkit.entity.Ravager;
--import org.bukkit.entity.Salmon;
--import org.bukkit.entity.Sheep;
--import org.bukkit.entity.Shulker;
--import org.bukkit.entity.ShulkerBullet;
--import org.bukkit.entity.Silverfish;
--import org.bukkit.entity.Skeleton;
--import org.bukkit.entity.SkeletonHorse;
--import org.bukkit.entity.Slime;
--import org.bukkit.entity.SmallFireball;
--import org.bukkit.entity.Snowball;
--import org.bukkit.entity.Snowman;
--import org.bukkit.entity.SpectralArrow;
--import org.bukkit.entity.Spellcaster;
--import org.bukkit.entity.Spider;
--import org.bukkit.entity.Squid;
--import org.bukkit.entity.Stray;
--import org.bukkit.entity.Strider;
--import org.bukkit.entity.TNTPrimed;
--import org.bukkit.entity.Tameable;
--import org.bukkit.entity.ThrownExpBottle;
--import org.bukkit.entity.ThrownPotion;
--import org.bukkit.entity.TippedArrow;
--import org.bukkit.entity.TraderLlama;
--import org.bukkit.entity.Trident;
--import org.bukkit.entity.TropicalFish;
--import org.bukkit.entity.Turtle;
--import org.bukkit.entity.Vex;
--import org.bukkit.entity.Villager;
--import org.bukkit.entity.Vindicator;
--import org.bukkit.entity.WanderingTrader;
--import org.bukkit.entity.Witch;
--import org.bukkit.entity.Wither;
--import org.bukkit.entity.WitherSkeleton;
--import org.bukkit.entity.WitherSkull;
--import org.bukkit.entity.Wolf;
--import org.bukkit.entity.Zoglin;
--import org.bukkit.entity.Zombie;
--import org.bukkit.entity.ZombieHorse;
--import org.bukkit.entity.ZombieVillager;
--import org.bukkit.entity.minecart.CommandMinecart;
--import org.bukkit.entity.minecart.ExplosiveMinecart;
--import org.bukkit.entity.minecart.HopperMinecart;
--import org.bukkit.entity.minecart.PoweredMinecart;
--import org.bukkit.entity.minecart.SpawnerMinecart;
--import org.bukkit.entity.minecart.StorageMinecart;
-+import org.bukkit.entity.*;
-+import org.bukkit.entity.minecart.*;
- import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
- import org.bukkit.event.world.SpawnChangeEvent;
- import org.bukkit.event.world.TimeSkipEvent;
-@@ -268,6 +51,12 @@ import org.bukkit.util.Consumer;
- import org.bukkit.util.RayTraceResult;
- import org.bukkit.util.Vector;
- 
-+import java.io.File;
-+import java.io.IOException;
-+import java.util.*;
-+import java.util.concurrent.CompletableFuture;
-+import java.util.function.Predicate;
-+
- public class CraftWorld implements World {
-     public static final int CUSTOM_DIMENSION_OFFSET = 10;
- 
-diff --git a/src/main/java/org/bukkit/craftbukkit/LoggerOutputStream.java b/src/main/java/org/bukkit/craftbukkit/LoggerOutputStream.java
-index 93526ab602afe9640c73cd70c619065d86dc1abe..acaaee6cace19b751775e98cafe451345bd7489f 100644
---- a/src/main/java/org/bukkit/craftbukkit/LoggerOutputStream.java
-+++ b/src/main/java/org/bukkit/craftbukkit/LoggerOutputStream.java
-@@ -1,10 +1,11 @@
- package org.bukkit.craftbukkit;
- 
--import java.io.ByteArrayOutputStream;
--import java.io.IOException;
- import org.apache.logging.log4j.Level;
- import org.apache.logging.log4j.Logger;
- 
-+import java.io.ByteArrayOutputStream;
-+import java.io.IOException;
-+
- public class LoggerOutputStream extends ByteArrayOutputStream {
-     private final String separator = System.getProperty("line.separator");
-     private final Logger logger;
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 6820905bf16eb4e8a97615a7ef49b6d3337ab247..2c7d17ca65ca8444101de83008d546e65a4ae9e6 100644
+index 4fce6ed06fccc65ab022cff3623f06f40b49372b..2040f3629366358e3c81313718e3be2e72a7362f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -1,5 +1,9 @@
@@ -10935,48 +10133,6 @@ index 6820905bf16eb4e8a97615a7ef49b6d3337ab247..2c7d17ca65ca8444101de83008d546e6
  
  public class Main {
      public static boolean useJline = true;
-diff --git a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java
-index a5aadf2850f273e258f84b6c7bc9ca3649fb884d..11630549332ca910fa6ec82f8b0e58001b619140 100644
---- a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java
-+++ b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java
-@@ -1,11 +1,12 @@
- package org.bukkit.craftbukkit.advancement;
- 
--import java.util.Collection;
--import java.util.Collections;
- import net.minecraft.server.Advancement;
- import org.bukkit.NamespacedKey;
- import org.bukkit.craftbukkit.util.CraftNamespacedKey;
- 
-+import java.util.Collection;
-+import java.util.Collections;
-+
- public class CraftAdvancement implements org.bukkit.advancement.Advancement {
- 
-     private final Advancement handle;
-diff --git a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementProgress.java b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementProgress.java
-index 60fc5aff80697cb4c85080350542c0f46056f74a..0f261a3b6bcee776ac9c691e05209909fde202f1 100644
---- a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementProgress.java
-+++ b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementProgress.java
-@@ -1,14 +1,15 @@
- package org.bukkit.craftbukkit.advancement;
- 
- import com.google.common.collect.Lists;
--import java.util.Collection;
--import java.util.Collections;
--import java.util.Date;
- import net.minecraft.server.AdvancementDataPlayer;
- import net.minecraft.server.CriterionProgress;
- import org.bukkit.advancement.Advancement;
- import org.bukkit.advancement.AdvancementProgress;
- 
-+import java.util.Collection;
-+import java.util.Collections;
-+import java.util.Date;
-+
- public class CraftAdvancementProgress implements AdvancementProgress {
- 
-     private final CraftAdvancement advancement;
 diff --git a/src/main/java/org/bukkit/craftbukkit/attribute/CraftAttributeInstance.java b/src/main/java/org/bukkit/craftbukkit/attribute/CraftAttributeInstance.java
 index a7c500323b52b532edf1f7fbaa0637efa527a4e8..6ac92a6b87edfb232efcc3881bfce385f10eb76f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/attribute/CraftAttributeInstance.java
@@ -11538,26 +10694,6 @@ index 3c610a889f371f54b0f456266d14538fc3ff03ac..9f7ead4c0fc24fb7412a4164741a3fd5
  public final class VanillaCommandWrapper extends BukkitCommand {
  
      private final CommandDispatcher dispatcher;
-diff --git a/src/main/java/org/bukkit/craftbukkit/conversations/ConversationTracker.java b/src/main/java/org/bukkit/craftbukkit/conversations/ConversationTracker.java
-index 72127dde54cd9f128b83a44d9fcdd1f9014f49a1..0e584c04c8deb199e573e6eefb3dcfe5eec7d54c 100644
---- a/src/main/java/org/bukkit/craftbukkit/conversations/ConversationTracker.java
-+++ b/src/main/java/org/bukkit/craftbukkit/conversations/ConversationTracker.java
-@@ -1,12 +1,13 @@
- package org.bukkit.craftbukkit.conversations;
- 
--import java.util.LinkedList;
--import java.util.logging.Level;
- import org.bukkit.Bukkit;
- import org.bukkit.conversations.Conversation;
- import org.bukkit.conversations.ConversationAbandonedEvent;
- import org.bukkit.conversations.ManuallyAbandonedConversationCanceller;
- 
-+import java.util.LinkedList;
-+import java.util.logging.Level;
-+
- /**
-  */
- public class ConversationTracker {
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftAbstractHorse.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftAbstractHorse.java
 index 218a2190d1203ca0fbc2a5ad87e145f436aac314..ed3ff7880a075fdab86098b198b10add9dfd6684 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftAbstractHorse.java
@@ -13972,67 +13108,6 @@ index b3659e4c1332268abda919b3a0f0493f7978aad2..8935a6d81251cc854cb19c6face4d525
  /**
   * A BlockMetadataStore stores metadata values for {@link Block} objects.
   */
-diff --git a/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataContainer.java b/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataContainer.java
-index 5187878792d8f387dbe8c8df7938521f1671adfe..1848846fa801002b0859a70ab67481fc61befb63 100644
---- a/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataContainer.java
-+++ b/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataContainer.java
-@@ -1,11 +1,5 @@
- package org.bukkit.craftbukkit.persistence;
- 
--import java.util.HashMap;
--import java.util.HashSet;
--import java.util.Map;
--import java.util.Map.Entry;
--import java.util.Objects;
--import java.util.Set;
- import net.minecraft.server.NBTBase;
- import net.minecraft.server.NBTTagCompound;
- import org.apache.commons.lang.Validate;
-@@ -15,6 +9,9 @@ import org.bukkit.persistence.PersistentDataAdapterContext;
- import org.bukkit.persistence.PersistentDataContainer;
- import org.bukkit.persistence.PersistentDataType;
- 
-+import java.util.*;
-+import java.util.Map.Entry;
-+
- public final class CraftPersistentDataContainer implements PersistentDataContainer {
- 
-     private final Map<String, NBTBase> customDataTags = new HashMap<>();
-diff --git a/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataTypeRegistry.java b/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataTypeRegistry.java
-index 1b3b8646387255c888175daedf0e4ddcc13b9ff7..a6c796e0ac10a31f9941f5ca7be09403008ee1ff 100644
---- a/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataTypeRegistry.java
-+++ b/src/main/java/org/bukkit/craftbukkit/persistence/CraftPersistentDataTypeRegistry.java
-@@ -1,26 +1,15 @@
- package org.bukkit.craftbukkit.persistence;
- 
- import com.google.common.primitives.Primitives;
-+import net.minecraft.server.*;
-+import org.apache.commons.lang3.Validate;
-+import org.bukkit.persistence.PersistentDataContainer;
-+
- import java.util.Arrays;
- import java.util.HashMap;
- import java.util.Map;
- import java.util.Objects;
- import java.util.function.Function;
--import net.minecraft.server.NBTBase;
--import net.minecraft.server.NBTTagByte;
--import net.minecraft.server.NBTTagByteArray;
--import net.minecraft.server.NBTTagCompound;
--import net.minecraft.server.NBTTagDouble;
--import net.minecraft.server.NBTTagFloat;
--import net.minecraft.server.NBTTagInt;
--import net.minecraft.server.NBTTagIntArray;
--import net.minecraft.server.NBTTagList;
--import net.minecraft.server.NBTTagLong;
--import net.minecraft.server.NBTTagLongArray;
--import net.minecraft.server.NBTTagShort;
--import net.minecraft.server.NBTTagString;
--import org.apache.commons.lang3.Validate;
--import org.bukkit.persistence.PersistentDataContainer;
- 
- /**
-  * This class represents a registry that contains the used adapters for.
 diff --git a/src/main/java/org/bukkit/craftbukkit/potion/CraftPotionBrewer.java b/src/main/java/org/bukkit/craftbukkit/potion/CraftPotionBrewer.java
 index 87d680a8776d0000cf567ff2acbcd138bcc0a6c7..af6cd24d78a215d9ed5b5c4b86b005538865a0b0 100644
 --- a/src/main/java/org/bukkit/craftbukkit/potion/CraftPotionBrewer.java
@@ -14059,81 +13134,6 @@ index 87d680a8776d0000cf567ff2acbcd138bcc0a6c7..af6cd24d78a215d9ed5b5c4b86b00553
  
  public class CraftPotionBrewer implements PotionBrewer {
      private static final Map<PotionType, Collection<PotionEffect>> cache = Maps.newHashMap();
-diff --git a/src/main/java/org/bukkit/craftbukkit/projectiles/CraftBlockProjectileSource.java b/src/main/java/org/bukkit/craftbukkit/projectiles/CraftBlockProjectileSource.java
-index 46e9caf0fbef07e9e6899a57c39736aa462e16b2..5453271e6ac11511fb2ee88b4eb2e5d262df550c 100644
---- a/src/main/java/org/bukkit/craftbukkit/projectiles/CraftBlockProjectileSource.java
-+++ b/src/main/java/org/bukkit/craftbukkit/projectiles/CraftBlockProjectileSource.java
-@@ -1,49 +1,20 @@
- package org.bukkit.craftbukkit.projectiles;
- 
--import java.util.Random;
--import net.minecraft.server.BlockDispenser;
--import net.minecraft.server.EntityArrow;
--import net.minecraft.server.EntityEgg;
--import net.minecraft.server.EntityEnderPearl;
--import net.minecraft.server.EntityFireball;
--import net.minecraft.server.EntityPotion;
--import net.minecraft.server.EntityProjectile;
--import net.minecraft.server.EntitySmallFireball;
--import net.minecraft.server.EntitySnowball;
--import net.minecraft.server.EntitySpectralArrow;
--import net.minecraft.server.EntityThrownExpBottle;
--import net.minecraft.server.EntityTippedArrow;
--import net.minecraft.server.EntityTypes;
--import net.minecraft.server.EnumDirection;
--import net.minecraft.server.IPosition;
--import net.minecraft.server.IProjectile;
--import net.minecraft.server.MathHelper;
--import net.minecraft.server.SourceBlock;
--import net.minecraft.server.TileEntityDispenser;
-+import net.minecraft.server.*;
- import org.apache.commons.lang.Validate;
- import org.bukkit.Material;
- import org.bukkit.block.Block;
- import org.bukkit.craftbukkit.inventory.CraftItemStack;
- import org.bukkit.craftbukkit.potion.CraftPotionUtil;
--import org.bukkit.entity.AbstractArrow;
--import org.bukkit.entity.Egg;
--import org.bukkit.entity.EnderPearl;
--import org.bukkit.entity.Fireball;
--import org.bukkit.entity.LingeringPotion;
--import org.bukkit.entity.Projectile;
--import org.bukkit.entity.SmallFireball;
--import org.bukkit.entity.Snowball;
--import org.bukkit.entity.SpectralArrow;
--import org.bukkit.entity.ThrownExpBottle;
--import org.bukkit.entity.ThrownPotion;
--import org.bukkit.entity.TippedArrow;
--import org.bukkit.entity.WitherSkull;
-+import org.bukkit.entity.*;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.potion.PotionData;
- import org.bukkit.potion.PotionType;
- import org.bukkit.projectiles.BlockProjectileSource;
- import org.bukkit.util.Vector;
- 
-+import java.util.Random;
-+
- public class CraftBlockProjectileSource implements BlockProjectileSource {
-     private final TileEntityDispenser dispenserBlock;
- 
-diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncScheduler.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncScheduler.java
-index 3c1992e212a6d6f1db4d5b807b38d71913619fc0..bc07f29552dbfcb35eb3bdd3e17bc7acd2b8d03a 100644
---- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncScheduler.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncScheduler.java
-@@ -30,11 +30,7 @@ import org.bukkit.plugin.Plugin;
- import java.util.ArrayList;
- import java.util.Iterator;
- import java.util.List;
--import java.util.concurrent.Executor;
--import java.util.concurrent.Executors;
--import java.util.concurrent.SynchronousQueue;
--import java.util.concurrent.ThreadPoolExecutor;
--import java.util.concurrent.TimeUnit;
-+import java.util.concurrent.*;
- 
- public class CraftAsyncScheduler extends CraftScheduler {
- 
 diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java
 index c38e514b004a4684026d5a89c606399a4fd7efe1..4675805cf281b178b0fcf7dbecda6e70f34973c3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftAsyncTask.java
@@ -14173,50 +13173,6 @@ index 1e20385fd60d144ad2d915867156449d5d53c50d..3fa618c2a60651cf8906b9950b9b3ab1
  class CraftFuture<T> extends CraftTask implements Future<T> {
  
      private final Callable<T> callable;
-diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
-index 1bc65ae63673b1de3aa6e0c49bf95dadd7d7b355..56e553e012a2d19b3f2dd17b5c10b77be0847677 100644
---- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
-@@ -1,22 +1,6 @@
- package org.bukkit.craftbukkit.scheduler;
- 
--import co.aikar.timings.MinecraftTimings; // Paper
--import com.google.common.util.concurrent.ThreadFactoryBuilder;
--import java.util.ArrayList;
--import java.util.Comparator;
--import java.util.Iterator;
--import java.util.List;
--import java.util.PriorityQueue;
--import java.util.concurrent.Callable;
--import java.util.concurrent.ConcurrentHashMap;
--import java.util.concurrent.Executor;
--import java.util.concurrent.Executors;
--import java.util.concurrent.Future;
--import java.util.concurrent.atomic.AtomicInteger;
--import java.util.concurrent.atomic.AtomicReference;
--import java.util.function.Consumer;
--import java.util.logging.Level;
--import com.destroystokyo.paper.ServerSchedulerReportingWrapper;
-+import co.aikar.timings.MinecraftTimings;
- import com.destroystokyo.paper.event.server.ServerExceptionEvent;
- import com.destroystokyo.paper.exception.ServerSchedulerException;
- import org.apache.commons.lang.Validate;
-@@ -27,6 +11,15 @@ import org.bukkit.scheduler.BukkitScheduler;
- import org.bukkit.scheduler.BukkitTask;
- import org.bukkit.scheduler.BukkitWorker;
- 
-+import java.util.*;
-+import java.util.concurrent.Callable;
-+import java.util.concurrent.ConcurrentHashMap;
-+import java.util.concurrent.Future;
-+import java.util.concurrent.atomic.AtomicInteger;
-+import java.util.concurrent.atomic.AtomicReference;
-+import java.util.function.Consumer;
-+import java.util.logging.Level;
-+
- /**
-  * The fundamental concepts for this implementation:
-  * <li>Main thread owns {@link #head} and {@link #currentTick}, but it may be read from any thread</li>
 diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftTask.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftTask.java
 index 9d0d1598bfce2f51998395faf39d8bd2f5d3f9f3..ab07107e373d91aad2c37607de741a16a8c684c2 100644
 --- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftTask.java
@@ -14239,127 +13195,6 @@ index 9d0d1598bfce2f51998395faf39d8bd2f5d3f9f3..ab07107e373d91aad2c37607de741a16
 +
  
  public class CraftTask implements BukkitTask, Runnable { // Spigot
- 
-diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftCriteria.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftCriteria.java
-index 73786eda788d18f8dac96de1119e13b6f56b999a..5c6c564aaad467cff76fb2e93a346b628e39972f 100644
---- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftCriteria.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftCriteria.java
-@@ -1,10 +1,11 @@
- package org.bukkit.craftbukkit.scoreboard;
- 
- import com.google.common.collect.ImmutableMap;
--import java.util.Map;
- import net.minecraft.server.IScoreboardCriteria;
- import net.minecraft.server.ScoreboardObjective;
- 
-+import java.util.Map;
-+
- final class CraftCriteria {
-     static final Map<String, CraftCriteria> DEFAULTS;
-     static final CraftCriteria DUMMY;
-diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java
-index 41d22d223dc66028f7574515c34a75fdfee660ab..5528e29843d23ebe48ce1a22ef81cccd0939371b 100644
---- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java
-@@ -1,6 +1,5 @@
- package org.bukkit.craftbukkit.scoreboard;
- 
--import java.util.Map;
- import net.minecraft.server.Scoreboard;
- import net.minecraft.server.ScoreboardObjective;
- import net.minecraft.server.ScoreboardScore;
-@@ -9,6 +8,8 @@ import org.bukkit.OfflinePlayer;
- import org.bukkit.scoreboard.Objective;
- import org.bukkit.scoreboard.Score;
- 
-+import java.util.Map;
-+
- /**
-  * TL;DR: This class is special and lazily grabs a handle...
-  * ...because a handle is a full fledged (I think permanent) hashMap for the associated name.
-diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java
-index e3036fe23fa2be100044332c432d1ad5b4872823..3b7090b7e0415ebd2df4ce5e4a60be55f0852651 100644
---- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboard.java
-@@ -3,7 +3,6 @@ package org.bukkit.craftbukkit.scoreboard;
- import com.google.common.base.Function;
- import com.google.common.collect.ImmutableSet;
- import com.google.common.collect.Iterables;
--import java.util.Collection;
- import net.minecraft.server.Scoreboard;
- import net.minecraft.server.ScoreboardObjective;
- import net.minecraft.server.ScoreboardTeam;
-@@ -11,11 +10,9 @@ import org.apache.commons.lang.Validate;
- import org.bukkit.Bukkit;
- import org.bukkit.OfflinePlayer;
- import org.bukkit.craftbukkit.util.CraftChatMessage;
--import org.bukkit.scoreboard.DisplaySlot;
--import org.bukkit.scoreboard.Objective;
--import org.bukkit.scoreboard.RenderType;
--import org.bukkit.scoreboard.Score;
--import org.bukkit.scoreboard.Team;
-+import org.bukkit.scoreboard.*;
-+
-+import java.util.Collection;
- 
- public final class CraftScoreboard implements org.bukkit.scoreboard.Scoreboard {
-     final Scoreboard board;
-diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
-index 2c5701376506f07a748e7ac75c6870320585bb4d..0f8d2ffd5a293856b2fb8e6122a39cfd25d28d82 100644
---- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScoreboardManager.java
-@@ -1,27 +1,15 @@
- package org.bukkit.craftbukkit.scoreboard;
- 
--import java.util.Collection;
--import java.util.HashMap;
--import java.util.HashSet;
--import java.util.Iterator;
--import java.util.Map;
--import java.util.function.Consumer;
--import net.minecraft.server.EntityPlayer;
--import net.minecraft.server.IScoreboardCriteria;
--import net.minecraft.server.MinecraftServer;
--import net.minecraft.server.PacketPlayOutScoreboardObjective;
--import net.minecraft.server.PacketPlayOutScoreboardTeam;
--import net.minecraft.server.Scoreboard;
--import net.minecraft.server.ScoreboardObjective;
--import net.minecraft.server.ScoreboardScore;
--import net.minecraft.server.ScoreboardServer;
--import net.minecraft.server.ScoreboardTeam;
-+import net.minecraft.server.*;
- import org.apache.commons.lang.Validate;
- import org.bukkit.craftbukkit.entity.CraftPlayer;
- import org.bukkit.craftbukkit.util.WeakCollection;
- import org.bukkit.entity.Player;
- import org.bukkit.scoreboard.ScoreboardManager;
- 
-+import java.util.*;
-+import java.util.function.Consumer;
-+
- public final class CraftScoreboardManager implements ScoreboardManager {
-     private final CraftScoreboard mainScoreboard;
-     private final MinecraftServer server;
-diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftTeam.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftTeam.java
-index 0fba3d2a8d3bd7ec615d137e4625a7f357729d8d..f797411443720552b130fb5e04118a51ab2b7c30 100644
---- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftTeam.java
-+++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftTeam.java
-@@ -1,7 +1,6 @@
- package org.bukkit.craftbukkit.scoreboard;
- 
- import com.google.common.collect.ImmutableSet;
--import java.util.Set;
- import net.minecraft.server.ScoreboardTeam;
- import net.minecraft.server.ScoreboardTeamBase;
- import net.minecraft.server.ScoreboardTeamBase.EnumNameTagVisibility;
-@@ -13,6 +12,8 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
- import org.bukkit.scoreboard.NameTagVisibility;
- import org.bukkit.scoreboard.Team;
- 
-+import java.util.Set;
-+
- final class CraftTeam extends CraftScoreboardComponent implements Team {
-     private final ScoreboardTeam team;
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/tag/CraftBlockTag.java b/src/main/java/org/bukkit/craftbukkit/tag/CraftBlockTag.java
 index 57acfb7c0e1e0a9c104cadf9a0f3ab5b8b3f685b..b3a15dd7efbe1a41f72817ebb0c983af6df751c7 100644
@@ -14803,1352 +13638,3 @@ index f101ed6c5a5e16e5804b36f1182edca874981831..af89e91a272a6850fe55221a7b103f6e
  public final class WorldUUID {
  
      private static final Logger LOGGER = LogManager.getLogger();
-diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
-index 37e930e0cb05cdb19c1b0dbd870313a14402181b..91a4afcce0df7652285af12b822662f0d181af1b 100644
---- a/src/main/java/org/spigotmc/ActivationRange.java
-+++ b/src/main/java/org/spigotmc/ActivationRange.java
-@@ -1,54 +1,7 @@
- package org.spigotmc;
- 
--import java.util.Collection;
--import java.util.List;
--
--import net.minecraft.server.Activity;
--import net.minecraft.server.AxisAlignedBB;
--import net.minecraft.server.BehaviorController;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.Chunk;
--import net.minecraft.server.ChunkProviderServer; // Paper
--import net.minecraft.server.Entity;
--import net.minecraft.server.EntityAmbient;
--import net.minecraft.server.EntityAnimal;
--import net.minecraft.server.EntityArrow;
--import net.minecraft.server.EntityBee;
--import net.minecraft.server.EntityComplexPart;
--import net.minecraft.server.EntityCreature;
--import net.minecraft.server.EntityCreeper;
--import net.minecraft.server.EntityEnderCrystal;
--import net.minecraft.server.EntityEnderDragon;
--import net.minecraft.server.EntityEnderSignal;
--import net.minecraft.server.EntityFallingBlock; // Paper
--import net.minecraft.server.EntityFireball;
--import net.minecraft.server.EntityFireworks;
--import net.minecraft.server.EntityFlying;
--import net.minecraft.server.EntityHuman;
--import net.minecraft.server.EntityLightning;
--import net.minecraft.server.EntityLiving;
--import net.minecraft.server.EntityMonster;
--import net.minecraft.server.EntityPillager;
--import net.minecraft.server.EntityPlayer;
--import net.minecraft.server.EntityProjectile;
--import net.minecraft.server.EntityRaider;
--import net.minecraft.server.EntitySheep;
--import net.minecraft.server.EntitySlice;
--import net.minecraft.server.EntitySlime;
--import net.minecraft.server.EntityTNTPrimed;
--import net.minecraft.server.EntityThrownTrident;
--import net.minecraft.server.EntityVillager;
--import net.minecraft.server.EntityWither;
--import net.minecraft.server.IMonster;
--import net.minecraft.server.MathHelper;
--import net.minecraft.server.MemoryModuleType;
--import net.minecraft.server.MinecraftServer;
--import net.minecraft.server.World;
- import co.aikar.timings.MinecraftTimings;
--// Paper start
--import net.minecraft.server.EntityInsentient;
--import net.minecraft.server.EntityLlama;
--import net.minecraft.server.EntityWaterAnimal;
-+import net.minecraft.server.*;
- // Paper end
- 
- public class ActivationRange
-diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
-index c3ac1a46c3e06bfe06ad9ff9f4ec49c055a790b0..1951ace93be5e7a74b80011890e71e7d6b26fc95 100644
---- a/src/main/java/org/spigotmc/AsyncCatcher.java
-+++ b/src/main/java/org/spigotmc/AsyncCatcher.java
-@@ -1,7 +1,5 @@
- package org.spigotmc;
- 
--import net.minecraft.server.MinecraftServer;
--
- public class AsyncCatcher
- {
- 
-diff --git a/src/main/java/org/spigotmc/LimitStream.java b/src/main/java/org/spigotmc/LimitStream.java
-index 8c32e8b62d47ba984a7a1e2e5dad042e2a59284d..4a5463079694b24e7591f124a851b945a16a9aee 100644
---- a/src/main/java/org/spigotmc/LimitStream.java
-+++ b/src/main/java/org/spigotmc/LimitStream.java
-@@ -1,9 +1,10 @@
- package org.spigotmc;
- 
-+import net.minecraft.server.NBTReadLimiter;
-+
- import java.io.FilterInputStream;
- import java.io.IOException;
- import java.io.InputStream;
--import net.minecraft.server.NBTReadLimiter;
- 
- public class LimitStream extends FilterInputStream
- {
-diff --git a/src/main/java/org/spigotmc/Metrics.java b/src/main/java/org/spigotmc/Metrics.java
-index 05d2d3d523b5855f0bc0d9b34232ba9045a0368d..32f07f052496ecda189c9d6af9def6a1a8fc032d 100644
---- a/src/main/java/org/spigotmc/Metrics.java
-+++ b/src/main/java/org/spigotmc/Metrics.java
-@@ -27,34 +27,19 @@
-  */
- package org.spigotmc;
- 
-+import net.minecraft.server.MinecraftServer;
- import org.bukkit.Bukkit;
--import org.bukkit.configuration.file.YamlConfiguration;
- import org.bukkit.configuration.InvalidConfigurationException;
--import org.bukkit.plugin.Plugin;
--import org.bukkit.plugin.PluginDescriptionFile;
--import org.bukkit.scheduler.BukkitTask;
--
--import java.io.BufferedReader;
--import java.io.File;
--import java.io.IOException;
--import java.io.InputStreamReader;
--import java.io.OutputStreamWriter;
--import java.io.UnsupportedEncodingException;
-+import org.bukkit.configuration.file.YamlConfiguration;
-+
-+import java.io.*;
- import java.net.Proxy;
- import java.net.URL;
- import java.net.URLConnection;
- import java.net.URLEncoder;
--import java.util.Collections;
--import java.util.HashSet;
--import java.util.Iterator;
--import java.util.LinkedHashSet;
--import java.util.Set;
--import java.util.Timer;
--import java.util.TimerTask;
--import java.util.UUID;
-+import java.util.*;
- import java.util.concurrent.TimeUnit;
- import java.util.logging.Level;
--import net.minecraft.server.MinecraftServer;
- 
- /**
-  * <p> The metrics class obtains data about a plugin and submits statistics about it to the metrics backend. </p> <p>
-diff --git a/src/main/java/org/spigotmc/RestartCommand.java b/src/main/java/org/spigotmc/RestartCommand.java
-index 123de5ac9026508e21cdc225f0962f5c3c46fed5..44b12b9b367acb51ee02c7b2d91f2e5cbb788cb6 100644
---- a/src/main/java/org/spigotmc/RestartCommand.java
-+++ b/src/main/java/org/spigotmc/RestartCommand.java
-@@ -1,12 +1,12 @@
- package org.spigotmc;
- 
--import java.io.File;
--import java.util.List;
- import net.minecraft.server.EntityPlayer;
- import net.minecraft.server.MinecraftServer;
- import org.bukkit.command.Command;
- import org.bukkit.command.CommandSender;
- 
-+import java.io.File;
-+
- public class RestartCommand extends Command
- {
- 
-diff --git a/src/main/java/org/spigotmc/SpigotCommand.java b/src/main/java/org/spigotmc/SpigotCommand.java
-index d0be3c3b593ad5f4bb1d166462fddd32bebb4875..421f64e67a602ae6c6df9372dd6dde47eabb0ff9 100644
---- a/src/main/java/org/spigotmc/SpigotCommand.java
-+++ b/src/main/java/org/spigotmc/SpigotCommand.java
-@@ -1,12 +1,13 @@
- package org.spigotmc;
- 
--import java.io.File;
- import net.minecraft.server.MinecraftServer;
- import net.minecraft.server.WorldServer;
- import org.bukkit.ChatColor;
- import org.bukkit.command.Command;
- import org.bukkit.command.CommandSender;
- 
-+import java.io.File;
-+
- public class SpigotCommand extends Command {
- 
-     public SpigotCommand(String name) {
-diff --git a/src/main/java/org/spigotmc/SpigotConfig.java b/src/main/java/org/spigotmc/SpigotConfig.java
-index e66050b87ace6544636e10123ad0963176e5fdf7..d842b72d1fad93b7e499bb7af6fa0cae2cb04e8b 100644
---- a/src/main/java/org/spigotmc/SpigotConfig.java
-+++ b/src/main/java/org/spigotmc/SpigotConfig.java
-@@ -1,23 +1,7 @@
- package org.spigotmc;
- 
- import com.google.common.base.Throwables;
--import java.io.File;
--import java.io.IOException;
--import java.lang.reflect.InvocationTargetException;
--import java.lang.reflect.Method;
--import java.lang.reflect.Modifier;
--import java.util.Arrays;
--import java.util.HashMap;
--import java.util.HashSet;
--import java.util.List;
--import java.util.Map;
--import java.util.Set;
--import java.util.logging.Level;
--import net.minecraft.server.AttributeRanged;
--import net.minecraft.server.GenericAttributes;
--import net.minecraft.server.IRegistry;
--import net.minecraft.server.MinecraftKey;
--import net.minecraft.server.MinecraftServer;
-+import net.minecraft.server.*;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.core.LoggerContext;
- import org.apache.logging.log4j.core.config.Configuration;
-@@ -28,6 +12,14 @@ import org.bukkit.configuration.ConfigurationSection;
- import org.bukkit.configuration.InvalidConfigurationException;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-+import java.io.File;
-+import java.io.IOException;
-+import java.lang.reflect.InvocationTargetException;
-+import java.lang.reflect.Method;
-+import java.lang.reflect.Modifier;
-+import java.util.*;
-+import java.util.logging.Level;
-+
- public class SpigotConfig
- {
- 
-diff --git a/src/main/java/org/spigotmc/SpigotWorldConfig.java b/src/main/java/org/spigotmc/SpigotWorldConfig.java
-index 9859e0c964e4d1e7dc7689cb97f40643a8e5cdd7..e92462eaa355a325a78c5b16c7d44dbcacf586c8 100644
---- a/src/main/java/org/spigotmc/SpigotWorldConfig.java
-+++ b/src/main/java/org/spigotmc/SpigotWorldConfig.java
-@@ -1,9 +1,10 @@
- package org.spigotmc;
- 
--import java.util.List;
- import org.bukkit.Bukkit;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-+import java.util.List;
-+
- public class SpigotWorldConfig
- {
- 
-diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 87812ace9e1327f31693bdfb3fa45ac38766799b..0b603f80e2db60590d996cae6ed3e87ead7bd752 100644
---- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-+++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-@@ -1,8 +1,5 @@
- package org.spigotmc;
- 
--import com.google.common.base.Joiner;
--import net.minecraft.server.MinecraftServer;
--import com.google.common.collect.Iterables;
- import org.bukkit.ChatColor;
- import org.bukkit.command.Command;
- import org.bukkit.command.CommandSender;
-diff --git a/src/main/java/org/spigotmc/TrackingRange.java b/src/main/java/org/spigotmc/TrackingRange.java
-index 627e9a90b3045602bc540a5f3f031aaf3716c942..ad70a45b8ec7f893157215f2767145e842de31fd 100644
---- a/src/main/java/org/spigotmc/TrackingRange.java
-+++ b/src/main/java/org/spigotmc/TrackingRange.java
-@@ -1,14 +1,6 @@
- package org.spigotmc;
- 
--import net.minecraft.server.Entity;
--import net.minecraft.server.EntityEnderDragon; // Paper
--import net.minecraft.server.WorldServer; // Paper
--import net.minecraft.server.EntityExperienceOrb;
--import net.minecraft.server.EntityGhast;
--import net.minecraft.server.EntityItem;
--import net.minecraft.server.EntityItemFrame;
--import net.minecraft.server.EntityPainting;
--import net.minecraft.server.EntityPlayer;
-+import net.minecraft.server.*;
- 
- public class TrackingRange
- {
-diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
-index 4d310908489953d6d061b2358f614142edacb62e..e6a76a4a55de87a2383eb5c831184e50cc11d042 100644
---- a/src/main/java/org/spigotmc/WatchdogThread.java
-+++ b/src/main/java/org/spigotmc/WatchdogThread.java
-@@ -1,14 +1,15 @@
- package org.spigotmc;
- 
-+import com.destroystokyo.paper.PaperConfig;
-+import com.destroystokyo.paper.io.chunk.ChunkTaskManager;
-+import net.minecraft.server.MinecraftServer;
-+import org.bukkit.Bukkit;
-+
- import java.lang.management.ManagementFactory;
- import java.lang.management.MonitorInfo;
- import java.lang.management.ThreadInfo;
- import java.util.logging.Level;
- import java.util.logging.Logger;
--import com.destroystokyo.paper.PaperConfig;
--import com.destroystokyo.paper.io.chunk.ChunkTaskManager; // Paper
--import net.minecraft.server.MinecraftServer;
--import org.bukkit.Bukkit;
- 
- public class WatchdogThread extends Thread
- {
-diff --git a/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java b/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java
-index 232c382b586b0812c9f7161565c0d382177adf7d..8970d2abdac703c1757ad2570079f43f9b82a6f3 100644
---- a/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java
-+++ b/src/test/java/com/destroystokyo/paper/entity/ai/VanillaMobGoalTest.java
-@@ -1,8 +1,10 @@
- package com.destroystokyo.paper.entity.ai;
- 
-+import io.github.classgraph.ClassGraph;
-+import io.github.classgraph.ScanResult;
- import net.minecraft.server.EntityInsentient;
- import net.minecraft.server.PathfinderGoal;
--
-+import org.bukkit.entity.Mob;
- import org.junit.Assert;
- import org.junit.Test;
- 
-@@ -12,11 +14,6 @@ import java.util.ArrayList;
- import java.util.List;
- import java.util.stream.Collectors;
- 
--import org.bukkit.entity.Mob;
--
--import io.github.classgraph.ClassGraph;
--import io.github.classgraph.ScanResult;
--
- public class VanillaMobGoalTest {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/ArtTest.java b/src/test/java/org/bukkit/ArtTest.java
-index 39e3d2150aa0da327ab8980d18e1a0d0e77ae3a9..5eb2cc27695da52a702f831057ec0cf5b4a5dab5 100644
---- a/src/test/java/org/bukkit/ArtTest.java
-+++ b/src/test/java/org/bukkit/ArtTest.java
-@@ -1,13 +1,6 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import com.google.common.collect.Lists;
--import java.util.Collections;
--import java.util.EnumMap;
--import java.util.HashMap;
--import java.util.List;
--import java.util.Map;
- import net.minecraft.server.IRegistry;
- import net.minecraft.server.MinecraftKey;
- import net.minecraft.server.Paintings;
-@@ -15,6 +8,13 @@ import org.bukkit.craftbukkit.CraftArt;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import java.util.*;
-+
-+import static org.hamcrest.Matchers.is;
-+import static org.hamcrest.Matchers.nullValue;
-+import static org.junit.Assert.assertNotNull;
-+import static org.junit.Assert.assertThat;
-+
- public class ArtTest extends AbstractTestingBase {
-     private static final int UNIT_MULTIPLIER = 16;
- 
-diff --git a/src/test/java/org/bukkit/BlockDataConversionTest.java b/src/test/java/org/bukkit/BlockDataConversionTest.java
-index 46cc26b316f0ab17f676bae98ffbd109928c85dd..a1719437849ea14c4ce53f72cd9ad0aeb40d1035 100644
---- a/src/test/java/org/bukkit/BlockDataConversionTest.java
-+++ b/src/test/java/org/bukkit/BlockDataConversionTest.java
-@@ -1,7 +1,5 @@
- package org.bukkit;
- 
--import java.util.ArrayList;
--import java.util.List;
- import net.minecraft.server.Block;
- import net.minecraft.server.IBlockData;
- import net.minecraft.server.IRegistry;
-@@ -12,6 +10,9 @@ import org.junit.Test;
- import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- 
-+import java.util.ArrayList;
-+import java.util.List;
-+
- /**
-  * This test class ensures that all Blocks (as registered in IRegistry.BLOCK)
-  * can be converted into their CraftBlockData equivalent.
-diff --git a/src/test/java/org/bukkit/BlockDataTest.java b/src/test/java/org/bukkit/BlockDataTest.java
-index 00b8ad356f013943396ef971641ea121babb3ffb..7758303ee7622463ef5cabcff9dbb3bc924c2f4a 100644
---- a/src/test/java/org/bukkit/BlockDataTest.java
-+++ b/src/test/java/org/bukkit/BlockDataTest.java
-@@ -1,6 +1,5 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
- import net.minecraft.server.BlockCake;
- import net.minecraft.server.BlockChest;
- import net.minecraft.server.Blocks;
-@@ -14,6 +13,9 @@ import org.bukkit.support.AbstractTestingBase;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import static org.hamcrest.Matchers.is;
-+import static org.hamcrest.Matchers.not;
-+
- public class BlockDataTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/ChatTest.java b/src/test/java/org/bukkit/ChatTest.java
-index 95bc1d598d01b982847dda1a8531fb21a1cec423..d5251ac1cb8e85756b97a7c47a4b43a7d7695741 100644
---- a/src/test/java/org/bukkit/ChatTest.java
-+++ b/src/test/java/org/bukkit/ChatTest.java
-@@ -1,12 +1,13 @@
- package org.bukkit;
- 
--import static org.junit.Assert.*;
- import net.minecraft.server.EnumChatFormat;
- import net.minecraft.server.IChatBaseComponent;
- import org.bukkit.craftbukkit.util.CraftChatMessage;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import static org.junit.Assert.assertEquals;
-+
- public class ChatTest {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/DyeColorsTest.java b/src/test/java/org/bukkit/DyeColorsTest.java
-index 9bd05a702585566b90a778afb1ff0bf32c0c71f5..eedde20db9ded0ddacaba306c9f413f4c8152b14 100644
---- a/src/test/java/org/bukkit/DyeColorsTest.java
-+++ b/src/test/java/org/bukkit/DyeColorsTest.java
-@@ -1,9 +1,5 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
--import java.util.ArrayList;
--import java.util.List;
- import net.minecraft.server.EnumColor;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
-@@ -12,6 +8,12 @@ import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameter;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.ArrayList;
-+import java.util.List;
-+
-+import static org.hamcrest.Matchers.is;
-+import static org.junit.Assert.assertThat;
-+
- @RunWith(Parameterized.class)
- public class DyeColorsTest extends AbstractTestingBase {
- 
-diff --git a/src/test/java/org/bukkit/GameRuleTest.java b/src/test/java/org/bukkit/GameRuleTest.java
-index ca598c58b400aacbf1c1801cf29fd7b0b7c12d63..c9a81c742bd679698992451a98a1ccc924afc924 100644
---- a/src/test/java/org/bukkit/GameRuleTest.java
-+++ b/src/test/java/org/bukkit/GameRuleTest.java
-@@ -1,11 +1,12 @@
- package org.bukkit;
- 
--import java.util.Map;
- import net.minecraft.server.GameRules;
- import org.bukkit.craftbukkit.CraftWorld;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import java.util.Map;
-+
- public class GameRuleTest {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/MaterialTest.java b/src/test/java/org/bukkit/MaterialTest.java
-index efac35cb7b5931c21d42306009ff6e92c2260677..bd4b02e16b7bbb91e6b2045866b8f5a76fe492f8 100644
---- a/src/test/java/org/bukkit/MaterialTest.java
-+++ b/src/test/java/org/bukkit/MaterialTest.java
-@@ -1,16 +1,6 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import com.google.common.collect.Maps;
--import java.util.ArrayList;
--import java.util.Arrays;
--import java.util.Collections;
--import java.util.Comparator;
--import java.util.Iterator;
--import java.util.List;
--import java.util.Map;
--import java.util.stream.StreamSupport;
- import net.minecraft.server.IRegistry;
- import net.minecraft.server.Item;
- import net.minecraft.server.MinecraftKey;
-@@ -18,6 +8,12 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import java.util.*;
-+import java.util.stream.StreamSupport;
-+
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.*;
-+
- public class MaterialTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/NibbleArrayTest.java b/src/test/java/org/bukkit/NibbleArrayTest.java
-index 40ba97fb77dddafe7c792249ca343d5abee3e5d0..460a3e64ecf3efeaecbcbbb86d1ad221fcc35365 100644
---- a/src/test/java/org/bukkit/NibbleArrayTest.java
-+++ b/src/test/java/org/bukkit/NibbleArrayTest.java
-@@ -1,10 +1,11 @@
- package org.bukkit;
- 
--import java.util.Random;
- import net.minecraft.server.NibbleArray;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import java.util.Random;
-+
- public class NibbleArrayTest {
- 
-     private static final int NIBBLE_SIZE = 4096;
-diff --git a/src/test/java/org/bukkit/PerMaterialTest.java b/src/test/java/org/bukkit/PerMaterialTest.java
-index b99ad0faf3b4a8390dcc5af5346b68daed75d4ed..c503a44ef32e1076a1fdc542aab55e3b1b3a42ff 100644
---- a/src/test/java/org/bukkit/PerMaterialTest.java
-+++ b/src/test/java/org/bukkit/PerMaterialTest.java
-@@ -1,24 +1,7 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import com.google.common.collect.Lists;
--import java.util.List;
--import java.util.Map;
--import net.minecraft.server.Block;
--import net.minecraft.server.BlockAccessAir;
--import net.minecraft.server.BlockBase;
--import net.minecraft.server.BlockFalling;
--import net.minecraft.server.BlockFire;
--import net.minecraft.server.BlockPosition;
--import net.minecraft.server.Blocks;
--import net.minecraft.server.EntityHuman;
--import net.minecraft.server.EnumHand;
--import net.minecraft.server.IBlockData;
--import net.minecraft.server.Item;
--import net.minecraft.server.ItemRecord;
--import net.minecraft.server.MovingObjectPositionBlock;
--import net.minecraft.server.TileEntityFurnace;
-+import net.minecraft.server.*;
- import org.bukkit.craftbukkit.inventory.CraftItemStack;
- import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.enchantments.EnchantmentTarget;
-@@ -32,6 +15,12 @@ import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameter;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.List;
-+import java.util.Map;
-+
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.*;
-+
- @RunWith(Parameterized.class)
- public class PerMaterialTest extends AbstractTestingBase {
-     private static Map<Block, Integer> fireValues;
-diff --git a/src/test/java/org/bukkit/SoundTest.java b/src/test/java/org/bukkit/SoundTest.java
-index f8e87443438eadd7d95da05027c2bb78114f9c47..b361c0d119afefa0d049587059422522fda8fc21 100644
---- a/src/test/java/org/bukkit/SoundTest.java
-+++ b/src/test/java/org/bukkit/SoundTest.java
-@@ -1,13 +1,15 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import net.minecraft.server.IRegistry;
- import net.minecraft.server.MinecraftKey;
- import org.bukkit.craftbukkit.CraftSound;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.assertNotNull;
-+import static org.junit.Assert.assertThat;
-+
- public class SoundTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java b/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java
-index f45fa3fd632a7bcea7ef51b26d6ae5e3fb67fc6f..5c5b7db9d7e694fd899f64cf40b087e64c8f6b4b 100644
---- a/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java
-+++ b/src/test/java/org/bukkit/StatisticsAndAchievementsTest.java
-@@ -1,7 +1,5 @@
- package org.bukkit;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import com.google.common.collect.HashMultiset;
- import net.minecraft.server.EntityTypes;
- import net.minecraft.server.IRegistry;
-@@ -11,6 +9,10 @@ import org.bukkit.entity.EntityType;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.assertNotNull;
-+import static org.junit.Assert.assertThat;
-+
- public class StatisticsAndAchievementsTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/StructureTypeTest.java b/src/test/java/org/bukkit/StructureTypeTest.java
-index f25e13c08ac20da2e1fcc817cadd3a86c411915c..8fe4d3ecf6075bd95806407628f711bac6f921df 100644
---- a/src/test/java/org/bukkit/StructureTypeTest.java
-+++ b/src/test/java/org/bukkit/StructureTypeTest.java
-@@ -1,6 +1,5 @@
- package org.bukkit;
- 
--import java.util.Map;
- import net.minecraft.server.IRegistry;
- import net.minecraft.server.MinecraftKey;
- import org.bukkit.support.AbstractTestingBase;
-@@ -8,6 +7,8 @@ import org.junit.Assert;
- import org.junit.BeforeClass;
- import org.junit.Test;
- 
-+import java.util.Map;
-+
- /**
-  * This test makes sure that Bukkit always has Minecraft structure types up to
-  * date.
-diff --git a/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java b/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java
-index b59b28aa9c3824d352b89394eb3a506a11a0dff6..f0773b14258c8555c6f3c2e983609e39767d7670 100644
---- a/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/generator/ChunkDataTest.java
-@@ -1,11 +1,12 @@
- package org.bukkit.craftbukkit.generator;
- 
--import static org.junit.Assert.*;
- import org.bukkit.Material;
- import org.bukkit.block.data.BlockData;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import static org.junit.Assert.assertTrue;
-+
- public class ChunkDataTest extends AbstractTestingBase {
- 
-     private static final BlockData RED_WOOL = Material.RED_WOOL.createBlockData();
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java b/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java
-index 4a85b083b4185e25a6da38d299d01b0a0eca117f..3a405223002a15210e6b05c62030310f2ad21855 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/CompositeSerialization.java
-@@ -1,10 +1,5 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
--import java.util.ArrayList;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.ChatColor;
- import org.bukkit.Material;
- import org.bukkit.configuration.InvalidConfigurationException;
-@@ -15,6 +10,14 @@ import org.bukkit.inventory.meta.ItemMeta;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import java.util.ArrayList;
-+import java.util.Arrays;
-+import java.util.List;
-+
-+import static org.hamcrest.Matchers.hasSize;
-+import static org.hamcrest.Matchers.is;
-+import static org.junit.Assert.assertThat;
-+
- 
- public class CompositeSerialization extends AbstractTestingBase {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java
-index 0ab65ac7310cfc184b1d41b417c0a1db184f199e..8ae0a4a862094bcc0ac2894f10da12c56c69b0c2 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/DeprecatedItemMetaCustomValueTest.java
-@@ -1,11 +1,5 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.junit.Assert.*;
--import java.io.StringReader;
--import java.lang.reflect.Array;
--import java.nio.ByteBuffer;
--import java.util.Map;
--import java.util.UUID;
- import net.minecraft.server.NBTTagCompound;
- import org.bukkit.Bukkit;
- import org.bukkit.Material;
-@@ -20,6 +14,14 @@ import org.bukkit.support.AbstractTestingBase;
- import org.junit.Before;
- import org.junit.Test;
- 
-+import java.io.StringReader;
-+import java.lang.reflect.Array;
-+import java.nio.ByteBuffer;
-+import java.util.Map;
-+import java.util.UUID;
-+
-+import static org.junit.Assert.*;
-+
- public class DeprecatedItemMetaCustomValueTest extends AbstractTestingBase {
- 
-     private static NamespacedKey VALID_KEY;
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java
-index c279579c2bd54363090c6c99fbd92798a6b97c79..1eeca7324d755ef45b353dfb167b2faa17c7dfc6 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/FactoryItemMaterialTest.java
-@@ -1,9 +1,5 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
--import java.util.ArrayList;
--import java.util.List;
- import org.bukkit.Material;
- import org.bukkit.inventory.ItemFactory;
- import org.bukkit.inventory.ItemStack;
-@@ -15,6 +11,13 @@ import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameter;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.ArrayList;
-+import java.util.List;
-+
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.assertThat;
-+import static org.junit.Assert.assertTrue;
-+
- @RunWith(Parameterized.class)
- public class FactoryItemMaterialTest extends AbstractTestingBase {
-     static final ItemFactory factory = CraftItemFactory.instance();
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java
-index cefedd7d1e568d046b2e6f2ee75ffcf13754c5bb..bd8240c24b6addc45475a7de6f2f90624c5442a9 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaCloneTest.java
-@@ -1,11 +1,15 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
--import java.lang.reflect.Method;
- import org.bukkit.Material;
- import org.junit.Test;
- 
-+import java.lang.reflect.Method;
-+
-+import static org.hamcrest.Matchers.equalTo;
-+import static org.hamcrest.Matchers.is;
-+import static org.junit.Assert.assertNotNull;
-+import static org.junit.Assert.assertThat;
-+
- public class ItemMetaCloneTest {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java
-index 61ac1fb7c5beee7b7adbaafd6ea20e2e6bc778e5..ff1476c0a8a993d572ca8c2276f0bc1459bca4b3 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaImplementationOverrideTest.java
-@@ -1,11 +1,5 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
--import java.lang.reflect.Method;
--import java.util.ArrayList;
--import java.util.List;
--import java.util.concurrent.Callable;
- import org.bukkit.Material;
- import org.bukkit.configuration.serialization.DelegateDeserialization;
- import org.bukkit.craftbukkit.Overridden;
-@@ -15,6 +9,14 @@ import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameter;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.lang.reflect.Method;
-+import java.util.ArrayList;
-+import java.util.List;
-+import java.util.concurrent.Callable;
-+
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.assertThat;
-+
- @RunWith(Parameterized.class)
- public class ItemMetaImplementationOverrideTest {
-     static final Class<CraftMetaItem> parent = CraftMetaItem.class;
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java
-index b0edd62eb9066d145cfc52272c71d5f00b7e928d..6adc6850effe0e75ea16d5bd03c7defdf4eaa952 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemMetaTest.java
-@@ -1,25 +1,9 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
--
--import java.util.*;
--
--import com.destroystokyo.paper.inventory.meta.ArmorStandMeta; // Paper
--import net.minecraft.server.Block;
--import net.minecraft.server.IRegistry;
--import net.minecraft.server.ITileEntity;
--import net.minecraft.server.Item;
--import net.minecraft.server.ItemBlock;
--import net.minecraft.server.ItemBlockWallable;
--import net.minecraft.server.NBTTagCompound;
--import org.bukkit.Bukkit;
--import org.bukkit.Color;
--import org.bukkit.DyeColor;
--import org.bukkit.FireworkEffect;
--import org.bukkit.FireworkEffect.Type;
-+import net.minecraft.server.*;
-+import org.bukkit.*;
- import org.bukkit.Material;
--import org.bukkit.NamespacedKey;
-+import org.bukkit.FireworkEffect.Type;
- import org.bukkit.attribute.Attribute;
- import org.bukkit.attribute.AttributeModifier;
- import org.bukkit.block.banner.Pattern;
-@@ -32,26 +16,18 @@ import org.bukkit.craftbukkit.inventory.ItemStackTest.StackWrapper;
- import org.bukkit.enchantments.Enchantment;
- import org.bukkit.entity.TropicalFish;
- import org.bukkit.inventory.ItemStack;
--import org.bukkit.inventory.meta.BannerMeta;
--import org.bukkit.inventory.meta.BlockDataMeta;
--import org.bukkit.inventory.meta.BlockStateMeta;
--import org.bukkit.inventory.meta.BookMeta;
--import org.bukkit.inventory.meta.CrossbowMeta;
--import org.bukkit.inventory.meta.EnchantmentStorageMeta;
--import org.bukkit.inventory.meta.FireworkEffectMeta;
--import org.bukkit.inventory.meta.FireworkMeta;
--import org.bukkit.inventory.meta.ItemMeta;
--import org.bukkit.inventory.meta.KnowledgeBookMeta;
--import org.bukkit.inventory.meta.LeatherArmorMeta;
--import org.bukkit.inventory.meta.MapMeta;
--import org.bukkit.inventory.meta.PotionMeta;
--import org.bukkit.inventory.meta.TropicalFishBucketMeta;
-+import org.bukkit.inventory.meta.*;
- import org.bukkit.potion.PotionData;
- import org.bukkit.potion.PotionEffectType;
- import org.bukkit.potion.PotionType;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import java.util.*;
-+
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.*;
-+
- public class ItemMetaTest extends AbstractTestingBase {
- 
-     static final int MAX_FIREWORK_POWER = 127; // Please update ItemStackFireworkTest if/when this gets changed.
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java
-index c7d10b08925c0b4e7c49876d37f009fff546f7ea..4f55cb6ce350f2b53c25b15858da6e929a4ff663 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackBookTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Material;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.inventory.meta.BookMeta;
-@@ -10,6 +8,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackBookTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java
-index 157eef07ee1603ac0002d4fe213b74df24391f4c..e8add3611a2f10fb8e8ebfba5bc5e68b9770972f 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackEnchantStorageTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Material;
- import org.bukkit.enchantments.Enchantment;
- import org.bukkit.inventory.ItemStack;
-@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackEnchantStorageTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java
-index 1515ec20020111435403d3f3f7da6158a9c614e1..0605caa8f31683d8d338acc74e0c08d4d8daf17a 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkChargeTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Color;
- import org.bukkit.FireworkEffect;
- import org.bukkit.FireworkEffect.Type;
-@@ -13,6 +11,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackFireworkChargeTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java
-index 31fc6046af46033d9e9ed2c414f78dbc214490bd..98512257f9fc703c8570b17788faafa08d58e9ef 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackFireworkTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Color;
- import org.bukkit.FireworkEffect;
- import org.bukkit.FireworkEffect.Type;
-@@ -13,6 +11,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackFireworkTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java
-index 9dea89e756029cf2c800dd05e9f00473a2cc45e6..4b6124ea821697e186fff945bc26dad787434450 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLeatherTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Color;
- import org.bukkit.Material;
- import org.bukkit.inventory.ItemStack;
-@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackLeatherTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java
-index 339b45191d8edd26e173bff45b4e6400f3739a1a..359e17b91f8e4cd74bb211fcd0dd91e43373fe2a 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackLoreEnchantmentTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.enchantments.Enchantment;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.inventory.meta.ItemMeta;
-@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackLoreEnchantmentTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java
-index fb36575b05596aaa5587093ec49c421a17f4b181..1c0df97be887c312469417be4940ab2b340ffea2 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackMapTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Material;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.inventory.meta.MapMeta;
-@@ -10,6 +8,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackMapTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java
-index f7cf39fdd1d180374f2edcf7596f8df8fa204671..f239b34b6578f4def1028446ff6733c1ed90e86c 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackPotionsTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Material;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.inventory.meta.PotionMeta;
-@@ -11,6 +9,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackPotionsTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java
-index 0ac5e8cb5717b81760ed57461a05f0c5bd2325d8..dd753e0729bc5ee72f425831aeed55064f47b2da 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackSkullTest.java
-@@ -1,8 +1,6 @@
- package org.bukkit.craftbukkit.inventory;
- 
- import com.google.common.base.Joiner;
--import java.util.Arrays;
--import java.util.List;
- import org.bukkit.Material;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.inventory.meta.SkullMeta;
-@@ -10,6 +8,9 @@ import org.junit.runner.RunWith;
- import org.junit.runners.Parameterized;
- import org.junit.runners.Parameterized.Parameters;
- 
-+import java.util.Arrays;
-+import java.util.List;
-+
- @RunWith(Parameterized.class)
- public class ItemStackSkullTest extends ItemStackTest {
- 
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java
-index 1add9c7d39c9e02c9dcdfe14e204d9a1e32d68b0..163b2509ec131fb9dcc86649a8c12195b079873b 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/ItemStackTest.java
-@@ -1,20 +1,7 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.bukkit.support.Matchers.*;
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import com.google.common.base.Joiner;
- import com.google.common.collect.ImmutableList;
--import java.io.ByteArrayInputStream;
--import java.io.ByteArrayOutputStream;
--import java.io.IOException;
--import java.io.ObjectInputStream;
--import java.io.ObjectOutputStream;
--import java.util.ArrayList;
--import java.util.Arrays;
--import java.util.HashMap;
--import java.util.List;
--import java.util.Map;
- import org.bukkit.Material;
- import org.bukkit.configuration.InvalidConfigurationException;
- import org.bukkit.configuration.file.YamlConfiguration;
-@@ -31,6 +18,13 @@ import org.junit.runners.Parameterized.Parameter;
- import org.junit.runners.Parameterized.Parameters;
- import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
- 
-+import java.io.*;
-+import java.util.*;
-+
-+import static org.bukkit.support.Matchers.sameHash;
-+import static org.hamcrest.Matchers.*;
-+import static org.junit.Assert.assertThat;
-+
- @RunWith(Parameterized.class)
- public class ItemStackTest extends AbstractTestingBase {
-     abstract static class StackProvider {
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java
-index 5f5781230dab9e151ccf3260f1c42e906b655e7e..5328814ecad8e15fe099cba67455ff7c2d8d6d5b 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/NMSCraftItemStackTest.java
-@@ -1,12 +1,13 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import net.minecraft.server.Enchantments;
- import org.bukkit.inventory.ItemStack;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import static org.hamcrest.Matchers.is;
-+import static org.junit.Assert.assertThat;
-+
- public class NMSCraftItemStackTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java
-index 6feee747e1ee0fc7fb57dc7ee91b7290d6cc348d..f169a98dbcb968cd5d672c4384eb523e65442d65 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/PersistentDataContainerTest.java
-@@ -1,11 +1,5 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.junit.Assert.*;
--import java.io.StringReader;
--import java.lang.reflect.Array;
--import java.nio.ByteBuffer;
--import java.util.Map;
--import java.util.UUID;
- import net.minecraft.server.NBTTagCompound;
- import org.bukkit.Bukkit;
- import org.bukkit.Material;
-@@ -20,6 +14,14 @@ import org.bukkit.support.AbstractTestingBase;
- import org.junit.Before;
- import org.junit.Test;
- 
-+import java.io.StringReader;
-+import java.lang.reflect.Array;
-+import java.nio.ByteBuffer;
-+import java.util.Map;
-+import java.util.UUID;
-+
-+import static org.junit.Assert.*;
-+
- public class PersistentDataContainerTest extends AbstractTestingBase {
- 
-     private static NamespacedKey VALID_KEY;
-diff --git a/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java b/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java
-index 6f56e56afb58cd227231027aa22bbfeb390b3420..7610865e695df2000f4f2efb1f9ab488a0c55b12 100644
---- a/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/inventory/PlayerInventoryTest.java
-@@ -1,12 +1,13 @@
- package org.bukkit.craftbukkit.inventory;
- 
--import static org.junit.Assert.*;
- import net.minecraft.server.ItemStack;
- import net.minecraft.server.Items;
- import net.minecraft.server.PlayerInventory;
- import org.bukkit.support.AbstractTestingBase;
- import org.junit.Test;
- 
-+import static org.junit.Assert.assertEquals;
-+
- public class PlayerInventoryTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java b/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java
-index e39b87ae6de87d4a9776aa960cf8b1c4305b1db0..02e6cabc2c6904e0bfeb7154f94e90d048d3aeca 100644
---- a/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/legacy/LegacyTest.java
-@@ -1,8 +1,5 @@
- package org.bukkit.craftbukkit.legacy;
- 
--import java.util.Arrays;
--import java.util.HashSet;
--import java.util.Set;
- import org.bukkit.Material;
- import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.material.MaterialData;
-@@ -10,6 +7,10 @@ import org.bukkit.support.AbstractTestingBase;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import java.util.Arrays;
-+import java.util.HashSet;
-+import java.util.Set;
-+
- public class LegacyTest extends AbstractTestingBase {
- 
-     private final Set<Material> INVALIDATED_MATERIALS = new HashSet<>(Arrays.asList(Material.ACACIA_BUTTON, Material.ACACIA_PRESSURE_PLATE, Material.ACACIA_TRAPDOOR, Material.AIR, Material.ATTACHED_MELON_STEM, Material.ATTACHED_PUMPKIN_STEM,
-diff --git a/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java b/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java
-index e4a98f441e6d7213e4c8642cc8a7c0b57fc7d75a..34beafde38a55348eaafa0d822e130a4436ae4f4 100644
---- a/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java
-+++ b/src/test/java/org/bukkit/craftbukkit/util/CraftChatMessageTest.java
-@@ -1,10 +1,11 @@
- package org.bukkit.craftbukkit.util;
- 
--import static org.junit.Assert.assertEquals;
- import net.minecraft.server.IChatBaseComponent;
- import net.minecraft.server.IChatMutableComponent;
- import org.junit.Test;
- 
-+import static org.junit.Assert.assertEquals;
-+
- public class CraftChatMessageTest {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/entity/EntityTypesTest.java b/src/test/java/org/bukkit/entity/EntityTypesTest.java
-index af570ccfd671d4b4654df1fcf22ef91218e293e2..dc2cc90e61d4522972265689cbea8870b9c76c7a 100644
---- a/src/test/java/org/bukkit/entity/EntityTypesTest.java
-+++ b/src/test/java/org/bukkit/entity/EntityTypesTest.java
-@@ -1,8 +1,5 @@
- package org.bukkit.entity;
- 
--import java.util.Arrays;
--import java.util.Set;
--import java.util.stream.Collectors;
- import net.minecraft.server.EntityTypes;
- import net.minecraft.server.IRegistry;
- import net.minecraft.server.MinecraftKey;
-@@ -10,6 +7,10 @@ import org.bukkit.support.AbstractTestingBase;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import java.util.Arrays;
-+import java.util.Set;
-+import java.util.stream.Collectors;
-+
- public class EntityTypesTest extends AbstractTestingBase {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/entity/TropicalFishTest.java b/src/test/java/org/bukkit/entity/TropicalFishTest.java
-index aa70881a77fd7c2d6b1058d9dba4d70e3ae12ba8..48313ae6e3629972bd44099e2321e184bfdcb995 100644
---- a/src/test/java/org/bukkit/entity/TropicalFishTest.java
-+++ b/src/test/java/org/bukkit/entity/TropicalFishTest.java
-@@ -1,12 +1,13 @@
- package org.bukkit.entity;
- 
--import static org.hamcrest.Matchers.*;
--import static org.junit.Assert.*;
- import org.bukkit.DyeColor;
- import org.bukkit.craftbukkit.entity.CraftTropicalFish;
- import org.bukkit.entity.TropicalFish.Pattern;
- import org.junit.Test;
- 
-+import static org.hamcrest.Matchers.is;
-+import static org.junit.Assert.assertThat;
-+
- public class TropicalFishTest {
- 
-     @Test
-diff --git a/src/test/java/org/bukkit/map/MapTest.java b/src/test/java/org/bukkit/map/MapTest.java
-index 2dde26d3fd4a51828a0aa6e40831ba33aaebeccc..46ab6a50abd5d1231fcdb69bbb74cd7ba684cd24 100644
---- a/src/test/java/org/bukkit/map/MapTest.java
-+++ b/src/test/java/org/bukkit/map/MapTest.java
-@@ -1,13 +1,14 @@
- 
- package org.bukkit.map;
- 
--import java.awt.Color;
--import java.util.logging.Level;
--import java.util.logging.Logger;
- import net.minecraft.server.MaterialMapColor;
- import org.junit.Assert;
- import org.junit.Test;
- 
-+import java.awt.*;
-+import java.util.logging.Level;
-+import java.util.logging.Logger;
-+
- public class MapTest {
- 
-     private static final Logger logger = Logger.getLogger("MapTest");
-diff --git a/src/test/java/org/bukkit/potion/PotionTest.java b/src/test/java/org/bukkit/potion/PotionTest.java
-index ebd2efa5ae21b790695775b068207336da60e549..50cbb7da1a96d3bb0ce60c28405152ce89f8ee84 100644
---- a/src/test/java/org/bukkit/potion/PotionTest.java
-+++ b/src/test/java/org/bukkit/potion/PotionTest.java
-@@ -1,16 +1,14 @@
- package org.bukkit.potion;
- 
--import static org.junit.Assert.*;
-+import net.minecraft.server.*;
-+import org.bukkit.support.AbstractTestingBase;
-+import org.junit.Test;
-+
- import java.util.EnumMap;
- import java.util.List;
- import java.util.Map;
--import net.minecraft.server.IRegistry;
--import net.minecraft.server.MinecraftKey;
--import net.minecraft.server.MobEffect;
--import net.minecraft.server.MobEffectList;
--import net.minecraft.server.PotionRegistry;
--import org.bukkit.support.AbstractTestingBase;
--import org.junit.Test;
-+
-+import static org.junit.Assert.*;
- 
- public class PotionTest extends AbstractTestingBase {
-     @Test
-diff --git a/src/test/java/org/bukkit/support/AbstractTestingBase.java b/src/test/java/org/bukkit/support/AbstractTestingBase.java
-index d3281c81a4e8e0b8c2ad3a8d6628faf546746a2f..bb3400d2ccce6fb73550f80ef1df5a4869e58b9a 100644
---- a/src/test/java/org/bukkit/support/AbstractTestingBase.java
-+++ b/src/test/java/org/bukkit/support/AbstractTestingBase.java
-@@ -2,21 +2,15 @@ package org.bukkit.support;
- 
- import com.google.common.collect.ImmutableList;
- import com.google.common.util.concurrent.MoreExecutors;
--import java.util.Collections;
--import java.util.List;
--import java.util.concurrent.CompletableFuture;
--import net.minecraft.server.DispenserRegistry;
--import net.minecraft.server.EnumResourcePackType;
--import net.minecraft.server.LootPredicateManager;
--import net.minecraft.server.LootTableRegistry;
--import net.minecraft.server.ResourceManager;
--import net.minecraft.server.ResourcePackVanilla;
--import net.minecraft.server.TagRegistry;
--import net.minecraft.server.Unit;
-+import net.minecraft.server.*;
- import org.bukkit.Material;
- import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.junit.Assert;
- 
-+import java.util.Collections;
-+import java.util.List;
-+import java.util.concurrent.CompletableFuture;
-+
- /**
-  *  If you are getting: java.lang.ExceptionInInitializerError
-  *    at net.minecraft.server.StatisticList.&lt;clinit&gt;(SourceFile:58)
-diff --git a/src/test/java/org/bukkit/support/DummyServer.java b/src/test/java/org/bukkit/support/DummyServer.java
-index 97eb5fa880d009bef973467403323d022bea5d7a..39411685ed566b738a40a050fad2159c72bca264 100644
---- a/src/test/java/org/bukkit/support/DummyServer.java
-+++ b/src/test/java/org/bukkit/support/DummyServer.java
-@@ -1,10 +1,5 @@
- package org.bukkit.support;
- 
--import java.lang.reflect.InvocationHandler;
--import java.lang.reflect.Method;
--import java.lang.reflect.Proxy;
--import java.util.HashMap;
--import java.util.logging.Logger;
- import org.bukkit.Bukkit;
- import org.bukkit.Material;
- import org.bukkit.NamespacedKey;
-@@ -16,6 +11,12 @@ import org.bukkit.craftbukkit.util.CraftMagicNumbers;
- import org.bukkit.craftbukkit.util.CraftNamespacedKey;
- import org.bukkit.craftbukkit.util.Versioning;
- 
-+import java.lang.reflect.InvocationHandler;
-+import java.lang.reflect.Method;
-+import java.lang.reflect.Proxy;
-+import java.util.HashMap;
-+import java.util.logging.Logger;
-+
- public final class DummyServer implements InvocationHandler {
-     private static interface MethodHandler {
-         Object handle(DummyServer server, Object[] args);
