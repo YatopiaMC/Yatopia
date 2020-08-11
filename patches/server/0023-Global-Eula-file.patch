@@ -5,43 +5,29 @@ Subject: [PATCH] Global Eula file
 
 
 diff --git a/src/main/java/net/minecraft/server/EULA.java b/src/main/java/net/minecraft/server/EULA.java
-index 229c3b0f0c650b501f31147adaa17194af57fedd..e70da06948abf2aa2223a037aeb5f58fb0a466e3 100644
+index 229c3b0f0c650b501f31147adaa17194af57fedd..345f8b811946fd11695dd718d060c5a86cd64703 100644
 --- a/src/main/java/net/minecraft/server/EULA.java
 +++ b/src/main/java/net/minecraft/server/EULA.java
-@@ -1,9 +1,11 @@
- package net.minecraft.server;
- 
-+import java.io.File;
- import java.io.InputStream;
- import java.io.OutputStream;
- import java.nio.file.Files;
- import java.util.Properties;
-+
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
- 
-@@ -15,12 +17,27 @@ public class EULA {
+@@ -15,12 +15,25 @@ public class EULA {
  
      public EULA(java.nio.file.Path java_nio_file_path) {
          this.b = java_nio_file_path;
 -        this.c = SharedConstants.d || this.b();
 +        this.c = SharedConstants.d || globalEula() || this.b(this.b); // Yatopia
-+    }
-+
-+    // Yatopia start
-+
-+    private boolean globalEula() {
-+	File globalEula = new File(System.getProperty("user.home"), "eula.txt");
-+
-+	if(globalEula.exists()) {
-+		return b(globalEula.toPath());
-+	} else {
-+		System.out.println("No global eula found at " + globalEula.getAbsolutePath());
-+	}
-+	return false;
      }
  
 -    private boolean b() {
++    // Yatopia start
++    private boolean globalEula() {
++	    java.io.File globalEula = new java.io.File(System.getProperty("user.home"), "eula.txt");
++
++	    if (globalEula.exists()) {
++		    return b(globalEula.toPath());
++	    } else {
++		    System.out.println("No global eula found at " + globalEula.getAbsolutePath());
++	    }
++	    return false;
++    }
 +    // Yatopia end
 +
 +    private boolean b(java.nio.file.Path path) { // Yatopia

@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize Hopper logic
 
 
 diff --git a/src/main/java/net/minecraft/server/BlockDropper.java b/src/main/java/net/minecraft/server/BlockDropper.java
-index 1ce89c28c2b54278dc8f1c17f2d0ccb743a27b34..1b360140b6161e9cae96752943d574200b5ced4e 100644
+index 1ce89c28c2b54278dc8f1c17f2d0ccb743a27b34..9c0817d03f88af4c267cd91cd750e861febac4b9 100644
 --- a/src/main/java/net/minecraft/server/BlockDropper.java
 +++ b/src/main/java/net/minecraft/server/BlockDropper.java
 @@ -36,7 +36,7 @@ public class BlockDropper extends BlockDispenser {
@@ -13,19 +13,19 @@ index 1ce89c28c2b54278dc8f1c17f2d0ccb743a27b34..1b360140b6161e9cae96752943d57420
              if (!itemstack.isEmpty()) {
                  EnumDirection enumdirection = (EnumDirection) world.getType(blockposition).get(BlockDropper.FACING);
 -                IInventory iinventory = TileEntityHopper.b(world, blockposition.shift(enumdirection));
-+                IInventory iinventory = TileEntityHopper.b(world, blockposition.shift(enumdirection), false);
++                IInventory iinventory = TileEntityHopper.b(world, blockposition.shift(enumdirection), false); // Yatopia
                  ItemStack itemstack1;
  
                  if (iinventory == null) {
 diff --git a/src/main/java/net/minecraft/server/BlockHopper.java b/src/main/java/net/minecraft/server/BlockHopper.java
-index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..7918382f26807f945dc7966b81c3c1e2f0fc3c41 100644
+index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..77f279fc29955ba6d78271f71df2ac12b7186d60 100644
 --- a/src/main/java/net/minecraft/server/BlockHopper.java
 +++ b/src/main/java/net/minecraft/server/BlockHopper.java
 @@ -110,6 +110,12 @@ public class BlockHopper extends BlockTileEntity {
      @Override
      public void doPhysics(IBlockData iblockdata, World world, BlockPosition blockposition, Block block, BlockPosition blockposition1, boolean flag) {
          this.a(world, blockposition, iblockdata);
-+		//Yatopia start
++		// Yatopia start
 +		TileEntity tileEntity = world.getTileEntity(blockposition);
 +		if (tileEntity instanceof TileEntityHopper) {
 +			((TileEntityHopper)tileEntity).flushCaches();
@@ -35,7 +35,7 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..7918382f26807f945dc7966b81c3c1e2
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 3ff61141aede4b5a09bf83153222de0d14db5ad0..a5a8528db91c15afcf8c77d5e4727c8e0212bb63 100644
+index 3ff61141aede4b5a09bf83153222de0d14db5ad0..e386ffda975b8a0adc218fd47a02e5b38d12e79d 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -2,6 +2,7 @@ package net.minecraft.server;
@@ -46,54 +46,58 @@ index 3ff61141aede4b5a09bf83153222de0d14db5ad0..a5a8528db91c15afcf8c77d5e4727c8e
  import java.util.function.Supplier;
  import java.util.stream.Collectors;
  import java.util.stream.IntStream;
-@@ -661,14 +662,44 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -661,14 +662,48 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
  
      @Nullable
      private IInventory l() {
-+	if(this.cachedPush != null) {
-+		return this.cachedPush;
-+	}
++        // Yatopia start
++	    if(this.cachedPush != null) {
++		    return this.cachedPush;
++	    }
++	    // Yatopia end
          EnumDirection enumdirection = (EnumDirection) this.getBlock().get(BlockHopper.FACING);
  
 -        return b(this.getWorld(), this.position.shift(enumdirection));
 +        IInventory tmp = b(this.getWorld(), this.position.shift(enumdirection), this.cachedPushAir);
-+        if(tmp != null && !(tmp instanceof IWorldInventory) && !(tmp instanceof Entity)) {
-+		this.cachedPush = tmp;
-+        }else {
-+		if(tmp == null) {
-+			this.cachedPushAir = true;
-+		}
-+		return tmp;
++        // Yatopia start
++        if (tmp != null && !(tmp instanceof IWorldInventory) && !(tmp instanceof Entity)) {
++		    this.cachedPush = tmp;
++        } else {
++		    if(tmp == null) {
++			    this.cachedPushAir = true;
++		    }
++		    return tmp;
 +        }
-+        if(this.cachedPush == null) {
-+		this.cachedPushAir = true;
++        if (this.cachedPush == null) {
++		    this.cachedPushAir = true;
 +        }
++        // Yatopia end
 +        return this.cachedPush;
      }
  
      @Nullable
      public static IInventory b(IHopper ihopper) {
 -        return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A());
-+	//Yatopia start
-+	if(ihopper instanceof TileEntityHopper) {
-+		TileEntityHopper hopper = (TileEntityHopper) ihopper;
-+		if(hopper.cachedAbove != null) {
-+			return hopper.cachedAbove;
-+		}
-+		IInventory inv = a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), hopper.cachedPullAir);
-+		hopper.cachedAbove = inv;
-+		if(hopper.cachedAbove == null) {
-+			hopper.cachedPullAir = true;
-+		}
++        // Yatopia start
++	    if (ihopper instanceof TileEntityHopper) {
++		    TileEntityHopper hopper = (TileEntityHopper) ihopper;
++		    if (hopper.cachedAbove != null) {
++			    return hopper.cachedAbove;
++		    }
++		    IInventory inv = a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), hopper.cachedPullAir);
++		    hopper.cachedAbove = inv;
++		    if (hopper.cachedAbove == null) {
++			    hopper.cachedPullAir = true;
++		    }
 +            return inv;
-+	} else {
-+		return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), false);
-+	}
-+        //Yatopia end
++	    } else {
++		    return a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), false);
++	    }
++        // Yatopia end
      }
  
      public static List<EntityItem> c(IHopper ihopper) {
-@@ -683,14 +714,15 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -683,14 +718,15 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      }
  
      @Nullable
@@ -109,41 +113,39 @@ index 3ff61141aede4b5a09bf83153222de0d14db5ad0..a5a8528db91c15afcf8c77d5e4727c8e
 -        Object object = null;
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean skipBlockCheck) { return a(world, d0, d1, d2, false, skipBlockCheck); } // Yatopia // Paper - overload to default false
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities, boolean skipBlockCheck) { // Yatopia // Paper
-+	Object object = null;
-+	if(!skipBlockCheck) { // Yatopia
++	    Object object = null; // Yatopia
++	    if(!skipBlockCheck) { // Yatopia
          BlockPosition blockposition = new BlockPosition(d0, d1, d2);
          if ( !world.isLoaded( blockposition ) ) return null; // Spigot
          IBlockData iblockdata = world.getType(blockposition);
-@@ -708,8 +740,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -708,8 +744,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
                  }
              }
          }
-+	}
++	    } // Yatopia
  
 -        if (object == null && (!optimizeEntities || !org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding())) { // Paper
 +        if (object == null && (!optimizeEntities || true/*!org.bukkit.craftbukkit.util.CraftMagicNumbers.getMaterial(block).isOccluding()*/)) { // Yatopia // Paper
              List<Entity> list = world.getEntities((Entity) null, new AxisAlignedBB(d0 - 0.5D, d1 - 0.5D, d2 - 0.5D, d0 + 0.5D, d1 + 0.5D, d2 + 0.5D), IEntitySelector.d);
  
              if (!list.isEmpty()) {
-@@ -779,4 +812,21 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -779,4 +816,19 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      protected Container createContainer(int i, PlayerInventory playerinventory) {
          return new ContainerHopper(i, playerinventory, this);
      }
 +
 +    // Yatopia start
-+
 +    private IInventory cachedAbove = null;
 +    private IInventory cachedPush = null;
 +    private boolean cachedPushAir = false;
 +    private boolean cachedPullAir = false;
 +
 +    public void flushCaches() {
-+	cachedAbove = null;
-+	cachedPush = null;
-+	cachedPushAir = false;
-+	cachedPullAir = false;
++	    cachedAbove = null;
++	    cachedPush = null;
++	    cachedPushAir = false;
++	    cachedPullAir = false;
 +    }
-+
 +    // Yatopia end
 +
  }

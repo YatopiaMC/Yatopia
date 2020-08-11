@@ -107,14 +107,15 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..2cedf4d7aaefc064f5730015c41c1f5102bc747d 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..e2bbbfeb7e2505479e6a457294aaa550b97319ca 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -112,6 +112,19 @@ public final class OrigamiConfig {
+@@ -112,6 +112,20 @@ public final class OrigamiConfig {
              config.addDefault("worlds.default." + path, Double.valueOf(dfl));
              return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
          }
 +
++        // Yatopia start
 +        public boolean tickEmptyHoppers = true;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
@@ -124,9 +125,9 @@ index fe7330fabe386966c2d203a190a00a785ea21be0..2cedf4d7aaefc064f5730015c41c1f51
 +
 +        public boolean fastFeatureSearchDontLoad = false;
 +        private void fastFeatureSearchDontLoad() {
-+		fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", fastFeatureSearchDontLoad);
++		    fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
 +        }
-+
++        // Yatopia end
      }
  
  }
@@ -585,7 +586,7 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 9ae62bd4a6742eb77082867da6edb94c29aa2d9b..197726bdfcb887a1daac1352726f33ef08fa32b1 100644
+index 9ae62bd4a6742eb77082867da6edb94c29aa2d9b..29ffa302fa5b3d7d0ece23e2e0eda79d46747c3b 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -97,6 +97,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -606,15 +607,7 @@ index 9ae62bd4a6742eb77082867da6edb94c29aa2d9b..197726bdfcb887a1daac1352726f33ef
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
          this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
-@@ -641,6 +645,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
- 
-     public void b(BlockPosition blockposition, IBlockData iblockdata, IBlockData iblockdata1) {}
- 
-+
-     public void applyPhysics(BlockPosition blockposition, Block block) {
-         if (captureBlockStates) { return; } // Paper - Cancel all physics during placement
-         this.a(blockposition.west(), block, blockposition);
-@@ -678,6 +683,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -678,6 +682,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      }
  
@@ -886,18 +879,10 @@ index f3a3a42c346353d699163317efad0e88f666924f..8fab87414b78c2e9bbe6fe98c70bfa6a
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index af1d37720fe8ea68bea8cad94ddf4ed907f98696..5ba71b957001a91c46970b5aab30dadb7a488f0d 100644
+index af1d37720fe8ea68bea8cad94ddf4ed907f98696..73a36683e386d9e8e917b6ac04262aae3e3d3b69 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -138,6 +138,7 @@ public class Main {
-                         .defaultsTo(new File("paper.yml"))
-                         .describedAs("Yml file");
-                 // Paper end
-+
-                 // Tuinity Start - Server Config
-                 acceptsAll(asList("tuinity", "tuinity-settings"), "File for tuinity settings")
-                         .withRequiredArg()
-@@ -154,6 +155,30 @@ public class Main {
+@@ -154,6 +154,30 @@ public class Main {
                          .describedAs("Yml file");
                  // Purpur end
  

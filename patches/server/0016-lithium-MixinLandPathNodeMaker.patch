@@ -7,34 +7,22 @@ Original code by JellySquid, licensed under GNU Lesser General Public License v3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index ec55785af2b432b692d3a3bf4298ffb32489bf3b..279ca87d8826ea2696ffc08d4b52c55a5e7bd392 100644
+index ec55785af2b432b692d3a3bf4298ffb32489bf3b..4f59e4b31300009f5e7ef8767be6c89d7b449af0 100644
 --- a/src/main/java/net/minecraft/server/PathfinderNormal.java
 +++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
-@@ -4,12 +4,23 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
- import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
- import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
- import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-+import com.google.common.collect.Sets;
-+
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-+
- import java.util.EnumSet;
- import java.util.Iterator;
- import javax.annotation.Nullable;
+@@ -10,6 +10,11 @@ import javax.annotation.Nullable;
  
  public class PathfinderNormal extends PathfinderAbstract {
  
-+	// Yatopia start
-+
-+    // This is not thread-safe!
-+    private static final Reference2ReferenceMap<IBlockData, PathType> commonTypes = new Reference2ReferenceOpenHashMap<>();
++	// Yatopia start - this is not thread safe!
++    private static final it.unimi.dsi.fastutil.objects.Reference2ReferenceMap<IBlockData, PathType> commonTypes =
++            new it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap<>();
 +	// Yatopia end
 +
      protected float j;
      private final Long2ObjectMap<PathType> k = new Long2ObjectOpenHashMap();
      private final Object2BooleanMap<AxisAlignedBB> l = new Object2BooleanOpenHashMap();
-@@ -508,13 +519,44 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -508,13 +513,44 @@ public class PathfinderNormal extends PathfinderAbstract {
      protected static PathType b(IBlockAccess iblockaccess, BlockPosition blockposition) {
          IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition); // Paper
          if (iblockdata == null) return PathType.BLOCKED; // Paper
@@ -84,7 +72,7 @@ index ec55785af2b432b692d3a3bf4298ffb32489bf3b..279ca87d8826ea2696ffc08d4b52c55a
                  return PathType.DAMAGE_CACTUS;
              } else if (iblockdata.a(Blocks.SWEET_BERRY_BUSH)) {
                  return PathType.DAMAGE_OTHER;
-@@ -540,7 +582,10 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -540,7 +576,10 @@ public class PathfinderNormal extends PathfinderAbstract {
                  } else {
                      Fluid fluid = iblockdata.getFluid(); // Tuinity - remove another getType call
  

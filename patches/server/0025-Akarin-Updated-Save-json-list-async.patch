@@ -5,19 +5,10 @@ Subject: [PATCH] Akarin Updated Save json list async
 
 
 diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
-index 9213bfb78e92b838189161045e3945588251b486..6d7452d05c648cdee50b2077aec6f100449b8229 100644
+index 9213bfb78e92b838189161045e3945588251b486..3fb72d6ee587d66a9b7e1dec27fc4f64b82ab4df 100644
 --- a/src/main/java/net/minecraft/server/JsonList.java
 +++ b/src/main/java/net/minecraft/server/JsonList.java
-@@ -20,6 +20,8 @@ import java.util.Iterator;
- import java.util.List;
- import java.util.Map;
- import javax.annotation.Nullable;
-+
-+import org.apache.commons.io.IOUtils;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
- 
-@@ -146,6 +148,7 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -146,6 +146,7 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
      }
  
      public void save() throws IOException {
@@ -25,7 +16,7 @@ index 9213bfb78e92b838189161045e3945588251b486..6d7452d05c648cdee50b2077aec6f100
          this.removeStaleEntries(); // Paper - remove expired values before saving
          JsonArray jsonarray = new JsonArray();
  
-@@ -155,29 +158,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -155,29 +156,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
              jsonlistentry.getClass();
              return (JsonObject) SystemUtils.a(jsonobject, jsonlistentry::a); // CraftBukkit - decompile error
          }).forEach(jsonarray::add);
@@ -53,7 +44,7 @@ index 9213bfb78e92b838189161045e3945588251b486..6d7452d05c648cdee50b2077aec6f100
 -                }
 -            }
 -
-+            IOUtils.closeQuietly(bufferedwriter);
++            org.apache.commons.io.IOUtils.closeQuietly(bufferedwriter);
          }
  
 +        }; // Akarin - Save json list async
