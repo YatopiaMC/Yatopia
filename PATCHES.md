@@ -14,16 +14,12 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add NBT API as a first class lib      | tr7zw |  |
 | server |  Add NBT-API as first-class lib      | tr7zw |  |
-| server |  Add Rainforest config      | Mariell Hoversholm |  |
 | server |  Add config Yatopia command and basic settings      | tr7zw |  |
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
-| server |  Add option for only players to have collisions with      | tr7zw |  |
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
-| api |  Add server configuration      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
-| server |  Akarin configuration      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Akarin updated Async Path Finding      | tsao chi | Bud Gidiere |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
@@ -65,6 +61,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize redstone algorithm      | theosib | egg82 |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Origami Server Config      | Phoenix616 |  |
+| server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Player-saving-async-FileIO      | tr7zw |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |

@@ -6,7 +6,7 @@ Subject: [PATCH] Yatopia API Bundle
 Lagging threshold + Purpur & Rainforest & Origami config
 
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..0770736b4b52f325027671b43f74ad038c97ce7f 100644
+index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..59787c474f1a17dff156e74107f880ac083a7cb3 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
 @@ -1776,4 +1776,15 @@ public final class Bukkit {
@@ -16,9 +16,9 @@ index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..0770736b4b52f325027671b43f74ad03
 +
 +    // Purpur start
 +    /**
-+     * Check if server is lagging according to laggy threshold setting
++     * Check if the server is lagging, according to the laggy threshold setting.
 +     *
-+     * @return True if lagging
++     * @return true if lagging
 +     */
 +    public static boolean isLagging() {
 +        return server.isLagging();
@@ -26,30 +26,48 @@ index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..0770736b4b52f325027671b43f74ad03
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index 1f916988bd54e8386011b0d7e82fc9219939a881..154c24a5a32450636b1c554df1bb5262fa05e9c8 100644
+index 46c4d98ce32a0b1d8cfd391f2c7a9566a045cb55..909a59822a3d4fb7115e1a15cf2a6ce3f5af9065 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -1463,6 +1463,33 @@ public interface Server extends PluginMessageRecipient {
+@@ -1455,6 +1455,51 @@ public interface Server extends PluginMessageRecipient {
          }
-         // Akarin end - Server config
+         // Tuinity end - add config to timings report
  
++        // Akarin start
++        /**
++         * @deprecated yatopia does not import akarin config anymore
++         */
++        @Deprecated
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getAkarinConfig()
++        {
++            return new org.bukkit.configuration.file.YamlConfiguration();
++        }
++        // Akarin end
++
 +        // Rainforest start
++        /**
++         * @deprecated yatopia does not import rainforest config anymore
++         */
++        @Deprecated
 +        @NotNull
 +        public org.bukkit.configuration.file.YamlConfiguration getRainforestConfig()
 +        {
-+            throw new UnsupportedOperationException("Not supported yet.");
++            return new org.bukkit.configuration.file.YamlConfiguration();
 +        }
 +        // Rainforest end
 +
 +        // Purpur start
 +        @NotNull
-+        public org.bukkit.configuration.file.YamlConfiguration getPurpurConfig() {
-+            throw new UnsupportedOperationException("Not supported yet.");
++        public org.bukkit.configuration.file.YamlConfiguration getPurpurConfig()
++        {
++            throw new UnsupportedOperationException("Not suppoorted yet");
 +        }
 +
 +        @NotNull
-+        public java.util.Properties getServerProperties() {
-+            throw new UnsupportedOperationException("Not supported yet.");
++        public java.util.Properties getServerProperties()
++        {
++            throw new UnsupportedOperationException("Not supported yet");
 +        }
 +        // Purpur end
 +        // Origami start - add config to timings report
@@ -63,17 +81,17 @@ index 1f916988bd54e8386011b0d7e82fc9219939a881..154c24a5a32450636b1c554df1bb5262
          /**
           * Sends the component to the player
           *
-@@ -1563,4 +1590,13 @@ public interface Server extends PluginMessageRecipient {
+@@ -1555,4 +1600,13 @@ public interface Server extends PluginMessageRecipient {
      @NotNull
      com.destroystokyo.paper.entity.ai.MobGoals getMobGoals();
      // Paper end
 +
 +    // Purpur start
 +    /**
-+    * Check if server is lagging according to laggy threshold setting
-+    *
-+    * @return True if lagging
-+    */
++     * Check if the server is lagging, according to the laggy threshold setting.
++     *
++     * @return true if lagging
++     */
 +    boolean isLagging();
 +    // Purpur end
  }
