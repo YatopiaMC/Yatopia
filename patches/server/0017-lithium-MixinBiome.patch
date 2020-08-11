@@ -8,20 +8,23 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c2c19a6fbfa2a4aba21aa71789071c69a6246556
+index 0000000000000000000000000000000000000000..3079549f466a350223c3ee11466432bf3dc4c5b6
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,171 @@
 +package me.jellysquid.mods.lithium.common.util.collections;
 +
-+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-+
-+import java.util.*;
++import java.util.Collection;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.List;
++import java.util.ListIterator;
++import java.util.Set;
 +
 +/**
 + * Wraps a {@link List} with a hash table which provides O(1) lookups for {@link Collection#contains(Object)}.
 + *
-+ * @see https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/fabric/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
++ * @see <a href="https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/fabric/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java">HashedList</a>
 + */
 +public class HashedList<T> implements List<T> {
 +    private final List<T> list;
@@ -177,28 +180,20 @@ index 0000000000000000000000000000000000000000..c2c19a6fbfa2a4aba21aa71789071c69
 +    }
 +
 +    public static <T> HashedList<T> wrapper(List<T> list) {
-+        return new HashedList<>(list, new ObjectArraySet<>(list));
++        return new HashedList<>(list, new HashSet<>(list)); // Yatopia - use hashset
 +    }
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
-index b2b654218382cc2cf1649067cd140b539235e3d2..bfaba96eb56dd98a67d2c2179335ae48dcbe3849 100644
+index b2b654218382cc2cf1649067cd140b539235e3d2..f7f082c80442cd352e14daa4b199b2f3ad75c22f 100644
 --- a/src/main/java/net/minecraft/server/BiomeBase.java
 +++ b/src/main/java/net/minecraft/server/BiomeBase.java
-@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
- import com.mojang.serialization.Codec;
- import com.mojang.serialization.codecs.RecordCodecBuilder;
- import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
-+import me.jellysquid.mods.lithium.common.util.collections.HashedList;
- 
- import java.util.*;
- import java.util.function.Function;
-@@ -139,7 +140,7 @@ public class BiomeBase {
+@@ -139,7 +139,7 @@ public class BiomeBase {
              for (j = 0; j < i; ++j) {
                  EnumCreatureType enumcreaturetype = aenumcreaturetype[j];
  
 -                this.v.put(enumcreaturetype, new MobList()); // Paper
-+                this.v.put(enumcreaturetype, HashedList.wrapper(new MobList())); // Paper // Yatopia lithium change
++                this.v.put(enumcreaturetype, me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new MobList())); // Paper // Yatopia -  lithium change
              }
  
          } else {

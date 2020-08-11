@@ -4,21 +4,8 @@ Date: Wed, 5 Aug 2020 08:08:44 -0500
 Subject: [PATCH] Optimize TileEntity loading
 
 
-diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-index c2c19a6fbfa2a4aba21aa71789071c69a6246556..8ee0c5982c3ec957ba043c0d7819ecbe586ac3f5 100644
---- a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-+++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-@@ -163,6 +163,6 @@ public class HashedList<T> implements List<T> {
-     }
- 
-     public static <T> HashedList<T> wrapper(List<T> list) {
--        return new HashedList<>(list, new ObjectArraySet<>(list));
-+        return new HashedList<>(list, new java.util.HashSet<>(list)); // Yatopia
-     }
- }
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 197726bdfcb887a1daac1352726f33ef08fa32b1..cc40e3ef589cd636225941ac755b5849520f7b70 100644
+index 29ffa302fa5b3d7d0ece23e2e0eda79d46747c3b..8beda792cc67e5c789574076f5a06214614a6031 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -43,8 +43,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

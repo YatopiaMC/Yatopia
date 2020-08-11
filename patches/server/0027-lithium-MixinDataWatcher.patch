@@ -9,18 +9,10 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/net/minecraft/server/DataWatcher.java b/src/main/java/net/minecraft/server/DataWatcher.java
-index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fdb4381c42 100644
+index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..23fdd7c7d0368cc88e467a890cea8aa9b495fa11 100644
 --- a/src/main/java/net/minecraft/server/DataWatcher.java
 +++ b/src/main/java/net/minecraft/server/DataWatcher.java
-@@ -6,6 +6,7 @@ import io.netty.handler.codec.DecoderException;
- import io.netty.handler.codec.EncoderException;
- import java.io.IOException;
- import java.util.ArrayList;
-+import java.util.Arrays;
- import java.util.Iterator;
- import java.util.List;
- import java.util.Map;
-@@ -26,6 +27,77 @@ public class DataWatcher {
+@@ -26,6 +26,77 @@ public class DataWatcher {
      private boolean f = true;
      private boolean g;
  
@@ -46,7 +38,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
 +            // than 256 entries as per the vanilla limit
 +            int newSize = Math.min(k + GROW_FACTOR, 256);
 +
-+            this.entriesArray = storage = Arrays.copyOf(storage, newSize);
++            this.entriesArray = storage = java.util.Arrays.copyOf(storage, newSize);
 +        }
 +
 +        // Update the storage
@@ -98,7 +90,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
      public DataWatcher(Entity entity) {
          this.entity = entity;
      }
-@@ -90,7 +162,8 @@ public class DataWatcher {
+@@ -90,7 +161,8 @@ public class DataWatcher {
          DataWatcher.Item<T> datawatcher_item = new DataWatcher.Item<>(datawatcherobject, t0);
  
          // this.lock.writeLock().lock(); // Spigot - not required
@@ -108,12 +100,12 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
          this.f = false;
          // this.lock.writeLock().unlock(); // Spigot - not required
      }
-@@ -121,7 +194,8 @@ public class DataWatcher {
+@@ -121,7 +193,8 @@ public class DataWatcher {
      }
  
      public <T> T get(DataWatcherObject<T> datawatcherobject) {
 -        return this.b(datawatcherobject).b();
-+	return getEntry(datawatcherobject).b(); // Yatopia
++	    return getEntry(datawatcherobject).b(); // Yatopia
 +        //return this.b(datawatcherobject).b();
      }
  

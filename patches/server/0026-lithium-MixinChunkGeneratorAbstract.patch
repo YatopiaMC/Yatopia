@@ -149,19 +149,10 @@ index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a1
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-index 45b771e4121f2ef27c67d5a5ba2dadcfc0f944e0..448745b9e499b86f3ce6938c0f0fb0fbb222a781 100644
+index 45b771e4121f2ef27c67d5a5ba2dadcfc0f944e0..b15ed711d8236e9835ffa013f8252aec03e9bb57 100644
 --- a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 +++ b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-@@ -5,6 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
- import it.unimi.dsi.fastutil.objects.ObjectArrayList;
- import it.unimi.dsi.fastutil.objects.ObjectList;
- import it.unimi.dsi.fastutil.objects.ObjectListIterator;
-+import me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache;
-+
- import java.util.Iterator;
- import java.util.List;
- import java.util.Random;
-@@ -56,12 +58,13 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -56,12 +56,13 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
      private final NoiseGenerator t;
      private final NoiseGeneratorOctaves u;
      @Nullable
@@ -172,20 +163,20 @@ index 45b771e4121f2ef27c67d5a5ba2dadcfc0f944e0..448745b9e499b86f3ce6938c0f0fb0fb
      private final long w;
      protected final GeneratorSettingBase h;
      private final int x;
-+    private ThreadLocal<SimplexNoiseCache> tlCache; // Yatopia: lithium
++    private ThreadLocal<me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache> tlCache; // Yatopia: lithium
  
      public ChunkGeneratorAbstract(WorldChunkManager worldchunkmanager, long i, GeneratorSettingBase generatorsettingbase) {
          this(worldchunkmanager, worldchunkmanager, i, generatorsettingbase);
-@@ -96,7 +99,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -96,7 +97,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          } else {
              this.v = null;
          }
 -
-+        this.tlCache = ThreadLocal.withInitial(() -> new SimplexNoiseCache(v)); // Yapfa: lithium
++        this.tlCache = ThreadLocal.withInitial(() -> new me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache(v)); // Yatopia: lithium
      }
  
      @Override
-@@ -161,7 +164,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -161,7 +162,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          double d3;
  
          if (this.v != null) {

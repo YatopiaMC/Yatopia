@@ -5,89 +5,72 @@ Subject: [PATCH] Add GameProfileLookupEvent
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
-index dd96dd296d042c0625e527b50b3acfc19a2bf43e..0c5f2a010f30eb32bea273d7e65b0741016480e5 100644
+index dd96dd296d042c0625e527b50b3acfc19a2bf43e..caec027b8485ab5cb47b04367cd6fb085f4c7fe7 100644
 --- a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
 +++ b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
-@@ -5,9 +5,13 @@ import com.google.common.base.Charsets;
+@@ -5,9 +5,11 @@ import com.google.common.base.Charsets;
  import com.mojang.authlib.GameProfile;
  import com.mojang.authlib.properties.Property;
  import com.mojang.authlib.properties.PropertyMap;
 +
-+import dev.tr7zw.yatopia.events.GameProfileLookupEvent;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.UserCache;
  import org.apache.commons.lang3.Validate;
 +
-+import org.bukkit.Bukkit;
  import org.bukkit.craftbukkit.entity.CraftPlayer;
  import org.spigotmc.SpigotConfig;
  
-@@ -182,17 +186,24 @@ public class CraftPlayerProfile implements PlayerProfile {
-     }
-     public boolean complete(boolean textures, boolean onlineMode) {
-         MinecraftServer server = MinecraftServer.getServer();
--
+@@ -185,13 +187,24 @@ public class CraftPlayerProfile implements PlayerProfile {
+ 
          boolean isCompleteFromCache = this.completeFromCache(true, onlineMode);
          if (onlineMode && (!isCompleteFromCache || textures && !hasTextures())) {
 -            GameProfile result = server.getMinecraftSessionService().fillProfileProperties(profile, true);
 -            if (result != null) {
 -                copyProfileProperties(result, this.profile, true);
-+		    // Yatopia start
-+		    GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
-+		    Bukkit.getServer().getPluginManager().callEvent(event);
-+		    if (event.getGameProfile() != null) {
-+			    this.profile = event.getGameProfile();
-+		    } else {
-+			    GameProfile result = server.getMinecraftSessionService().fillProfileProperties(profile, true);
-+			    if (result != null) {
-+				    copyProfileProperties(result, this.profile, true);
-+			    }
-+                    if (this.profile.isComplete()) {
-+                        server.getUserCache().saveProfile(this.profile);
-+                    }
-+		    }
-+		    // Yatopia end
-             }
+-            }
 -            if (this.profile.isComplete()) {
 -                server.getUserCache().saveProfile(this.profile);
--            }
--        }
++		    // Yatopia start
++            dev.tr7zw.yatopia.events.GameProfileLookupEvent event = new
++                    dev.tr7zw.yatopia.events.GameProfileLookupEvent(
++                            !org.bukkit.Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
++            org.bukkit.Bukkit.getPluginManager().callEvent(event);
++            GameProfile eventProfile = event.getGameProfile();
++            if (eventProfile != null) {
++                this.profile = eventProfile;
++            } else {
++                GameProfile result = server.getMinecraftSessionService().fillProfileProperties(profile, true);
++                if (result != null) {
++                    copyProfileProperties(result, this.profile, true);
++                }
++                if (this.profile.isComplete()) {
++                    server.getUserCache().saveProfile(this.profile);
++                }
+             }
++		    // Yatopia end
+         }
          return profile.isComplete() && (!onlineMode || !textures || hasTextures());
      }
- 
 diff --git a/src/main/java/net/minecraft/server/TileEntitySkull.java b/src/main/java/net/minecraft/server/TileEntitySkull.java
-index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..ceb1f18a49ebc8fbac270d9f221fa44f9baea216 100644
+index 579a81e521fdfabfa0318d06c6760a8ab7a88c1e..ab553f408b31cb7e2d281cc3d8fe42e19dc717d9 100644
 --- a/src/main/java/net/minecraft/server/TileEntitySkull.java
 +++ b/src/main/java/net/minecraft/server/TileEntitySkull.java
-@@ -4,9 +4,14 @@ import com.google.common.collect.Iterables;
- import com.mojang.authlib.GameProfile;
- import com.mojang.authlib.minecraft.MinecraftSessionService;
- import com.mojang.authlib.properties.Property;
-+
-+import dev.tr7zw.yatopia.events.GameProfileLookupEvent;
-+
- import java.util.UUID;
- import javax.annotation.Nullable;
- 
-+import org.bukkit.Bukkit;
-+
- // Spigot start
- import com.google.common.base.Predicate;
- import com.google.common.cache.LoadingCache;
-@@ -77,7 +82,15 @@ public class TileEntitySkull extends TileEntity /*implements ITickable*/ { // Pa
+@@ -77,7 +77,18 @@ public class TileEntitySkull extends TileEntity /*implements ITickable*/ { // Pa
  
                          if ( property == null )
                          {
--                            profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
-+				// Yatopia start
-+				GameProfileLookupEvent event = new GameProfileLookupEvent(!Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
-+				Bukkit.getServer().getPluginManager().callEvent(event);
-+				if (event.getGameProfile() != null) {
-+					profile = event.getGameProfile();
-+				} else {
-+					profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
-+				}
-+				// Yatopia end
++                            // Yatopia start
++                            dev.tr7zw.yatopia.events.GameProfileLookupEvent event =
++                                    new dev.tr7zw.yatopia.events.GameProfileLookupEvent(
++                                            !org.bukkit.Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
++                            org.bukkit.Bukkit.getPluginManager().callEvent(event);
++                            GameProfile eventProfile = event.getGameProfile();
++                            if (eventProfile != null) {
++                                profile = eventProfile;
++                            } else {
+                             profile = TileEntitySkull.sessionService.fillProfileProperties( profile, true );
++                            }
++                            // Yatopia end
                          }
                      }
  

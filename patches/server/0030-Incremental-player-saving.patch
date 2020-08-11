@@ -7,11 +7,11 @@ Ported to Yatopia and 1.16.1 by MrIvanPlays
 Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index c4ab51e3eb22917159e0803f54c1654975c98485..d20ed58b781462ea667f75a2ac99b78cb23e283c 100644
+index 325d1fe8f91bdfa82a53a5f1f86804d04f973090..01a44ad139699a1f6b745853c36d79c39f7d75eb 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -231,4 +231,15 @@ public class YatopiaConfig {
- 	fixFallDistance = getBoolean("settings.fixFallDistance", false);
+ 	    fixFallDistance = getBoolean("settings.fixFallDistance", false);
      }
  
 +    public static int maxPlayerAutoSavePerTick = 10;
@@ -62,10 +62,10 @@ index 26ee6e9219059c9f7175148e934d2adec2b336a0..f3e67e96bea9059aad60c896d7f376f7
              // Paper start
              for (WorldServer world : getWorlds()) {
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index c10a1d15bcfe0cb1c2ff6ee7f2881bc2040bcd1d..1dfd274e3af26792d5da88c59c0ebc71d8b9feb4 100644
+index 0b6c62ff0ac75c7ec11de9f8e9745b07ee12664e..60fa4b84c3701fc29d07215d005e5b7b45b5dfbb 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -484,6 +484,7 @@ public abstract class PlayerList {
+@@ -483,6 +483,7 @@ public abstract class PlayerList {
      protected void savePlayerFile(EntityPlayer entityplayer) {
          if (!entityplayer.getBukkitEntity().isPersistent()) return; // CraftBukkit
          if (!entityplayer.didPlayerJoinEvent) return; // Paper - If we never fired PJE, we disconnected during login. Data has not changed, and additionally, our saved vehicle is not loaded! If we save now, we will lose our vehicle (CraftBukkit bug)
@@ -73,7 +73,7 @@ index c10a1d15bcfe0cb1c2ff6ee7f2881bc2040bcd1d..1dfd274e3af26792d5da88c59c0ebc71
          this.playerFileData.save(entityplayer);
          ServerStatisticManager serverstatisticmanager = (ServerStatisticManager) entityplayer.getStatisticManager(); // CraftBukkit
  
-@@ -1130,10 +1131,21 @@ public abstract class PlayerList {
+@@ -1129,10 +1130,21 @@ public abstract class PlayerList {
      }
  
      public void savePlayers() {

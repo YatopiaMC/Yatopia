@@ -5,7 +5,7 @@ Subject: [PATCH] Option for simpler Villagers
 
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index dd9206a70e85507fb538d2b59d97478db57df7b8..02ef2cbc0599461a1c693ef71d2310bb3e6d1fc0 100644
+index c7ef8b2cd84d66b955bdbabdecfc18c1d4cc4444..d8e3bbb2ffbf20a111af3fd7a019daf1d5a7dead 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -216,4 +216,13 @@ public class YatopiaConfig {
@@ -24,7 +24,7 @@ index dd9206a70e85507fb538d2b59d97478db57df7b8..02ef2cbc0599461a1c693ef71d2310bb
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb333facbe 100644
+index d906c5e530c2e7f779df079223aee619a73b5d51..1ecb19c1c81456148af4a9edd59059356c3c0b94 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -7,6 +7,8 @@ import com.mojang.datafixers.util.Pair;
@@ -36,23 +36,22 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
  import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
  
  import java.util.*;
-@@ -27,6 +29,8 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
+@@ -27,6 +29,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
  
  public class EntityVillager extends EntityVillagerAbstract implements ReputationHandler, VillagerDataHolder {
  
-+    //Yatopia
-+	private boolean simplerVillagerBehavior = YatopiaConfig.simplerVillagerBehavior; //get this during villager creation so a reloaded config doesn't get them into an invalid state
++	private boolean simplerVillagerBehavior = dev.tr7zw.yatopia.YatopiaConfig.simplerVillagerBehavior; // Yatopia - get this during villager creation so a reloaded config doesn't get them into an invalid state
      private static final DataWatcherObject<VillagerData> by = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bw = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
      private static final Set<Item> bz = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
-@@ -63,12 +67,49 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -63,12 +66,49 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      public EntityVillager(EntityTypes<? extends EntityVillager> entitytypes, World world, VillagerType villagertype) {
          super(entitytypes, world);
          this.bF = new Reputation();
-+        if(!simplerVillagerBehavior) {
++        if (!simplerVillagerBehavior) {
          ((Navigation) this.getNavigation()).a(true);
          this.getNavigation().d(true);
-+        }else {
++        } else {
 +            initPathfinder();
 +        }
          this.setCanPickupLoot(true);
@@ -63,9 +62,9 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
 +
 +    @Override
 +    protected void initPathfinder() {
-+        if(!simplerVillagerBehavior)return;
++        if (!simplerVillagerBehavior) return;
 +        this.goalSelector.a(0, new PathfinderGoalFloat(this));
-+        if(YatopiaConfig.villagersHideAtNight) {
++        if(dev.tr7zw.yatopia.YatopiaConfig.villagersHideAtNight) {
 +            this.goalSelector.a(0, new PathfinderGoalUseItem<>(this, PotionUtil.a(new ItemStack(Items.POTION), Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
 +                return !this.world.isDay() && !entityvillagertrader.isInvisible();
 +            }));
@@ -95,7 +94,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
  
      @Override
      public BehaviorController<EntityVillager> getBehaviorController() {
-@@ -82,6 +123,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -82,6 +122,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
  
      @Override
      protected BehaviorController<?> a(Dynamic<?> dynamic) {
@@ -103,7 +102,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
          BehaviorController<EntityVillager> behaviorcontroller = this.cJ().a(dynamic);
  
          this.a(behaviorcontroller);
-@@ -159,15 +201,47 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -159,15 +200,47 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          super.inactiveTick();
      }
      // Spigot End
@@ -127,16 +126,16 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
 +            default: return VillagerProfession.FARMER;
 +        }
 +    }
-+
-+// Yatopia end
++    // Yatopia end
  
      @Override
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
 +        // Yatopia start
-+        if(simplerVillagerBehavior && this.getVillagerData().getProfession() == VillagerProfession.NONE)
++        if (simplerVillagerBehavior && this.getVillagerData().getProfession() == VillagerProfession.NONE) {
 +            this.setVillagerData(this.getVillagerData().withProfession(getRandomProfession()));
-+        if(simplerVillagerBehavior) {
++        }
++        if (simplerVillagerBehavior) {
 +            if (canRefresh()) {
 +                restUses();
 +            }
@@ -151,7 +150,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
          if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
          if (this.bM) {
              this.bM = false;
-@@ -298,6 +372,8 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -298,6 +371,8 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return true;
      }
  
@@ -160,7 +159,7 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
      public void fb() {
          this.fp();
          Iterator iterator = this.getOffers().iterator();
-@@ -332,6 +408,8 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -332,6 +407,8 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return this.bK == 0 || this.bK < 2 && this.world.getTime() > this.bJ + 2400L;
      }
  
@@ -169,19 +168,19 @@ index d906c5e530c2e7f779df079223aee619a73b5d51..2fb7f23275acad54d2f5e2ecd57d5bbb
      public boolean fc() {
          long i = this.bJ + 12000L;
          long j = this.world.getTime();
-@@ -579,6 +657,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -579,6 +656,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      private void a(Entity entity) {
-+	if(simplerVillagerBehavior)return; // Yatopia
++	    if (simplerVillagerBehavior)return; // Yatopia
          if (this.world instanceof WorldServer) {
              Optional<List<EntityLiving>> optional = this.bn.getMemory(MemoryModuleType.VISIBLE_MOBS);
  
-@@ -604,6 +683,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -604,6 +682,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      public void a(MemoryModuleType<GlobalPos> memorymoduletype) {
-+	if(simplerVillagerBehavior)return; // Yatopia
++	    if (simplerVillagerBehavior)return; // Yatopia
          if (this.world instanceof WorldServer) {
              MinecraftServer minecraftserver = ((WorldServer) this.world).getMinecraftServer();
  

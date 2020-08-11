@@ -18,17 +18,30 @@ index 74ed02fa9296583977bb721014b10ff8b708b43c..a13c7b2b5bc79ecaea404779149ed02c
          );
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java b/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..523e3b50d535e91afe8b14fdb53966da030963dc
+index 0000000000000000000000000000000000000000..dfa51d6f170ec4fb010dce909c3fccb6c726deb4
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,96 @@
 +package dev.tr7zw.yatopia;
 +
++import com.destroystokyo.paper.VersionHistoryManager;
++import com.google.common.base.Charsets;
++import com.google.gson.Gson;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonSyntaxException;
++import java.io.BufferedReader;
++import java.io.IOException;
++import java.io.InputStreamReader;
++import java.net.HttpURLConnection;
++import java.net.URL;
 +import javax.annotation.Nonnull;
 +
 +import com.destroystokyo.paper.util.VersionFetcher;
++import javax.annotation.Nullable;
 +
 +public class YatopiaVersionFetcher implements VersionFetcher {
++
++    private static final String GITHUB_BRANCH_NAME = "ver/1.16.1";
 +
 +    @Override
 +    public long getCacheTime() {
@@ -38,7 +51,70 @@ index 0000000000000000000000000000000000000000..523e3b50d535e91afe8b14fdb53966da
 +    @Nonnull
 +    @Override
 +    public String getVersionMessage(@Nonnull String serverVersion) {
-+        return "\u00AF\\_(\u30C4)_/\u00AF";
++        String[] parts = serverVersion.substring("git-Yatopia-".length()).split("[-\\s]");
++        String updateMessage = getUpdateStatusMessage("tr7zw/Yatopia", GITHUB_BRANCH_NAME, parts[0]);
++        String history = getHistory();
++        return history != null ? history + "\n" + updateMessage : updateMessage;
++    }
++
++    private String getUpdateStatusMessage(String repo, String branch, String versionInfo) {
++        versionInfo = versionInfo.replace("\"", "");
++        int distance = fetchDistanceFromGitHub(repo, branch, versionInfo);
++
++        switch (distance) {
++            case -1:
++                return "Error obtaining version information";
++            case 0:
++                return "You are running the latest version";
++            case -2:
++                return "\u00AF\\_(\u30C4)_/\u00AF";
++            default:
++                return "You are " + distance + " version(s) behind";
++        }
++    }
++
++    // Contributed by Techcable <Techcable@outlook.com> in GH-65
++    // from PaperVersionFetcher
++    private static int fetchDistanceFromGitHub(@Nonnull String repo, @Nonnull String branch, @Nonnull String hash) {
++        try {
++            HttpURLConnection connection = (HttpURLConnection) new URL("https://api.github.com/repos/" + repo + "/compare/" + branch + "..." + hash).openConnection();
++            connection.connect();
++            if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return -2; // Unknown commit
++            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charsets.UTF_8))) {
++                JsonObject obj = new Gson().fromJson(reader, JsonObject.class);
++                String status = obj.get("status").getAsString();
++                switch (status) {
++                    case "identical":
++                        return 0;
++                    case "behind":
++                        return obj.get("behind_by").getAsInt();
++                    default:
++                        return -1;
++                }
++            } catch (JsonSyntaxException | NumberFormatException e) {
++                e.printStackTrace();
++                return -1;
++            }
++        } catch (IOException e) {
++            e.printStackTrace();
++            return -1;
++        }
++    }
++
++    // from PaperVersionFetcher
++    @Nullable
++    private String getHistory() {
++        final VersionHistoryManager.VersionData data = VersionHistoryManager.INSTANCE.getVersionData();
++        if (data == null) {
++            return null;
++        }
++
++        final String oldVersion = data.getOldVersion();
++        if (oldVersion == null) {
++            return null;
++        }
++
++        return "Previous version: " + oldVersion;
 +    }
 +
 +}
@@ -95,3 +171,52 @@ index 001b1e5197eaa51bfff9031aa6c69876c9a47960..2e6cd1780d759a9f94dc4d740fa1b81f
          Properties properties = new Properties();
  
          if (stream != null) {
+diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
+index 4d310908489953d6d061b2358f614142edacb62e..870a3b64aaf933ba22c32b699b576a96ca4dae25 100644
+--- a/src/main/java/org/spigotmc/WatchdogThread.java
++++ b/src/main/java/org/spigotmc/WatchdogThread.java
+@@ -26,7 +26,7 @@ public class WatchdogThread extends Thread
+ 
+     private WatchdogThread(long timeoutTime, boolean restart)
+     {
+-        super( "Paper Watchdog Thread" );
++        super( "Yatopia Watchdog Thread" ); // Yatopia
+         this.timeoutTime = timeoutTime;
+         this.restart = restart;
+         earlyWarningEvery = Math.min(PaperConfig.watchdogPrintEarlyWarningEvery, timeoutTime); // Paper
+@@ -158,14 +158,14 @@ public class WatchdogThread extends Thread
+                 if (isLongTimeout) {
+                 // Paper end
+                 log.log( Level.SEVERE, "------------------------------" );
+-                log.log( Level.SEVERE, "The server has stopped responding! This is (probably) not a Paper bug." ); // Paper
++                log.log( Level.SEVERE, "The server has stopped responding! This is (probably) not a Yatopia bug." ); // Paper // Yatopia
+                 log.log( Level.SEVERE, "If you see a plugin in the Server thread dump below, then please report it to that author" );
+                 log.log( Level.SEVERE, "\t *Especially* if it looks like HTTP or MySQL operations are occurring" );
+                 log.log( Level.SEVERE, "If you see a world save or edit, then it means you did far more than your server can handle at once" );
+                 log.log( Level.SEVERE, "\t If this is the case, consider increasing timeout-time in spigot.yml but note that this will replace the crash with LARGE lag spikes" );
+-                log.log( Level.SEVERE, "If you are unsure or still think this is a Paper bug, please report this to https://github.com/PaperMC/Paper/issues" );
++                log.log( Level.SEVERE, "If you are unsure or still think this is a Yatopia bug, please report this to https://github.com/tr7zw/Yatopia/issues" ); // Yatopia
+                 log.log( Level.SEVERE, "Be sure to include ALL relevant console errors and Minecraft crash reports" );
+-                log.log( Level.SEVERE, "Paper version: " + Bukkit.getServer().getVersion() );
++                log.log( Level.SEVERE, "Yatopia version: " + Bukkit.getServer().getVersion() ); // Yatopia
+                 //
+                 if ( net.minecraft.server.World.lastPhysicsProblem != null )
+                 {
+@@ -188,7 +188,7 @@ public class WatchdogThread extends Thread
+                 // Paper end
+                 } else
+                 {
+-                    log.log(Level.SEVERE, "--- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH  - " + Bukkit.getServer().getVersion() + " ---");
++                    log.log(Level.SEVERE, "--- DO NOT REPORT THIS TO YATOPIA - THIS IS NOT A BUG OR A CRASH  - " + Bukkit.getServer().getVersion() + " ---"); // Yatopia
+                     log.log(Level.SEVERE, "The server has not responded for " + (currentTime - lastTick) / 1000 + " seconds! Creating thread dump");
+                 }
+                 // Paper end - Different message for short timeout
+@@ -209,7 +209,7 @@ public class WatchdogThread extends Thread
+                     dumpThread( thread, log );
+                 }
+                 } else {
+-                    log.log(Level.SEVERE, "--- DO NOT REPORT THIS TO PAPER - THIS IS NOT A BUG OR A CRASH ---");
++                    log.log(Level.SEVERE, "--- DO NOT REPORT THIS TO YATOPIA - THIS IS NOT A BUG OR A CRASH ---"); // Yatopia
+                 }
+ 
+ 
