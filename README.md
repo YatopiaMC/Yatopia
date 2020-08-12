@@ -23,8 +23,8 @@ A blazing fast fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), featur
 
 Available at the following options:
 
-* **[GitHub Releases](https://github.com/YatopiaMCYatopiaMC/Yatopia/releases/tag/1.16.1)** - 1.16.1
-* **[GitHub Actions](https://github.com/YatopiaMCYatopiaMCYatopiaMC/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2
+* **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.1)** - 1.16.1
+* **[GitHub Actions](https://github.com/YatopiaMC/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2
 
 ## Documentation
 
