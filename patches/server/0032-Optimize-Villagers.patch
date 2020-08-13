@@ -42,25 +42,25 @@ Ported to Yatopia and 1.16.1 by MrIvanPlays
 Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 84a872dfd35249972129130083d51d71d75bff1e..15ea264e49609de61be131d41ae68e65957d002b 100644
+index 63a761ebef80d4af09cdc2682e496d78492c4a3a..db72d203ebfdfcd27f2dae240ccb998d746d518d 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-@@ -45,7 +45,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -48,7 +48,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
          if (this.d && entitycreature.isBaby()) {
              return false;
-         } else if (this.e == 0L) {
--            this.e = entitycreature.world.getTime() + (long) worldserver.random.nextInt(20);
-+            this.e = entitycreature.world.getTime() + (long) java.util.concurrent.ThreadLocalRandom.current().nextInt(20); // Yatopia
+         } else if (this.f == 0L) {
+-            this.f = entitycreature.world.getTime() + (long) worldserver.random.nextInt(20);
++            this.f = entitycreature.world.getTime() + (long) java.util.concurrent.ThreadLocalRandom.current().nextInt(20); // Yatopia
              return false;
          } else {
-             return worldserver.getTime() >= this.e;
-@@ -53,12 +53,57 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+             return worldserver.getTime() >= this.f;
+@@ -56,12 +56,57 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
      }
  
      protected void a(WorldServer worldserver, EntityCreature entitycreature, long i) {
--        this.e = i + 20L + (long) worldserver.getRandom().nextInt(20);
-+        this.e = i + 20L + (long) java.util.concurrent.ThreadLocalRandom.current().nextInt(20); // Yatopia
-         VillagePlace villageplace = worldserver.x();
+-        this.f = i + 20L + (long) worldserver.getRandom().nextInt(20);
++        this.f = i + 20L + (long) java.util.concurrent.ThreadLocalRandom.current().nextInt(20); // Yatopia
+         VillagePlace villageplace = worldserver.y();
  
 +        // Yatopia start - replace implementation completely
 +        BlockPosition blockposition2 = new BlockPosition(entitycreature.locX(), entitycreature.locY(), entitycreature.locZ());
@@ -78,21 +78,21 @@ index 84a872dfd35249972129130083d51d71d75bff1e..15ea264e49609de61be131d41ae68e65
 +                for (java.util.Map.Entry<VillagePlaceType, java.util.Set<VillagePlaceRecord>> e : section.get().getRecords().entrySet()) {
 +                    if (!predicate.test(e.getKey())) continue;
 +                    for (VillagePlaceRecord record : e.getValue()) {
-+                        if (!record.hasVacany()) continue;
++                        if (!record.hasVacancy()) continue;
 +
 +                        BlockPosition pos = record.getPosition();
 +                        long key = pos.asLong();
-+                        if (this.f.containsKey(key)) {
++                        if (this.g.containsKey(key)) {
 +                            continue;
 +                        }
 +                        double poiDist = pos.distanceSquared(blockposition2);
 +                        if (poiDist <= (double) requiredDist) {
-+                            this.f.put(key, new BehaviorFindPosition.a(java.util.concurrent.ThreadLocalRandom.current(), (long) (this.e + Math.sqrt(poiDist) * 4))); // use dist instead of 40 to blacklist longer if farther distance
++                            this.g.put(key, new BehaviorFindPosition.a(java.util.concurrent.ThreadLocalRandom.current(), (long) (this.f + Math.sqrt(poiDist) * 4)))
++                            ; // use dist instead of 40 to blacklist longer if farther distance
 +                            ++poiAttempts;
 +                            PathEntity pathentity = entitycreature.getNavigation().a(com.google.common.collect.ImmutableSet.of(pos), 8, false, this.b.getValidRange());
 +
 +                            if (pathentity != null && pathentity.canReach()) {
-+                                record.decreaseVacany();
 +                                GlobalPos globalPos = GlobalPos.create(worldserver.getDimensionKey(), pos);
 +                                entitycreature.getBehaviorController().setMemory(c, globalPos);
 +                                break OUT;
@@ -106,39 +106,40 @@ index 84a872dfd35249972129130083d51d71d75bff1e..15ea264e49609de61be131d41ae68e65
 +            }
 +        }
 +
-         this.f.long2ObjectEntrySet().removeIf((entry) -> {
+         this.g.long2ObjectEntrySet().removeIf((entry) -> {
 -            return !((BehaviorFindPosition.a) entry.getValue()).b(i);
-+            return entry.getValue().b < e;
++            return entry.getValue().b < f;
          });
 +        /*
          Predicate<BlockPosition> predicate = (blockposition) -> {
-             BehaviorFindPosition.a behaviorfindposition_a = (BehaviorFindPosition.a) this.f.get(blockposition.asLong());
+             BehaviorFindPosition.a behaviorfindposition_a = (BehaviorFindPosition.a) this.g.get(blockposition.asLong());
  
-@@ -96,6 +141,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -102,7 +147,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
                  });
              }
          }
+-
 +         */ // Yatopia end
- 
      }
  
+     static class a {
 diff --git a/src/main/java/net/minecraft/server/PathEntity.java b/src/main/java/net/minecraft/server/PathEntity.java
-index 9154c01a22bc7b6d2dd390bb7b6e21ef52c8006c..e86e09be4990bc6b7a36ab1ad74dba7022f49428 100644
+index c81a5d50c480b064ab60ed6f25f9e2c0bedb6ece..a86ad4c8a28b9aacdb1e99320fddf2344b08bd7e 100644
 --- a/src/main/java/net/minecraft/server/PathEntity.java
 +++ b/src/main/java/net/minecraft/server/PathEntity.java
-@@ -106,6 +106,7 @@ public class PathEntity {
+@@ -114,6 +114,7 @@ public class PathEntity {
          }
      }
  
-+    public final boolean canReach() { return i(); } // Yatopia - OBFHELPER
-     public boolean i() {
++    public final boolean canReach() { return j(); } // Yatopia - OBFHELPER
+     public boolean j() {
          return this.h;
      }
 diff --git a/src/main/java/net/minecraft/server/RegionFileSection.java b/src/main/java/net/minecraft/server/RegionFileSection.java
-index bd0ff1e43a07a3332f9ade49fec2f76275a25c7f..f99be13169cfbca05cc440e7abef2197036b3d7d 100644
+index 04256a95108b8182e8f808e856e0d2b62165e242..69cc2d1a0642029793827f4195723c380e01c821 100644
 --- a/src/main/java/net/minecraft/server/RegionFileSection.java
 +++ b/src/main/java/net/minecraft/server/RegionFileSection.java
-@@ -52,10 +52,12 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -52,10 +52,13 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
  
      @Nullable
      protected Optional<R> c(long i) {
@@ -148,43 +149,41 @@ index bd0ff1e43a07a3332f9ade49fec2f76275a25c7f..f99be13169cfbca05cc440e7abef2197
  
 +    protected final Optional<R> getSection(long i) { return d(i); } // Yatopia - OBFHELPER
      protected Optional<R> d(long i) {
-+        /* // Yatopia start - replaced logic
++        // Yatopia start - replace method - never load POI data sync, we load this in chunk load already, reduce ops
++        /*
          SectionPosition sectionposition = SectionPosition.a(i);
  
          if (this.b(sectionposition)) {
-@@ -75,6 +77,10 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -75,6 +78,10 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
                  }
              }
          }
 +         */
-+        // Never load POI data sync, we load this in chunk load already, reduce ops
 +        // If it's an unloaded chunk, well too bad.
-+        return c(i);
++        return this.c(i);
++        // Yatopia end
      }
  
      protected boolean b(SectionPosition sectionposition) {
-@@ -117,9 +123,11 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
- 
+@@ -118,7 +125,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
      private <T> void a(ChunkCoordIntPair chunkcoordintpair, DynamicOps<T> dynamicops, @Nullable T t0) {
          if (t0 == null) {
-+            /* // Yatopia start - NO!!!
              for (int i = 0; i < 16; ++i) {
-                 this.c.put(SectionPosition.a(chunkcoordintpair, i).s(), Optional.empty());
+-                this.c.put(SectionPosition.a(chunkcoordintpair, i).s(), Optional.empty());
++                //this.c.put(SectionPosition.a(chunkcoordintpair, i).s(), Optional.empty()); // Yatopia - NO!!!
              }
-+             */ // Yatopia end
          } else {
              Dynamic<T> dynamic = new Dynamic(dynamicops, t0);
-             int j = a(dynamic);
-@@ -140,7 +148,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -140,7 +147,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
                      return dataresult.resultOrPartial(logger::error);
                  });
  
 -                this.c.put(i1, optional);
-+                if (optional.isPresent()) this.c.put(i1, optional); // Yatopia - NO!!!
++                if (optional.isPresent()) this.c.put(i1, optional); // Yatopia
                  optional.ifPresent((object) -> {
                      this.b(i1);
                      if (flag) {
-@@ -213,7 +221,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+@@ -213,7 +220,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
          if (optional != null && optional.isPresent()) {
              this.d.add(i);
          } else {
@@ -194,10 +193,10 @@ index bd0ff1e43a07a3332f9ade49fec2f76275a25c7f..f99be13169cfbca05cc440e7abef2197
      }
  
 diff --git a/src/main/java/net/minecraft/server/SectionPosition.java b/src/main/java/net/minecraft/server/SectionPosition.java
-index 7806f3c351cba3f0388da11888f900c48004dadf..6556533acb04f57284f7493c7683232e9dddbd48 100644
+index f95925f1c5d091f1a129d0437bb6e175c6ac080f..cf5b25d9375724ea2afcf5cd59e0ccd302cdf45e 100644
 --- a/src/main/java/net/minecraft/server/SectionPosition.java
 +++ b/src/main/java/net/minecraft/server/SectionPosition.java
-@@ -145,6 +145,7 @@ public class SectionPosition extends BaseBlockPosition {
+@@ -173,6 +173,7 @@ public class SectionPosition extends BaseBlockPosition {
          return (((long) i & 4194303L) << 42) | (((long) j & 1048575L)) | (((long) k & 4194303L) << 20); // Paper - Simplify to reduce instruction count
      }
  
@@ -206,30 +205,22 @@ index 7806f3c351cba3f0388da11888f900c48004dadf..6556533acb04f57284f7493c7683232e
          return (((long) getX() & 4194303L) << 42) | (((long) getY() & 1048575L)) | (((long) getZ() & 4194303L) << 20); // Paper - Simplify to reduce instruction count
      }
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceRecord.java b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
-index e5d2304808b2bb93041523968f0b88e020c61c1e..2647dc3646e332189a88d17e08831882e40f2910 100644
+index 0b40c2f4dada7d8432e3f91e9cf206c2bda3b24b..1b956d973ebef2345755201dec3449545c458a60 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceRecord.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
-@@ -34,6 +34,7 @@ public class VillagePlaceRecord {
-         this(blockposition, villageplacetype, villageplacetype.b(), runnable);
-     }
- 
-+    public final boolean decreaseVacany() { return b(); } // Yatopia - OBFHELPER
-     protected boolean b() {
-         if (this.c <= 0) {
-             return false;
-@@ -44,6 +45,7 @@ public class VillagePlaceRecord {
+@@ -44,6 +44,7 @@ public class VillagePlaceRecord {
          }
      }
  
-+    public final boolean increaseVacany() { return c(); } // Yatopia - OBFHELPER
++    protected final boolean increaseVacancy() { return c(); } // Yatopia - OBFHELPER
      protected boolean c() {
          if (this.c >= this.b.b()) {
              return false;
-@@ -54,14 +56,17 @@ public class VillagePlaceRecord {
+@@ -54,14 +55,17 @@ public class VillagePlaceRecord {
          }
      }
  
-+    public final boolean hasVacany() { return d(); } // Yatopia - OBFHELPER
++    public final boolean hasVacancy() { return d(); } // Yatopia - OBFHELPER
      public boolean d() {
          return this.c > 0;
      }
@@ -244,7 +235,7 @@ index e5d2304808b2bb93041523968f0b88e020c61c1e..2647dc3646e332189a88d17e08831882
          return this.a;
      }
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index e82dcdbce698e2e9bc449fa639b7219821844e14..3aaba7fcaf83a491b9da60d156b7f2379f5a6aeb 100644
+index 77c66bc9952542d2444b402896a3d9f622ca2ff9..d4018b9b615dae2b9e30517be51322656601b171 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
 @@ -23,12 +23,12 @@ public class VillagePlaceSection {
@@ -263,7 +254,7 @@ index e82dcdbce698e2e9bc449fa639b7219821844e14..3aaba7fcaf83a491b9da60d156b7f237
                  return villageplacesection.e;
              }), VillagePlaceRecord.a(runnable).listOf().fieldOf("Records").forGetter((villageplacesection) -> {
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceType.java b/src/main/java/net/minecraft/server/VillagePlaceType.java
-index 5bd3bcc2b96f7da21d363809a547b0567407ee75..1fb87bf395ced15bc3ef383dae46a42c5e4d2547 100644
+index a5718af9b614ae505067131f04ebb490617d6aa4..142b47df08991a3e72c9f7927af6933a72f7b4cb 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceType.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceType.java
 @@ -14,11 +14,20 @@ import java.util.stream.Collectors;
@@ -272,7 +263,7 @@ index 5bd3bcc2b96f7da21d363809a547b0567407ee75..1fb87bf395ced15bc3ef383dae46a42c
  
 +    static Set<VillagePlaceType> professionCache; // Yatopia
      private static final Supplier<Set<VillagePlaceType>> y = Suppliers.memoize(() -> {
-         return (Set) IRegistry.VILLAGER_PROFESSION.e().map(VillagerProfession::b).collect(Collectors.toSet());
+         return (Set) IRegistry.VILLAGER_PROFESSION.g().map(VillagerProfession::b).collect(Collectors.toSet());
      });
      public static final Predicate<VillagePlaceType> a = (villageplacetype) -> {
 -        return ((Set) VillagePlaceType.y.get()).contains(villageplacetype);

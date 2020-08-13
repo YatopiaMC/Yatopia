@@ -8,7 +8,7 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3079549f466a350223c3ee11466432bf3dc4c5b6
+index 0000000000000000000000000000000000000000..15cc7232e4edf6803e4b831ff094a748f95e1f9a
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
 @@ -0,0 +1,171 @@
@@ -183,17 +183,16 @@ index 0000000000000000000000000000000000000000..3079549f466a350223c3ee11466432bf
 +        return new HashedList<>(list, new HashSet<>(list)); // Yatopia - use hashset
 +    }
 +}
-\ No newline at end of file
-diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
-index b2b654218382cc2cf1649067cd140b539235e3d2..f7f082c80442cd352e14daa4b199b2f3ad75c22f 100644
---- a/src/main/java/net/minecraft/server/BiomeBase.java
-+++ b/src/main/java/net/minecraft/server/BiomeBase.java
-@@ -139,7 +139,7 @@ public class BiomeBase {
-             for (j = 0; j < i; ++j) {
-                 EnumCreatureType enumcreaturetype = aenumcreaturetype[j];
- 
--                this.v.put(enumcreaturetype, new MobList()); // Paper
-+                this.v.put(enumcreaturetype, me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new MobList())); // Paper // Yatopia -  lithium change
-             }
- 
-         } else {
+diff --git a/src/main/java/net/minecraft/server/BiomeSettingsMobs.java b/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
+index a18ca3f0001a771f21012bd39711f581efb2fef0..0f88b7b38b6191c3adbebdee82427275640c4197 100644
+--- a/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
++++ b/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
+@@ -113,7 +113,7 @@ public class BiomeSettingsMobs {
+         private final Map<EnumCreatureType, List<BiomeSettingsMobs.c>> a = (Map) Stream.of(EnumCreatureType.values()).collect(Maps.toImmutableEnumMap((enumcreaturetype) -> {
+             return enumcreaturetype;
+         }, (enumcreaturetype) -> {
+-            return new MobList(); // Use MobList instead of ArrayList
++            return me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new MobList()); // Use MobList instead of ArrayList // Yatopia - hashedlist
+         }));
+         // Paper end
+         private final Map<EntityTypes<?>, BiomeSettingsMobs.b> b = Maps.newLinkedHashMap();
