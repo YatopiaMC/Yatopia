@@ -68,6 +68,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Tuinity Optimise biome conversion      | Spottedleaf |  |
 | server |  Tweak Explosions      | Aikar |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
