@@ -18,7 +18,7 @@ index b67f05f290db653cf75a89e85bd3decb5044a1e0..11758b6b158d971b9beb1b609d7513da
          new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f5d6d3d0f861ba016ed920362d2a6bac3455afa3
+index 0000000000000000000000000000000000000000..567dd8839173ac74b7dc122c1b677998afe0db5f
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 @@ -0,0 +1,128 @@
@@ -145,14 +145,14 @@ index 0000000000000000000000000000000000000000..f5d6d3d0f861ba016ed920362d2a6bac
 +
 +        MinecraftServer console = MinecraftServer.getServer();
 +        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings"));
-+        console.server.reloadCount;
++        console.server.reloadCount++;
 +
 +        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
 +    }
 +}
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..03bba083ba750ff2832408196bf0ff37d865ce72
+index 0000000000000000000000000000000000000000..0e5f090e4160d08bce0b46ac4cb6d3d3510128bf
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 @@ -0,0 +1,218 @@
@@ -314,17 +314,17 @@ index 0000000000000000000000000000000000000000..03bba083ba750ff2832408196bf0ff37
 +        String time = "";
 +
 +        if (seconds > 60 * 60 * 24) {
-+            time = TimeUnit.SECONDS.toDays(seconds) +  "d";
++            time += TimeUnit.SECONDS.toDays(seconds) +  "d";
 +            seconds %= 60 * 60 * 24;
 +        }
 +
 +        if (seconds > 60 * 60) {
-+            time = TimeUnit.SECONDS.toHours(seconds) +  "h";
++            time += TimeUnit.SECONDS.toHours(seconds) +  "h";
 +            seconds %= 60 * 60;
 +        }
 +
 +        if (seconds > 0) {
-+            time = TimeUnit.SECONDS.toMinutes(seconds) +  "m";
++            time += TimeUnit.SECONDS.toMinutes(seconds) +  "m";
 +        }
 +        return time;
 +    }
@@ -375,19 +375,10 @@ index 0000000000000000000000000000000000000000..03bba083ba750ff2832408196bf0ff37
 +
 +}
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index a60634fc455e8a59399020689b70eb64b6824d12..4829332fe9f432fadb7e06c900d0e921405a9032 100644
+index a60634fc455e8a59399020689b70eb64b6824d12..cb4a89940cf02de5c3eefc5c746397a931c96b7a 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -6,6 +6,8 @@ import com.mojang.authlib.GameProfile;
- import com.mojang.authlib.GameProfileRepository;
- import com.mojang.authlib.minecraft.MinecraftSessionService;
- import com.mojang.datafixers.DataFixer;
-+import com.sun.tools.javac.jvm.Items;
-+
- import java.io.BufferedReader;
- import java.io.IOException;
- import java.io.InputStreamReader;
-@@ -181,6 +183,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -181,6 +181,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          // Paper end
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
  
@@ -417,19 +408,10 @@ index f8b0f5fd2f548017fa12617f596e4b5a27e2a349..608f9067448d93b22c3fd2eeccaba7c9
          });
          StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 730a0262f400a9974f89ecdf8b208e54cf7952f6..1ede36ec0bfd20575d01d35249d0e1e02be6fbf2 100644
+index 730a0262f400a9974f89ecdf8b208e54cf7952f6..99c6e562b310e7268eabee0ddd7ec9e6960edd4f 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -28,6 +28,8 @@ import java.util.HashSet;
- import java.util.Set;
- import com.google.common.base.Function;
- import org.bukkit.Location;
-+import org.bukkit.SoundCategory;
-+import org.bukkit.attribute.AttributeModifier;
- import org.bukkit.craftbukkit.attribute.CraftAttributeMap;
- import org.bukkit.craftbukkit.event.CraftEventFactory;
- import org.bukkit.craftbukkit.inventory.CraftItemStack;
-@@ -266,6 +268,7 @@ public abstract class EntityLiving extends Entity {
+@@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
          //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
          boolean flag = this instanceof EntityHuman;
  
@@ -437,7 +419,7 @@ index 730a0262f400a9974f89ecdf8b208e54cf7952f6..1ede36ec0bfd20575d01d35249d0e1e0
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
-@@ -281,6 +284,7 @@ public abstract class EntityLiving extends Entity {
+@@ -281,6 +282,7 @@ public abstract class EntityLiving extends Entity {
                  }
              }
          }
@@ -446,7 +428,7 @@ index 730a0262f400a9974f89ecdf8b208e54cf7952f6..1ede36ec0bfd20575d01d35249d0e1e0
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 74e9a59eda4faaa211abbe0156934f97fd7e6a0d..3ca3d178af80f49f2f2b57307f150d7d954a158d 100644
+index 7a2b16aaf70cefa00beeacf2d6fcd8878bd7f6de..8a3af565cf11de75a3ae7602eed24ce8b483bf93 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -837,6 +837,7 @@ public final class CraftServer implements Server {

@@ -42,7 +42,7 @@ index cf539c98073b475eb5b769c8cc11d48a7e6d58f1..b19c702bae3e750bee13c8b1b3eaa62f
  
      public boolean grantCriteria(Advancement advancement, String s) {
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..fc032d74ddb25059516b6a5660df3d19f3dad3e9 100644
+index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..a52c0391b171c8a57de75f87c534ce1e0e78c44a 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -700,11 +700,20 @@ public abstract class EntityHuman extends EntityLiving {
@@ -52,7 +52,7 @@ index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..fc032d74ddb25059516b6a5660df3d19
 +    // Yatopia start
 +    private NBTTagList inventorySnapshot = null;
 +    private NBTTagList enderchestSnapshot = null;
-+    public void takeInventorySnapshot() {
++    public void takeSnapshot() {
 +        inventorySnapshot = this.inventory.a(new NBTTagList());
 +        enderchestSnapshot = this.enderChest.g();
 +    }
@@ -72,23 +72,15 @@ index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..fc032d74ddb25059516b6a5660df3d19
          this.foodData.b(nbttagcompound);
          this.abilities.a(nbttagcompound);
 -        nbttagcompound.set("EnderItems", this.enderChest.g());
-+        nbttagcompound.set("EnderItems", enderchestSnapshot != null ? enderchestSnapshot :  this.enderChest.g()); // Yatopia
++        nbttagcompound.set("EnderItems", enderchestSnapshot != null ? enderchestSnapshot : this.enderChest.g()); enderchestSnapshot = null; // Yatopia
          if (!this.getShoulderEntityLeft().isEmpty()) {
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 4c6e708b6d6af45159315dc6ab5fdf72320d9825..c478c04f6963fde2ef5f61a81cb9e6c853781525 100644
+index 4c6e708b6d6af45159315dc6ab5fdf72320d9825..2b7fb65942f5d22737cbbf0f8e7ef2194fc607a2 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -19,6 +19,7 @@ import java.util.Optional;
- import java.util.Set;
- import java.util.UUID;
- import java.util.concurrent.CompletableFuture;
-+import java.util.concurrent.TimeUnit;
- import javax.annotation.Nullable;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
-@@ -1284,6 +1285,28 @@ public abstract class PlayerList {
+@@ -1284,6 +1284,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -96,17 +88,17 @@ index 4c6e708b6d6af45159315dc6ab5fdf72320d9825..c478c04f6963fde2ef5f61a81cb9e6c8
 +        // Yatopia start - make sure all saves are done
 +        try {
 +            playerFileData.saveThread.shutdown();
-+            boolean done = playerFileData.saveThread.awaitTermination(30, TimeUnit.SECONDS);
++            boolean done = playerFileData.saveThread.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
 +            if (!done) {
 +                LOGGER.error("Players did not save completely!");
 +            }
 +            ServerStatisticManager.saveThread.shutdown();
-+            done = ServerStatisticManager.saveThread.awaitTermination(30, TimeUnit.SECONDS);
++            done = ServerStatisticManager.saveThread.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
 +            if (!done) {
 +                LOGGER.error("Stats did not save completely!");
 +            }
 +            AdvancementDataPlayer.saveThread.shutdown();
-+            done = AdvancementDataPlayer.saveThread.awaitTermination(30, TimeUnit.SECONDS);
++            done = AdvancementDataPlayer.saveThread.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
 +            if (!done) {
 +                LOGGER.error("Advancements did not save completely!");
 +            }
@@ -117,7 +109,7 @@ index 4c6e708b6d6af45159315dc6ab5fdf72320d9825..c478c04f6963fde2ef5f61a81cb9e6c8
      }
      // Paper end
  
-@@ -1321,13 +1344,13 @@ public abstract class PlayerList {
+@@ -1321,13 +1343,13 @@ public abstract class PlayerList {
              File file = this.server.a(SavedFile.STATS).toFile();
              File file1 = new File(file, uuid + ".json");
  

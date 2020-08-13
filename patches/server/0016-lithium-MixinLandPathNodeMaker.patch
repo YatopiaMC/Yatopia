@@ -7,10 +7,15 @@ Original code by JellySquid, licensed under GNU Lesser General Public License v3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..8d93f0fe309a5d293f31643ab6cfe62e91018a8c 100644
+index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..d5c6060fd71a43bd452107f92767647d25e13055 100644
 --- a/src/main/java/net/minecraft/server/PathfinderNormal.java
 +++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
-@@ -10,6 +10,10 @@ import javax.annotation.Nullable;
+@@ -7,9 +7,15 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
+ import java.util.EnumSet;
+ import java.util.Iterator;
+ import javax.annotation.Nullable;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap; // Yatopia
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap; // Yatopia
  
  public class PathfinderNormal extends PathfinderAbstract {
  
@@ -21,7 +26,7 @@ index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..8d93f0fe309a5d293f31643ab6cfe62e
      protected float j;
      private final Long2ObjectMap<PathType> k = new Long2ObjectOpenHashMap();
      private final Object2BooleanMap<AxisAlignedBB> l = new Object2BooleanOpenHashMap();
-@@ -490,9 +494,22 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -490,9 +496,22 @@ public class PathfinderNormal extends PathfinderAbstract {
      protected static PathType b(IBlockAccess iblockaccess, BlockPosition blockposition) {
          IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition); // Paper
          if (iblockdata == null) return PathType.BLOCKED; // Paper
@@ -46,7 +51,7 @@ index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..8d93f0fe309a5d293f31643ab6cfe62e
          if (iblockdata.isAir()) {
              return PathType.OPEN;
          } else if (!iblockdata.a((Tag) TagsBlock.TRAPDOORS) && !iblockdata.a(Blocks.LILY_PAD)) {
-@@ -512,7 +529,38 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -512,7 +531,38 @@ public class PathfinderNormal extends PathfinderAbstract {
          } else {
              return PathType.TRAPDOOR;
          }

@@ -124,9 +124,18 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..bdcdc07645ad1e7988b584f18a7e4391a30596d1 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f717e4f5061 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -16,7 +16,7 @@ public final class OrigamiConfig {
+     private static final Object[] EMPTY = new Object[0];
+ 
+     private static File configFile;
+-    private static YamlConfiguration config;
++    public static YamlConfiguration config; // Yatopia
+     private static int configVersion;
+ 
+     public static void init(final File file) {
 @@ -112,6 +112,20 @@ public final class OrigamiConfig {
              config.addDefault("worlds.default." + path, Double.valueOf(dfl));
              return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
@@ -2291,7 +2300,7 @@ index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 624dd7632b9fcc1f60174b0dd82ed42dcf345bd1..328df232676bfbe1942b383609899e4d07be8518 100644
+index 624dd7632b9fcc1f60174b0dd82ed42dcf345bd1..2b664724a46a7b7221f93da62c6d87b9cac199f5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -835,6 +835,8 @@ public final class CraftServer implements Server {
@@ -2308,11 +2317,11 @@ index 624dd7632b9fcc1f60174b0dd82ed42dcf345bd1..328df232676bfbe1942b383609899e4d
              world.tuinityConfig.init(); // Tuinity - Server Config
              world.purpurConfig.init(); // Purpur
 +            world.origamiConfig.init(); // Origami - World Config
-+            world.rainforestConfg.init(); // Rainforest
++            world.rainforestConfig.init(); // Rainforest
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2249,6 +2253,13 @@ public final class CraftServer implements Server {
+@@ -2249,6 +2253,20 @@ public final class CraftServer implements Server {
          }
          // Purpur end
  
@@ -2323,10 +2332,17 @@ index 624dd7632b9fcc1f60174b0dd82ed42dcf345bd1..328df232676bfbe1942b383609899e4d
 +        }
 +        // Rainforest end
 +
++        // Origami start
++        @Override
++        public YamlConfiguration getOrigamiConfig() {
++            return de.minebench.origami.OrigamiConfig.config;
++        }
++        // Origami end
++
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2388,4 +2399,11 @@ public final class CraftServer implements Server {
+@@ -2388,4 +2406,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
