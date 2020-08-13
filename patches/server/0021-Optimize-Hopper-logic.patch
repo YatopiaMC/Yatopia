@@ -35,7 +35,7 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..2f66740de68667e5c0054a0bc7990256
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 95bede605c6401af10f18b641cd12c9d8ec2f207..72c8ff70b13800793c4f1f9c7fffd9fa81c99d91 100644
+index 95bede605c6401af10f18b641cd12c9d8ec2f207..b4ec6fb407f86bd03d003d9b555df0c58cd6ced5 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -661,14 +661,47 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
@@ -104,7 +104,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..72c8ff70b13800793c4f1f9c7fffd9fa
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean skipBlockCheck) { return a(world, d0, d1, d2, false, skipBlockCheck); } // Paper - overload to default false // Yatopia
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities, boolean skipBlockCheck) { // Paper // Yatopia
          Object object = null;
-+        if (skipBlockCheck) { // Yatopia
++        if (!skipBlockCheck) { // Yatopia
          BlockPosition blockposition = new BlockPosition(d0, d1, d2);
          if ( !world.isLoaded( blockposition ) ) return null; // Spigot
          IBlockData iblockdata = world.getType(blockposition);
