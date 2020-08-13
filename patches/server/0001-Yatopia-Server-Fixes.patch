@@ -1227,6 +1227,37 @@ index 39ea87798a00d40a1512c337b74d10c41330cc99..00000000000000000000000000000000
 -     }
 - 
 -     private void fb() {
+diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java b/src/main/java/net/minecraft/server/EntityPiglin.java
+index e1b4330074cf3c3de31dbfcd9e1b99feb7baf669..34407b03e527891a877c2f138520200f3396631e 100644
+--- a/src/main/java/net/minecraft/server/EntityPiglin.java
++++ b/src/main/java/net/minecraft/server/EntityPiglin.java
+@@ -143,7 +143,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+ 
+     @Override
+     public BehaviorController<EntityPiglin> getBehaviorController() {
+-        return super.getBehaviorController();
++        return (BehaviorController<EntityPiglin>) super.getBehaviorController(); // Yatopia - decompile fix
+     }
+ 
+     @Override
+@@ -202,7 +202,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+     @Override
+     protected void mobTick() {
+         this.world.getMethodProfiler().enter("piglinBrain");
+-        this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
++        this.getBehaviorController().a((WorldServer) this.world, this); // Yatopia - decompile fix
+         this.world.getMethodProfiler().exit();
+         PiglinAI.b(this);
+         super.mobTick();
+@@ -341,7 +341,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+ 
+     @Override
+     protected SoundEffect getSoundAmbient() {
+-        return this.world.isClientSide ? null : (SoundEffect) PiglinAI.d(this).orElse((Object) null);
++        return this.world.isClientSide ? null : (SoundEffect) PiglinAI.d(this).orElse(null); // Yatopia - decompile fix
+     }
+ 
+     @Override
 diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java.rej b/src/main/java/net/minecraft/server/EntityPiglin.java.rej
 deleted file mode 100644
 index d1016d22fbb2dd15042fd6ccdf2ee7848351e518..0000000000000000000000000000000000000000
