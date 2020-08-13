@@ -12,10 +12,10 @@ This changes it so that the portal list is filtered to only include portals with
 Ported to Yatopia and added per world config option by MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index e0bd3efb0a856774600b8b5487ec7e2b5b81f41d..bac1314a698a07a90f7d577911dc3d20a9047bd9 100644
+index 439cd5bdbc5bde63d8d8fb2989068bb5ab6f07a7..610799a2a971b1d1fcb814fa57dce5ae21b3d65e 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -161,6 +161,11 @@ public final class OrigamiConfig {
+@@ -162,6 +162,11 @@ public final class OrigamiConfig {
                              && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
                              && waterCreatureCollisions && waterAmbientCollisions;
          }
@@ -28,30 +28,29 @@ index e0bd3efb0a856774600b8b5487ec7e2b5b81f41d..bac1314a698a07a90f7d577911dc3d20
      }
  
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 68f693de5eaa5eaa8dc65230ffa95556530c2368..d98cef12e1ad78026bc6cdeeedcb3b724fca8b0b 100644
+index 934ac7fdfa040f1e00fb78b525b801ed525dae7e..6d54e3addacf6d1caadf658e02bb4fde05334967 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-@@ -59,6 +59,15 @@ public class PortalTravelAgent {
-         }, blockposition, searchRadius, VillagePlace.Occupancy.ANY).collect(Collectors.toList()); // CraftBukkit - searchRadius
-         boolean seen = false;
-         VillagePlaceRecord best = null;
+@@ -31,12 +31,22 @@ public class PortalTravelAgent {
+             return villageplacerecord.f().getY();
+         });
+         List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY);
 +        // Yatopia start - fix portal bug
 +        if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
 +            list.removeIf(villagePlaceRecord -> {
 +                BlockPosition portalPosition = villagePlaceRecord.getPosition();
-+                return Math.abs(portalPosition.getX() - blockposition.getX()) > searchRadius
-+                        || Math.abs(portalPosition.getZ() - blockposition.getZ()) > searchRadius;
++                return Math.abs(portalPosition.getX() - blockposition.getX()) > world.paperConfig.portalSearchRadius
++                        || Math.abs(portalPosition.getZ() - blockposition.getZ()) > world.paperConfig.portalSearchRadius;
 +            });
 +        }
 +        if (!list.isEmpty()) {
-         Comparator<VillagePlaceRecord> comparator = Comparator.<VillagePlaceRecord>comparingDouble((villageplacerecord) -> { // CraftBukkit - decompile error
-             return villageplacerecord.f().j(blockposition);
-         }).thenComparingInt((villageplacerecord) -> {
-@@ -70,6 +79,7 @@ public class PortalTravelAgent {
+         for (VillagePlaceRecord villagePlaceRecord : list) {
+             if (!seen || comparator.compare(villagePlaceRecord, best) < 0) {
+                 seen = true;
                  best = villagePlaceRecord;
              }
          }
 +        } // Yatopia end
          Optional<VillagePlaceRecord> optional = seen ? Optional.of(best) : Optional.empty();
  
-         return (ShapeDetector.Shape) optional.map((villageplacerecord) -> {
+         return optional.map((villageplacerecord) -> {

@@ -5,31 +5,29 @@ Subject: [PATCH] Fix lead fall dmg config
 
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index d8e3bbb2ffbf20a111af3fd7a019daf1d5a7dead..325d1fe8f91bdfa82a53a5f1f86804d04f973090 100644
+index b5193d05040fa5c4dee6047da13ed7b9ca68a635..0e4622c882a33d2a44303bbcf12c18bcc038f420 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -225,4 +225,10 @@ public class YatopiaConfig {
-     private static void villagersHideAtNight() {
+@@ -231,4 +231,9 @@ public class YatopiaConfig {
+         simplerVillagerBehavior = getBoolean("settings.villager.simplerVillagerBehavior", false);
          villagersHideAtNight = getBoolean("settings.villager.villagersHideAtNight", false);
      }
 +
 +    public static boolean fixFallDistance = false;
 +    private static void fixFallDistance() {
-+	    fixFallDistance = getBoolean("settings.fixFallDistance", false);
++        fixFallDistance = getBoolean("settings.fixFallDistance", false);
 +    }
-+
  }
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index fe0689f6be466d1a2a1ed2b76331272199a0aa0c..eef7128a81b58089a2ea2495264a7e94104668a8 100644
+index 608f9067448d93b22c3fd2eeccaba7c9c87b4132..30e7128cc1e85d9faf6f54818d261ade9d8541cf 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1266,6 +1266,8 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -1264,6 +1264,8 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
              this.fallDistance = 0.0F;
          } else if (d0 < 0.0D) {
              this.fallDistance = (float) ((double) this.fallDistance - d0);
 +        } else if (d0 > 0.0D && dev.tr7zw.yatopia.YatopiaConfig.fixFallDistance) { // Yatopia
-+		    this.fallDistance = 0.0F; // Yatopia
++            this.fallDistance = 0.0F; // Yatopia
          }
  
      }

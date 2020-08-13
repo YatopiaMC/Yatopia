@@ -5,7 +5,7 @@ Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index c2af174e639396ac70eb7b520fdd641b1d2c67e6..da718601eb77330ff3e5eb25924d2820e3f8acaa 100644
+index 66586a0799d669ed860880862173c6ebd0fa76ef..018f926b71b65dc0bbe56070ba2d83af48e40383 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -83,7 +83,22 @@ public class CraftingManager extends ResourceDataJson {
@@ -33,10 +33,10 @@ index c2af174e639396ac70eb7b520fdd641b1d2c67e6..da718601eb77330ff3e5eb25924d2820
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index acc533ca8ad612cc439208f4adf6e3d3289c92c7..7637d86ccafbf323f4edaab758fa9fc3cf657841 100644
+index 99bd8626b28a837f0da2268d89fddb6d28b2a944..cee623e5711565703fb16e7ad057e3950fb49e79 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-@@ -99,7 +99,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -83,7 +83,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          this.c = recipes;
      }
  
@@ -51,7 +51,7 @@ index acc533ca8ad612cc439208f4adf6e3d3289c92c7..7637d86ccafbf323f4edaab758fa9fc3
          Map<Item, Integer> map = Maps.newLinkedHashMap();
  
          a(map, (IMaterial) Items.LAVA_BUCKET, 20000);
-@@ -162,6 +169,7 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -146,6 +153,7 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          a(map, (IMaterial) Blocks.FLETCHING_TABLE, 300);
          a(map, (IMaterial) Blocks.SMITHING_TABLE, 300);
          a(map, (IMaterial) Blocks.COMPOSTER, 300);
@@ -59,7 +59,7 @@ index acc533ca8ad612cc439208f4adf6e3d3289c92c7..7637d86ccafbf323f4edaab758fa9fc3
          return map;
      }
  
-@@ -615,4 +623,17 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -599,4 +607,17 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }

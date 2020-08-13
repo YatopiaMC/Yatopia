@@ -42,11 +42,6 @@ This is an overview over all patches that are currently used.
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve Hopper Performance      | Aikar |  |
-| server |  Incremental player saving      | Aikar | MrIvanPlays |
-| api |  IntellaJ Code Clean Up      | Bud Gidiere |  |
-| api |  IntellaJ Optimize Imports      | Bud Gidiere |  |
-| server |  Intellij Code Clean Up      | Bud Gidiere |  |
-| server |  Intellij Optimize Imports.      | Bud Gidiere |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
@@ -74,6 +69,7 @@ This is an overview over all patches that are currently used.
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tweak Explosions      | Aikar |  |
+| server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
 | server |  dont load chunks for physics      | Aikar |  |

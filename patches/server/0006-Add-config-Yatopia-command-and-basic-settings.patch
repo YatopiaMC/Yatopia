@@ -5,37 +5,39 @@ Subject: [PATCH] Add config Yatopia command and basic settings
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 88513b8830ea666ddf831771680b6e76e7cf95f0..6a110318441a16cc3ff7dfa2364768279b16358f 100644
+index b67f05f290db653cf75a89e85bd3decb5044a1e0..11758b6b158d971b9beb1b609d7513dab46be525 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
 @@ -232,6 +232,7 @@ public class TimingsExport extends Thread {
              pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
              pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
-             , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Yatopia - add config to timings report
-+            //, pair("yatopia", mapAsJSON(Bukkit.spigot().getYatopiaConfig(), null)) // Yatopia - add config to timings report
+             , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Purpur - add config to timings report
++            , pair("yatopia", mapAsJSON(Bukkit.spigot().getYatopiaConfig(), null)) // Yatopia - add config to timings report
          ));
  
          new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..119c3b693370ab8753791a0396789c8971a05c9b
+index 0000000000000000000000000000000000000000..f5d6d3d0f861ba016ed920362d2a6bac3455afa3
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,128 @@
 +package dev.tr7zw.yatopia;
 +
 +import com.google.common.base.Preconditions;
++import com.google.common.collect.Lists;
++
++import net.minecraft.server.MinecraftKey;
++import net.minecraft.server.MinecraftServer;
++
 +import java.io.File;
 +import java.util.Arrays;
 +import java.util.Collection;
 +import java.util.Collections;
 +import java.util.List;
 +import java.util.Locale;
-+
 +import java.util.function.Function;
-+import com.google.common.collect.Lists;
-+import net.minecraft.server.MinecraftKey;
-+import net.minecraft.server.MinecraftServer;
++
 +import org.bukkit.Bukkit;
 +import org.bukkit.ChatColor;
 +import org.bukkit.Location;
@@ -109,7 +111,7 @@ index 0000000000000000000000000000000000000000..119c3b693370ab8753791a0396789c89
 +            return false;
 +        }
 +
-+        switch (args[0].toLowerCase(Locale.ENGLISH))  {
++        switch (args[0].toLowerCase(Locale.ENGLISH)) {
 +            case "info":
 +                doInfo(sender);
 +                break;
@@ -143,18 +145,17 @@ index 0000000000000000000000000000000000000000..119c3b693370ab8753791a0396789c89
 +
 +        MinecraftServer console = MinecraftServer.getServer();
 +        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings"));
-+        console.server.reloadCount++;
++        console.server.reloadCount;
 +
 +        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b467f6293cc
+index 0000000000000000000000000000000000000000..03bba083ba750ff2832408196bf0ff37d865ce72
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -0,0 +1,210 @@
+@@ -0,0 +1,218 @@
 +package dev.tr7zw.yatopia;
 +
 +import com.google.common.base.Throwables;
@@ -173,7 +174,6 @@ index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b46
 +import java.util.logging.Level;
 +import java.util.regex.Pattern;
 +
-+import net.minecraft.server.MinecraftServer;
 +import org.bukkit.Bukkit;
 +import org.bukkit.command.Command;
 +import org.bukkit.configuration.InvalidConfigurationException;
@@ -183,8 +183,8 @@ index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b46
 +
 +    public static File CONFIG_FILE;
 +    private static final String HEADER = "This is the main configuration file for Yatopia.\n"
-+            + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
-+            + "You have been warned!\n";
++                        + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
++                        + "You have been warned!\n";
 +    /*========================================================================*/
 +    public static YamlConfiguration config;
 +    public static int version; // since we're remapping sidestreams' configs we need this public
@@ -282,6 +282,7 @@ index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b46
 +
 +    private static final Pattern SPACE = Pattern.compile(" ");
 +    private static final Pattern NOT_NUMERIC = Pattern.compile("[^-\\d.]");
++
 +    public static int getSeconds(String str) {
 +        str = SPACE.matcher(str).replaceAll("");
 +        final char unit = str.charAt(str.length() - 1);
@@ -293,10 +294,18 @@ index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b46
 +            num = 0D;
 +        }
 +        switch (unit) {
-+            case 'd': num *= (double) 60*60*24; break;
-+            case 'h': num *= (double) 60*60; break;
-+            case 'm': num *= 60; break;
-+            default: case 's': break;
++            case 'd':
++                num *= (double) 60 * 60 * 24;
++                break;
++            case 'h':
++                num *= (double) 60 * 60;
++                break;
++            case 'm':
++                num *= 60;
++                break;
++            default:
++            case 's':
++                break;
 +        }
 +        return (int) num;
 +    }
@@ -305,17 +314,17 @@ index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b46
 +        String time = "";
 +
 +        if (seconds > 60 * 60 * 24) {
-+            time += TimeUnit.SECONDS.toDays(seconds) + "d";
++            time = TimeUnit.SECONDS.toDays(seconds) +  "d";
 +            seconds %= 60 * 60 * 24;
 +        }
 +
 +        if (seconds > 60 * 60) {
-+            time += TimeUnit.SECONDS.toHours(seconds) + "h";
++            time = TimeUnit.SECONDS.toHours(seconds) +  "h";
 +            seconds %= 60 * 60;
 +        }
 +
 +        if (seconds > 0) {
-+            time += TimeUnit.SECONDS.toMinutes(seconds) + "m";
++            time = TimeUnit.SECONDS.toMinutes(seconds) +  "m";
 +        }
 +        return time;
 +    }
@@ -356,21 +365,29 @@ index 0000000000000000000000000000000000000000..5cffd84ed9842bb7d7e56df8ac841b46
 +
 +    public static boolean disableEntityStuckChecks = false;
 +    private static void disableEntityStuckChecks() {
-+	    disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
++        disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
 +    }
 +
 +    public static boolean disableEntityCollisionboxes = false;
 +    private static void disableEntityCollisionboxes() {
-+	    disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
++        disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
 +    }
 +
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 21dc3b9a638c7ca5e2da56c954088f2f367f05e4..c3becefce8143f34ed2b1093dd22227b7309629c 100644
+index a60634fc455e8a59399020689b70eb64b6824d12..4829332fe9f432fadb7e06c900d0e921405a9032 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -181,6 +181,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -6,6 +6,8 @@ import com.mojang.authlib.GameProfile;
+ import com.mojang.authlib.GameProfileRepository;
+ import com.mojang.authlib.minecraft.MinecraftSessionService;
+ import com.mojang.datafixers.DataFixer;
++import com.sun.tools.javac.jvm.Items;
++
+ import java.io.BufferedReader;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
+@@ -181,6 +183,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          // Paper end
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
  
@@ -385,12 +402,12 @@ index 21dc3b9a638c7ca5e2da56c954088f2f367f05e4..c3becefce8143f34ed2b1093dd22227b
 +        // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
-         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
+         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aZ());
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index dd093e3e624158ff87bad59785ed2496f161f64c..fe0689f6be466d1a2a1ed2b76331272199a0aa0c 100644
+index f8b0f5fd2f548017fa12617f596e4b5a27e2a349..608f9067448d93b22c3fd2eeccaba7c9c87b4132 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1035,7 +1035,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -1033,7 +1033,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
          VoxelShape voxelshape = this.world.getWorldBorder().c();
          Stream<VoxelShape> stream = !this.world.getWorldBorder().isInBounds(axisalignedbb) ? Stream.empty() : Stream.of(voxelshape); // Paper
@@ -400,30 +417,39 @@ index dd093e3e624158ff87bad59785ed2496f161f64c..fe0689f6be466d1a2a1ed2b763312721
          });
          StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 732a7747fd0360deec8237c80bc93fb9f06b5320..c30fee13723cef0f03eb5a87851158cf347fae3c 100644
+index 730a0262f400a9974f89ecdf8b208e54cf7952f6..1ede36ec0bfd20575d01d35249d0e1e02be6fbf2 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
+@@ -28,6 +28,8 @@ import java.util.HashSet;
+ import java.util.Set;
+ import com.google.common.base.Function;
+ import org.bukkit.Location;
++import org.bukkit.SoundCategory;
++import org.bukkit.attribute.AttributeModifier;
+ import org.bukkit.craftbukkit.attribute.CraftAttributeMap;
+ import org.bukkit.craftbukkit.event.CraftEventFactory;
+ import org.bukkit.craftbukkit.inventory.CraftItemStack;
+@@ -266,6 +268,7 @@ public abstract class EntityLiving extends Entity {
          //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
          boolean flag = this instanceof EntityHuman;
  
-+        if(!dev.tr7zw.yatopia.YatopiaConfig.disableEntityStuckChecks) { // Yatopia start
++        if (!dev.tr7zw.yatopia.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
-@@ -281,6 +282,7 @@ public abstract class EntityLiving extends Entity {
+@@ -281,6 +284,7 @@ public abstract class EntityLiving extends Entity {
                  }
              }
          }
-+        } // Yatopia end
++        } // Yatopia
  
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 856e0ba3cfe6225d9928cb99b2d7a00a8fcd6a03..6f4c1bbf39af205ad15318eac667117dd332bb12 100644
+index 74e9a59eda4faaa211abbe0156934f97fd7e6a0d..3ca3d178af80f49f2f2b57307f150d7d954a158d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -838,6 +838,7 @@ public final class CraftServer implements Server {
+@@ -837,6 +837,7 @@ public final class CraftServer implements Server {
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
          de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
          com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
@@ -432,10 +458,10 @@ index 856e0ba3cfe6225d9928cb99b2d7a00a8fcd6a03..6f4c1bbf39af205ad15318eac667117d
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 73a36683e386d9e8e917b6ac04262aae3e3d3b69..60b4c2337e6fdeddfb785e90fa501149af45756c 100644
+index d6c82bd0afa43a4afcbc7029622c3915fa39bcc9..2ba0d89ae1b5d52eec3bd91328088ea2c7249d07 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -178,6 +178,14 @@ public class Main {
+@@ -170,6 +170,14 @@ public class Main {
                          .describedAs("Yml file");
                  // Rainforest end
  
