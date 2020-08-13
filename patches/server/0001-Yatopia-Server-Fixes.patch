@@ -278,6 +278,42 @@ index 738aa0c089e2d1f1d8ecb983d3d6351a1d4f690c..00000000000000000000000000000000
 -         a(worldserver, list, i, entityliving, behaviorcontroller);
 -     }
 - 
+diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
+index bdbb716a91cd320dd9ab39ed6b7442388c92d074..bfae77f129859fba5e0f53723ba62a1626773b7c 100644
+--- a/src/main/java/net/minecraft/server/BiomeBase.java
++++ b/src/main/java/net/minecraft/server/BiomeBase.java
+@@ -516,13 +516,13 @@ public final class BiomeBase {
+         private static final Map<String, BiomeBase.Precipitation> e;
+ 
+         static {
+-            Map<String, Precipitation> map = new HashMap<>();
++            Map<String, Precipitation> map = new java.util.HashMap<>();
+             for (Precipitation biomebase_precipitation : values()) {
+                 if (map.put(biomebase_precipitation.b(), biomebase_precipitation) != null) {
+                     throw new IllegalStateException("Duplicate key");
+                 }
+             }
+-            e = (Map) map;
++            e = map;
+         }
+ 
+         private final String f;
+@@ -553,13 +553,13 @@ public final class BiomeBase {
+         private static final Map<String, BiomeBase.Geography> s;
+ 
+         static {
+-            Map<String, Geography> map = new HashMap<>();
++            Map<String, Geography> map = new java.util.HashMap<>();
+             for (Geography biomebase_geography : values()) {
+                 if (map.put(biomebase_geography.b(), biomebase_geography) != null) {
+                     throw new IllegalStateException("Duplicate key");
+                 }
+             }
+-            s = (Map) map;
++            s = map;
+         }
+ 
+         private final String t;
 diff --git a/src/main/java/net/minecraft/server/BiomeBase.java.rej b/src/main/java/net/minecraft/server/BiomeBase.java.rej
 deleted file mode 100644
 index 96bedf79efa73874a67a7ac6c7672497f3f94f67..0000000000000000000000000000000000000000
@@ -766,21 +802,46 @@ index c3c7738570d3670b50f144f145b61dcc2d35bb85..00000000000000000000000000000000
 -         private final String f;
 -         private final List<BiomeBase> g;
 diff --git a/src/main/java/net/minecraft/server/EntityHoglin.java b/src/main/java/net/minecraft/server/EntityHoglin.java
-index cf64c8ca2c5348782bf65a13f210564856b69311..414fc83ce188266ffaec1dfece9460c6c37bb15c 100644
+index cf64c8ca2c5348782bf65a13f210564856b69311..77e4fa44201782b64ad8ca1662835be5abadfa9d 100644
 --- a/src/main/java/net/minecraft/server/EntityHoglin.java
 +++ b/src/main/java/net/minecraft/server/EntityHoglin.java
-@@ -82,9 +82,9 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+@@ -13,7 +13,7 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+     public int conversionTicks = 0;
+     public boolean cannotBeHunted = false;
+     protected static final ImmutableList<? extends SensorType<? extends Sensor<? super EntityHoglin>>> bo = ImmutableList.of(SensorType.c, SensorType.d, SensorType.n, SensorType.m);
+-    protected static final ImmutableList<? extends MemoryModuleType<?>> bp = ImmutableList.of(MemoryModuleType.BREED_TARGET, MemoryModuleType.MOBS, MemoryModuleType.VISIBLE_MOBS, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, new MemoryModuleType[]{MemoryModuleType.AVOID_TARGET, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.NEAREST_VISIBLE_ADULY, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.PACIFIED});
++    protected static final ImmutableList<MemoryModuleType<?>> bp = ImmutableList.of(MemoryModuleType.BREED_TARGET, MemoryModuleType.MOBS, MemoryModuleType.VISIBLE_MOBS, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, new MemoryModuleType[]{MemoryModuleType.AVOID_TARGET, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.NEAREST_VISIBLE_ADULY, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.PACIFIED}); // Yatopia - decompile fix
+ 
+     public EntityHoglin(EntityTypes<? extends EntityHoglin> entitytypes, World world) {
+         super(entitytypes, world);
+@@ -77,14 +77,14 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+ 
+     @Override
+     public BehaviorController<EntityHoglin> getBehaviorController() {
+-        return super.getBehaviorController();
++        return (BehaviorController<EntityHoglin>) super.getBehaviorController(); // Yatopia - decompile fix
+     }
  
      @Override
      protected void mobTick() {
 -        this.world.getMethodProfiler().enter("hoglinBrain");
-+        //this.world.getMethodProfiler().enter("hoglinBrain"); // Akarin - remove caller
-         this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
+-        this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
 -        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().enter("hoglinBrain"); // Akarin - remove caller
++        this.getBehaviorController().a((WorldServer) this.world, this); // Yatopia - decompile fix
 +        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
          HoglinAI.a(this);
          if (this.isConverting()) {
              ++this.conversionTicks;
+@@ -259,7 +259,7 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+ 
+     @Override
+     protected SoundEffect getSoundAmbient() {
+-        return this.world.isClientSide ? null : (SoundEffect) HoglinAI.b(this).orElse((Object) null);
++        return this.world.isClientSide ? null : (SoundEffect) HoglinAI.b(this).orElse(null);
+     }
+ 
+     @Override
 diff --git a/src/main/java/net/minecraft/server/EntityHoglin.java.rej b/src/main/java/net/minecraft/server/EntityHoglin.java.rej
 deleted file mode 100644
 index be7a4b07540f6cc29c9ed76668bc1eaf9850013c..0000000000000000000000000000000000000000
@@ -1308,9 +1369,18 @@ index 68f0fc0230a4148ab9fc4181736ce93297c7e1b9..00000000000000000000000000000000
 -         if (this.bM) {
 -             this.bM = false;
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
-index 193932e990ac25b3820bb7438c56a75a43cfdb25..375f974e391f0f233ad5f0bd755471ec68d7bf6d 100644
+index 193932e990ac25b3820bb7438c56a75a43cfdb25..20848d73efdf3e214ee7875398f1931f822614fd 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
 +++ b/src/main/java/net/minecraft/server/Explosion.java
+@@ -105,7 +105,7 @@ public class Explosion {
+         int i;
+         int j;
+ 
+-        if (this.a || this.b != Effect.NONE) { // EMC - don't run block processing if neither flag is set
++        if (this.b || this.c != Effect.NONE) { // EMC - don't run block processing if neither flag is set
+         for (int k = 0; k < 16; ++k) {
+             for (i = 0; i < 16; ++i) {
+                 for (j = 0; j < 16; ++j) {
 @@ -218,7 +218,7 @@ public class Explosion {
          boolean flag1 = this.c != Explosion.Effect.NONE;
  
@@ -1402,10 +1472,10 @@ index b005dd817e9ecffcf2172b4a807b0ecc632570b0..00000000000000000000000000000000
 -                     this.methodProfiler.exit();
 -                     this.methodProfiler.b();
 diff --git a/src/main/java/net/minecraft/server/PiglinAI.java b/src/main/java/net/minecraft/server/PiglinAI.java
-index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..8a56cf4e14e21ab751fef8aeec5e175812a5593e 100644
+index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..9a87894f851ecebb6772b9c87948730d17787be8 100644
 --- a/src/main/java/net/minecraft/server/PiglinAI.java
 +++ b/src/main/java/net/minecraft/server/PiglinAI.java
-@@ -12,14 +12,14 @@ import java.util.Set;
+@@ -12,7 +12,7 @@ import java.util.Set;
  
  public class PiglinAI {
  
@@ -1414,14 +1484,6 @@ index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..8a56cf4e14e21ab751fef8aeec5e1758
      private static final IntRange b = TimeRange.a(30, 120);
      private static final IntRange c = TimeRange.a(10, 40);
      private static final IntRange d = TimeRange.a(10, 30);
-     private static final IntRange e = TimeRange.a(5, 20);
-     private static final IntRange f = TimeRange.a(5, 7);
-     private static final IntRange g = TimeRange.a(5, 7);
--    private static final Set<Item> h = ImmutableSet.of(Items.PORKCHOP, Items.COOKED_PORKCHOP);
-+    private static final Set<Item> h = ImmutableSet.of(net.minecraft.server.Items.PORKCHOP, net.minecraft.serverItems.COOKED_PORKCHOP);
- 
-     protected static BehaviorController<?> a(EntityPiglin entitypiglin, BehaviorController<EntityPiglin> behaviorcontroller) {
-         a(behaviorcontroller);
 @@ -134,7 +134,7 @@ public class PiglinAI {
          ItemStack itemstack;
  
@@ -1451,13 +1513,13 @@ index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..8a56cf4e14e21ab751fef8aeec5e1758
 -                d((EntityPiglinAbstract) entitypiglin, (EntityLiving) entityhuman);
 -            } else {
 -                c((EntityPiglinAbstract) entitypiglin, (EntityLiving) entityhuman);
-+        for (EntityPiglin entitypiglin : list) {
-+            if (d((EntityPiglinAbstract) entitypiglin)) {
++        for (EntityPiglinAbstract entitypiglin : list) {
++            if (d(entitypiglin)) {
 +                if (!flag || BehaviorUtil.c(entitypiglin, entityhuman)) {
 +                    if (entitypiglin.world.getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
-+                        d((EntityPiglinAbstract) entitypiglin, entityhuman);
++                        d(entitypiglin, entityhuman);
 +                    } else {
-+                        c((EntityPiglinAbstract) entitypiglin, entityhuman);
++                        c(entitypiglin, entityhuman);
 +                    }
 +                }
              }
@@ -1902,37 +1964,29 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 4ccd7c6b7973d97bd3a2feea279953f307f7a9b4..234fd3cd8768cfc8e5debb0bc59b501746d4343e 100644
+index 4ccd7c6b7973d97bd3a2feea279953f307f7a9b4..5c67881cb9258b839e713b8bb0b4b380691d3fdd 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -9,6 +9,7 @@ import com.destroystokyo.paper.exception.ServerInternalException;
- import com.google.common.base.MoreObjects;
- import com.google.common.collect.Lists;
- import com.mojang.serialization.Codec;
-+import com.proximyst.rainforest.RainforestConfig;
- import com.proximyst.rainforest.RainforestWorldConfig;
- import java.io.IOException;
- import java.util.Collection;
-@@ -97,6 +98,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -97,6 +97,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
      public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
 +    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World config
-+    public final RainforestConfig rainforestConfig; // Rainforest
++    public final RainforestWorldConfig rainforestConfig; // Rainforest
  
      public final co.aikar.timings.WorldTimingsHandler timings; // Paper
      public static BlockPosition lastPhysicsProblem; // Spigot
-@@ -130,6 +133,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -130,6 +132,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.spigotConfig); // Paper
          this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
 +        this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig(((WorldDataServer)worlddatamutable).getName()); // Purpur - world config
 +        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami
-+        this.rainforestConfig = new RainforestWorldConfig(((WorldDataServer)worlddatamutable).getName());
++        this.rainforestConfig = new RainforestWorldConfig(((WorldDataServer)worlddatamutable).getName(), paperConfig); // Rainforest
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
          this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
-@@ -614,6 +620,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -614,6 +619,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      }
  

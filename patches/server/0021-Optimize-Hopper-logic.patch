@@ -35,7 +35,7 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..2f66740de68667e5c0054a0bc7990256
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 95bede605c6401af10f18b641cd12c9d8ec2f207..f86b610ae656b402b9e35a05db61792cf1e10141 100644
+index 95bede605c6401af10f18b641cd12c9d8ec2f207..72c8ff70b13800793c4f1f9c7fffd9fa81c99d91 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -661,14 +661,47 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
@@ -74,7 +74,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..f86b610ae656b402b9e35a05db61792c
 +            if (hopper.cachedAbove != null) {
 +                return hopper.cachedAbove;
 +            }
-+            IInventory inv = a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, iHopper.A(), hopper.cachedPullAir);
++            IInventory inv = a(ihopper.getWorld(), ihopper.x(), ihopper.z() + 1.0D, ihopper.A(), hopper.cachedPullAir);
 +            hopper.cachedAbove = inv;
 +            if (hopper.cachedAbove == null) {
 +                hopper.cachedPullAir = true;
@@ -87,7 +87,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..f86b610ae656b402b9e35a05db61792c
      }
  
      public static List<EntityItem> c(IHopper ihopper) {
-@@ -683,14 +716,15 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -683,14 +716,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      }
  
      @Nullable
@@ -100,6 +100,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..f86b610ae656b402b9e35a05db61792c
      @Nullable
 -    public static IInventory a(World world, double d0, double d1, double d2) { return a(world, d0, d1, d2, false); } // Paper - overload to default false
 -    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities) { // Paper
++    public static IInventory a(World world, double d0, double d1, double d2) { return a(world, d0, d1, d2, false); } // Yatopia
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean skipBlockCheck) { return a(world, d0, d1, d2, false, skipBlockCheck); } // Paper - overload to default false // Yatopia
 +    public static IInventory a(World world, double d0, double d1, double d2, boolean optimizeEntities, boolean skipBlockCheck) { // Paper // Yatopia
          Object object = null;
@@ -107,7 +108,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..f86b610ae656b402b9e35a05db61792c
          BlockPosition blockposition = new BlockPosition(d0, d1, d2);
          if ( !world.isLoaded( blockposition ) ) return null; // Spigot
          IBlockData iblockdata = world.getType(blockposition);
-@@ -708,8 +742,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -708,8 +743,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
                  }
              }
          }
@@ -118,7 +119,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..f86b610ae656b402b9e35a05db61792c
              List<Entity> list = world.getEntities((Entity) null, new AxisAlignedBB(d0 - 0.5D, d1 - 0.5D, d2 - 0.5D, d0 + 0.5D, d1 + 0.5D, d2 + 0.5D), IEntitySelector.d);
  
              if (!list.isEmpty()) {
-@@ -779,4 +814,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -779,4 +815,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      protected Container createContainer(int i, PlayerInventory playerinventory) {
          return new ContainerHopper(i, playerinventory, this);
      }

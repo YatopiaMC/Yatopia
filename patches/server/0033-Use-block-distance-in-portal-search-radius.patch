@@ -28,13 +28,15 @@ index 965cc06a826c7d827e6b9a9e586738bfddc974d8..8d6b24c92df72921e5cc81f4892cc960
      }
  
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 934ac7fdfa040f1e00fb78b525b801ed525dae7e..6d54e3addacf6d1caadf658e02bb4fde05334967 100644
+index 934ac7fdfa040f1e00fb78b525b801ed525dae7e..7f510d56eacdb4432fb4576de3184f67e4353170 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-@@ -31,12 +31,22 @@ public class PortalTravelAgent {
+@@ -30,13 +30,23 @@ public class PortalTravelAgent {
+         }).thenComparingInt((villageplacerecord) -> {
              return villageplacerecord.f().getY();
          });
-         List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY);
+-        List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY);
++        java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
 +        // Yatopia start - fix portal bug
 +        if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
 +            list.removeIf(villagePlaceRecord -> {

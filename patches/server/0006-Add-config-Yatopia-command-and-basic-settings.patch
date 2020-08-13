@@ -428,7 +428,7 @@ index 730a0262f400a9974f89ecdf8b208e54cf7952f6..99c6e562b310e7268eabee0ddd7ec9e6
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 7a2b16aaf70cefa00beeacf2d6fcd8878bd7f6de..8a3af565cf11de75a3ae7602eed24ce8b483bf93 100644
+index 7a2b16aaf70cefa00beeacf2d6fcd8878bd7f6de..21ce618d91cde3beec4767f89221d0ed14778501 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -837,6 +837,7 @@ public final class CraftServer implements Server {
@@ -439,6 +439,20 @@ index 7a2b16aaf70cefa00beeacf2d6fcd8878bd7f6de..8a3af565cf11de75a3ae7602eed24ce8
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
+@@ -2267,6 +2268,13 @@ public final class CraftServer implements Server {
+         }
+         // Origami end
+ 
++        // Yatopia start
++        @Override
++        public YamlConfiguration getYatopiaConfig() {
++            return dev.tr7zw.yatopia.YatopiaConfig.config;
++        }
++        // Yatopia end
++
+         @Override
+         public void restart() {
+             org.spigotmc.RestartCommand.restart();
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
 index d6c82bd0afa43a4afcbc7029622c3915fa39bcc9..2ba0d89ae1b5d52eec3bd91328088ea2c7249d07 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
