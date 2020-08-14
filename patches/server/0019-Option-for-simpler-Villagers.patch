@@ -21,7 +21,7 @@ index fb7551f79f3e2e7e834359ef701ff7e568882a7f..0566088538c2b99ff74a408b67a9edee
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e360523775f034689 100644
+index 210f6b995565af5a299d6ba855a1de224102150b..d4147e93941f32da8dbb890e03cf306d8325edf0 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -27,6 +27,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
@@ -32,7 +32,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
      private static final DataWatcherObject<VillagerData> br = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bp = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
      private static final Set<Item> bs = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
-@@ -64,12 +65,52 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -64,24 +65,60 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          super(entitytypes, world);
          this.by = new Reputation();
          ((Navigation) this.getNavigation()).a(true);
@@ -47,9 +47,22 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
          this.brainTickOffset = getRandom().nextInt(100); // Purpur
      }
  
+     // Purpur start
+-    @Override
+-    protected void initPathfinder() {
+-        if (world.purpurConfig.villagerFollowEmeraldBlock) this.goalSelector.a(3, new PathfinderGoalTempt(this, 1.0D, false, TEMPT_ITEMS));
+-    }
+-
+     @Override
+     public boolean a(EntityHuman entityhuman) {
+         return world.purpurConfig.villagerCanBeLeashed && !this.isLeashed();
+     }
+     // Purpur end
+ 
 +    // Yatopia start
 +    @Override
 +    protected void initPathfinder() {
++        if (world.purpurConfig.villagerFollowEmeraldBlock) this.goalSelector.a(3, new PathfinderGoalTempt(this, 1.0D, false, TEMPT_ITEMS));
 +        if (!simplerVillagerBehavior) {
 +            // safety
 +            return;
@@ -85,7 +98,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
      @Override
      public BehaviorController<EntityVillager> getBehaviorController() {
          return (BehaviorController<EntityVillager>) super.getBehaviorController(); // CraftBukkit - decompile error
-@@ -82,6 +123,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -94,6 +131,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
  
      @Override
      protected BehaviorController<?> a(Dynamic<?> dynamic) {
@@ -93,7 +106,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
          BehaviorController<EntityVillager> behaviorcontroller = this.cJ().a(dynamic);
  
          this.a(behaviorcontroller);
-@@ -159,6 +201,27 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -171,6 +209,27 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          super.inactiveTick();
      }
      // Spigot End
@@ -121,7 +134,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
  
      @Override
      protected void mobTick() { mobTick(false); }
-@@ -168,6 +231,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -180,6 +239,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          boolean tick = (world.getTime() +  brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
          if (world.getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
          // Purpur end
@@ -135,7 +148,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
          if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
          //this.world.getMethodProfiler().exit(); // Akarin - remove caller
          if (this.bF) {
-@@ -333,6 +403,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -345,6 +411,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return this.bD == 0 || this.bD < 2 && this.world.getTime() > this.bC + 2400L;
      }
  
@@ -143,7 +156,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
      public boolean fc() {
          long i = this.bC + 12000L;
          long j = this.world.getTime();
-@@ -355,6 +426,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -367,6 +434,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return this.fn() && this.fm();
      }
  
@@ -151,7 +164,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
      private void fo() {
          int i = 2 - this.bD;
  
-@@ -585,6 +657,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -597,6 +665,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      private void a(Entity entity) {
@@ -159,7 +172,7 @@ index 1b2e395cc141bf700e1f7c24fe8ee7dc68b25513..416d421c3ff49125cd540a6e36052377
          if (this.world instanceof WorldServer) {
              Optional<List<EntityLiving>> optional = this.bg.getMemory(MemoryModuleType.VISIBLE_MOBS);
  
-@@ -610,6 +683,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -622,6 +691,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      public void a(MemoryModuleType<GlobalPos> memorymoduletype) {
