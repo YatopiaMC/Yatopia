@@ -8,7 +8,7 @@ function enableCommitSigningIfNeeded {
 	fi
 }
 
-if [ "$2" == "removed" ]; then
+if [ $2 == "removed" ]; then
   exit 0
 fi
 
