@@ -12,8 +12,8 @@ This is an overview over all patches that are currently used.
 | api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
-| api |  Add NBT API as a first class lib      | tr7zw |  |
-| server |  Add NBT-API as first-class lib      | tr7zw |  |
+| api |  Add NBT API as a first-class lib      | tr7zw |  |
+| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add Rainforest config      | Mariell Hoversholm |  |
 | server |  Add config Yatopia command and basic settings      | tr7zw |  |
 | api |  Add getLastTickMs api      | tr7zw |  |
