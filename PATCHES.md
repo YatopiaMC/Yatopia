@@ -21,7 +21,6 @@ This is an overview over all patches that are currently used.
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
-| server |  Akarin updated Async Path Finding      | tsao chi | Bud Gidiere |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Apply advancements async      | Mariell Hoversholm |  |
