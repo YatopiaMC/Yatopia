@@ -18,6 +18,7 @@ This is an overview over all patches that are currently used.
 | server |  Add config Yatopia command and basic settings      | tr7zw |  |
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
+| server |  Add more dupe options      | Mariell Hoversholm |  |
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
@@ -28,6 +29,7 @@ This is an overview over all patches that are currently used.
 | server |  Brandings      | tr7zw |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
+| server |  Custom brand name      | Mariell Hoversholm |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
@@ -43,10 +45,10 @@ This is an overview over all patches that are currently used.
 | server |  Improve Hopper Performance      | Aikar |  |
 | server |  Incremental player saving      | Aikar | MrIvanPlays |
 | api |  IntellaJ Optimize Imports      | Bud Gidiere |  |
-| server |  Intellij Optimize Imports.      | Bud Gidiere |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
+| server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
@@ -69,6 +71,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
+| server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tweak Explosions      | Aikar |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |

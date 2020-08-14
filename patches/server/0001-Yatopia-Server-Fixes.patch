@@ -5,17 +5,32 @@ Subject: [PATCH] Yatopia-Server-Fixes
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 5dfa0658838c4801cdf260eae8b98163f729e5af..88513b8830ea666ddf831771680b6e76e7cf95f0 100644
+index 5dfa0658838c4801cdf260eae8b98163f729e5af..b67f05f290db653cf75a89e85bd3decb5044a1e0 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
 @@ -231,6 +231,7 @@ public class TimingsExport extends Thread {
              pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
              pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
              pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
-+            , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Yatopia - add config to timings report
++            , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Purpur - add config to timings report
          ));
  
          new TimingsExport(listeners, parent, history).start();
+diff --git a/src/main/java/co/aikar/timings/TimingsExport.java.rej b/src/main/java/co/aikar/timings/TimingsExport.java.rej
+deleted file mode 100644
+index 572780ca665c0fb254cc7431af3dd7759a94f26c..0000000000000000000000000000000000000000
+--- a/src/main/java/co/aikar/timings/TimingsExport.java.rej
++++ /dev/null
+@@ -1,9 +0,0 @@
+-diff a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java	(rejected hunks)
+-@@ -230,6 +230,7 @@ public class TimingsExport extends Thread {
+-             pair("spigot", mapAsJSON(Bukkit.spigot().getSpigotConfig(), null)),
+-             pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
+-             pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null))
+-+            , pair("rainforest", mapAsJSON(Bukkit.spigot().getRainforestConfig(), null)) // Rainforest
+-         ));
+- 
+-         new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
 index f81bd67a323f2e72bdad76c52016993a0bf88307..98a898f8b8469969e5eb388edb818e519ff68681 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
@@ -106,6 +121,19 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 -         this.timingTicking.startTiming();
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
+diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
+index e0af5eb280dfd2ef6c9a80385e1705f7231a5338..f6623032e5d4034c104aa1fc6ff4265169e462ba 100644
+--- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
++++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
+@@ -195,7 +195,7 @@ public final class RainforestConfig {
+     allowSandDuping = getBoolean("allow-sand-duping", allowSandDuping);
+   }
+ 
+-  public static String brandName = "Rainforest";
++  public static String brandName = "Yatopia"; // Yatopia
+   private static void brandName() {
+     brandName = getString("brand-name", brandName);
+   }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
 index fe7330fabe386966c2d203a190a00a785ea21be0..e2bbbfeb7e2505479e6a457294aaa550b97319ca 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
@@ -744,10 +772,10 @@ index 87367c60dd036f8623d6593e73dd2412a477f6a4..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index 1d00832bffc2b6bcc6153b9065a92035ba974138..b3d6e713c2bfa1a0432b4afc3e8c31d4d7ca5844 100644
+index 1d00832bffc2b6bcc6153b9065a92035ba974138..99a3ab3327e76b04ed9357a94eaf394675ae23fd 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-@@ -127,4 +127,23 @@ public class PurpurConfig {
+@@ -127,4 +127,28 @@ public class PurpurConfig {
          config.addDefault(path, def);
          return config.getString(path, config.getString(path));
      }
@@ -770,29 +798,34 @@ index 1d00832bffc2b6bcc6153b9065a92035ba974138..b3d6e713c2bfa1a0432b4afc3e8c31d4
 +    private static void tpsCatchup() {
 +        tpsCatchup = getBoolean("settings.tps-catchup", tpsCatchup);
 +    }
++
++    public static boolean fixItemPositionDesync = false;
++    private static void fixItemPositionDesync() {
++        fixItemPositionDesync = getBoolean("settings.fix-item-position-desync", fixItemPositionDesync);
++    }
  }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java.rej b/src/main/java/net/pl3x/purpur/PurpurConfig.java.rej
 deleted file mode 100644
-index ff05ff6aef1e0f61eb4437253020632745ee2bd2..0000000000000000000000000000000000000000
+index 394e055fe5f5da8696723ccf997969f765b76112..0000000000000000000000000000000000000000
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java.rej
 +++ /dev/null
 @@ -1,11 +0,0 @@
 -diff a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java	(rejected hunks)
--@@ -194,4 +194,9 @@ public class PurpurConfig {
--         loggerSuppressInitLegacyMaterialError = getBoolean("settings.logger.suppress-init-legacy-material-errors", loggerSuppressInitLegacyMaterialError);
--         loggerSuppressIgnoredAdvancementWarnings = getBoolean("settings.logger.suppress-ignored-advancement-warnings", loggerSuppressIgnoredAdvancementWarnings);
+-@@ -177,4 +177,9 @@ public class PurpurConfig {
+-         InventoryType.ENDER_CHEST.setDefaultSize(enderChestSixRows ? 54 : 27);
+-         enderChestPermissionRows = getBoolean("settings.blocks.ender_chest.use-permissions-for-rows", enderChestPermissionRows);
 -     }
 -+
--+    public static boolean tpsCatchup = true;
--+    private static void tpsCatchup() {
--+        tpsCatchup = getBoolean("settings.tps-catchup", tpsCatchup);
+-+    public static boolean fixItemPositionDesync = false;
+-+    private static void fixItemPositionDesync() {
+-+        fixItemPositionDesync = getBoolean("settings.fix-item-position-desync", fixItemPositionDesync);
 -+    }
 - }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-index 361f7857e461578e90cb71e15027dadaf794cb69..7cde55ae407012b3445f11b07a0ebc9d00e031e3 100644
+index 361f7857e461578e90cb71e15027dadaf794cb69..eb2e5c25a555f8da33646c0fd4c1dfeccf9e0d05 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-@@ -56,4 +56,16 @@ public class PurpurWorldConfig {
+@@ -56,4 +56,21 @@ public class PurpurWorldConfig {
          PurpurConfig.config.addDefault("world-settings.default." + path, def);
          return PurpurConfig.config.getString("world-settings." + worldName + "." + path, PurpurConfig.config.getString("world-settings.default." + path));
      }
@@ -808,28 +841,31 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..7cde55ae407012b3445f11b07a0ebc9d
 +    private void miscGameplayMechanicsSettings() {
 +        saveProjectilesToDisk = getBoolean("gameplay-mechanics.save-projectiles-to-disk", saveProjectilesToDisk);
 +    }
++
++    public boolean squidImmuneToEAR = true;
++    private void squidSettings() {
++        squidImmuneToEAR = getBoolean("mobs.squid.immune-to-EAR", squidImmuneToEAR);
++    }
  }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 deleted file mode 100644
-index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..0000000000000000000000000000000000000000
+index e7353bb8a2f004e6264433f094bc6a74034de502..0000000000000000000000000000000000000000
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 +++ /dev/null
-@@ -1,15 +0,0 @@
+@@ -1,13 +0,0 @@
 -diff a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java	(rejected hunks)
--@@ -113,11 +113,13 @@ public class PurpurWorldConfig {
--     public boolean disableDropsOnCrammingDeath = false;
--     public boolean entitiesPickUpLootBypassMobGriefing = false;
--     public boolean milkCuresBadOmen = true;
--+    public boolean saveProjectilesToDisk = true;
--     public double tridentLoyaltyVoidReturnHeight = 0.0D;
--     private void miscGameplayMechanicsSettings() {
--         disableDropsOnCrammingDeath = getBoolean("gameplay-mechanics.disable-drops-on-cramming-death", disableDropsOnCrammingDeath);
--         entitiesPickUpLootBypassMobGriefing = getBoolean("gameplay-mechanics.entities-pick-up-loot-bypass-mob-griefing", entitiesPickUpLootBypassMobGriefing);
--         milkCuresBadOmen = getBoolean("gameplay-mechanics.milk-cures-bad-omen", milkCuresBadOmen);
--+        saveProjectilesToDisk = getBoolean("gameplay-mechanics.save-projectiles-to-disk", saveProjectilesToDisk);
--         tridentLoyaltyVoidReturnHeight = getDouble("gameplay-mechanics.trident-loyalty-void-return-height", tridentLoyaltyVoidReturnHeight);
+-@@ -629,6 +629,11 @@ public class PurpurWorldConfig {
+-         spiderRidableInWater = getBoolean("mobs.spider.ridable-in-water", spiderRidableInWater);
 -     }
 - 
+-+    public boolean squidImmuneToEAR = true;
+-+    private void squidSettings() {
+-+        squidImmuneToEAR = getBoolean("mobs.squid.immune-to-EAR", squidImmuneToEAR);
+-+    }
+-+
+-     public boolean strayRidable = false;
+-     public boolean strayRidableInWater = false;
+-     private void straySettings() {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 index f3a3a42c346353d699163317efad0e88f666924f..8fab87414b78c2e9bbe6fe98c70bfa6a3ba5313b 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
