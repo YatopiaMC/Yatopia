@@ -7,6 +7,11 @@ function enableCommitSigningIfNeeded {
 		git config commit.gpgsign true
 	fi
 }
+
+if [ "$2" == "removed" ]; then
+  exit 0
+fi
+
 # Disable GPG signing before AM, slows things down and doesn't play nicely.
 # There is also zero rational or logical reason to do so for these sub-repo AMs.
 # Calm down kids, it's re-enabled (if needed) immediately after, pass or fail.
