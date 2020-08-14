@@ -1389,33 +1389,9 @@ index 7b2c459adc489702137944602627e0fc54af26e8..328675d894ecf5054337a0015128fdf1
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index 59696d93cf546c5f43648ddde19327de6a62f18c..eb9cdb887bbcd8e47529851f977503db75d0a9ef 100644
+index 59696d93cf546c5f43648ddde19327de6a62f18c..a3657a2e7d0d8eccc3ff3339adba425ff1ee70a0 100644
 --- a/src/main/java/net/minecraft/server/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/server/EntityInsentient.java
-@@ -1,6 +1,7 @@
- package net.minecraft.server;
- 
- import com.google.common.collect.Maps;
-+
- import java.util.Arrays;
- import java.util.Iterator;
- import java.util.List;
-@@ -10,13 +11,12 @@ import java.util.Random;
- import java.util.UUID;
- import javax.annotation.Nullable;
- 
--// CraftBukkit start
--import org.bukkit.craftbukkit.event.CraftEventFactory;
- import org.bukkit.craftbukkit.entity.CraftLivingEntity;
-+import org.bukkit.craftbukkit.event.CraftEventFactory;
- import org.bukkit.event.entity.CreatureSpawnEvent;
- import org.bukkit.event.entity.EntityCombustByEntityEvent;
--import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
- import org.bukkit.event.entity.EntityTargetEvent;
-+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
- import org.bukkit.event.entity.EntityTransformEvent;
- import org.bukkit.event.entity.EntityUnleashEvent;
- import org.bukkit.event.entity.EntityUnleashEvent.UnleashReason;
 @@ -53,7 +53,7 @@ public abstract class EntityInsentient extends EntityLiving {
      private NBTTagCompound by;
      private BlockPosition bz;
@@ -1438,8 +1414,7 @@ index 59696d93cf546c5f43648ddde19327de6a62f18c..eb9cdb887bbcd8e47529851f977503db
 +        incrementTicksSinceLastInteraction(); // Purpur
 +        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
 +    }
- 
--        this.world.getMethodProfiler().exit();
++
 +    // Purpur start
 +    private void incrementTicksSinceLastInteraction() {
 +        ticksSinceLastInteraction++;
@@ -1457,7 +1432,8 @@ index 59696d93cf546c5f43648ddde19327de6a62f18c..eb9cdb887bbcd8e47529851f977503db
 +            this.dead = true;
 +        }
 +    }
-+
+ 
+-        this.world.getMethodProfiler().exit();
 +    @Override
 +    public boolean damageEntity(DamageSource damagesource, float f) {
 +        if (damagesource.getEntity() instanceof EntityPlayer) this.ticksSinceLastInteraction = 0;
