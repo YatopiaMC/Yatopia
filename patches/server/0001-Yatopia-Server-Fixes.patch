@@ -137,7 +137,7 @@ index e0af5eb280dfd2ef6c9a80385e1705f7231a5338..f6623032e5d4034c104aa1fc6ff42651
      brandName = getString("brand-name", brandName);
    }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f717e4f5061 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..2a6caf9b7281c726509c217c0f5c45c8f4cbde2a 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
 @@ -16,7 +16,7 @@ public final class OrigamiConfig {
@@ -149,12 +149,11 @@ index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f71
      private static int configVersion;
  
      public static void init(final File file) {
-@@ -112,6 +112,20 @@ public final class OrigamiConfig {
+@@ -112,6 +112,23 @@ public final class OrigamiConfig {
              config.addDefault("worlds.default." + path, Double.valueOf(dfl));
              return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
          }
 +
-+        // Yatopia start
 +        public boolean tickEmptyHoppers = true;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
@@ -166,31 +165,81 @@ index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f71
 +        private void fastFeatureSearchDontLoad() {
 +            fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
 +        }
-+        // Yatopia end
++
++        public boolean disableObserverClocks = false;
++        private void observerClock() {
++            disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
++        }
      }
  
  }
 \ No newline at end of file
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej b/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
 deleted file mode 100644
-index 8428d4bd05075e86b281312fa38106882c54735b..0000000000000000000000000000000000000000
+index 96cf7cf430e29dc0ee007a4713cb543137cb3771..0000000000000000000000000000000000000000
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
 +++ /dev/null
-@@ -1,14 +0,0 @@
+@@ -1,13 +0,0 @@
 -diff a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java	(rejected hunks)
--@@ -169,6 +169,12 @@ public final class OrigamiConfig {
--                 Bukkit.getLogger().info("Farm detection radius: " + pigmenFarmsRadius + ", count: " + pigmenFarmsCount);
--             }
+-@@ -175,6 +175,11 @@ public final class OrigamiConfig {
+-             tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
+-             fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
 -         }
--+        public boolean tickEmptyHoppers = false;
--+        public int fullHopperCooldown = 128;
--+        private void hopperOptimizations() {
--+            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
--+            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
+-+
+-+        public boolean disableObserverClocks = false;
+-+        private void observerClock() {
+-+            disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
 -+        }
 -     }
 - 
 -     public static boolean teleportingOfVehiclesWithPassenger = true;
+diff --git a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java
+index 0490f6bb798b94ce69a40f8a940caaa545c4a3c0..644b875354d10f10fbdb160bb957f535406d9f86 100644
+--- a/src/main/java/net/minecraft/server/Behavior.java
++++ b/src/main/java/net/minecraft/server/Behavior.java
+@@ -11,6 +11,7 @@ public abstract class Behavior<E extends EntityLiving> {
+     private long c;
+     private final int d;
+     private final int e;
++    co.aikar.timings.Timing timing; // Origami
+ 
+     public Behavior(Map<MemoryModuleType<?>, MemoryStatus> map) {
+         this(map, 60);
+@@ -25,6 +26,9 @@ public abstract class Behavior<E extends EntityLiving> {
+         this.d = i;
+         this.e = j;
+         this.a = map;
++        // Origami start - behavior timing
++        timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(getClass().getSimpleName());
++        // Origami end
+     }
+ 
+     public Behavior.Status a() {
+diff --git a/src/main/java/net/minecraft/server/Behavior.java.rej b/src/main/java/net/minecraft/server/Behavior.java.rej
+deleted file mode 100644
+index c3d129452b4f6ff2069bc066e594b1c632ceb0d4..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Behavior.java.rej
++++ /dev/null
+@@ -1,19 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java	(rejected hunks)
+-@@ -15,6 +15,7 @@ public abstract class Behavior<E extends EntityLiving> {
+-     private final String configKey;
+-     private static final String RATE_TYPE = "behavior";
+-     // Origami end
+-+    co.aikar.timings.Timing timing; // Origami - behavior timing
+- 
+-     public Behavior(Map<MemoryModuleType<?>, MemoryStatus> map) {
+-         this(map, 60);
+-@@ -37,6 +38,9 @@ public abstract class Behavior<E extends EntityLiving> {
+-         }
+-         this.configKey = key;
+-         // Origami end
+-+        // Origami start - behavior timing
+-+        timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(key);
+-+        // Origami end
+-     }
+- 
+-     public Behavior.Status a() {
 diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
 index 685351f11497a33ef4ba99055fa7da3a8de18af2..dba7cbb02b16dfc6b45efea7c3dd3304693d0ac7 100644
 --- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
@@ -1073,7 +1122,7 @@ index a8d2be07d45549cf7a8ac048b44284c4c0a96686..00000000000000000000000000000000
 - 
 -     }
 diff --git a/src/main/java/net/minecraft/server/EntityFox.java b/src/main/java/net/minecraft/server/EntityFox.java
-index b04f061859f2db52cdefb0192883f2a7c5117fea..080635ce047d25bd76baf371298d4f45375aa681 100644
+index b04f061859f2db52cdefb0192883f2a7c5117fea..7ce648e38b18c4decdba6d9dff81f833dcfb6454 100644
 --- a/src/main/java/net/minecraft/server/EntityFox.java
 +++ b/src/main/java/net/minecraft/server/EntityFox.java
 @@ -31,9 +31,9 @@ public class EntityFox extends EntityAnimal {
@@ -1109,11 +1158,10 @@ index b04f061859f2db52cdefb0192883f2a7c5117fea..080635ce047d25bd76baf371298d4f45
      }
  
      private List<UUID> fa() {
-@@ -262,6 +268,29 @@ public class EntityFox extends EntityAnimal {
-         list.add((this.datawatcher.get(EntityFox.SECOND_TRUSTED_PLAYER)).orElse(null)); // CraftBukkit - decompile error
+@@ -263,6 +269,29 @@ public class EntityFox extends EntityAnimal {
          return list;
      }
-+    
+ 
 +    // Purpur start
 +    @Override
 +    public EnumInteractionResult b(EntityHuman entityhuman, EnumHand enumhand) {
@@ -1136,9 +1184,10 @@ index b04f061859f2db52cdefb0192883f2a7c5117fea..080635ce047d25bd76baf371298d4f45
 +        return super.b(entityhuman, enumhand);
 +    }
 +    // Purpur end
- 
++
      private void b(@Nullable UUID uuid) {
          if (((Optional) this.datawatcher.get(EntityFox.FIRST_TRUSTED_PLAYER)).isPresent()) {
+             this.datawatcher.set(EntityFox.SECOND_TRUSTED_PLAYER, Optional.ofNullable(uuid));
 diff --git a/src/main/java/net/minecraft/server/EntityFox.java.rej b/src/main/java/net/minecraft/server/EntityFox.java.rej
 deleted file mode 100644
 index 641f24b3e166d895d795c73d46cdc26a7d87f0df..0000000000000000000000000000000000000000
