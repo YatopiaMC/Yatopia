@@ -12,7 +12,7 @@ This changes it so that the portal list is filtered to only include portals with
 Ported to Yatopia and added per world config option by MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 4794197d2dd3f81d2b8405f22dabe8519af9cc40..dfb7a053ed0e64734a0c227c566109074321dddd 100644
+index bcfd36e96f4aa56f22cd3fe7f600979610dc07e1..6d1295757ac0bc73ab3fa29b05d18e3dd04876ea 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
 @@ -171,6 +171,11 @@ public final class OrigamiConfig {
@@ -28,12 +28,12 @@ index 4794197d2dd3f81d2b8405f22dabe8519af9cc40..dfb7a053ed0e64734a0c227c56610907
      }
  
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 5dce3c862166783e1fc479cd4ecce8b80daa90b2..eb33c274182ec3cdde5d35e028617357c1355782 100644
+index fcbde0664226841c2b005001075b1e76d8cc6289..2f1d52fe2c256a4fbe63cb7a7fdc5008462085c4 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-@@ -30,12 +30,22 @@ public class PortalTravelAgent {
-             return villageplacerecord.f().getY();
-         });
+@@ -31,12 +31,22 @@ public class PortalTravelAgent {
+         boolean seen = false;
+         VillagePlaceRecord best = null;
          java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
 +        // Yatopia start - fix portal bug
 +        if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
