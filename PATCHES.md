@@ -21,8 +21,10 @@ This is an overview over all patches that are currently used.
 | server |  Add more dupe options      | Mariell Hoversholm |  |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
+| server |  Add option to disable observer clocks      | Phoenix616 |  |
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
+| server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
@@ -48,6 +50,8 @@ This is an overview over all patches that are currently used.
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
+| server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
+| server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
@@ -89,6 +93,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
+| server |  Slow down villager pickup of thrown items      | Aikar |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
