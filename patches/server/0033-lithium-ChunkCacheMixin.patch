@@ -1,0 +1,107 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sat, 15 Aug 2020 21:55:11 +0300
+Subject: [PATCH] lithium ChunkCacheMixin
+
+
+diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
+index ac6e5e3309affc830d4db07fd9b8d809c3085033..a8b20a51ca58e9b55ae65bf084695d702e0347ef 100644
+--- a/src/main/java/net/minecraft/server/Chunk.java
++++ b/src/main/java/net/minecraft/server/Chunk.java
+@@ -419,7 +419,7 @@ public class Chunk implements IChunkAccess {
+         // Method body / logic copied from below
+         final int i = y >> 4;
+         if (y < 0 || i >= this.sections.length || this.sections[i] == null || this.sections[i].nonEmptyBlockCount == 0) {
+-            return Blocks.AIR.getBlockData();
++            return ChunkCache.DEFAULT; // Yatopia
+         }
+         // Inlined ChunkSection.getType() and DataPaletteBlock.a(int,int,int)
+         return this.sections[i].blockIds.a((y & 15) << 8 | (z & 15) << 4 | x & 15);
+diff --git a/src/main/java/net/minecraft/server/ChunkCache.java b/src/main/java/net/minecraft/server/ChunkCache.java
+index 8eecdcde510661ec3a13a25a04ba394f6b6dc012..51023b390d4c9e26ee65c586908937a86416a5c6 100644
+--- a/src/main/java/net/minecraft/server/ChunkCache.java
++++ b/src/main/java/net/minecraft/server/ChunkCache.java
+@@ -12,6 +12,12 @@ public class ChunkCache implements IBlockAccess, ICollisionAccess {
+     protected boolean d;
+     protected final World e; protected final World getWorld() { return e; } // Paper - OBFHELPER
+ 
++    // Yatopia start
++    public static final IBlockData DEFAULT = Blocks.AIR.getBlockData();
++    private IChunkAccess[] chunksFlat;
++    private int xLen, zLen;
++    // Yatopia end
++
+     public ChunkCache(World world, BlockPosition blockposition, BlockPosition blockposition1) {
+         this.e = world;
+         this.a = blockposition.getX() >> 4;
+@@ -44,6 +50,16 @@ public class ChunkCache implements IBlockAccess, ICollisionAccess {
+             }
+         }
+ 
++        // Yatopia start
++        this.xLen = 1 + (blockposition1.getX() >> 4) - (blockposition.getX() >> 4);
++        this.zLen = 1 + (blockposition1.getZ() >> 4) - (blockposition.getZ() >> 4);
++
++        this.chunksFlat = new IChunkAccess[xLen * zLen];
++        for (int x = 0; x < this.xLen; x++) {
++            System.arraycopy(c[x], 0, chunksFlat, x * zLen, zLen);
++        }
++        // Yatopia end
++
+     }
+ 
+     private IChunkAccess d(BlockPosition blockposition) {
+@@ -51,16 +67,15 @@ public class ChunkCache implements IBlockAccess, ICollisionAccess {
+     }
+ 
+     private IChunkAccess a(int i, int j) {
+-        int k = i - this.a;
+-        int l = j - this.b;
+-
+-        if (k >= 0 && k < this.c.length && l >= 0 && l < this.c[k].length) { // Paper - if this changes, update getChunkIfLoaded below
+-            IChunkAccess ichunkaccess = this.c[k][l];
+-
+-            return (IChunkAccess) (ichunkaccess != null ? ichunkaccess : new ChunkEmpty(this.e, new ChunkCoordIntPair(i, j)));
+-        } else {
+-            return new ChunkEmpty(this.e, new ChunkCoordIntPair(i, j));
++        // Yatopia start - replaced logic
++        if (i >= 0 && i < this.xLen && j >= 0 && j < zLen) {
++            IChunkAccess chunk = this.chunksFlat[(i * zLen) + j];
++            if (chunk != null) {
++                return chunk;
++            }
+         }
++        return new ChunkEmpty(this.e, new ChunkCoordIntPair(i, j));
++        // Yatopia end
+     }
+ 
+     @Override
+@@ -75,13 +90,13 @@ public class ChunkCache implements IBlockAccess, ICollisionAccess {
+ 
+     // Paper start - if loaded util
+     private IChunkAccess getChunkIfLoaded(int x, int z) {
+-        int k = x - this.a;
+-        int l = z - this.b;
+-
+-        if (k >= 0 && k < this.c.length && l >= 0 && l < this.c[k].length) {
+-            return this.c[k][l];
++        // Yatopia start - replaced logic
++        IChunkAccess chunk = a(x, z);
++        if (chunk instanceof ChunkEmpty) {
++            return null;
+         }
+-        return null;
++        return chunk;
++        // Yatopia end
+     }
+     @Override
+     public Fluid getFluidIfLoaded(BlockPosition blockposition) {
+@@ -107,7 +122,7 @@ public class ChunkCache implements IBlockAccess, ICollisionAccess {
+     @Override
+     public IBlockData getType(BlockPosition blockposition) {
+         if (World.isOutsideWorld(blockposition)) {
+-            return Blocks.AIR.getBlockData();
++            return DEFAULT; // Yatopia
+         } else {
+             IChunkAccess ichunkaccess = this.d(blockposition);
+ 

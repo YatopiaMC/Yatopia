@@ -81,6 +81,7 @@ This is an overview over all patches that are currently used.
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperMC - Buffer joins      | Shane Freeder |  |
+| server |  Pathfinding timings      | MrIvanPlays |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | server |  Player-saving-async-FileIO      | tr7zw |  |
@@ -106,6 +107,7 @@ This is an overview over all patches that are currently used.
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  dont load chunks for physics      | Aikar |  |
+| server |  lithium ChunkCacheMixin      | JellySquid |  |
 | server |  lithium MixinBiome      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
 | server |  lithium MixinDirection      | JellySquid |  |
