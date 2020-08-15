@@ -137,7 +137,7 @@ index e0af5eb280dfd2ef6c9a80385e1705f7231a5338..f6623032e5d4034c104aa1fc6ff42651
      brandName = getString("brand-name", brandName);
    }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f717e4f5061 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..4ff73f74a0d4e0b95e67b99b551dadd3ab4d0f55 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
 @@ -16,7 +16,7 @@ public final class OrigamiConfig {
@@ -149,12 +149,11 @@ index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f71
      private static int configVersion;
  
      public static void init(final File file) {
-@@ -112,6 +112,20 @@ public final class OrigamiConfig {
+@@ -112,6 +112,28 @@ public final class OrigamiConfig {
              config.addDefault("worlds.default." + path, Double.valueOf(dfl));
              return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
          }
 +
-+        // Yatopia start
 +        public boolean tickEmptyHoppers = true;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
@@ -166,31 +165,85 @@ index fe7330fabe386966c2d203a190a00a785ea21be0..be8daf986eb9c83bd5974eca78a00f71
 +        private void fastFeatureSearchDontLoad() {
 +            fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
 +        }
-+        // Yatopia end
++
++        public boolean pigmenDontTargetUnlessHit = false;
++        private void pigmenDontTargetUnlessHit() {
++            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
++        }
++
++        public boolean disableObserverClocks = false;
++        private void observerClock() {
++            disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
++        }
      }
  
  }
 \ No newline at end of file
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej b/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
 deleted file mode 100644
-index 8428d4bd05075e86b281312fa38106882c54735b..0000000000000000000000000000000000000000
+index 02f5ccf54210776770d3215afb7c8e82f750d57e..0000000000000000000000000000000000000000
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
 +++ /dev/null
-@@ -1,14 +0,0 @@
+@@ -1,12 +0,0 @@
 -diff a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java	(rejected hunks)
--@@ -169,6 +169,12 @@ public final class OrigamiConfig {
--                 Bukkit.getLogger().info("Farm detection radius: " + pigmenFarmsRadius + ", count: " + pigmenFarmsCount);
--             }
+-@@ -153,6 +153,10 @@ public final class OrigamiConfig {
+-         public int getTickRate(String type, String typeName, String entityType, int def) {
+-             return tickRates.getOrDefault(type + "." + entityType + "." + typeName, tickRates.getOrDefault(type + "." + typeName, def));
 -         }
--+        public boolean tickEmptyHoppers = false;
--+        public int fullHopperCooldown = 128;
--+        private void hopperOptimizations() {
--+            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
--+            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
+-+        public boolean pigmenDontTargetUnlessHit = false;
+-+        private void pigmenDontTargetUnlessHit() {
+-+            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
 -+        }
+-         public int pigmenPortalSpawn = 2000;
+-         public double pigmenPortalBoost = 0.0;
+-         public boolean pigmenFarmsWaterAi = false;
+diff --git a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java
+index 0490f6bb798b94ce69a40f8a940caaa545c4a3c0..65cbe8ea9551ee804ca35a594680e845eebbacac 100644
+--- a/src/main/java/net/minecraft/server/Behavior.java
++++ b/src/main/java/net/minecraft/server/Behavior.java
+@@ -11,6 +11,7 @@ public abstract class Behavior<E extends EntityLiving> {
+     private long c;
+     private final int d;
+     private final int e;
++    co.aikar.timings.Timing timing; // Origami - behavior timing
+ 
+     public Behavior(Map<MemoryModuleType<?>, MemoryStatus> map) {
+         this(map, 60);
+@@ -25,6 +26,9 @@ public abstract class Behavior<E extends EntityLiving> {
+         this.d = i;
+         this.e = j;
+         this.a = map;
++        // Origami start - behavior timing
++        timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(getClass().getSimpleName());
++        // Origami end
+     }
+ 
+     public Behavior.Status a() {
+diff --git a/src/main/java/net/minecraft/server/Behavior.java.rej b/src/main/java/net/minecraft/server/Behavior.java.rej
+deleted file mode 100644
+index c3d129452b4f6ff2069bc066e594b1c632ceb0d4..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Behavior.java.rej
++++ /dev/null
+@@ -1,19 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java	(rejected hunks)
+-@@ -15,6 +15,7 @@ public abstract class Behavior<E extends EntityLiving> {
+-     private final String configKey;
+-     private static final String RATE_TYPE = "behavior";
+-     // Origami end
+-+    co.aikar.timings.Timing timing; // Origami - behavior timing
+- 
+-     public Behavior(Map<MemoryModuleType<?>, MemoryStatus> map) {
+-         this(map, 60);
+-@@ -37,6 +38,9 @@ public abstract class Behavior<E extends EntityLiving> {
+-         }
+-         this.configKey = key;
+-         // Origami end
+-+        // Origami start - behavior timing
+-+        timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(key);
+-+        // Origami end
 -     }
 - 
--     public static boolean teleportingOfVehiclesWithPassenger = true;
+-     public Behavior.Status a() {
 diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
 index 685351f11497a33ef4ba99055fa7da3a8de18af2..dba7cbb02b16dfc6b45efea7c3dd3304693d0ac7 100644
 --- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
@@ -1073,7 +1126,7 @@ index a8d2be07d45549cf7a8ac048b44284c4c0a96686..00000000000000000000000000000000
 - 
 -     }
 diff --git a/src/main/java/net/minecraft/server/EntityFox.java b/src/main/java/net/minecraft/server/EntityFox.java
-index b04f061859f2db52cdefb0192883f2a7c5117fea..080635ce047d25bd76baf371298d4f45375aa681 100644
+index b04f061859f2db52cdefb0192883f2a7c5117fea..7ce648e38b18c4decdba6d9dff81f833dcfb6454 100644
 --- a/src/main/java/net/minecraft/server/EntityFox.java
 +++ b/src/main/java/net/minecraft/server/EntityFox.java
 @@ -31,9 +31,9 @@ public class EntityFox extends EntityAnimal {
@@ -1109,11 +1162,10 @@ index b04f061859f2db52cdefb0192883f2a7c5117fea..080635ce047d25bd76baf371298d4f45
      }
  
      private List<UUID> fa() {
-@@ -262,6 +268,29 @@ public class EntityFox extends EntityAnimal {
-         list.add((this.datawatcher.get(EntityFox.SECOND_TRUSTED_PLAYER)).orElse(null)); // CraftBukkit - decompile error
+@@ -263,6 +269,29 @@ public class EntityFox extends EntityAnimal {
          return list;
      }
-+    
+ 
 +    // Purpur start
 +    @Override
 +    public EnumInteractionResult b(EntityHuman entityhuman, EnumHand enumhand) {
@@ -1136,9 +1188,10 @@ index b04f061859f2db52cdefb0192883f2a7c5117fea..080635ce047d25bd76baf371298d4f45
 +        return super.b(entityhuman, enumhand);
 +    }
 +    // Purpur end
- 
++
      private void b(@Nullable UUID uuid) {
          if (((Optional) this.datawatcher.get(EntityFox.FIRST_TRUSTED_PLAYER)).isPresent()) {
+             this.datawatcher.set(EntityFox.SECOND_TRUSTED_PLAYER, Optional.ofNullable(uuid));
 diff --git a/src/main/java/net/minecraft/server/EntityFox.java.rej b/src/main/java/net/minecraft/server/EntityFox.java.rej
 deleted file mode 100644
 index 641f24b3e166d895d795c73d46cdc26a7d87f0df..0000000000000000000000000000000000000000
@@ -1766,9 +1819,18 @@ index bf6c6ecea998206d783fe42b96f34144123d48d6..00000000000000000000000000000000
 -     public EntityPhantom(EntityTypes<? extends EntityPhantom> entitytypes, World world) {
 -         super(entitytypes, world);
 diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java
-index 13a2af03fc5a511f13a9be28a813e7275448d09d..aa9687f47bf30ef13f9ab90eb3d11212b5996a90 100644
+index 13a2af03fc5a511f13a9be28a813e7275448d09d..258d19f8aa5c092a940c0e722e114c1c5be578b8 100644
 --- a/src/main/java/net/minecraft/server/EntityPigZombie.java
 +++ b/src/main/java/net/minecraft/server/EntityPigZombie.java
+@@ -70,7 +70,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+             this.eY();
+         }
+ 
+-        if (this.isAngry()) {
++        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
+             this.lastDamageByPlayerTime = this.ticksLived;
+         }
+ 
 @@ -103,15 +103,15 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
          double d0 = this.b(GenericAttributes.FOLLOW_RANGE);
          AxisAlignedBB axisalignedbb = AxisAlignedBB.a(this.getPositionVector()).grow(d0, 10.0D, d0);
@@ -1796,37 +1858,20 @@ index 13a2af03fc5a511f13a9be28a813e7275448d09d..aa9687f47bf30ef13f9ab90eb3d11212
      private void fa() {
 diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java.rej b/src/main/java/net/minecraft/server/EntityPigZombie.java.rej
 deleted file mode 100644
-index 39ea87798a00d40a1512c337b74d10c41330cc99..0000000000000000000000000000000000000000
+index 7c6c99ccd4d034994668f62d82fa8180ab0bba57..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/EntityPigZombie.java.rej
 +++ /dev/null
-@@ -1,27 +0,0 @@
+@@ -1,10 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java	(rejected hunks)
--@@ -101,15 +103,16 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
--         double d0 = this.b(GenericAttributes.FOLLOW_RANGE);
--         AxisAlignedBB axisalignedbb = AxisAlignedBB.a(this.getPositionVector()).grow(d0, 10.0D, d0);
+-@@ -68,7 +68,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+-             this.eZ();
+-         }
 - 
---        this.world.b(EntityPigZombie.class, axisalignedbb).stream().filter((entitypigzombie) -> {
---            return entitypigzombie != this;
---        }).filter((entitypigzombie) -> {
---            return entitypigzombie.getGoalTarget() == null;
---        }).filter((entitypigzombie) -> {
---            return !entitypigzombie.r(this.getGoalTarget());
---        }).forEach((entitypigzombie) -> {
---            entitypigzombie.setGoalTarget(this.getGoalTarget(), org.bukkit.event.entity.EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true); // CraftBukkit
---        });
--+        // CraftBukkit
--+        for (EntityPigZombie entitypigzombie : this.world.b(EntityPigZombie.class, axisalignedbb)) {
--+            if (entitypigzombie != this) {
--+                if (entitypigzombie.getGoalTarget() == null) {
--+                    if (!entitypigzombie.r(this.getGoalTarget())) {
--+                        entitypigzombie.setGoalTarget(this.getGoalTarget(), EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true);
--+                    }
--+                }
--+            }
--+        }
--     }
+--        if (this.isAngry()) {
+-+        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
+-             this.lastDamageByPlayerTime = this.ticksLived;
+-         }
 - 
--     private void fb() {
 diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java b/src/main/java/net/minecraft/server/EntityPiglin.java
 index e1b4330074cf3c3de31dbfcd9e1b99feb7baf669..2581c6da77c3fcec5a18f5fcacf30a36bf6b5ee6 100644
 --- a/src/main/java/net/minecraft/server/EntityPiglin.java

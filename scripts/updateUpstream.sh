@@ -42,7 +42,11 @@ subtasks=1
 if [ -z "$2" ]; then
   $basedir/scripts/fetchUpstream.sh
 else
-  $basedir/scripts/fetchUpstream.sh true
+  if [ -z "$3" ]; then
+    $basedir/scripts/fetchUpstream.sh true
+  else
+    $basedir/scripts/fetchUpstream.sh false true
+  fi
 fi
 
 # patch paper
