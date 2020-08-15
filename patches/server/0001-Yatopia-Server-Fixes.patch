@@ -1390,7 +1390,7 @@ index 7b2c459adc489702137944602627e0fc54af26e8..6b4fad730cc43bf2c70e499adbf9bf28
      }
  
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index 59696d93cf546c5f43648ddde19327de6a62f18c..a0cd7a6f67b55bd4acf953675a5f39d6609f7913 100644
+index 59696d93cf546c5f43648ddde19327de6a62f18c..393a5b127b2f04cf89ff1dbcc2d9bb16a0fed9b2 100644
 --- a/src/main/java/net/minecraft/server/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/server/EntityInsentient.java
 @@ -53,7 +53,7 @@ public abstract class EntityInsentient extends EntityLiving {
@@ -1484,7 +1484,7 @@ index 59696d93cf546c5f43648ddde19327de6a62f18c..a0cd7a6f67b55bd4acf953675a5f39d6
 +        //this.world.getMethodProfiler().exitEnter("look"); // Akarin - remove caller
          this.lookController.a();
 -        this.world.getMethodProfiler().exitEnter("jump");
-+        // this.world.getMethodProfiler().exitEnter("jump"); // Akarin - remove caller
++        //this.world.getMethodProfiler().exitEnter("jump"); // Akarin - remove caller
          this.bi.b();
 -        this.world.getMethodProfiler().exit();
 -        this.world.getMethodProfiler().exit();
@@ -1547,7 +1547,7 @@ index 75ab781ad76caedf56f0a2da3a0a4eaa4500aea7..00000000000000000000000000000000
 -     protected void c(DamageSource damagesource) {
 -         this.eJ();
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index fa7d210dbd4f509418402e664b55e9e567bba4cf..c30cd89de73ee9ed6daaf7186794ac17f123ed5d 100644
+index fa7d210dbd4f509418402e664b55e9e567bba4cf..f24f7f1230a380f46112e886fb5dff7c33edb2ce 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -80,7 +80,7 @@ public abstract class EntityLiving extends Entity {
@@ -1627,11 +1627,13 @@ index fa7d210dbd4f509418402e664b55e9e567bba4cf..c30cd89de73ee9ed6daaf7186794ac17
          this.aR *= 0.98F;
          this.aT *= 0.98F;
          this.r();
-@@ -2791,14 +2791,14 @@ public abstract class EntityLiving extends Entity {
+@@ -2790,15 +2790,15 @@ public abstract class EntityLiving extends Entity {
+         // SpigotTimings.timerEntityAIMove.startTiming(); // Spigot // Paper
          this.g(new Vec3D((double) this.aR, (double) this.aS, (double) this.aT));
          // SpigotTimings.timerEntityAIMove.stopTiming(); // Spigot // Paper
-         this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().exit();
 -        this.world.getMethodProfiler().enter("push");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
 +        //this.world.getMethodProfiler().enter("push"); // Akarin - remove caller
          if (this.bf > 0) {
              --this.bf;
