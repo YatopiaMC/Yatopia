@@ -28,21 +28,19 @@ index 965cc06a826c7d827e6b9a9e586738bfddc974d8..8d6b24c92df72921e5cc81f4892cc960
      }
  
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 934ac7fdfa040f1e00fb78b525b801ed525dae7e..7f510d56eacdb4432fb4576de3184f67e4353170 100644
+index b74888e554674caac8dfc3d8e00f5961e6527d8b..ce50beecf16687b8d9e3ec5ba7853b4fb9e5af85 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-@@ -30,13 +30,23 @@ public class PortalTravelAgent {
-         }).thenComparingInt((villageplacerecord) -> {
+@@ -31,12 +31,22 @@ public class PortalTravelAgent {
              return villageplacerecord.f().getY();
          });
--        List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY);
-+        java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
+         java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
 +        // Yatopia start - fix portal bug
 +        if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
 +            list.removeIf(villagePlaceRecord -> {
 +                BlockPosition portalPosition = villagePlaceRecord.getPosition();
-+                return Math.abs(portalPosition.getX() - blockposition.getX()) > world.paperConfig.portalSearchRadius
-+                        || Math.abs(portalPosition.getZ() - blockposition.getZ()) > world.paperConfig.portalSearchRadius;
++                return Math.abs(portalPosition.getX() - blockposition.getX()) > i
++                        || Math.abs(portalPosition.getZ() - blockposition.getZ()) > i;
 +            });
 +        }
 +        if (!list.isEmpty()) {
