@@ -26,7 +26,7 @@ function updateAll {
 if [ -z "$1" ]; then
   updateAll
 elif [ "$1" == "true" ]; then
-  update Tuinity 1.16.2
+  update Tuinity 1.16.2tmp
   git submodule update --recursive
 elif [ "$1" == "false" ]; then
   if [ "$2" == "true" ]; then
