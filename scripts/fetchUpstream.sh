@@ -17,7 +17,7 @@ function updateAll {
   update Akarin 1.16.2
   update Empirecraft ver/1.16.2
   update Origami 1.16
-  update Purpur ver/1.16
+  update Purpur ver/1.16.2
   update Rainforest ver/1.16
   update Tuinity 1.16.2tmp
   git submodule update --recursive
