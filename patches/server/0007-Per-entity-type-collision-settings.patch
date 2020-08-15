@@ -14,48 +14,47 @@ The whole code is based around 1 class, the EntityFilter class. Whole filtering 
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 7430db0160e7781c5a6d5a879957066a10ad9de9..7a98a75f61b29671d8d900d50c2e06ef8bab6da6 100644
+index be8daf986eb9c83bd5974eca78a00f717e4f5061..755e5f6ebf1559c3f4359d356b49615cbd0f19e1 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -126,6 +126,37 @@ public final class OrigamiConfig {
-     private void fastFeatureSearchDontLoad() {
-         fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
-     }
-+    
-+    public boolean playerCollisions = true;
-+    public boolean animalCollisions = true;
-+    public boolean ambientCollisions = true;
-+    public boolean monsterCollisions = true;
-+    public boolean villagerCollisions = true;
-+    public boolean pillagerCollisions = true;
-+    public boolean ironGolemCollisions = true;
-+    public boolean miscCollisions = true;
-+    public boolean itemCollisions = true;
-+    public boolean waterCreatureCollisions = true;
-+    public boolean waterAmbientCollisions = true;
-+    public boolean allCollisionsEnabled = false;
-+    private void specificCollisionSettings() {
-+        playerCollisions = getBoolean("collisions.players", playerCollisions);
-+        animalCollisions = getBoolean("collisions.animals", animalCollisions);
-+        ambientCollisions = getBoolean("collisions.ambient", ambientCollisions);
-+        monsterCollisions = getBoolean("collisions.monsters", monsterCollisions);
-+        villagerCollisions = getBoolean("collisions.villagers", villagerCollisions);
-+        pillagerCollisions = getBoolean("collisions.pillagers", pillagerCollisions);
-+        ironGolemCollisions = getBoolean("collisions.iron-golems", ironGolemCollisions);
-+        miscCollisions = getBoolean("collisions.misc", miscCollisions);
-+        itemCollisions = getBoolean("collisions.items", itemCollisions);
-+        waterCreatureCollisions = getBoolean("collisions.water-creature", waterCreatureCollisions);
-+        waterAmbientCollisions = getBoolean("collisions.water-ambient", waterAmbientCollisions);
+@@ -125,6 +125,37 @@ public final class OrigamiConfig {
+         private void fastFeatureSearchDontLoad() {
+             fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
+         }
 +
-+        allCollisionsEnabled =
-+                playerCollisions && animalCollisions && ambientCollisions && monsterCollisions && villagerCollisions
-+                        && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
-+                        && waterCreatureCollisions && waterAmbientCollisions;
-+    }
-     // Yatopia end
++        public boolean playerCollisions = true;
++        public boolean animalCollisions = true;
++        public boolean ambientCollisions = true;
++        public boolean monsterCollisions = true;
++        public boolean villagerCollisions = true;
++        public boolean pillagerCollisions = true;
++        public boolean ironGolemCollisions = true;
++        public boolean miscCollisions = true;
++        public boolean itemCollisions = true;
++        public boolean waterCreatureCollisions = true;
++        public boolean waterAmbientCollisions = true;
++        public boolean allCollisionsEnabled = false;
++        private void specificCollisionSettings() {
++            playerCollisions = getBoolean("collisions.players", playerCollisions);
++            animalCollisions = getBoolean("collisions.animals", animalCollisions);
++            ambientCollisions = getBoolean("collisions.ambient", ambientCollisions);
++            monsterCollisions = getBoolean("collisions.monsters", monsterCollisions);
++            villagerCollisions = getBoolean("collisions.villagers", villagerCollisions);
++            pillagerCollisions = getBoolean("collisions.pillagers", pillagerCollisions);
++            ironGolemCollisions = getBoolean("collisions.iron-golems", ironGolemCollisions);
++            miscCollisions = getBoolean("collisions.misc", miscCollisions);
++            itemCollisions = getBoolean("collisions.items", itemCollisions);
++            waterCreatureCollisions = getBoolean("collisions.water-creature", waterCreatureCollisions);
++            waterAmbientCollisions = getBoolean("collisions.water-ambient", waterAmbientCollisions);
++
++            allCollisionsEnabled =
++                    playerCollisions && animalCollisions && ambientCollisions && monsterCollisions && villagerCollisions
++                            && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
++                            && waterCreatureCollisions && waterAmbientCollisions;
++        }
+         // Yatopia end
+     }
  
- }
-\ No newline at end of file
 diff --git a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..e20dfbdfc07e5bc68e66940ef12d7e847ebd35d9
@@ -190,7 +189,7 @@ index 0000000000000000000000000000000000000000..e20dfbdfc07e5bc68e66940ef12d7e84
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index fc1580c95118c2ba6b12a6cd62e54cfbf71e35e1..7f2941219a807d56b68143c2c7f176b0ae98db06 100644
+index 1daa4bd6c0b158df43e763627d81596480b68824..77b93296834f97d60ed3d190f913d6dd16e97ec0 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -2849,7 +2849,7 @@ public abstract class EntityLiving extends Entity {

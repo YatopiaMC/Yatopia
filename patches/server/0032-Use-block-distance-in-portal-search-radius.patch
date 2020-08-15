@@ -12,22 +12,21 @@ This changes it so that the portal list is filtered to only include portals with
 Ported to Yatopia and added per world config option by MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 5d92fca8e87e85ec4253cfd74966c6fa5648e806..ef5bd1b0a3034dc2b576800e38c1632a705ac5c2 100644
+index 73f395c1350d7ec45f3951df9014beefb550cedd..72021abbe717c5ade30bf046f7ca12f7afd250c6 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -162,6 +162,11 @@ public final class OrigamiConfig {
-                         && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
-                         && waterCreatureCollisions && waterAmbientCollisions;
-     }
+@@ -161,6 +161,11 @@ public final class OrigamiConfig {
+                             && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
+                             && waterCreatureCollisions && waterAmbientCollisions;
+         }
 +
-+    public boolean useBlockDistanceInPortalSearchRadius = false;
-+    private void useBlockDistanceInPortalSearchRadius() {
-+        useBlockDistanceInPortalSearchRadius = getBoolean("use-block-distance-in-portal-search-radius", false);
-+    }
-     // Yatopia end
++        public boolean useBlockDistanceInPortalSearchRadius = false;
++        private void useBlockDistanceInPortalSearchRadius() {
++            useBlockDistanceInPortalSearchRadius = getBoolean("use-block-distance-in-portal-search-radius", false);
++        }
+         // Yatopia end
+     }
  
- }
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
 index 5dce3c862166783e1fc479cd4ecce8b80daa90b2..eb33c274182ec3cdde5d35e028617357c1355782 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
