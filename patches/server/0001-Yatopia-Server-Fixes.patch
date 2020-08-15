@@ -943,20 +943,6 @@ index 4143bf4423c33134beb8fe615846fde75d6d9991..00000000000000000000000000000000
 -     @Override
 -     public EntityCow createChild(EntityAgeable entityageable) {
 -         return (EntityCow) EntityTypes.COW.a(this.world);
-diff --git a/src/main/java/net/minecraft/server/EntityCreature.java b/src/main/java/net/minecraft/server/EntityCreature.java
-index 4757e5a92c9cf04fa52d62bac6dae782e08ddab1..eb461202872150ec955126dda8b6417b66b3b774 100644
---- a/src/main/java/net/minecraft/server/EntityCreature.java
-+++ b/src/main/java/net/minecraft/server/EntityCreature.java
-@@ -11,6 +11,9 @@ public abstract class EntityCreature extends EntityInsentient {
- 
-     protected EntityCreature(EntityTypes<? extends EntityCreature> entitytypes, World world) {
-         super(entitytypes, world);
-+        // Purpur start
-+        setStepHeight(world.purpurConfig.giantStepHeight);
-+        // Purpur end
-     }
- 
-     public float f(BlockPosition blockposition) {
 diff --git a/src/main/java/net/minecraft/server/EntityCreeper.java b/src/main/java/net/minecraft/server/EntityCreeper.java
 index db64e0f6a9ae2efda926ac13ce2cbb4a3baa2f6b..9e68cb9284ad1e65d0166b6eeff1e2a6da941beb 100644
 --- a/src/main/java/net/minecraft/server/EntityCreeper.java
@@ -1161,10 +1147,20 @@ index 641f24b3e166d895d795c73d46cdc26a7d87f0df..00000000000000000000000000000000
 -     protected org.bukkit.event.entity.EntityDeathEvent d(DamageSource damagesource) { // Paper
 -         ItemStack itemstack = this.getEquipment(EnumItemSlot.MAINHAND).cloneItemStack(); // Paper
 diff --git a/src/main/java/net/minecraft/server/EntityGiantZombie.java b/src/main/java/net/minecraft/server/EntityGiantZombie.java
-index e53d22447b8978a5389f03a438faf260e41bfa0d..1e9beec0781e87cf33fc244c76c90ab18735a497 100644
+index e53d22447b8978a5389f03a438faf260e41bfa0d..ac19100d48aa96ccae9db1b0112b84933dc77245 100644
 --- a/src/main/java/net/minecraft/server/EntityGiantZombie.java
 +++ b/src/main/java/net/minecraft/server/EntityGiantZombie.java
-@@ -19,4 +19,54 @@ public class EntityGiantZombie extends EntityMonster {
+@@ -4,6 +4,9 @@ public class EntityGiantZombie extends EntityMonster {
+ 
+     public EntityGiantZombie(EntityTypes<? extends EntityGiantZombie> entitytypes, World world) {
+         super(entitytypes, world);
++        // Purpur start
++        setStepHeight(world.purpurConfig.giantStepHeight);
++        // Purpur end
+     }
+ 
+     @Override
+@@ -19,4 +22,54 @@ public class EntityGiantZombie extends EntityMonster {
      public float a(BlockPosition blockposition, IWorldReader iworldreader) {
          return super.a(blockposition, iworldreader); // Purpur - fix light requirements for natural spawns
      }
