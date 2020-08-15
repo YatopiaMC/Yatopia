@@ -2627,7 +2627,7 @@ index 7c9d7ae5f875ba36b13d6b9b76581be0df903b49..00000000000000000000000000000000
 -         playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
 -         playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 62edfda9cc326a428cd267227054f03d94d22dce..934ac7fdfa040f1e00fb78b525b801ed525dae7e 100644
+index 62edfda9cc326a428cd267227054f03d94d22dce..b74888e554674caac8dfc3d8e00f5961e6527d8b 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
 @@ -23,15 +23,21 @@ public class PortalTravelAgent {
@@ -2647,7 +2647,7 @@ index 62edfda9cc326a428cd267227054f03d94d22dce..934ac7fdfa040f1e00fb78b525b801ed
 -            return this.world.getType(villageplacerecord.f()).b(BlockProperties.E);
 -        }).findFirst();
 +        });
-+        List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY);
++        java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
 +        for (VillagePlaceRecord villagePlaceRecord : list) {
 +            if (!seen || comparator.compare(villagePlaceRecord, best) < 0) {
 +                seen = true;
