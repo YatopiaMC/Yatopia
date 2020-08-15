@@ -5,10 +5,10 @@ Subject: [PATCH] Option for simpler Villagers
 
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index fb7551f79f3e2e7e834359ef701ff7e568882a7f..0566088538c2b99ff74a408b67a9edee4751f904 100644
+index d77ec2b69e8a195f4591a2cb9589d3676f12c4c7..b69459bb141aec6b00a2024db583cacc1667b941 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -224,4 +224,11 @@ public class YatopiaConfig {
+@@ -221,4 +221,11 @@ public class YatopiaConfig {
      private static void itemStuckSleepTicks() {
          itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
      }
@@ -21,7 +21,7 @@ index fb7551f79f3e2e7e834359ef701ff7e568882a7f..0566088538c2b99ff74a408b67a9edee
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 210f6b995565af5a299d6ba855a1de224102150b..d4147e93941f32da8dbb890e03cf306d8325edf0 100644
+index d32581ec7f521ec53692517811c8e01dc405afbb..f351f76f840009c5b93d337249fb1361f6795c9e 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -27,6 +27,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
@@ -135,7 +135,7 @@ index 210f6b995565af5a299d6ba855a1de224102150b..d4147e93941f32da8dbb890e03cf306d
      @Override
      protected void mobTick() { mobTick(false); }
 @@ -180,6 +239,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
-         boolean tick = (world.getTime() +  brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
+         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
          if (world.getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
          // Purpur end
 +        // Yatopia start

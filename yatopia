@@ -63,7 +63,12 @@ case "$1" in
     "u" | "up" | "upstream" | "update")
     (
         basedir
-        $scriptdir/updateUpstream.sh "$basedir" 1
+        $scriptdir/updateUpstream.sh "$basedir"
+    )
+    ;;
+    "tu" | "tup" | "tupstream" | "tupdate")
+    (
+        $scriptdir/updateUpstream.sh "$basedir" true
     )
     ;;
     "r" | "root")
@@ -173,10 +178,11 @@ case "$1" in
         echo " Normal commands:"
         echo "  * r, rebuild   | Rebuild patches, can be called from anywhere."
         echo "  * p, patch     | Apply all patches to top of Paper without building it. Can be run from anywhere."
-        echo "  * u, update    | Update and patch the Paper submodule. Can be run from anywhere."
+        echo "  * u, update    | Updates all submodules. Can be run from anywhere."
         echo "  * b, build     | Build the projects, including the API and the Server. Can be ran anywhere."
         echo "  * j, jar       | Build the projects and build the launcher jar. Can be ran anywhere."
 		echo "  * d, deploy    | Build the projects and deploy through Maven. Can be ran anywhere."
+		echo "  * tupstream    | Updates only tuinity submodule. Can be ran everywhere."
         echo ""
         echo " These commands require the setup command before use:"
         echo "  * r, root      | Change directory to the root of the project."

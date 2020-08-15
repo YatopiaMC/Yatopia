@@ -26,7 +26,6 @@ echo "----------------------------------------"
 set -e
 
 subtasks=1
-updatepaper=$2
 #if [ "$updatepaper" == "1" ]; then
     #echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Update Git submodules.."
     #$gitcmd submodule update --init --remote
@@ -40,7 +39,11 @@ updatepaper=$2
     #$gitcmd add Paper
 #fi
 
-$basedir/scripts/fetchUpstream.sh $basedir
+if [ -z "$2" ]; then
+  $basedir/scripts/fetchUpstream.sh
+else
+  $basedir/scripts/fetchUpstream.sh true
+fi
 
 # patch paper
 echo "  $(bashcolor 1 32)(0/$subtasks)$(bashcolorend) - Apply patches of Tuinity.."
