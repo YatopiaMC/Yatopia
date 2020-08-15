@@ -19,6 +19,8 @@ This is an overview over all patches that are currently used.
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add more dupe options      | Mariell Hoversholm |  |
+| server |  Add no-tick block list      | William Blake Galbreath |  |
+| server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |

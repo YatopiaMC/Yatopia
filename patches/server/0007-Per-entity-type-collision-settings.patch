@@ -14,10 +14,10 @@ The whole code is based around 1 class, the EntityFilter class. Whole filtering 
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index be8daf986eb9c83bd5974eca78a00f717e4f5061..3d71ee447b0d45c50ed6f2f17ad5184d28d3bc08 100644
+index be8daf986eb9c83bd5974eca78a00f717e4f5061..755e5f6ebf1559c3f4359d356b49615cbd0f19e1 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -125,6 +125,38 @@ public final class OrigamiConfig {
+@@ -125,6 +125,37 @@ public final class OrigamiConfig {
          private void fastFeatureSearchDontLoad() {
              fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
          }
@@ -34,7 +34,6 @@ index be8daf986eb9c83bd5974eca78a00f717e4f5061..3d71ee447b0d45c50ed6f2f17ad5184d
 +        public boolean waterCreatureCollisions = true;
 +        public boolean waterAmbientCollisions = true;
 +        public boolean allCollisionsEnabled = false;
-+
 +        private void specificCollisionSettings() {
 +            playerCollisions = getBoolean("collisions.players", playerCollisions);
 +            animalCollisions = getBoolean("collisions.animals", animalCollisions);
@@ -58,23 +57,20 @@ index be8daf986eb9c83bd5974eca78a00f717e4f5061..3d71ee447b0d45c50ed6f2f17ad5184d
  
 diff --git a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3c6dc395dd26b995f63a15e3f9a0a86abe0a5647
+index 0000000000000000000000000000000000000000..e20dfbdfc07e5bc68e66940ef12d7e847ebd35d9
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,127 @@
 +package dev.tr7zw.yatopia;
 +
 +import com.google.common.base.Predicates;
-+
 +import de.minebench.origami.OrigamiConfig;
-+
++import java.util.function.Predicate;
 +import net.minecraft.server.Entity;
 +import net.minecraft.server.EntityTypes;
 +import net.minecraft.server.EnumCreatureType;
 +import net.minecraft.server.IEntitySelector;
 +import net.minecraft.server.ScoreboardTeamBase;
-+
-+import java.util.function.Predicate;
 +
 +public class EntityFilter {
 +
@@ -193,7 +189,7 @@ index 0000000000000000000000000000000000000000..3c6dc395dd26b995f63a15e3f9a0a86a
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index e8a01779b578a59d5002ca58ed4469a8bb83291e..4686130f88562de61022f52c3b83428b2a3eecab 100644
+index 88f4c30a03e9139b0284ff1a545ad80941dbd46c..dca7a86dba22bca9bfd830a353a2c9561d1cf0ec 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -2849,7 +2849,7 @@ public abstract class EntityLiving extends Entity {
