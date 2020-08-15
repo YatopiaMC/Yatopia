@@ -1547,7 +1547,7 @@ index 75ab781ad76caedf56f0a2da3a0a4eaa4500aea7..00000000000000000000000000000000
 -     protected void c(DamageSource damagesource) {
 -         this.eJ();
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index fa7d210dbd4f509418402e664b55e9e567bba4cf..532ab931961565533e00dec01fe95e350f8ca3b6 100644
+index fa7d210dbd4f509418402e664b55e9e567bba4cf..c30cd89de73ee9ed6daaf7186794ac17f123ed5d 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -80,7 +80,7 @@ public abstract class EntityLiving extends Entity {
@@ -1559,6 +1559,15 @@ index fa7d210dbd4f509418402e664b55e9e567bba4cf..532ab931961565533e00dec01fe95e35
      public float aB;
      public float aC;
      public float aD;
+@@ -365,7 +365,7 @@ public abstract class EntityLiving extends Entity {
+         this.aD = this.aC;
+         this.lastYaw = this.yaw;
+         this.lastPitch = this.pitch;
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+     }
+ 
+     public boolean cM() {
 @@ -2503,10 +2503,10 @@ public abstract class EntityLiving extends Entity {
          }
  
@@ -1607,16 +1616,18 @@ index fa7d210dbd4f509418402e664b55e9e567bba4cf..532ab931961565533e00dec01fe95e35
          if (this.jumping && this.cS()) {
              double d7;
  
-@@ -2781,7 +2781,7 @@ public abstract class EntityLiving extends Entity {
+@@ -2780,8 +2780,8 @@ public abstract class EntityLiving extends Entity {
+             this.jumpTicks = 0;
          }
  
-         this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().exit();
 -        this.world.getMethodProfiler().enter("travel");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
 +        //this.world.getMethodProfiler().enter("travel"); // Akarin - remove caller
          this.aR *= 0.98F;
          this.aT *= 0.98F;
          this.r();
-@@ -2791,7 +2791,7 @@ public abstract class EntityLiving extends Entity {
+@@ -2791,14 +2791,14 @@ public abstract class EntityLiving extends Entity {
          this.g(new Vec3D((double) this.aR, (double) this.aS, (double) this.aT));
          // SpigotTimings.timerEntityAIMove.stopTiming(); // Spigot // Paper
          this.world.getMethodProfiler().exit();
@@ -1625,6 +1636,14 @@ index fa7d210dbd4f509418402e664b55e9e567bba4cf..532ab931961565533e00dec01fe95e35
          if (this.bf > 0) {
              --this.bf;
              this.a(axisalignedbb, this.getBoundingBox());
+         }
+ 
+         this.collideNearby();
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         if (!this.world.isClientSide && this.dN() && this.aF()) {
+             this.damageEntity(DamageSource.DROWN, 1.0F);
+         }
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java.rej b/src/main/java/net/minecraft/server/EntityLiving.java.rej
 deleted file mode 100644
 index 0f120b3a48c150e4120198e0b5a49e25291ac46d..0000000000000000000000000000000000000000
