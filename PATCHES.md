@@ -25,6 +25,7 @@ This is an overview over all patches that are currently used.
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
+| server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Akarin Updated Save json list async      | tsao chi |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
