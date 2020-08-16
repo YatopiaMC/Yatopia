@@ -52,7 +52,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
-| server |  Fix incorrect return for WorldServer#addAllEntitiesSafely      | William Blake Galbreath |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
@@ -100,7 +99,6 @@ This is an overview over all patches that are currently used.
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Tweak Explosions      | Aikar |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
-| server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
 | server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
