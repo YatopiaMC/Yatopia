@@ -137,7 +137,7 @@ index e0af5eb280dfd2ef6c9a80385e1705f7231a5338..f6623032e5d4034c104aa1fc6ff42651
      brandName = getString("brand-name", brandName);
    }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..2ab997faca3beab01fcac0bc8fdee17e743cae8e 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..cb344a424bf4c657bb1bbca286a1136c9b21b489 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
 @@ -16,7 +16,7 @@ public final class OrigamiConfig {
@@ -163,17 +163,17 @@ index fe7330fabe386966c2d203a190a00a785ea21be0..2ab997faca3beab01fcac0bc8fdee17e
 +
 +        public boolean fastFeatureSearchDontLoad = false;
 +        private void fastFeatureSearchDontLoad() {
-+            fastFeatureSearchDontLoad = OrigamiConfig.getBoolean("fast-feature-search-dont-load", false);
++            fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
 +        }
 +
 +        public boolean pigmenDontTargetUnlessHit = false;
 +        private void pigmenDontTargetUnlessHit() {
-+            pigmenDontTargetUnlessHit = OrigamiConfig.getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
++            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
 +        }
 +
 +        public boolean disableObserverClocks = false;
 +        private void observerClock() {
-+            disableObserverClocks = OrigamiConfig.getBoolean("disable-observer-clocks", disableObserverClocks);
++            disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
 +        }
      }
  
@@ -1755,7 +1755,7 @@ index 1137eb4819b638cd04d630ec1692b67ec40c740f..00000000000000000000000000000000
 -     private PathfinderGoalEatTile bz;
 - 
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index c245f66dea9f751423311034b3216385f142c1cc..3d80f9099c3c8daecb63eebb97a4ad0160ba28be 100644
+index c245f66dea9f751423311034b3216385f142c1cc..1104196cf6dc448dada2e190e5e9e27c9f18d2dc 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -175,13 +175,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
@@ -1799,7 +1799,7 @@ index c245f66dea9f751423311034b3216385f142c1cc..3d80f9099c3c8daecb63eebb97a4ad01
 -            }).limit(5L).collect(Collectors.toList());
 +            List<EntityVillager> list1 = new ArrayList<>();
 +            long limit = 5L;
-+            for(EntityVillager villager : list) {
++            for (EntityVillager villager : list) {
 +                if (villager.a(i)) {
 +                    if (limit-- == 0) break;
 +                    list1.add(villager);
@@ -2847,7 +2847,7 @@ index ff05ff6aef1e0f61eb4437253020632745ee2bd2..00000000000000000000000000000000
 -+    }
 - }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-index 361f7857e461578e90cb71e15027dadaf794cb69..3ed07bfdfca206cfc1485c6df08254061d1883d5 100644
+index 361f7857e461578e90cb71e15027dadaf794cb69..7321742235259100802206e33eef578f1ea1daaf 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 @@ -1,7 +1,18 @@
@@ -2869,7 +2869,7 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..3ed07bfdfca206cfc1485c6df0825406
  import static net.pl3x.purpur.PurpurConfig.log;
  
  public class PurpurWorldConfig {
-@@ -56,4 +67,183 @@ public class PurpurWorldConfig {
+@@ -56,4 +67,178 @@ public class PurpurWorldConfig {
          PurpurConfig.config.addDefault("world-settings.default." + path, def);
          return PurpurConfig.config.getString("world-settings." + worldName + "." + path, PurpurConfig.config.getString("world-settings.default." + path));
      }
@@ -2878,7 +2878,6 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..3ed07bfdfca206cfc1485c6df0825406
 +    public boolean villagerUseBrainTicksOnlyWhenLagging = true;
 +    public boolean villagerFollowEmeraldBlock = false;
 +    public boolean villagerCanBeLeashed = false;
-+
 +    private void villagerSettings() {
 +        villagerBrainTicks = getInt("mobs.villager.brain-ticks", villagerBrainTicks);
 +        villagerUseBrainTicksOnlyWhenLagging = getBoolean("mobs.villager.use-brain-ticks-only-when-lagging", villagerUseBrainTicksOnlyWhenLagging);
@@ -2888,7 +2887,6 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..3ed07bfdfca206cfc1485c6df0825406
 +
 +    public boolean villagerTraderFollowEmeraldBlock = false;
 +    public boolean villagerTraderCanBeLeashed = false;
-+
 +    private void villagerTraderSettings() {
 +        villagerTraderCanBeLeashed = getBoolean("mobs.wandering_trader.can-be-leashed", villagerTraderCanBeLeashed);
 +        villagerTraderFollowEmeraldBlock = getBoolean("mobs.wandering_trader.follow-emerald-blocks", villagerTraderFollowEmeraldBlock);
@@ -2896,20 +2894,17 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..3ed07bfdfca206cfc1485c6df0825406
 +
 +    public boolean saveProjectilesToDisk = true;
 +    public boolean milkCuresBadOmen = true;
-+
 +    private void miscGameplayMechanicsSettings() {
 +        saveProjectilesToDisk = getBoolean("gameplay-mechanics.save-projectiles-to-disk", saveProjectilesToDisk);
 +        milkCuresBadOmen = getBoolean("gameplay-mechanics.milk-cures-bad-omen", milkCuresBadOmen);
 +    }
 +
 +    public boolean anvilAllowColors = false;
-+
 +    private void anvilSettings() {
 +        anvilAllowColors = getBoolean("blocks.anvil.allow-colors", anvilAllowColors);
 +    }
 +
 +    public boolean foxTypeChangesWithTulips = false;
-+
 +    private void foxSettings() {
 +        foxTypeChangesWithTulips = getBoolean("mobs.fox.tulips-change-type", foxTypeChangesWithTulips);
 +    }
