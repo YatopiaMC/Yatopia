@@ -101,6 +101,7 @@ This is an overview over all patches that are currently used.
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Tweak Explosions      | Aikar |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
+| server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
