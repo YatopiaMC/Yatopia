@@ -35,10 +35,10 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..2f66740de68667e5c0054a0bc7990256
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 95bede605c6401af10f18b641cd12c9d8ec2f207..20070cd7633798472458a29498d64da1ccb856a0 100644
+index 95bede605c6401af10f18b641cd12c9d8ec2f207..7017220e38574286345184936b8bbca34795f3ed 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
-@@ -661,14 +661,47 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -661,14 +661,44 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
  
      @Nullable
      private IInventory l() {
@@ -58,9 +58,6 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..20070cd7633798472458a29498d64da1
 +        } else {
 +            cachedPushAir = true;
 +            return null;
-+        }
-+        if (this.cachedPush == null) {
-+            this.cachedPushAir = true;
 +        }
 +        return this.cachedPush;
 +        // Yatopia end
@@ -87,7 +84,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..20070cd7633798472458a29498d64da1
      }
  
      public static List<EntityItem> c(IHopper ihopper) {
-@@ -683,14 +716,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -683,14 +713,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      }
  
      @Nullable
@@ -108,7 +105,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..20070cd7633798472458a29498d64da1
          BlockPosition blockposition = new BlockPosition(d0, d1, d2);
          if ( !world.isLoaded( blockposition ) ) return null; // Spigot
          IBlockData iblockdata = world.getType(blockposition);
-@@ -708,8 +743,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -708,8 +740,9 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
                  }
              }
          }
@@ -119,7 +116,7 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..20070cd7633798472458a29498d64da1
              List<Entity> list = world.getEntities((Entity) null, new AxisAlignedBB(d0 - 0.5D, d1 - 0.5D, d2 - 0.5D, d0 + 0.5D, d1 + 0.5D, d2 + 0.5D), IEntitySelector.d);
  
              if (!list.isEmpty()) {
-@@ -779,4 +815,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+@@ -779,4 +812,16 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
      protected Container createContainer(int i, PlayerInventory playerinventory) {
          return new ContainerHopper(i, playerinventory, this);
      }
