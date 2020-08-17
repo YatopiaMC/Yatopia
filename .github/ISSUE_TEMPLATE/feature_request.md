@@ -1,10 +1,17 @@
 ---
 name: Feature request
 about: Suggest a feature or enhancement
-title: "[Enhancement]"
-labels: enhancement
-assignees: ''
 
 ---
 
-**Describe the feature (Make sure it is not an API Change, Yatopia does not accept those) and be specific.**
+**Describe what do you want us to implement**
+<!-- Give a description of the feature request.
+     API changes which are not additions is a no-no so
+     don't waste our time -->
+
+**Is your feature request related to a problem**
+<!-- Describe whether or not the feature fixes a bug/incompatibility -->
+
+**Additional context**
+<!-- Anything other you want us to know -->
+
