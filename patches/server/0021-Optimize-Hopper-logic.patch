@@ -35,7 +35,7 @@ index a29294fbc7cd6fcfff0df9eadd11de3bd7f1405e..2f66740de68667e5c0054a0bc7990256
  
      private void a(World world, BlockPosition blockposition, IBlockData iblockdata) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 95bede605c6401af10f18b641cd12c9d8ec2f207..7c3124fc567c64dce5939b449036ba99981959cb 100644
+index 95bede605c6401af10f18b641cd12c9d8ec2f207..20070cd7633798472458a29498d64da1ccb856a0 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -661,14 +661,47 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
@@ -53,11 +53,11 @@ index 95bede605c6401af10f18b641cd12c9d8ec2f207..7c3124fc567c64dce5939b449036ba99
 +        // Yatopia start - replace logic
 +        //return b(this.getWorld(), this.position.shift(enumdirection));
 +        IInventory tmp = b(this.getWorld(), this.position.shift(enumdirection), cachedPushAir);
-+        if (tmp != null && !(tmp instanceof Entity)) {
++        if (tmp != null) {
 +            this.cachedPush = tmp;
 +        } else {
 +            cachedPushAir = true;
-+            return tmp;
++            return null;
 +        }
 +        if (this.cachedPush == null) {
 +            this.cachedPushAir = true;
