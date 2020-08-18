@@ -90,7 +90,7 @@ function applyPatch {
 
 	$gitcmd am --abort >/dev/null 2>&1
 	# Apply our patches on top Paper in our dirs
-    $gitcmd am --whitespace=fix --no-utf8 --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
+    $gitcmd am --3way --ignore-whitespace "$basedir/patches/$patch_folder/"*.patch
 	cd $basedir
 
     if [ "$?" != "0" ]; then

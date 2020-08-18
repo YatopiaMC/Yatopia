@@ -1898,6 +1898,79 @@ index 98a910fa6bfc9542b1d1cb56b6621809acd6b279..00000000000000000000000000000000
 -                     if (block.a(this) && this.world instanceof WorldServer) {
 -                         TileEntity tileentity = block.isTileEntity() ? this.world.getTileEntity(blockposition) : null;
 -                         LootTableInfo.Builder loottableinfo_builder = (new LootTableInfo.Builder((WorldServer) this.world)).a(this.world.random).set(LootContextParameters.POSITION, blockposition).set(LootContextParameters.TOOL, ItemStack.b).setOptional(LootContextParameters.BLOCK_ENTITY, tileentity).setOptional(LootContextParameters.THIS_ENTITY, this.source);
+diff --git a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java
+index 0bac6b0506dc35c5117f13db0e9c67b1a0d3154e..4a62043f9b2b9a3bf4ab9a18070a61124cb98348 100644
+--- a/src/main/java/net/minecraft/server/IProjectile.java
++++ b/src/main/java/net/minecraft/server/IProjectile.java
+@@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
+     private UUID shooter;
+     private int c;
+     private boolean d;
++    public int despawnCounter; // Purpur - moved from EntityArrow
+ 
+     IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
+         super(entitytypes, world);
+@@ -79,7 +80,22 @@ public abstract class IProjectile extends Entity {
+         }
+ 
+         super.tick();
++
++        // Purpur start
++        if (!(this instanceof EntityArrow)) {
++            if (ticksLived > 200) this.tickDespawnCounter(); // Paper - tick despawnCounter regardless after 10 seconds
++        }
++        // Purpur end
++    }
++
++    // Purpur start - copied from EntityArrow
++    protected void tickDespawnCounter() {
++        ++this.despawnCounter;
++        if (this.despawnCounter >= world.spigotConfig.arrowDespawnRate) {
++            this.die();
++        }
+     }
++    // Purpur end
+ 
+     private boolean h() {
+         Entity entity = this.getShooter();
+diff --git a/src/main/java/net/minecraft/server/IProjectile.java.rej b/src/main/java/net/minecraft/server/IProjectile.java.rej
+deleted file mode 100644
+index 33186fa6911f0396adfc5e650034daba5b950143..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/IProjectile.java.rej
++++ /dev/null
+@@ -1,32 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java	(rejected hunks)
+-@@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
+-     private UUID shooter;
+-     private int c;
+-     private boolean d; public boolean leftOwner() { return d; } public void setLeftOwner(boolean leftOwner) { this.d = leftOwner; } // Purpur - OBFHELPER
+-+    public int despawnCounter; // Purpur - moved from EntityArrow
+- 
+-     IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
+-         super(entitytypes, world);
+-@@ -79,7 +80,22 @@ public abstract class IProjectile extends Entity {
+-         }
+- 
+-         super.tick();
+-+
+-+        // Purpur start
+-+        if (!(this instanceof EntityArrow)) {
+-+            if (ticksLived > 200) this.tickDespawnCounter(); // Paper - tick despawnCounter regardless after 10 seconds
+-+        }
+-+        // Purpur end
+-+    }
+-+
+-+    // Purpur start - copied from EntityArrow
+-+    protected void tickDespawnCounter() {
+-+        ++this.despawnCounter;
+-+        if (this.despawnCounter >= world.spigotConfig.arrowDespawnRate) {
+-+            this.die();
+-+        }
+-     }
+-+    // Purpur end
+- 
+-     public boolean checkIfLeftOwner() { return this.h(); } // Purpur - OBFHELPER
+-     private boolean h() {
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java.rej b/src/main/java/net/minecraft/server/LightEngineThreaded.java.rej
 deleted file mode 100644
 index 74d10212e547adf96762155adb03c0158df00a16..0000000000000000000000000000000000000000
