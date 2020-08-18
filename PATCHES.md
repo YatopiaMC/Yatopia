@@ -46,12 +46,14 @@ This is an overview over all patches that are currently used.
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
+| server |  Don&#39;t obfuscate air      | Ivan Pekov |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
+| server |  Fix MC-197616      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
