@@ -11,10 +11,10 @@ as the server shouldn't really care about those packets - they're not related wi
 Additionally, I'm thinking of making those packets send asynchronously.
 
 diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index 72a62b9be5e1767f64991fc0614fc82967daad18..a54e7d8a9e6a60726e4ed986a04199fa80c4ff64 100644
+index 72a62b9be5e1767f64991fc0614fc82967daad18..cf4cac9bae35121146657bcf567ea062e33b08a3 100644
 --- a/src/main/java/net/minecraft/server/NetworkManager.java
 +++ b/src/main/java/net/minecraft/server/NetworkManager.java
-@@ -229,7 +229,12 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -229,7 +229,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
              return networkManager.isPending || networkManager.protocol != EnumProtocol.PLAY ||
                  packet instanceof PacketPlayOutKeepAlive ||
                  packet instanceof PacketPlayOutChat ||
@@ -22,8 +22,7 @@ index 72a62b9be5e1767f64991fc0614fc82967daad18..a54e7d8a9e6a60726e4ed986a04199fa
 +                packet instanceof PacketPlayOutTabComplete || // Yatopia
 +                // Yatopia start
 +                packet instanceof PacketPlayOutBoss ||
-+                packet instanceof PacketPlayOutTitle ||
-+                packet instanceof PacketPlayOutScoreboardDisplayObjective;
++                packet instanceof PacketPlayOutTitle;
 +                // Yatopia end
          }
          // Paper end
