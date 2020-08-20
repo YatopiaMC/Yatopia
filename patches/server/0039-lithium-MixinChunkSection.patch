@@ -1,0 +1,92 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Thu, 20 Aug 2020 17:25:11 +0300
+Subject: [PATCH] lithium MixinChunkSection
+
+Original code by JellySquid, licensed under LGPLv3
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index f292bc8b78b965e455befe1809bfbadc90b52755..0f030fa81f0c598596501ea2094dbf5467a2639a 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -568,11 +568,33 @@ public abstract class BlockBase {
+ 
+         public void a(WorldServer worldserver, BlockPosition blockposition, Random random) {
+             if (worldserver.purpurConfig.noTickBlocks.contains(getBlock())) return; // Purpur
++            // Yatopia start
++            if (shapeExceedsCube) {
++                Chunk chunk = worldserver.getChunkIfLoaded(blockposition.getX() >> 4, blockposition.getZ() >> 4);
++                if (chunk != null) {
++                    ChunkSection section = chunk.getSections()[blockposition.getY() >> 4];
++                    if (section != null) {
++                        section.oversizedBlockCount--;
++                    }
++                }
++            }
++            // Yatopia end
+             this.getBlock().tickAlways(this.p(), worldserver, blockposition, random);
+         }
+ 
+         public void b(WorldServer worldserver, BlockPosition blockposition, Random random) {
+             if (worldserver.purpurConfig.noTickBlocks.contains(getBlock())) return; // Purpur
++            // Yatopia start
++            if (shapeExceedsCube) {
++                Chunk chunk = worldserver.getChunkIfLoaded(blockposition.getX() >> 4, blockposition.getZ() >> 4);
++                if (chunk != null) {
++                    ChunkSection section = chunk.getSections()[blockposition.getY() >> 4];
++                    if (section != null) {
++                        section.oversizedBlockCount++;
++                    }
++                }
++            }
++            // Yatopia end
+             this.getBlock().tick(this.p(), worldserver, blockposition, random);
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
+index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659bd2aecf5 100644
+--- a/src/main/java/net/minecraft/server/ChunkSection.java
++++ b/src/main/java/net/minecraft/server/ChunkSection.java
+@@ -4,7 +4,7 @@ import java.util.function.Predicate;
+ import com.destroystokyo.paper.antixray.ChunkPacketInfo; // Paper - Anti-Xray - Add chunk packet info
+ import javax.annotation.Nullable;
+ 
+-public class ChunkSection {
++public class ChunkSection implements me.jellysquid.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper.OversizedBlocksCounter { // Yatopia
+ 
+     public static final DataPalette<IBlockData> GLOBAL_PALETTE = new DataPaletteGlobal<>(Block.REGISTRY_ID, Blocks.AIR.getBlockData());
+     final int yPos; // Paper - private -> package-private
+@@ -12,6 +12,7 @@ public class ChunkSection {
+     short tickingBlockCount; // Paper - private -> package-private
+     private short e;
+     final DataPaletteBlock<IBlockData> blockIds; // Paper - package-private
++    short oversizedBlockCount = 0; // Yatopia
+ 
+     final com.destroystokyo.paper.util.maplist.IBlockDataList tickingList = new com.destroystokyo.paper.util.maplist.IBlockDataList(); // Paper
+ 
+@@ -126,10 +127,12 @@ public class ChunkSection {
+         // Paper start
+         this.tickingList.clear();
+         // Paper end
++        this.oversizedBlockCount = 0; // Yatopia
+         this.nonEmptyBlockCount = 0;
+         this.tickingBlockCount = 0;
+         this.e = 0;
+         this.blockIds.forEachLocation((iblockdata, location) -> { // Paper
++            if (iblockdata.shapeExceedsCube()) this.oversizedBlockCount += location; // Yatopia
+             Fluid fluid = iblockdata.getFluid();
+ 
+             if (!iblockdata.isAir()) {
+@@ -173,4 +176,11 @@ public class ChunkSection {
+     public boolean a(Predicate<IBlockData> predicate) {
+         return this.blockIds.contains(predicate);
+     }
++
++    // Yatopia start
++    @Override
++    public boolean hasOversizedBlocks() {
++        return this.oversizedBlockCount > 0;
++    }
++    // Yatopia end
+ }

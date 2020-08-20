@@ -1,0 +1,538 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Thu, 20 Aug 2020 15:26:53 +0300
+Subject: [PATCH] lithium collision optimizations
+
+Original code by JellySquid, licensed under LGPLv3
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
+
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..c5bd8f50c149ec7e8fc010a6286abfbdf29c0c89
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
+@@ -0,0 +1,178 @@
++package me.jellysquid.mods.lithium.common.entity;
++
++import java.util.Iterator;
++import java.util.Spliterator;
++import java.util.Spliterators;
++import java.util.function.Consumer;
++import java.util.function.Predicate;
++import java.util.stream.Stream;
++import java.util.stream.StreamSupport;
++import me.jellysquid.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper;
++import me.jellysquid.mods.lithium.common.util.Producer;
++import net.minecraft.server.AxisAlignedBB;
++import net.minecraft.server.Entity;
++import net.minecraft.server.ICollisionAccess;
++import net.minecraft.server.IEntityAccess;
++import net.minecraft.server.VoxelShape;
++import net.minecraft.server.VoxelShapes;
++import net.minecraft.server.WorldBorder;
++
++public class LithiumEntityCollisions {
++    public static final double EPSILON = 1.0E-7D;
++
++    /**
++     * [VanillaCopy] CollisionView#getBlockCollisions(Entity, Box)
++     * This is a much, much faster implementation which uses simple collision testing against full-cube block shapes.
++     * Checks against the world border are replaced with our own optimized functions which do not go through the
++     * VoxelShape system.
++     */
++    public static Stream<VoxelShape> getBlockCollisions(ICollisionAccess world, Entity entity, AxisAlignedBB box) {
++        if (isBoxEmpty(box)) {
++            return Stream.empty();
++        }
++
++        final ChunkAwareBlockCollisionSweeper sweeper = new ChunkAwareBlockCollisionSweeper(world, entity, box);
++
++        return StreamSupport.stream(new Spliterators.AbstractSpliterator<VoxelShape>(Long.MAX_VALUE, Spliterator.NONNULL | Spliterator.IMMUTABLE) {
++            private boolean skipWorldBorderCheck = entity == null;
++
++            @Override
++            public boolean tryAdvance(Consumer<? super VoxelShape> consumer) {
++                if (!this.skipWorldBorderCheck) {
++                    this.skipWorldBorderCheck = true;
++
++                    if (canEntityCollideWithWorldBorder(world, entity)) {
++                        consumer.accept(world.getWorldBorder().asVoxelShape());
++
++                        return true;
++                    }
++                }
++
++                VoxelShape shape = sweeper.step();
++                if (shape != null) {
++                    consumer.accept(shape);
++                    return true;
++                }
++
++                return false;
++            }
++        }, false);
++    }
++
++    /**
++     * See {@link LithiumEntityCollisions#getBlockCollisions(ICollisionAccess, Entity, AxisAlignedBB)}
++     *
++     * @return True if the box (possibly that of an entity's) collided with any blocks
++     */
++    public static boolean doesBoxCollideWithBlocks(ICollisionAccess world, Entity entity, AxisAlignedBB box) {
++        if (isBoxEmpty(box)) {
++            return false;
++        }
++
++        final ChunkAwareBlockCollisionSweeper sweeper = new ChunkAwareBlockCollisionSweeper(world, entity, box);
++
++        VoxelShape shape = sweeper.step();
++        return shape != null;
++    }
++
++    /**
++     * See {@link LithiumEntityCollisions#getEntityCollisions(IEntityAccess, Entity, AxisAlignedBB, Predicate)}
++     *
++     * @return True if the box (possibly that of an entity's) collided with any other entities
++     */
++    public static boolean doesBoxCollideWithEntities(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate) {
++        if (isBoxEmpty(box)) {
++            return false;
++        }
++
++        return getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate).computeNext(null);
++    }
++
++    /**
++     * Returns a stream of entity collision boxes.
++     */
++    public static Stream<VoxelShape> getEntityCollisions(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate) {
++        if (isBoxEmpty(box)) {
++            return Stream.empty();
++        }
++
++        return Producer.asStream(getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate));
++    }
++
++    /**
++     * [VanillaCopy] EntityView#getEntityCollisions
++     * Re-implements the function named above without stream code or unnecessary allocations. This can provide a small
++     * boost in some situations (such as heavy entity crowding) and reduces the allocation rate significantly.
++     */
++    public static Producer<VoxelShape> getEntityCollisionProducer(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate) {
++        return new Producer<VoxelShape>() {
++            private Iterator<Entity> it;
++
++            @Override
++            public boolean computeNext(Consumer<? super VoxelShape> consumer) {
++                if (this.it == null) {
++                    // Yatopia start - how about we get tuinity's hard collision optimizations here?
++                    if (entity != null && entity.hardCollides()) {
++                        this.it = view.getEntities(entity, box).iterator();
++                    } else {
++                        this.it = view.getHardCollidingEntities(entity, box, predicate).iterator();
++                    }
++                    // Yatopia end
++                }
++
++                while (this.it.hasNext()) {
++                    Entity otherEntity = this.it.next();
++
++                    if (!predicate.test(otherEntity)) {
++                        continue;
++                    }
++
++                    if (entity == null) {
++                        if (!otherEntity.hardCollides()) {
++                            continue;
++                        }
++                    } else if (!entity.hardCollidesWith(otherEntity)) {
++                        continue;
++                    }
++
++                    if (consumer != null) {
++                        consumer.accept(VoxelShapes.of(otherEntity.getBoundingBox()));
++                    }
++                    return true;
++                }
++
++                return false;
++            }
++        };
++    }
++
++    /**
++     * This provides a faster check for seeing if an entity is within the world border as it avoids going through
++     * the slower shape system.
++     *
++     * @return True if the {@param box} is fully within the {@param border}, otherwise false.
++     */
++    public static boolean isBoxFullyWithinWorldBorder(WorldBorder border, AxisAlignedBB box) {
++        double wboxMinX = Math.floor(border.getMinX());
++        double wboxMinZ = Math.floor(border.getMinZ());
++
++        double wboxMaxX = Math.ceil(border.getMaxX());
++        double wboxMaxZ = Math.ceil(border.getMaxZ());
++
++        return box.minX >= wboxMinX && box.minX < wboxMaxX && box.minZ >= wboxMinZ && box.minZ < wboxMaxZ &&
++                box.maxX >= wboxMinX && box.maxX < wboxMaxX && box.maxZ >= wboxMinZ && box.maxZ < wboxMaxZ;
++    }
++
++    private static boolean canEntityCollideWithWorldBorder(ICollisionAccess world, Entity entity) {
++        WorldBorder border = world.getWorldBorder();
++
++        boolean isInsideBorder = isBoxFullyWithinWorldBorder(border, entity.getBoundingBox().shrink(EPSILON));
++        boolean isCrossingBorder = isBoxFullyWithinWorldBorder(border, entity.getBoundingBox().grow(EPSILON));
++
++        return !isInsideBorder && isCrossingBorder;
++    }
++
++    private static boolean isBoxEmpty(AxisAlignedBB box) {
++        return box.getAverageSideLength() <= EPSILON;
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6d0c6a0f5c176694e624159c84c3d8170acb473
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
+@@ -0,0 +1,246 @@
++package me.jellysquid.mods.lithium.common.entity.movement;
++
++import net.minecraft.server.AxisAlignedBB;
++import net.minecraft.server.BlockPosition;
++import net.minecraft.server.Blocks;
++import net.minecraft.server.Chunk;
++import net.minecraft.server.ChunkSection;
++import net.minecraft.server.Entity;
++import net.minecraft.server.IBlockData;
++import net.minecraft.server.ICollisionAccess;
++import net.minecraft.server.MathHelper;
++import net.minecraft.server.OperatorBoolean;
++import net.minecraft.server.VoxelShape;
++import net.minecraft.server.VoxelShapeCollision;
++import net.minecraft.server.VoxelShapes;
++
++import static me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.EPSILON;
++
++/**
++ * ChunkAwareBlockCollisionSweeper iterates over blocks in one chunk section at a time. Together with the chunk
++ * section keeping track of the amount of oversized blocks inside the number of iterations can often be reduced.
++ */
++public class ChunkAwareBlockCollisionSweeper {
++    private static final boolean OVERSIZED_BLOCK_COUNTING_ENABLED = OversizedBlocksCounter.class.isAssignableFrom(ChunkSection.class);
++
++    private final BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition();
++
++    /**
++     * The collision box being swept through the world.
++     */
++    private final AxisAlignedBB box;
++
++    /**
++     * The VoxelShape of the collision box being swept through the world.
++     */
++    private final VoxelShape shape;
++
++    private final ICollisionAccess view;
++    private final VoxelShapeCollision context;
++
++    //limits of the area without extension for oversized blocks
++    private final int minX, minY, minZ, maxX, maxY, maxZ;
++
++    //variables prefixed with c refer to the iteration of the currently cached chunk section
++    private int chunkX, chunkY, chunkZ;
++    private int cStartX, cStartZ;
++    private int cEndX, cEndZ;
++    private int cX, cY, cZ;
++
++    private int cTotalSize;
++    private int cIterated;
++
++    private boolean sectionOversizedBlocks;
++    private Chunk cachedChunk;
++    private ChunkSection cachedChunkSection;
++
++    public ChunkAwareBlockCollisionSweeper(ICollisionAccess view, Entity entity, AxisAlignedBB box) {
++        this.box = box;
++        this.shape = VoxelShapes.of(box);
++        // todo: ivan, make obfhelpers
++        this.context = entity == null ? VoxelShapeCollision.a() : VoxelShapeCollision.a(entity);
++        this.view = view;
++
++        this.minX = MathHelper.floor(box.minX - EPSILON);
++        this.maxX = MathHelper.floor(box.maxX + EPSILON);
++        this.minY = MathHelper.clamp((int) (box.minY - EPSILON), 0, 255);
++        this.maxY = MathHelper.clamp((int) (box.maxY + EPSILON), 0, 255);
++        this.minZ = MathHelper.floor(box.minZ - EPSILON);
++        this.maxZ = MathHelper.floor(box.maxZ + EPSILON);
++
++        this.chunkX = (this.minX - 1) >> 4;
++        this.chunkZ = (this.minZ - 1) >> 4;
++
++        this.cIterated = 0;
++        this.cTotalSize = 0;
++
++        //decrement as first nextSection call will increment it again
++        this.chunkX--;
++    }
++
++    private boolean nextSection() {
++        do {
++            do {
++                //find the coordinates of the next section inside the area expanded by 1 block on all sides
++                //note: this.minX, maxX etc are not expanded, so there are lots of +1 and -1 around.
++                if (this.cachedChunk != null && this.chunkY < 15 && this.chunkY < ((this.maxY + 1) >> 4)) {
++                    this.chunkY++;
++                    this.cachedChunkSection = this.cachedChunk.getSections()[this.chunkY];
++                } else {
++                    this.chunkY = MathHelper.clamp((this.minY - 1) >> 4, 0, 15);
++
++                    if ((this.chunkX < ((this.maxX + 1) >> 4))) {
++                        //first initialization takes this branch
++                        this.chunkX++;
++                    } else {
++                        this.chunkX = (this.minX - 1) >> 4;
++
++                        if (this.chunkZ < ((this.maxZ + 1) >> 4)) {
++                            this.chunkZ++;
++                        } else {
++                            return false; //no more sections to iterate
++                        }
++                    }
++                    //Casting to Chunk is not checked, together with other mods this could cause a ClassCastException
++                    this.cachedChunk = (Chunk) this.view.c(this.chunkX, this.chunkZ);
++                    if (this.cachedChunk != null) {
++                        this.cachedChunkSection = this.cachedChunk.getSections()[this.chunkY];
++                    }
++                }
++                //skip empty chunks and empty chunk sections
++            } while (this.cachedChunk == null || ChunkSection.isEmpty(this.cachedChunkSection));
++
++            this.sectionOversizedBlocks = hasChunkSectionOversizedBlocks(this.cachedChunk, this.chunkY);
++
++            int sizeExtension = this.sectionOversizedBlocks ? 1 : 0;
++
++            this.cEndX = Math.min(this.maxX + sizeExtension, 15 + (this.chunkX << 4));
++            int cEndY = Math.min(this.maxY + sizeExtension, 15 + (this.chunkY << 4));
++            this.cEndZ = Math.min(this.maxZ + sizeExtension, 15 + (this.chunkZ << 4));
++
++            this.cStartX = Math.max(this.minX - sizeExtension, this.chunkX << 4);
++            int cStartY = Math.max(this.minY - sizeExtension, this.chunkY << 4);
++            this.cStartZ = Math.max(this.minZ - sizeExtension, this.chunkZ << 4);
++            this.cX = this.cStartX;
++            this.cY = cStartY;
++            this.cZ = this.cStartZ;
++
++            this.cTotalSize = (this.cEndX - this.cStartX + 1) * (cEndY - cStartY + 1) * (this.cEndZ - this.cStartZ + 1);
++            //skip completely empty section iterations
++        } while (this.cTotalSize == 0);
++        this.cIterated = 0;
++
++        return true;
++    }
++
++
++    /**
++     * Advances the sweep forward until finding a block with a box-colliding VoxelShape
++     *
++     * @return null if no VoxelShape is left in the area, otherwise the next VoxelShape
++     */
++    public VoxelShape step() {
++        while (true) {
++            if (this.cIterated >= this.cTotalSize) {
++                if (!this.nextSection()) {
++                    return null;
++                }
++            }
++            this.cIterated++;
++
++
++            final int x = this.cX;
++            final int y = this.cY;
++            final int z = this.cZ;
++
++            //The iteration order within a chunk section is chosen so that it causes a mostly linear array access in the storage.
++            //In net.minecraft.world.chunk.PalettedContainer.toIndex x gets the 4 least significant bits, z the 4 above, and y the 4 even higher ones.
++            //Linearly accessing arrays might be slightly faster than other access patterns.
++            //This code hasn't been benchmarked in comparison to another access order.
++            if (this.cX < this.cEndX) {
++                this.cX++;
++            } else if (this.cZ < this.cEndZ) {
++                this.cX = this.cStartX;
++                this.cZ++;
++            } else {
++                this.cX = this.cStartX;
++                this.cZ = this.cStartZ;
++                this.cY++;
++                //stop condition was already checked using this.cIterated at the start of the method
++            }
++
++            //using < minX and > maxX instead of <= and >= in vanilla, because minX, maxX are the coordinates
++            //of the box that wasn't extended for oversized blocks yet.
++            final int edgesHit = this.sectionOversizedBlocks ?
++                    (x < this.minX || x > this.maxX ? 1 : 0) +
++                            (y < this.minY || y > this.maxY ? 1 : 0) +
++                            (z < this.minZ || z > this.maxZ ? 1 : 0) : 0;
++
++            if (edgesHit == 3) {
++                continue;
++            }
++
++            final IBlockData state = this.cachedChunkSection.getType(x & 15, y & 15, z & 15);
++
++            if (canInteractWithBlock(state, edgesHit)) {
++                this.pos.setValues(x, y, z);
++                VoxelShape collisionShape = state.getCollisionShape(this.view, this.pos, this.context);
++
++                if (collisionShape != VoxelShapes.empty()) {
++                    VoxelShape collidedShape = getCollidedShape(this.box, this.shape, collisionShape, x, y, z);
++                    if (collidedShape != null) {
++                        return collidedShape;
++                    }
++                }
++            }
++        }
++    }
++
++    /**
++     * This is an artifact from vanilla which is used to avoid testing shapes in the extended portion of a volume
++     * unless they are a shape which exceeds their voxel. Pistons must be special-cased here.
++     *
++     * @return True if the shape can be interacted with at the given edge boundary
++     */
++    private static boolean canInteractWithBlock(IBlockData state, int edgesHit) {
++        return (edgesHit != 1 || state.shapeExceedsCube()) && (edgesHit != 2 || state.getBlock() == Blocks.MOVING_PISTON);
++    }
++
++    /**
++     * Checks if the {@param entityShape} or {@param entityBox} intersects the given {@param shape} which is translated
++     * to the given position. This is a very specialized implementation which tries to avoid going through VoxelShape
++     * for full-cube shapes.
++     *
++     * @return A {@link VoxelShape} which contains the shape representing that which was collided with, otherwise null
++     */
++    private static VoxelShape getCollidedShape(AxisAlignedBB entityBox, VoxelShape entityShape, VoxelShape shape, int x, int y, int z) {
++        if (shape.intersects(entityBox)) {
++            return shape.offset(x, y, z);
++        } else {
++            shape = shape.offset(x, y, z);
++
++            if (VoxelShapes.applyOperation(shape, entityShape, OperatorBoolean.AND)) {
++                return shape;
++            }
++        }
++
++        return null;
++    }
++
++    /**
++     * Checks the cached information whether the {@param chunkY} section of the {@param chunk} has oversized blocks.
++     *
++     * @return Whether there are any oversized blocks in the chunk section.
++     */
++    private static boolean hasChunkSectionOversizedBlocks(Chunk chunk, int chunkY) {
++        if (OVERSIZED_BLOCK_COUNTING_ENABLED) {
++            ChunkSection section = chunk.getSections()[chunkY];
++            return section != null && ((OversizedBlocksCounter) section).hasOversizedBlocks();
++        }
++        return true; //like vanilla, assume that a chunk section has oversized blocks, when the section mixin isn't loaded
++    }
++
++    public interface OversizedBlocksCounter {
++        boolean hasOversizedBlocks();
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..508ad4a815588eef3ff17f46e0ed4a9fde63c0b5
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+@@ -0,0 +1,34 @@
++package me.jellysquid.mods.lithium.common.util;
++
++import java.util.Spliterator;
++import java.util.Spliterators;
++import java.util.function.Consumer;
++import java.util.stream.Stream;
++import java.util.stream.StreamSupport;
++
++public interface Producer<T> {
++    /**
++     * Computes the next sequence of values in a collection. If a null value is passed for {@param consumer}, then
++     * the producer will only return whether or not elements existed.
++     *
++     * @param consumer The (nullable) consumer which will accept the computed values during this run.
++     * @return True if the producer produced any values, otherwise false
++     */
++    boolean computeNext(Consumer<? super T> consumer);
++
++    static <T> Stream<T> asStream(Producer<T> producer) {
++        return StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.NONNULL) {
++            @Override
++            public boolean tryAdvance(Consumer<? super T> action) {
++                return producer.computeNext(action);
++            }
++        }, false);
++    }
++
++    Producer<?> EMPTY_PRODUCER = consumer -> false;
++
++    @SuppressWarnings("unchecked")
++    static <T> Producer<T> empty() {
++        return (Producer<T>) EMPTY_PRODUCER;
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/ICollisionAccess.java b/src/main/java/net/minecraft/server/ICollisionAccess.java
+index b66c802d5e27518069bf42e577bcc9a26c4d873e..22728e5ba8b2dd6efc3164d06ea791693de50936 100644
+--- a/src/main/java/net/minecraft/server/ICollisionAccess.java
++++ b/src/main/java/net/minecraft/server/ICollisionAccess.java
+@@ -52,7 +52,14 @@ public interface ICollisionAccess extends IBlockAccess {
+     default boolean getCubes(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) {
+         // Tuinity end - allow overriding in WorldServer
+         try { if (entity != null) entity.collisionLoadChunks = true; // Paper
+-        return this.d(entity, axisalignedbb, predicate).allMatch(VoxelShape::isEmpty);
++            // Yatopia start
++        //return this.d(entity, axisalignedbb, predicate).allMatch(VoxelShape::isEmpty);
++            boolean ret = !me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.doesBoxCollideWithBlocks(this, entity, axisalignedbb);
++            if (ret && this instanceof IEntityAccess) {
++                ret = !me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.doesBoxCollideWithEntities((IEntityAccess) this, entity, axisalignedbb, predicate);
++            }
++            return ret;
++            // Yatopia end
+         } finally { if (entity != null) entity.collisionLoadChunks = false; } // Paper
+     }
+ 
+@@ -63,7 +70,7 @@ public interface ICollisionAccess extends IBlockAccess {
+     }
+ 
+     default Stream<VoxelShape> b(@Nullable Entity entity, AxisAlignedBB axisalignedbb) {
+-        return StreamSupport.stream(new VoxelShapeSpliterator(this, entity, axisalignedbb), false);
++        return me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.getBlockCollisions(this, entity, axisalignedbb); // Yatopia
+     }
+ 
+     default Stream<VoxelShape> b(@Nullable Entity entity, AxisAlignedBB axisalignedbb, BiPredicate<IBlockData, BlockPosition> bipredicate) {
+diff --git a/src/main/java/net/minecraft/server/IEntityAccess.java b/src/main/java/net/minecraft/server/IEntityAccess.java
+index 882b82d8952d34f6e3c639404d1a1521dedf1bb0..ccf1416000354b78ccef78b072062ce081826e1a 100644
+--- a/src/main/java/net/minecraft/server/IEntityAccess.java
++++ b/src/main/java/net/minecraft/server/IEntityAccess.java
+@@ -62,6 +62,10 @@ public interface IEntityAccess {
+     // Tuinity end - optimise hard collision
+ 
+     default Stream<VoxelShape> c(@Nullable Entity entity, AxisAlignedBB axisalignedbb, Predicate<Entity> predicate) {
++        // Yatopia start - replace this
++        if (predicate == null) predicate = (e) -> true; // Tuinity - allow nullable
++        return me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.getEntityCollisions(this, entity, axisalignedbb, predicate);
++        /*
+         if (axisalignedbb.a() < 1.0E-7D) {
+             return Stream.empty();
+         } else {
+@@ -91,6 +95,7 @@ public interface IEntityAccess {
+                 return flag;
+             }); return ((entity != null && entity.hardCollides()) ? this.getEntities(entity, axisalignedbb1, predicate) : this.getHardCollidingEntities(entity, axisalignedbb1, predicate)).stream().map(Entity::getBoundingBox).map(VoxelShapes::a); // Tuinity - optimise entity hard collisions
+         }
++         */ // Yatopia end
+     }
+ 
+     default EntityHuman findNearbyPlayer(Entity entity, double d0, @Nullable Predicate<Entity> predicate) { return this.findNearbyPlayer(entity.locX(), entity.locY(), entity.locZ(), d0, predicate); } // Paper
