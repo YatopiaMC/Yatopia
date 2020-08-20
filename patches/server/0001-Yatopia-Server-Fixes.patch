@@ -1621,7 +1621,7 @@ index d1016d22fbb2dd15042fd6ccdf2ee7848351e518..00000000000000000000000000000000
 - 
 -         entitypigzombie.addEffect(new MobEffect(MobEffects.CONFUSION, 200, 0));
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 3e080a10abc6674a542590cc9c109745b168ff24..29def81e389c5fe7549caf1bbe83f25516bd5ace 100644
+index 3e080a10abc6674a542590cc9c109745b168ff24..7b0fdfe26de843eec0d8a80255218adc1abe56e3 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -135,7 +135,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -1670,6 +1670,18 @@ index 3e080a10abc6674a542590cc9c109745b168ff24..29def81e389c5fe7549caf1bbe83f255
                  this.triggerDimensionAdvancements(worldserver1);
                  this.playerInteractManager.a(worldserver);
                  this.playerConnection.sendPacket(new PacketPlayOutAbilities(this.abilities));
+@@ -1861,8 +1862,10 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     }
+ 
+     public AdvancementDataPlayer getAdvancementDataIfLoadedImmediately() {
+-        if (this.advancementDataPlayer == null && this.advancementDataPlayerCompletableFuture.isDone())
++        if (this.advancementDataPlayer == null && this.advancementDataPlayerCompletableFuture.isDone()) {
+             this.advancementDataPlayer = this.advancementDataPlayerCompletableFuture.join();
++            this.advancementDataPlayer.setPlayer(this);
++        }
+         return this.advancementDataPlayer;
+     }
+ 
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java.rej b/src/main/java/net/minecraft/server/EntityPlayer.java.rej
 deleted file mode 100644
 index 96d58c9dcfcd1715b5d970054710e51e678cc188..0000000000000000000000000000000000000000
@@ -2277,7 +2289,7 @@ index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..00000000000000000000000000000000
 - 
 -                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 0b574089783b1491ba8cbe4058efae32e286fa27..9bbb1bcf3e715b1fb50954e62b1faa139384c59f 100644
+index 0b574089783b1491ba8cbe4058efae32e286fa27..d8a74f6dac01b47990901ad72f278716aaf1c292 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -189,7 +189,7 @@ public abstract class PlayerList {
@@ -2289,6 +2301,18 @@ index 0b574089783b1491ba8cbe4058efae32e286fa27..9bbb1bcf3e715b1fb50954e62b1faa13
          playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
          playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
          playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
+@@ -1338,11 +1338,6 @@ public abstract class PlayerList {
+ 
+     // Paper start - async advancements
+     public CompletableFuture<AdvancementDataPlayer> loadAdvancementDataPlayerAsync(EntityPlayer entityPlayer) {
+-        if (entityPlayer.getAdvancementDataIfLoadedImmediately() != null) {
+-            entityPlayer.getAdvancementData().setPlayer(entityPlayer);
+-            return CompletableFuture.completedFuture(entityPlayer.getAdvancementData());
+-        }
+-
+         UUID uuid = entityPlayer.getUniqueID();
+         File file = this.server.a(SavedFile.ADVANCEMENTS).toFile();
+         final File file1 = new File(file, uuid + ".json");
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java.rej b/src/main/java/net/minecraft/server/PlayerList.java.rej
 deleted file mode 100644
 index 7c9d7ae5f875ba36b13d6b9b76581be0df903b49..0000000000000000000000000000000000000000
