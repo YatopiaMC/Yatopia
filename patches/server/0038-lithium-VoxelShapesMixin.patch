@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Thu, 20 Aug 2020 16:37:20 +0300
+Subject: [PATCH] lithium VoxelShapesMixin
+
+Original code by JellySquid, licensed under LGPLv3
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
+
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
+
+diff --git a/src/main/java/net/minecraft/server/EnumAxisCycle.java b/src/main/java/net/minecraft/server/EnumAxisCycle.java
+index 92ab79532d29341e8840341ff5ee8f5203cb4aad..bc7b9d0b4d9e3f7519bb013054eeec512e9342d7 100644
+--- a/src/main/java/net/minecraft/server/EnumAxisCycle.java
++++ b/src/main/java/net/minecraft/server/EnumAxisCycle.java
+@@ -82,6 +82,7 @@ public enum EnumAxisCycle {
+ 
+     public abstract int a(int i, int j, int k, EnumDirection.EnumAxis enumdirection_enumaxis);
+ 
++    public final EnumDirection.EnumAxis cycle(EnumDirection.EnumAxis axis) { return a(axis); } // Yatopia - OBFHELPER
+     public abstract EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis);
+ 
+     public abstract EnumAxisCycle a();
+diff --git a/src/main/java/net/minecraft/server/VoxelShape.java b/src/main/java/net/minecraft/server/VoxelShape.java
+index 700660dd93b3090334bb3033d5f5fdd6ab684744..fd34dffa63995c1fc277eac28eb1cd23e3a5e105 100644
+--- a/src/main/java/net/minecraft/server/VoxelShape.java
++++ b/src/main/java/net/minecraft/server/VoxelShape.java
+@@ -148,6 +148,7 @@ public abstract class VoxelShape {
+         }
+     }
+ 
++    public final double calculateMaxDistance(EnumDirection.EnumAxis axis, AxisAlignedBB box, double movement) { return a(axis, box, movement); } // Yatopia - OBFHELPER
+     public double a(EnumDirection.EnumAxis enumdirection_enumaxis, AxisAlignedBB axisalignedbb, double d0) {
+         return this.a(EnumAxisCycle.a(enumdirection_enumaxis, EnumDirection.EnumAxis.X), axisalignedbb, d0);
+     }
+diff --git a/src/main/java/net/minecraft/server/VoxelShapes.java b/src/main/java/net/minecraft/server/VoxelShapes.java
+index 42068f11d0b097a4022cf9d83d5582c308ce7707..c542357cb5405373a7a3911d6b7bb2edc7c69951 100644
+--- a/src/main/java/net/minecraft/server/VoxelShapes.java
++++ b/src/main/java/net/minecraft/server/VoxelShapes.java
+@@ -277,6 +277,21 @@ public final class VoxelShapes {
+                 return 0.0D;
+             } else {
+                 EnumAxisCycle enumaxiscycle1 = enumaxiscycle.a();
++                // Yatopia start
++                if (d0 < 0 || enumaxiscycle1.cycle(EnumDirection.EnumAxis.Z) == EnumDirection.EnumAxis.Y) {
++                    int x = MathHelper.floor((axisalignedbb.minX + axisalignedbb.maxX) / 2);
++                    int y = MathHelper.f(axisalignedbb.minY) - 1;
++                    int z = MathHelper.floor((axisalignedbb.minZ + axisalignedbb.maxZ) / 2);
++                    BlockPosition pos = new BlockPosition(x, y, z);
++                    IBlockData data = iworldreader.getTypeIfLoaded(pos);
++                    if (data != null) {
++                        d0 = data.getCollisionShape(iworldreader, pos, voxelshapecollision).calculateMaxDistance(EnumDirection.EnumAxis.Y, axisalignedbb.offset(-x, -y, -z), d0);
++                        if (Math.abs(d0) < 1.0E-7D) {
++                            return 0.0D;
++                        }
++                    }
++                }
++                // Yatopia end
+                 EnumDirection.EnumAxis enumdirection_enumaxis = enumaxiscycle1.a(EnumDirection.EnumAxis.X);
+                 EnumDirection.EnumAxis enumdirection_enumaxis1 = enumaxiscycle1.a(EnumDirection.EnumAxis.Y);
+                 EnumDirection.EnumAxis enumdirection_enumaxis2 = enumaxiscycle1.a(EnumDirection.EnumAxis.Z);

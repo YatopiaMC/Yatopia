@@ -73,7 +73,7 @@ This is an overview over all patches that are currently used.
 | server |  Modify default configs      | tr7zw |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize Hopper logic      | tr7zw |  |
-| server |  Optimize TileEntity loading      | tr7zw |  |
+| server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Aikar | MrIvanPlays |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
@@ -114,6 +114,8 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
+| server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
+| server |  lithium collision optimizations      | JellySquid | Ivan Pekov |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium-MixinChunkGeneratorAbstract      | JellySquid | tr7zw |
 | server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |
