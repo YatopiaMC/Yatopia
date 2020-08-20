@@ -63,37 +63,6 @@ index 8f31dba6a29514aad6e74e265bf000014cd1e3c3..00000000000000000000000000000000
 - 
 -                 if (names.size() == 1) {
 -                     MinecraftKey name = names.iterator().next();
-diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
-index 60f03502a7fd622d2de3b2da9fe8014b289f3d31..cac599c1e90b261b673acecad7517d91ccd0516a 100644
---- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
-+++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
-@@ -446,4 +446,9 @@ public class PaperConfig {
-             maxPlayerAutoSavePerTick = (playerAutoSaveRate == -1 || playerAutoSaveRate > 100) ? 10 : 20;
-         }
-     }
-+
-+    public static boolean asyncAdvancements;
-+    private static void asyncAdvancements() {
-+        asyncAdvancements = getBoolean("settings.async-advancements", asyncAdvancements);
-+    }
- }
-diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej b/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej
-deleted file mode 100644
-index 3a518ca973dbef44126497057c52fc248aa2ebc1..0000000000000000000000000000000000000000
---- a/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej
-+++ /dev/null
-@@ -1,11 +0,0 @@
--diff a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java	(rejected hunks)
--@@ -435,4 +435,9 @@ public class PaperConfig {
--         allowPistonDuplication = getBoolean("settings.unsupported-settings.allow-piston-duplication", config.getBoolean("settings.unsupported-settings.allow-tnt-duplication", false));
--         set("settings.unsupported-settings.allow-tnt-duplication", null);
--     }
--+
--+    public static boolean asyncAdvancements;
--+    private static void asyncAdvancements() {
--+        asyncAdvancements = getBoolean("settings.async-advancements", asyncAdvancements);
--+    }
-- }
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 index dee9655b89d061ec8218ea2c54660c6003e8548f..253b73cfc597d4c7106d969be7b18c68166128ae 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
@@ -1652,10 +1621,10 @@ index d1016d22fbb2dd15042fd6ccdf2ee7848351e518..00000000000000000000000000000000
 - 
 -         entitypigzombie.addEffect(new MobEffect(MobEffects.CONFUSION, 200, 0));
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index a3caf2358ddf8127b3965656010daf10adb686b6..3cb704cc4fc5db4ab08b2fe017a8fe6845932995 100644
+index 3e080a10abc6674a542590cc9c109745b168ff24..29def81e389c5fe7549caf1bbe83f25516bd5ace 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -136,7 +136,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -135,7 +135,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
          this.playerInteractManager = playerinteractmanager;
          this.server = minecraftserver;
          this.serverStatisticManager = minecraftserver.getPlayerList().getStatisticManager(this);
@@ -1664,7 +1633,7 @@ index a3caf2358ddf8127b3965656010daf10adb686b6..3cb704cc4fc5db4ab08b2fe017a8fe68
          this.G = 1.0F;
          //this.c(worldserver); // Paper - don't move to spawn on login, only first join
  
-@@ -502,6 +502,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -501,6 +501,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              CriterionTriggers.u.a(this, this.cf, this.ticksLived - this.cg);
          }
  
@@ -1672,7 +1641,7 @@ index a3caf2358ddf8127b3965656010daf10adb686b6..3cb704cc4fc5db4ab08b2fe017a8fe68
          this.advancementDataPlayer.b(this);
      }
  
-@@ -918,7 +919,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -917,7 +918,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              ShapeDetectorShape shapedetectorshape = this.a(worldserver);
  
              if (shapedetectorshape != null) {
@@ -1681,7 +1650,7 @@ index a3caf2358ddf8127b3965656010daf10adb686b6..3cb704cc4fc5db4ab08b2fe017a8fe68
                  worldserver = shapedetectorshape.world; // CraftBukkit
                  if (worldserver == null) { } else // CraftBukkit - empty to fall through to null to event
                  if (resourcekey == DimensionManager.OVERWORLD && worldserver.getTypeKey() == DimensionManager.THE_NETHER) { // CraftBukkit
-@@ -941,8 +942,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -940,8 +941,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              worldserver = ((CraftWorld) exit.getWorld()).getHandle();
              // CraftBukkit end
  
@@ -1692,7 +1661,7 @@ index a3caf2358ddf8127b3965656010daf10adb686b6..3cb704cc4fc5db4ab08b2fe017a8fe68
              if (true) { // CraftBukkit
                  this.worldChangeInvuln = true; // CraftBukkit - Set teleport invulnerability only if player changing worlds
  
-@@ -959,7 +960,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -958,7 +959,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
                  worldserver.addPlayerPortal(this);
                  this.playerConnection.teleport(exit); // CraftBukkit - use internal teleport without event
                  this.playerConnection.syncPosition(); // CraftBukkit - sync position after changing it (from PortalTravelAgent#findAndteleport)
@@ -1703,12 +1672,12 @@ index a3caf2358ddf8127b3965656010daf10adb686b6..3cb704cc4fc5db4ab08b2fe017a8fe68
                  this.playerConnection.sendPacket(new PacketPlayOutAbilities(this.abilities));
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java.rej b/src/main/java/net/minecraft/server/EntityPlayer.java.rej
 deleted file mode 100644
-index aecfc8a44a764aed92b4eead845c21dfb88651fe..0000000000000000000000000000000000000000
+index 96d58c9dcfcd1715b5d970054710e51e678cc188..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java.rej
 +++ /dev/null
 @@ -1,18 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java	(rejected hunks)
--@@ -130,7 +132,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+-@@ -130,7 +131,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
 -         this.playerInteractManager = playerinteractmanager;
 -         this.server = minecraftserver;
 -         this.serverStatisticManager = minecraftserver.getPlayerList().getStatisticManager(this);
@@ -1717,7 +1686,7 @@ index aecfc8a44a764aed92b4eead845c21dfb88651fe..00000000000000000000000000000000
 -         this.G = 1.0F;
 -         //this.b(worldserver); // Paper - don't move to spawn on login, only first join
 - 
--@@ -494,6 +496,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+-@@ -494,6 +495,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
 -             CriterionTriggers.u.a(this, this.cm, this.ticksLived - this.cn);
 -         }
 - 
@@ -2308,7 +2277,7 @@ index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..00000000000000000000000000000000
 - 
 -                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 4c6e708b6d6af45159315dc6ab5fdf72320d9825..bf39ee4b22b69ff5da691aeac65bfdb34058a9fb 100644
+index 0b574089783b1491ba8cbe4058efae32e286fa27..9bbb1bcf3e715b1fb50954e62b1faa139384c59f 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -189,7 +189,7 @@ public abstract class PlayerList {
