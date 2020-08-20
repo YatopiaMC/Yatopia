@@ -194,10 +194,10 @@ index 0000000000000000000000000000000000000000..e16ac78efa67b5e6b7c2c4b247f3da56
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f7eb7ceb7223045902aaa9e2fe662d1d0f747c13
+index 0000000000000000000000000000000000000000..b9d279d1a9703c17221d4219b86b8f31bdcc2895
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
-@@ -0,0 +1,246 @@
+@@ -0,0 +1,247 @@
 +package me.jellysquid.mods.lithium.common.entity.movement;
 +
 +import net.minecraft.server.AxisAlignedBB;
@@ -207,6 +207,7 @@ index 0000000000000000000000000000000000000000..f7eb7ceb7223045902aaa9e2fe662d1d
 +import net.minecraft.server.ChunkSection;
 +import net.minecraft.server.Entity;
 +import net.minecraft.server.IBlockData;
++import net.minecraft.server.IChunkAccess;
 +import net.minecraft.server.ICollisionAccess;
 +import net.minecraft.server.MathHelper;
 +import net.minecraft.server.OperatorBoolean;
@@ -251,7 +252,7 @@ index 0000000000000000000000000000000000000000..f7eb7ceb7223045902aaa9e2fe662d1d
 +    private int cIterated;
 +
 +    private boolean sectionOversizedBlocks;
-+    private Chunk cachedChunk;
++    private IChunkAccess cachedChunk;
 +    private ChunkSection cachedChunkSection;
 +
 +    public ChunkAwareBlockCollisionSweeper(ICollisionAccess view, Entity entity, AxisAlignedBB box) {
@@ -302,7 +303,7 @@ index 0000000000000000000000000000000000000000..f7eb7ceb7223045902aaa9e2fe662d1d
 +                        }
 +                    }
 +                    //Casting to Chunk is not checked, together with other mods this could cause a ClassCastException
-+                    this.cachedChunk = (Chunk) this.view.c(this.chunkX, this.chunkZ);
++                    this.cachedChunk = (IChunkAccess) this.view.c(this.chunkX, this.chunkZ);
 +                    if (this.cachedChunk != null) {
 +                        this.cachedChunkSection = this.cachedChunk.getSections()[this.chunkY];
 +                    }
@@ -432,7 +433,7 @@ index 0000000000000000000000000000000000000000..f7eb7ceb7223045902aaa9e2fe662d1d
 +     *
 +     * @return Whether there are any oversized blocks in the chunk section.
 +     */
-+    private static boolean hasChunkSectionOversizedBlocks(Chunk chunk, int chunkY) {
++    private static boolean hasChunkSectionOversizedBlocks(IChunkAccess chunk, int chunkY) {
 +        if (OVERSIZED_BLOCK_COUNTING_ENABLED) {
 +            ChunkSection section = chunk.getSections()[chunkY];
 +            return section != null && ((OversizedBlocksCounter) section).hasOversizedBlocks();
