@@ -18,10 +18,10 @@ index b67f05f290db653cf75a89e85bd3decb5044a1e0..11758b6b158d971b9beb1b609d7513da
          new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..aa78ff26f578c6ea71a8e3d86fc64e2a82bb7e57
+index 0000000000000000000000000000000000000000..0ada1657122fd973bbb8ec8b7c7be83de0bd4a00
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,141 @@
 +package dev.tr7zw.yatopia;
 +
 +import com.google.common.base.Preconditions;
@@ -35,6 +35,8 @@ index 0000000000000000000000000000000000000000..aa78ff26f578c6ea71a8e3d86fc64e2a
 +import java.util.function.Function;
 +import net.minecraft.server.MinecraftKey;
 +import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.World;
++import net.minecraft.server.WorldDataServer;
 +import org.bukkit.Bukkit;
 +import org.bukkit.ChatColor;
 +import org.bukkit.Location;
@@ -133,19 +135,32 @@ index 0000000000000000000000000000000000000000..aa78ff26f578c6ea71a8e3d86fc64e2a
 +    }
 +
 +    private void doInfo(CommandSender sender) {
-+        Command.broadcastCommandMessage(sender, ChatColor.GOLD + "Last tick took " + TicksPerSecondCommand.format(Bukkit.getLastTickMs()));
-+        //TODO
++        broadcastMessage(sender, ChatColor.GOLD + "Last tick took " + TicksPerSecondCommand.format(Bukkit.getLastTickMs()));
++        for (World world : MinecraftServer.getServer().getWorlds()) {
++            String name = ((WorldDataServer) world.worldData).getName();
++            broadcastMessage(sender, ChatColor.GOLD + "Entities in world " +
++                    ChatColor.YELLOW + "\"" + name + "\"" +
++                    ChatColor.GOLD + ": " + ChatColor.YELLOW + world.getWorld().getEntityCount());
++            broadcastMessage(sender, ChatColor.GOLD + "Chunks loaded in world " +
++                    ChatColor.YELLOW + "\"" + name + "\"" +
++                    ChatColor.GOLD + ": " + ChatColor.YELLOW + world.getWorld().getChunkCount());
++        }
 +    }
 +
 +    private void doReload(CommandSender sender) {
-+        Command.broadcastCommandMessage(sender, ChatColor.RED + "Please note that this command is not supported and may cause issues.");
-+        Command.broadcastCommandMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
++        broadcastMessage(sender, ChatColor.RED + "Please note that this command is not supported and may cause issues.");
++        broadcastMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
 +
 +        MinecraftServer console = MinecraftServer.getServer();
 +        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings"));
 +        console.server.reloadCount++;
 +
-+        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
++        broadcastMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
++    }
++
++    // utility method
++    private void broadcastMessage(CommandSender sender, String message) {
++        Command.broadcastCommandMessage(sender, message);
 +    }
 +}
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
