@@ -7,43 +7,36 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index f292bc8b78b965e455befe1809bfbadc90b52755..0f030fa81f0c598596501ea2094dbf5467a2639a 100644
+index f292bc8b78b965e455befe1809bfbadc90b52755..5ca5345d121a86ab284d6467ce7ce5fc3ab570fa 100644
 --- a/src/main/java/net/minecraft/server/BlockBase.java
 +++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -568,11 +568,33 @@ public abstract class BlockBase {
+@@ -601,7 +601,25 @@ public abstract class BlockBase {
+         }
  
-         public void a(WorldServer worldserver, BlockPosition blockposition, Random random) {
-             if (worldserver.purpurConfig.noTickBlocks.contains(getBlock())) return; // Purpur
+         public IBlockData updateState(EnumDirection enumdirection, IBlockData iblockdata, GeneratorAccess generatoraccess, BlockPosition blockposition, BlockPosition blockposition1) {
+-            return this.getBlock().updateState(this.p(), enumdirection, iblockdata, generatoraccess, blockposition, blockposition1);
 +            // Yatopia start
-+            if (shapeExceedsCube) {
-+                Chunk chunk = worldserver.getChunkIfLoaded(blockposition.getX() >> 4, blockposition.getZ() >> 4);
++            IBlockData updated = this.getBlock().updateState(this.p(), enumdirection, iblockdata, generatoraccess, blockposition, blockposition1);
++            if (updated.shapeExceedsCube()) {
++                IChunkAccess chunk = generatoraccess.getChunkIfLoadedImmediately(blockposition1.getX() >> 4, blockposition1.getZ() >> 4);
 +                if (chunk != null) {
-+                    ChunkSection section = chunk.getSections()[blockposition.getY() >> 4];
-+                    if (section != null) {
-+                        section.oversizedBlockCount--;
++                    ChunkSection section = chunk.getSections()[blockposition1.getY() >> 4];
++                    if (section != null) section.oversizedBlockCount++;
++                }
++            } else {
++                if (iblockdata.shapeExceedsCube()) {
++                    IChunkAccess chunk = generatoraccess.getChunkIfLoadedImmediately(blockposition.getX() >> 4, blockposition.getZ() >> 4);
++                    if (chunk != null) {
++                        ChunkSection section = chunk.getSections()[blockposition.getY() >> 4];
++                        if (section != null) section.oversizedBlockCount--;
 +                    }
 +                }
 +            }
++            return updated;
 +            // Yatopia end
-             this.getBlock().tickAlways(this.p(), worldserver, blockposition, random);
          }
  
-         public void b(WorldServer worldserver, BlockPosition blockposition, Random random) {
-             if (worldserver.purpurConfig.noTickBlocks.contains(getBlock())) return; // Purpur
-+            // Yatopia start
-+            if (shapeExceedsCube) {
-+                Chunk chunk = worldserver.getChunkIfLoaded(blockposition.getX() >> 4, blockposition.getZ() >> 4);
-+                if (chunk != null) {
-+                    ChunkSection section = chunk.getSections()[blockposition.getY() >> 4];
-+                    if (section != null) {
-+                        section.oversizedBlockCount++;
-+                    }
-+                }
-+            }
-+            // Yatopia end
-             this.getBlock().tick(this.p(), worldserver, blockposition, random);
-         }
- 
+         public boolean a(IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
 index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659bd2aecf5 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
