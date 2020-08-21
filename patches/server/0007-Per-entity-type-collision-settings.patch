@@ -57,26 +57,107 @@ index e2bbbfeb7e2505479e6a457294aaa550b97319ca..a89209347418b3006745c50043d0abdf
  
 diff --git a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e6617833a7aea4803b78bc55b633fac9698688bd
+index 0000000000000000000000000000000000000000..669ff5861d6b32483a2294405fac3b1ecb41207a
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,161 @@
 +package dev.tr7zw.yatopia;
 +
-+import com.google.common.base.Predicates;
-+
++import com.google.common.collect.HashMultimap;
++import com.google.common.collect.Multimap;
 +import de.minebench.origami.OrigamiConfig;
-+
++import java.util.function.Predicate;
 +import net.minecraft.server.Entity;
 +import net.minecraft.server.EntityTypes;
 +import net.minecraft.server.EnumCreatureType;
 +import net.minecraft.server.IEntitySelector;
 +import net.minecraft.server.ScoreboardTeamBase;
 +import net.minecraft.server.World;
-+
-+import java.util.function.Predicate;
++import net.minecraft.server.WorldDataServer;
 +
 +public class EntityFilter {
++
++    private static Multimap<String, Predicate<Entity>> collisionChecks = HashMultimap.create();
++
++    public static void initializeCollisionChecks(String worldName, OrigamiConfig.WorldConfig config) {
++        if (collisionChecks.containsKey(worldName)) {
++            collisionChecks.removeAll(worldName);
++        }
++        if (!config.playerCollisions) {
++            collisionChecks.put(worldName, (entity) -> entity.getEntityType() != EntityTypes.PLAYER);
++        }
++        if (!config.animalCollisions) {
++            collisionChecks.put(worldName, (entity) -> entity.getEntityType().getEnumCreatureType() != EnumCreatureType.CREATURE);
++        }
++        if (!config.ambientCollisions) {
++            collisionChecks.put(worldName, (entity) -> entity.getEntityType().getEnumCreatureType() != EnumCreatureType.AMBIENT);
++        }
++        if (!config.waterAmbientCollisions) {
++            collisionChecks.put(worldName, (entity) -> entity.getEntityType().getEnumCreatureType() != EnumCreatureType.WATER_AMBIENT);
++        }
++        if (!config.waterCreatureCollisions) {
++            collisionChecks.put(worldName, (entity) -> entity.getEntityType().getEnumCreatureType() != EnumCreatureType.WATER_CREATURE);
++        }
++        Predicate<Entity> misc = (entity) -> {
++            if (config.miscCollisions) {
++                if (entity.getEntityType().getEnumCreatureType() == EnumCreatureType.MISC) {
++                    if (!config.villagerCollisions) {
++                        if (!config.ironGolemCollisions) {
++                            if (!config.itemCollisions) {
++                                return entity.getEntityType() != EntityTypes.VILLAGER
++                                        && entity.getEntityType() != EntityTypes.IRON_GOLEM
++                                        && entity.getEntityType() != EntityTypes.ITEM;
++                            } else {
++                                return entity.getEntityType() != EntityTypes.VILLAGER
++                                        && entity.getEntityType() != EntityTypes.IRON_GOLEM;
++                            }
++                        } else {
++                            return entity.getEntityType() != EntityTypes.VILLAGER;
++                        }
++                    }
++                }
++                return true;
++            } else {
++                if (entity.getEntityType().getEnumCreatureType() == EnumCreatureType.MISC) {
++                    if (config.villagerCollisions) {
++                        if (config.ironGolemCollisions) {
++                            if (config.itemCollisions) {
++                                return entity.getEntityType() == EntityTypes.VILLAGER
++                                        || entity.getEntityType() == EntityTypes.IRON_GOLEM
++                                        || entity.getEntityType() == EntityTypes.ITEM;
++                            } else {
++                                return entity.getEntityType() == EntityTypes.VILLAGER
++                                        || entity.getEntityType() == EntityTypes.IRON_GOLEM;
++                            }
++                        } else {
++                            return entity.getEntityType() == EntityTypes.VILLAGER;
++                        }
++                    } else {
++                        return false;
++                    }
++                } else {
++                    return true;
++                }
++            }
++        };
++        collisionChecks.put(worldName, (entity) -> {
++            if (config.monsterCollisions) {
++                if (!config.pillagerCollisions) {
++                    return entity.getEntityType() != EntityTypes.PILLAGER && misc.test(entity);
++                } else {
++                    return misc.test(entity);
++                }
++            } else {
++                if (!config.pillagerCollisions) {
++                    return entity.getEntityType().getEnumCreatureType() != EnumCreatureType.MONSTER && misc.test(entity);
++                } else {
++                    return entity.getEntityType() == EntityTypes.PILLAGER
++                            || (entity.getEntityType().getEnumCreatureType() != EnumCreatureType.MONSTER
++                            && misc.test(entity));
++                }
++            }
++        });
++    }
 +
 +    public static Predicate<Entity> getFilter(Entity entity) {
 +        OrigamiConfig.WorldConfig config = entity.world.origamiConfig;
@@ -92,7 +173,7 @@ index 0000000000000000000000000000000000000000..e6617833a7aea4803b78bc55b633fac9
 +
 +        if (entityTeamPush == ScoreboardTeamBase.EnumTeamPush.NEVER || entity.world.isClientSide
 +                || entity.isSpectator()) {
-+            return Predicates.alwaysFalse();
++            return tested -> false;
 +        }
 +
 +        Predicate<Entity> ret = (tested) -> {
@@ -125,71 +206,20 @@ index 0000000000000000000000000000000000000000..e6617833a7aea4803b78bc55b633fac9
 +            }
 +        };
 +
-+        ret = ret.and((tested) -> {
-+            // no need to continue if we already got false from this check
-+            if (!tested.canCollideWith(entity) || !entity.canCollideWith(tested)) {
-+                return false;
-+            }
++        String worldName = getWorldName(entity.world);
++        if (!collisionChecks.containsKey(worldName)) {
++            initializeCollisionChecks(worldName, config);
++        }
 +
-+            Predicate<Entity> entitySpecific = (es) -> {
-+                if (config.playerCollisions) {
-+                    return es.getEntityType() == EntityTypes.PLAYER;
-+                }
-+                return false;
-+            };
-+
-+            if (config.animalCollisions) {
-+                entitySpecific = entitySpecific.or((es) -> es.getEntityType().getEnumCreatureType() == EnumCreatureType.CREATURE);
-+            }
-+
-+            if (config.ambientCollisions) {
-+                entitySpecific = entitySpecific.or((es) -> es.getEntityType().getEnumCreatureType() == EnumCreatureType.AMBIENT);
-+            }
-+
-+            if (config.monsterCollisions) {
-+                entitySpecific = entitySpecific.or((es) -> es.getEntityType().getEnumCreatureType() == EnumCreatureType.MONSTER
-+                        && (config.pillagerCollisions || es.getEntityType() != EntityTypes.PILLAGER));
-+            }
-+
-+            if (config.miscCollisions) {
-+                entitySpecific = entitySpecific.or((es) -> {
-+                    if (es.getEntityType().getEnumCreatureType() == EnumCreatureType.MISC) {
-+                        return miscVPI(es, config, true);
-+                    }
-+                    return false;
-+                });
-+            } else {
-+                entitySpecific = entitySpecific.or((es) -> miscVPI(es, config, false));
-+            }
-+
-+            if (config.waterCreatureCollisions) {
-+                entitySpecific = entitySpecific.or((es) -> es.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_CREATURE);
-+            }
-+
-+            if (config.waterAmbientCollisions) {
-+                entitySpecific = entitySpecific.or((es) -> es.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_AMBIENT);
-+            }
-+
-+            return entitySpecific.test(tested);
-+        });
++        for (Predicate<Entity> predicate : collisionChecks.get(worldName)) {
++            ret = ret.and(predicate);
++        }
 +
 +        return ret;
 +    }
 +
-+    private static boolean miscVPI(Entity es, OrigamiConfig.WorldConfig config, boolean isMisc) {
-+        Predicate<Entity> ret = (p) -> {
-+            if (config.villagerCollisions) {
-+                return p.getEntityType() == EntityTypes.VILLAGER;
-+            }
-+            return isMisc;
-+        };
-+        if (config.ironGolemCollisions) {
-+            ret = ret.or((p) -> p.getEntityType() == EntityTypes.IRON_GOLEM);
-+        }
-+        if (config.itemCollisions) {
-+            ret = ret.or((p) -> p.getEntityType() == EntityTypes.ITEM);
-+        }
-+        return ret.test(es);
++    private static String getWorldName(World world) {
++        return ((WorldDataServer) world.worldData).getName();
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
