@@ -165,10 +165,10 @@ index 0000000000000000000000000000000000000000..0ada1657122fd973bbb8ec8b7c7be83d
 +}
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6a62f2314c8f62cef83ed4b68cb45368bad62628
+index 0000000000000000000000000000000000000000..b67a82569747fb8f4a349b7f81fe502cc4e2a792
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -0,0 +1,215 @@
+@@ -0,0 +1,213 @@
 +package dev.tr7zw.yatopia;
 +
 +import com.google.common.base.Throwables;
@@ -243,6 +243,9 @@ index 0000000000000000000000000000000000000000..6a62f2314c8f62cef83ed4b68cb45368
 +        }
 +        if (config.get("settings.onlyPlayerCollisions") != null) {
 +            set("settings.onlyPlayerCollisions", null);
++        }
++        if (config.get("settings.disableEntityCollisionboxes") != null) {
++            set("settings.disableEntityCollisionboxes", null);
 +        }
 +    }
 +
@@ -378,11 +381,6 @@ index 0000000000000000000000000000000000000000..6a62f2314c8f62cef83ed4b68cb45368
 +        disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
 +    }
 +
-+    public static boolean disableEntityCollisionboxes = false;
-+    private static void disableEntityCollisionboxes() {
-+        disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
-+    }
-+
 +}
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
 index a60634fc455e8a59399020689b70eb64b6824d12..cb4a89940cf02de5c3eefc5c746397a931c96b7a 100644
@@ -404,19 +402,6 @@ index a60634fc455e8a59399020689b70eb64b6824d12..cb4a89940cf02de5c3eefc5c746397a9
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.aZ());
-diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 4cab3f19366a1ea0d6708011e83e4e44b7eff875..4adfd017c5759af8f038e44a02228400717849a2 100644
---- a/src/main/java/net/minecraft/server/Entity.java
-+++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -701,7 +701,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
-             // Paper end
- 
-             vec3d = this.a(vec3d, enummovetype);
--            Vec3D vec3d1 = this.performCollision(vec3d); // Tuinity - optimise collisions
-+            Vec3D vec3d1 = dev.tr7zw.yatopia.YatopiaConfig.disableEntityCollisionboxes ? vec3d : this.performCollision(vec3d); // Tuinity - optimise collisions // Yatopia
- 
-             if (vec3d1.g() > 1.0E-7D) {
-                 this.a(this.getBoundingBox().c(vec3d1));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
 index f24f7f1230a380f46112e886fb5dff7c33edb2ce..88f4c30a03e9139b0284ff1a545ad80941dbd46c 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
