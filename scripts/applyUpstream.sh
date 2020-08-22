@@ -35,7 +35,7 @@ for D in ${searchtxts[@]}; do
 			# Abort previous applying operation
 			git am --abort >/dev/null 2>&1
 			# Apply our patches on top Paper in our dirs
-			git am --reject --whitespace=fix --no-utf8 --3way --ignore-whitespace $filename || (
+			git am --reject --3way --whitespace=fix $filename || (
 			#files=`$gitcmd diff --name-only | grep -E '.rej$' `
 			#if [[ files != null ]]; then
 			#	for filerej in files; do
