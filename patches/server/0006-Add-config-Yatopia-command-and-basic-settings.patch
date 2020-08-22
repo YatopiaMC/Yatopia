@@ -405,18 +405,18 @@ index a60634fc455e8a59399020689b70eb64b6824d12..cb4a89940cf02de5c3eefc5c746397a9
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.aZ());
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 4cab3f19366a1ea0d6708011e83e4e44b7eff875..85067809b6446d09e73f29968366849ed4177cc0 100644
+index 4cab3f19366a1ea0d6708011e83e4e44b7eff875..4adfd017c5759af8f038e44a02228400717849a2 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1035,7 +1035,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
-         VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
-         VoxelShape voxelshape = this.world.getWorldBorder().c();
-         Stream<VoxelShape> stream = !this.world.getWorldBorder().isInBounds(axisalignedbb) ? Stream.empty() : Stream.of(voxelshape); // Paper
--        Stream<VoxelShape> stream1 = this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
-+        Stream<VoxelShape> stream1 = dev.tr7zw.yatopia.YatopiaConfig.disableEntityCollisionboxes ? Stream.empty() : this.world.c(this, axisalignedbb.b(vec3d), (entity) -> { // Yatopia
-             return true;
-         });
-         StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
+@@ -701,7 +701,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+             // Paper end
+ 
+             vec3d = this.a(vec3d, enummovetype);
+-            Vec3D vec3d1 = this.performCollision(vec3d); // Tuinity - optimise collisions
++            Vec3D vec3d1 = dev.tr7zw.yatopia.YatopiaConfig.disableEntityCollisionboxes ? vec3d : this.performCollision(vec3d); // Tuinity - optimise collisions // Yatopia
+ 
+             if (vec3d1.g() > 1.0E-7D) {
+                 this.a(this.getBoundingBox().c(vec3d1));
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
 index f24f7f1230a380f46112e886fb5dff7c33edb2ce..88f4c30a03e9139b0284ff1a545ad80941dbd46c 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java

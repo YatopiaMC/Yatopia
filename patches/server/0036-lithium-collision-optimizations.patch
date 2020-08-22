@@ -8,6 +8,29 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
+diff --git a/src/main/java/dev/tr7zw/yatopia/HoldingConsumer.java b/src/main/java/dev/tr7zw/yatopia/HoldingConsumer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2fe5f953126abfa69368a8432d0092faefd4f048
+--- /dev/null
++++ b/src/main/java/dev/tr7zw/yatopia/HoldingConsumer.java
+@@ -0,0 +1,17 @@
++package dev.tr7zw.yatopia;
++
++import java.util.function.Consumer;
++
++public final class HoldingConsumer<T> implements Consumer<T> {
++
++    private T value;
++
++    @Override
++    public void accept(T t) {
++        this.value = t;
++    }
++
++    public T getValue() {
++        return value;
++    }
++}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..b400a5870b64b9eb92b6a8311793f5c8ea8df9af
@@ -117,10 +140,10 @@ index 0000000000000000000000000000000000000000..b400a5870b64b9eb92b6a8311793f5c8
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroupHelper.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroupHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..29c944e34ceb5c9c7bbd8e85f756c58deeac7eab
+index 0000000000000000000000000000000000000000..20f80ae80de91615ea02f0771f7c020c3e4c6d1e
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroupHelper.java
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,32 @@
 +package me.jellysquid.mods.lithium.common.entity;
 +
 +import java.util.List;
@@ -128,7 +151,6 @@ index 0000000000000000000000000000000000000000..29c944e34ceb5c9c7bbd8e85f756c58d
 +import net.minecraft.server.AxisAlignedBB;
 +import net.minecraft.server.Entity;
 +import net.minecraft.server.IEntityAccess;
-+import net.minecraft.server.IEntitySelector;
 +import net.minecraft.server.World;
 +
 +public class EntityClassGroupHelper {
@@ -144,31 +166,30 @@ index 0000000000000000000000000000000000000000..29c944e34ceb5c9c7bbd8e85f756c58d
 +     * @param entity     the entity that is searching for the colliding entities
 +     * @return list of entities with collision boxes
 +     */
-+    public static List<Entity> getEntitiesWithCollisionBoxForEntity(IEntityAccess entityView, AxisAlignedBB selection, Entity entity) {
++    public static List<Entity> getEntitiesWithCollisionBoxForEntity(IEntityAccess entityView, AxisAlignedBB selection, Entity entity, boolean loadChunks) {
 +        if (entity != null && EntityClassGroup.HARD_COLLISION_BOX_OVERRIDE.contains(entity.getClass()) || !(entityView instanceof World)) {
 +            //use vanilla code when method_30949 (previously getHardCollisionBox(Entity other)) is overwritten, as every entity could be relevant as argument of getHardCollisionBox
 +            return entityView.getEntities(entity, selection);
 +        } else {
 +            //only get entities that overwrite method_30948 (previously getCollisionBox)
-+            return WorldHelper.getEntitiesOfClassGroup((World) entityView, entity, EntityClassGroup.COLLISION_BOX_OVERRIDE, selection, IEntitySelector.exceptSpectator());
++            return WorldHelper.getEntitiesOfClassGroup((World) entityView, entity, EntityClassGroup.COLLISION_BOX_OVERRIDE, selection, loadChunks);
 +        }
 +    }
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5df3659c3e
+index 0000000000000000000000000000000000000000..7ef9775d351446637dd70e79497164913845c729
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
-@@ -0,0 +1,176 @@
+@@ -0,0 +1,193 @@
 +package me.jellysquid.mods.lithium.common.entity;
 +
++import dev.tr7zw.yatopia.EntityFilter;
 +import java.util.Iterator;
-+import java.util.Spliterator;
-+import java.util.Spliterators;
++import java.util.List;
 +import java.util.function.Consumer;
 +import java.util.function.Predicate;
 +import java.util.stream.Stream;
-+import java.util.stream.StreamSupport;
 +import me.jellysquid.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper;
 +import me.jellysquid.mods.lithium.common.util.Producer;
 +import net.minecraft.server.AxisAlignedBB;
@@ -193,32 +214,42 @@ index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5d
 +            return Stream.empty();
 +        }
 +
++        return Producer.asStream(getBlockCollisionProducerAABB(world, entity, box).map(VoxelShapes::of));
++    }
++
++    public static void fillBlockCollisionsList(ICollisionAccess world, List<AxisAlignedBB> filled, Entity entity, AxisAlignedBB box) {
++        if (isBoxEmpty(box)) {
++            return;
++        }
++
++        Producer.fillList(getBlockCollisionProducerAABB(world, entity, box), filled);
++    }
++
++    public static Producer<AxisAlignedBB> getBlockCollisionProducerAABB(ICollisionAccess world, Entity entity, AxisAlignedBB box) {
 +        final ChunkAwareBlockCollisionSweeper sweeper = new ChunkAwareBlockCollisionSweeper(world, entity, box);
 +
-+        return StreamSupport.stream(new Spliterators.AbstractSpliterator<VoxelShape>(Long.MAX_VALUE, Spliterator.NONNULL | Spliterator.IMMUTABLE) {
++        return new Producer<AxisAlignedBB>() {
 +            private boolean skipWorldBorderCheck = entity == null;
 +
 +            @Override
-+            public boolean tryAdvance(Consumer<? super VoxelShape> consumer) {
++            public boolean computeNext(Consumer<? super AxisAlignedBB> consumer) {
 +                if (!this.skipWorldBorderCheck) {
 +                    this.skipWorldBorderCheck = true;
 +
 +                    if (canEntityCollideWithWorldBorder(world, entity)) {
-+                        consumer.accept(world.getWorldBorder().asVoxelShape());
-+
++                        consumer.accept(world.getWorldBorder().asVoxelShape().getBoundingBox());
 +                        return true;
 +                    }
 +                }
 +
 +                VoxelShape shape = sweeper.step();
 +                if (shape != null) {
-+                    consumer.accept(shape);
++                    consumer.accept(shape.getBoundingBox());
 +                    return true;
 +                }
-+
 +                return false;
 +            }
-+        }, false);
++        };
 +    }
 +
 +    /**
@@ -247,7 +278,7 @@ index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5d
 +            return false;
 +        }
 +
-+        return getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate).computeNext(null);
++        return getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate, false).computeNext(null);
 +    }
 +
 +    /**
@@ -258,7 +289,15 @@ index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5d
 +            return Stream.empty();
 +        }
 +
-+        return Producer.asStream(getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate));
++        return Producer.asStream(getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate, false).map(VoxelShapes::of));
++    }
++
++    public static void fillEntityCollisionsList(IEntityAccess view, Entity entity, List<AxisAlignedBB> filled, AxisAlignedBB box, boolean loadChunks) {
++        if (isBoxEmpty(box)) {
++            return;
++        }
++
++        Producer.fillList(getEntityCollisionProducer(view, entity, box.grow(EPSILON), EntityFilter.getFilter(entity), loadChunks), filled);
 +    }
 +
 +    /**
@@ -266,18 +305,18 @@ index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5d
 +     * Re-implements the function named above without stream code or unnecessary allocations. This can provide a small
 +     * boost in some situations (such as heavy entity crowding) and reduces the allocation rate significantly.
 +     */
-+    public static Producer<VoxelShape> getEntityCollisionProducer(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate) {
-+        return new Producer<VoxelShape>() {
++    public static Producer<AxisAlignedBB> getEntityCollisionProducer(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate, boolean loadChunks) {
++        return new Producer<AxisAlignedBB>() {
 +            private Iterator<Entity> it;
 +
 +            @Override
-+            public boolean computeNext(Consumer<? super VoxelShape> consumer) {
-+                if (this.it == null) {
++            public boolean computeNext(Consumer<? super AxisAlignedBB> consumer) {
++                if (it == null) {
 +                    /*
 +                     * In case entity's class is overriding method_30949, all types of entities may be (=> are assumed to be) required.
 +                     * Otherwise only get entities that override method_30948 are required, as other entities cannot collide.
 +                     */
-+                    this.it = EntityClassGroupHelper.getEntitiesWithCollisionBoxForEntity(view, box, entity).iterator();
++                    this.it = EntityClassGroupHelper.getEntitiesWithCollisionBoxForEntity(view, box, entity, loadChunks).iterator();
 +                }
 +
 +                while (this.it.hasNext()) {
@@ -296,7 +335,7 @@ index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5d
 +                    }
 +
 +                    if (consumer != null) {
-+                        consumer.accept(VoxelShapes.of(otherEntity.getBoundingBox()));
++                        consumer.accept(otherEntity.getBoundingBox());
 +                    }
 +                    return true;
 +                }
@@ -591,15 +630,18 @@ index 0000000000000000000000000000000000000000..b9d279d1a9703c17221d4219b86b8f31
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..883581e12a014ce86dc7aea8ecab141e5afdc039
+index 0000000000000000000000000000000000000000..0ee0aa4b2a20183cc78cb639c9e3e608e3eb46c9
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -0,0 +1,34 @@
+@@ -0,0 +1,49 @@
 +package me.jellysquid.mods.lithium.common.util;
 +
++import dev.tr7zw.yatopia.HoldingConsumer;
++import java.util.List;
 +import java.util.Spliterator;
 +import java.util.Spliterators;
 +import java.util.function.Consumer;
++import java.util.function.Function;
 +import java.util.stream.Stream;
 +import java.util.stream.StreamSupport;
 +
@@ -613,6 +655,13 @@ index 0000000000000000000000000000000000000000..883581e12a014ce86dc7aea8ecab141e
 +     */
 +    boolean computeNext(Consumer<? super T> consumer);
 +
++    default <U> Producer<U> map(Function<T, U> mapper) {
++        return consumer -> {
++            Consumer<? super T> con = (t) -> consumer.accept(mapper.apply(t));
++            return Producer.this.computeNext(con);
++        };
++    }
++
 +    static <T> Stream<T> asStream(Producer<T> producer) {
 +        return StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.NONNULL) {
 +            @Override
@@ -620,6 +669,11 @@ index 0000000000000000000000000000000000000000..883581e12a014ce86dc7aea8ecab141e
 +                return producer.computeNext(action);
 +            }
 +        }, false);
++    }
++
++    static <T> void fillList(Producer<T> producer, List<T> list) {
++        HoldingConsumer<T> consumer = new HoldingConsumer<>();
++        while (producer.computeNext(consumer)) list.add(consumer.getValue());
 +    }
 +
 +    Producer<?> EMPTY_PRODUCER = consumer -> false;
@@ -631,15 +685,14 @@ index 0000000000000000000000000000000000000000..883581e12a014ce86dc7aea8ecab141e
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3ae7522ef116727ff0eb89978e26785b55d56319
+index 0000000000000000000000000000000000000000..700d391675286cf736be8bc42366118147c5fd60
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,59 @@
 +package me.jellysquid.mods.lithium.common.world;
 +
 +import com.google.common.collect.Lists;
 +import java.util.List;
-+import java.util.function.Predicate;
 +import me.jellysquid.mods.lithium.common.entity.EntityClassGroup;
 +import me.jellysquid.mods.lithium.common.world.chunk.ClassGroupFilterableList;
 +import net.minecraft.server.AxisAlignedBB;
@@ -655,7 +708,7 @@ index 0000000000000000000000000000000000000000..3ae7522ef116727ff0eb89978e26785b
 +     * Method that allows getting entities of a class group.
 +     * [VanillaCopy] but custom combination of: get class filtered entities together with excluding one entity
 +     */
-+    public static List<Entity> getEntitiesOfClassGroup(World world, Entity excluded, EntityClassGroup type, AxisAlignedBB box_1, Predicate<Entity> predicate_1) {
++    public static List<Entity> getEntitiesOfClassGroup(World world, Entity excluded, EntityClassGroup type, AxisAlignedBB box_1, boolean loadChunks) {
 +        int int_1 = MathHelper.floor((box_1.minX - 2.0D) / 16.0D);
 +        int int_2 = MathHelper.f((box_1.maxX + 2.0D) / 16.0D);
 +        int int_3 = MathHelper.floor((box_1.minZ - 2.0D) / 16.0D);
@@ -664,9 +717,9 @@ index 0000000000000000000000000000000000000000..3ae7522ef116727ff0eb89978e26785b
 +
 +        for (int int_5 = int_1; int_5 < int_2; ++int_5) {
 +            for (int int_6 = int_3; int_6 < int_4; ++int_6) {
-+                Chunk worldChunk_1 = world.getChunkIfLoaded(int_5, int_6);
++                Chunk worldChunk_1 = loadChunks ? world.getChunkAt(int_5, int_6) : world.getChunkIfLoaded(int_5, int_6);
 +                if (worldChunk_1 != null) {
-+                    WorldHelper.getEntitiesOfClassGroup(worldChunk_1, excluded, type, box_1, list_1, predicate_1);
++                    WorldHelper.getEntitiesOfClassGroup(worldChunk_1, excluded, type, box_1, list_1);
 +                }
 +            }
 +        }
@@ -678,7 +731,7 @@ index 0000000000000000000000000000000000000000..3ae7522ef116727ff0eb89978e26785b
 +     * Method that allows getting entities of a class group.
 +     * [VanillaCopy] but custom combination of: get class filtered entities together with excluding one entity
 +     */
-+    public static void getEntitiesOfClassGroup(Chunk worldChunk, Entity excluded, EntityClassGroup type, AxisAlignedBB box_1, List<Entity> list_1, Predicate<Entity> predicate_1) {
++    public static void getEntitiesOfClassGroup(Chunk worldChunk, Entity excluded, EntityClassGroup type, AxisAlignedBB box_1, List<Entity> list_1) {
 +        EntitySlice<Entity>[] entitySections = worldChunk.getEntitySlices();
 +        int int_1 = MathHelper.floor((box_1.minY - 2.0D) / 16.0D);
 +        int int_2 = MathHelper.floor((box_1.maxY + 2.0D) / 16.0D);
@@ -688,7 +741,7 @@ index 0000000000000000000000000000000000000000..3ae7522ef116727ff0eb89978e26785b
 +        for (int int_3 = int_1; int_3 <= int_2; ++int_3) {
 +            //noinspection rawtypes
 +            for (Object entity_1 : ((ClassGroupFilterableList) entitySections[int_3]).getAllOfGroupType(type)) {
-+                if (entity_1 != excluded && ((Entity) entity_1).getBoundingBox().intersects(box_1) && (predicate_1 == null || predicate_1.test((Entity) entity_1))) {
++                if (entity_1 != excluded && ((Entity) entity_1).getBoundingBox().intersects(box_1)) {
 +                    list_1.add((Entity) entity_1);
 +                }
 +            }
@@ -778,7 +831,7 @@ index ac6e5e3309affc830d4db07fd9b8d809c3085033..37a3b26cdeb02acb8051f0a99313de79
      }
  
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index ba06f9ac8663f33959f6e39d145bbb48a68b0225..c754c34b7d2c3d47a7af6642fc57b8061ac1c2d6 100644
+index d7bd1b7791a15f0cce51a9d1a42fe0bf4d63307b..b1a0a8340c3198e993ff2e1528fbb0b5643caa11 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -75,7 +75,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -947,18 +1000,6 @@ index 882b82d8952d34f6e3c639404d1a1521dedf1bb0..ccf1416000354b78ccef78b072062ce0
      }
  
      default EntityHuman findNearbyPlayer(Entity entity, double d0, @Nullable Predicate<Entity> predicate) { return this.findNearbyPlayer(entity.locX(), entity.locY(), entity.locZ(), d0, predicate); } // Paper
-diff --git a/src/main/java/net/minecraft/server/IEntitySelector.java b/src/main/java/net/minecraft/server/IEntitySelector.java
-index 06ce390b6492f23343e57e648bff241d96fdb7b6..624432bb7be214eb7f302ce698b8a4ca4472c862 100644
---- a/src/main/java/net/minecraft/server/IEntitySelector.java
-+++ b/src/main/java/net/minecraft/server/IEntitySelector.java
-@@ -23,6 +23,7 @@ public final class IEntitySelector {
-     public static final Predicate<Entity> f = (entity) -> {
-         return !(entity instanceof EntityHuman) || !entity.isSpectator() && !((EntityHuman) entity).isCreative() && entity.world.getDifficulty() != EnumDifficulty.PEACEFUL;
-     };
-+    public static final Predicate<Entity> exceptSpectator() { return g; } // Yatopia - OBFHELPER
-     public static final Predicate<Entity> g = (entity) -> {
-         return !entity.isSpectator();
-     };
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 index f2134c4ec6877ae3475f56928ad218c709c0e59d..c4ea24195ac8744e4abf4a9043d79ad1c1c848a0 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
@@ -987,10 +1028,25 @@ index f2134c4ec6877ae3475f56928ad218c709c0e59d..c4ea24195ac8744e4abf4a9043d79ad1
                      sum += size;
                  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index f339bc126e97bf57806fe673a27886125b3ce207..c99df02b65c2056b1cfffcfae68f8289d7ed051e 100644
+index f339bc126e97bf57806fe673a27886125b3ce207..b41e6544802cf14bdacb69652dc0891d92f2660b 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1744,12 +1744,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -649,8 +649,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     }
+ 
+     public final void getCollisions(@Nullable Entity entity, AxisAlignedBB axisalignedbb, List<AxisAlignedBB> list, boolean loadChunks) {
++        // Yatopia start - jellysquid is better
++        /*
+         this.getCollisionsForBlocksOrWorldBorder(entity, axisalignedbb, list, loadChunks);
+         this.getEntityHardCollisions(entity, axisalignedbb, null, list);
++         */
++        me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.fillEntityCollisionsList(this, entity, list, axisalignedbb, loadChunks);
++        me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.fillBlockCollisionsList(this, list, entity, axisalignedbb);
++        // Yatopia end
+     }
+ 
+     @Override
+@@ -1744,12 +1750,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Spigot End
          this.tileEntityListUnload.addAll(chunk.getTileEntities().values());
