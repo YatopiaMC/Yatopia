@@ -66,6 +66,8 @@ This is an overview over all patches that are currently used.
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
+| server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
+| server |  MC-171420 - Fix deop kicking non-whitelisted player when      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |

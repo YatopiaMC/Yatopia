@@ -10,7 +10,7 @@ Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..aca26213af3dc54f6f5f468e7ce96ab1213efc84
+index 0000000000000000000000000000000000000000..b400a5870b64b9eb92b6a8311793f5c8ea8df9af
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java
 @@ -0,0 +1,101 @@
@@ -42,7 +42,7 @@ index 0000000000000000000000000000000000000000..aca26213af3dc54f6f5f468e7ce96ab1
 +                while (entityClass != null && entityClass != Entity.class) {
 +                    try {
 +                        overwritten = true;
-+                        entityClass.getDeclaredMethod("hardCollides");
++                        entityClass.getDeclaredMethod("aY");
 +                    } catch (NoSuchMethodException e) {
 +                        overwritten = false;
 +                        entityClass = entityClass.getSuperclass();
@@ -60,7 +60,7 @@ index 0000000000000000000000000000000000000000..aca26213af3dc54f6f5f468e7ce96ab1
 +                while (entityClass != null && entityClass != Entity.class) {
 +                    try {
 +                        overwritten = true;
-+                        entityClass.getDeclaredMethod("hardCollidesWith", Entity.class);
++                        entityClass.getDeclaredMethod("j", Entity.class);
 +                    } catch (NoSuchMethodException e) {
 +                        overwritten = false;
 +                        entityClass = entityClass.getSuperclass();
@@ -156,7 +156,7 @@ index 0000000000000000000000000000000000000000..29c944e34ceb5c9c7bbd8e85f756c58d
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..260ba36384a3f8ba047ba2338abb71e1369ed65e
+index 0000000000000000000000000000000000000000..c10b4de851fafb9b70a833c958125a5df3659c3e
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 @@ -0,0 +1,176 @@
@@ -288,7 +288,7 @@ index 0000000000000000000000000000000000000000..260ba36384a3f8ba047ba2338abb71e1
 +                    }
 +
 +                    if (entity == null) {
-+                        if (!otherEntity.hardCollides()) {
++                        if (!otherEntity.collisionBoxIsHard()) {
 +                            continue;
 +                        }
 +                    } else if (!entity.hardCollidesWith(otherEntity)) {
