@@ -5,28 +5,26 @@ Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index c2af174e639396ac70eb7b520fdd641b1d2c67e6..7de6e116a7e301754c637b68be39c30f610a04d7 100644
+index 2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393..64adf87f2fe9921e49bf7a76170bb9908dfdaf19 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -83,7 +83,24 @@ public class CraftingManager extends ResourceDataJson {
+@@ -83,7 +83,22 @@ public class CraftingManager extends ResourceDataJson {
          }).findFirst();
          c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
          // CraftBukkit end
 -        return recipe;
 +        // Yatopia start
-+	if(c0.getCurrentRecipe() != null) {
-+		Optional<T> optional = recipes.a(c0.getCurrentRecipe(), world, c0);
-+		if(optional.isPresent()) {
-+		        c0.setCurrentRecipe(optional.get());
++	    if (c0.getCurrentRecipe() != null) {
++		    Optional<T> optional = recipes.a(c0.getCurrentRecipe(), world, c0);
++            optional.ifPresent(c0::setCurrentRecipe);
 +			return optional;
-+		}
-+	}
-+        for(IRecipe<C> rep : this.a(recipes)) {
-+		Optional<T> optional = recipes.a(rep, world, c0);
-+		if(optional.isPresent()) {
++	    }
++        for (IRecipe<C> rep : this.a(recipes)) {
++		    Optional<T> optional = recipes.a(rep, world, c0);
++		    if(optional.isPresent()) {
 +		        c0.setCurrentRecipe(optional.get());
-+			return optional;
-+		}
++			    return optional;
++            }
 +        }
 +        c0.setCurrentRecipe(null); // CraftBukkit - Clear recipe when no recipe is found
 +        return Optional.empty();
@@ -35,24 +33,25 @@ index c2af174e639396ac70eb7b520fdd641b1d2c67e6..7de6e116a7e301754c637b68be39c30f
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index acc533ca8ad612cc439208f4adf6e3d3289c92c7..eded99b59beb7d6fe759b21fa7d3082057c741d4 100644
+index 99bd8626b28a837f0da2268d89fddb6d28b2a944..cee623e5711565703fb16e7ad057e3950fb49e79 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-@@ -99,7 +99,13 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -83,7 +83,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          this.c = recipes;
      }
  
-+    //Yatopia
-+    private static Map<Item, Integer> cachedFuelMap = null;
++    private static Map<Item, Integer> cachedFuelMap = null; // Yatopia
 +
      public static Map<Item, Integer> f() {
-+	if(cachedFuelMap != null) {
-+		return cachedFuelMap; // Yatopia
-+	}
++        // Yatopia start
++	    if(cachedFuelMap != null) {
++		    return cachedFuelMap;
++	    }
++	    // Yatopia end
          Map<Item, Integer> map = Maps.newLinkedHashMap();
  
          a(map, (IMaterial) Items.LAVA_BUCKET, 20000);
-@@ -162,6 +168,7 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -146,6 +153,7 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          a(map, (IMaterial) Blocks.FLETCHING_TABLE, 300);
          a(map, (IMaterial) Blocks.SMITHING_TABLE, 300);
          a(map, (IMaterial) Blocks.COMPOSTER, 300);
@@ -60,12 +59,12 @@ index acc533ca8ad612cc439208f4adf6e3d3289c92c7..eded99b59beb7d6fe759b21fa7d30820
          return map;
      }
  
-@@ -615,4 +622,19 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -599,4 +607,17 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }
 +
-+     // Yatopia start
++    // Yatopia start
 +    private IRecipe cachedRecipe = null;
 +    @Override
 +    public IRecipe getCurrentRecipe() {
@@ -73,10 +72,8 @@ index acc533ca8ad612cc439208f4adf6e3d3289c92c7..eded99b59beb7d6fe759b21fa7d30820
 +    }
 +    @Override
 +    public void setCurrentRecipe(IRecipe recipe) {
-+	cachedRecipe = recipe;
++        cachedRecipe = recipe;
 +    }
-+
-+
 +    // Yatopia end
 +
  }

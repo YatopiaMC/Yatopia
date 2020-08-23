@@ -4,95 +4,89 @@ Date: Mon, 11 May 2020 22:56:27 +0200
 Subject: [PATCH] lithium MixinLandPathNodeMaker
 
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
-you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.15.x/fabric (Yarn mappings)
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index 29c978aaa2b9f50f5dba70943653af7658d98fc7..595fb84f280bb10997992cc41ebc512ceaf2d696 100644
+index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..56da391b4d415630b881cccbaa50507eb2c23cc0 100644
 --- a/src/main/java/net/minecraft/server/PathfinderNormal.java
 +++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
-@@ -4,12 +4,23 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
- import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
- import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
- import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
-+import com.google.common.collect.Sets;
-+
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
-+
+@@ -7,9 +7,15 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
  import java.util.EnumSet;
  import java.util.Iterator;
  import javax.annotation.Nullable;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap; // Yatopia
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap; // Yatopia
  
  public class PathfinderNormal extends PathfinderAbstract {
  
-+	// Yatopia start
-+
-+    // This is not thread-safe!
++    // Yatopia start - this is not thread safe!
 +    private static final Reference2ReferenceMap<IBlockData, PathType> commonTypes = new Reference2ReferenceOpenHashMap<>();
-+	// Yatopia end
++    // Yatopia end
 +
      protected float j;
      private final Long2ObjectMap<PathType> k = new Long2ObjectOpenHashMap();
      private final Object2BooleanMap<AxisAlignedBB> l = new Object2BooleanOpenHashMap();
-@@ -509,13 +520,44 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -490,9 +496,22 @@ public class PathfinderNormal extends PathfinderAbstract {
      protected static PathType b(IBlockAccess iblockaccess, BlockPosition blockposition) {
          IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition); // Paper
          if (iblockdata == null) return PathType.BLOCKED; // Paper
 -        Block block = iblockdata.getBlock();
 -        Material material = iblockdata.getMaterial();
-+        // Check early if the block is air as it will always be open regardless of other conditions
-+        if(iblockdata.isAir())return PathType.OPEN;
-+
-+        // Get the cached type for this block state
++        // Yatopia start - replaced logic
++        //Block block = iblockdata.getBlock();
++        //Material material = iblockdata.getMaterial();
++        if (iblockdata.isAir()) return PathType.OPEN;
 +        PathType type = commonTypes.get(iblockdata);
-+
-+        // No result has been cached for this block state yet, so calculate and cache it
 +        if (type == null) {
-+            commonTypes.put(iblockdata, type = getPathType(iblockaccess, blockposition, iblockdata));
++            commonTypes.put(iblockdata, type = getPathType(iblockdata));
 +        }
-+        // If the node type is open, it means that we were unable to determine a more specific type, so we need
-+        // to check the fallback path.
+ 
 +        if (type == PathType.OPEN) {
-+            // This is only ever called in vanilla after all other possibilities are exhausted, but before fluid checks
-+            // It should be safe to perform it last in actuality and take advantage of the cache for fluid types as well
-+            // since fluids will always pass this check.
 +            if (!iblockdata.a(iblockaccess, blockposition, PathMode.LAND)) {
 +                return PathType.BLOCKED;
 +            }
- 
--        if (iblockdata.isAir()) {
-+            // All checks succeed, this path node really is open!
-             return PathType.OPEN;
--        } else if (!iblockdata.a((Tag) TagsBlock.TRAPDOORS) && !iblockdata.a(Blocks.LILY_PAD)) {
--            if (iblockdata.a(Blocks.CACTUS)) {
 +        }
 +
-+        // Return the cached value since we found an obstacle earlier
++        /*
+         if (iblockdata.isAir()) {
+             return PathType.OPEN;
+         } else if (!iblockdata.a((Tag) TagsBlock.TRAPDOORS) && !iblockdata.a(Blocks.LILY_PAD)) {
+@@ -512,7 +531,38 @@ public class PathfinderNormal extends PathfinderAbstract {
+         } else {
+             return PathType.TRAPDOOR;
+         }
++         */
 +        return type;
-+
++        // Yatopia end
 +    }
 +
-+	private static PathType getPathType(IBlockAccess iblockaccess, BlockPosition blockposition,
-+			IBlockData iblockdata) {
-+		Block block = iblockdata.getBlock();
-+        Material material = iblockdata.getMaterial();
-+
++    // Yatopia start
++    private static PathType getPathType(IBlockData iblockdata) {
++        Block block = iblockdata.getBlock();
 +        if (!block.a(TagsBlock.TRAPDOORS) && block != Blocks.LILY_PAD) {
 +            if (block == Blocks.FIRE) {
 +                return PathType.DAMAGE_FIRE;
 +            } else if (block == Blocks.CACTUS) {
-                 return PathType.DAMAGE_CACTUS;
-             } else if (iblockdata.a(Blocks.SWEET_BERRY_BUSH)) {
-                 return PathType.DAMAGE_OTHER;
-@@ -541,7 +583,10 @@ public class PathfinderNormal extends PathfinderAbstract {
-                 } else {
-                     Fluid fluid = iblockdata.getFluid(); // Tuinity - remove another getType call
- 
--                    return fluid.a((Tag) TagsFluid.WATER) ? PathType.WATER : (fluid.a((Tag) TagsFluid.LAVA) ? PathType.LAVA : PathType.OPEN);
-+                    if(fluid.a(TagsFluid.WATER))return PathType.WATER;
-+                    if(fluid.a(TagsFluid.LAVA))return PathType.LAVA;
++                return PathType.DAMAGE_CACTUS;
++            } else if (iblockdata.a(Blocks.SWEET_BERRY_BUSH)) {
++                return PathType.DAMAGE_OTHER;
++            } else if (iblockdata.a(Blocks.HONEY_BLOCK)) {
++                return PathType.STICKY_HONEY;
++            } else if (iblockdata.a(Blocks.COCOA)) {
++                return PathType.COCOA;
++            } else {
++                Fluid fluid = iblockdata.getFluid(); // Tuinity - remove another get type call
 +
-+                    return PathType.OPEN;
-                 }
-             } else {
-                 return PathType.FENCE;
++                if (fluid.a(TagsFluid.WATER)) return PathType.WATER;
++                if (fluid.a(TagsFluid.LAVA)) return PathType.LAVA;
++
++                return PathType.OPEN;
++            }
++        } else {
++            return PathType.TRAPDOOR;
++        }
+     }
++    // Yatopia end
+ 
+     private static boolean a(IBlockData iblockdata) {
+         return iblockdata.a((Tag) TagsBlock.FIRE) || iblockdata.a(Blocks.LAVA) || iblockdata.a(Blocks.MAGMA_BLOCK) || BlockCampfire.g(iblockdata);

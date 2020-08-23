@@ -4,23 +4,15 @@ Date: Tue, 4 Aug 2020 21:46:05 +0200
 Subject: [PATCH] lithium-MixinDataWatcher
 
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
-you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.15.x/fabric (Yarn mappings)
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/net/minecraft/server/DataWatcher.java b/src/main/java/net/minecraft/server/DataWatcher.java
-index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fdb4381c42 100644
+index e69093b411f76ea4090789576f8fb6635bd02ca5..4a14431b198c227eb6f0f68eaac14f5c09fc3036 100644
 --- a/src/main/java/net/minecraft/server/DataWatcher.java
 +++ b/src/main/java/net/minecraft/server/DataWatcher.java
-@@ -6,6 +6,7 @@ import io.netty.handler.codec.DecoderException;
- import io.netty.handler.codec.EncoderException;
- import java.io.IOException;
- import java.util.ArrayList;
-+import java.util.Arrays;
- import java.util.Iterator;
- import java.util.List;
- import java.util.Map;
-@@ -26,6 +27,77 @@ public class DataWatcher {
+@@ -27,6 +27,77 @@ public class DataWatcher {
      private boolean f = true;
      private boolean g;
  
@@ -34,7 +26,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
 +     * should only ever occur during entity initialization. Type-erasure is a bit of a pain here since we must redirect
 +     * a calls to the generic Map interface.
 +     */
-+    private Object onAddTrackedDataInsertMap(it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<DataWatcher.Item<?>> map, int keyRaw, DataWatcher.Item<?> valueRaw) {
++    private Object onAddTrackedDataInsertMap(Int2ObjectOpenHashMap<DataWatcher.Item<?>> map, int keyRaw, DataWatcher.Item<?> valueRaw) {
 +        int k = keyRaw;
 +        DataWatcher.Item<?> v = (DataWatcher.Item<?>) valueRaw;
 +
@@ -46,7 +38,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
 +            // than 256 entries as per the vanilla limit
 +            int newSize = Math.min(k + GROW_FACTOR, 256);
 +
-+            this.entriesArray = storage = Arrays.copyOf(storage, newSize);
++            this.entriesArray = storage = java.util.Arrays.copyOf(storage, newSize);
 +        }
 +
 +        // Update the storage
@@ -98,7 +90,7 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
      public DataWatcher(Entity entity) {
          this.entity = entity;
      }
-@@ -90,7 +162,8 @@ public class DataWatcher {
+@@ -91,7 +162,8 @@ public class DataWatcher {
          DataWatcher.Item<T> datawatcher_item = new DataWatcher.Item<>(datawatcherobject, t0);
  
          // this.lock.writeLock().lock(); // Spigot - not required
@@ -108,12 +100,12 @@ index be8e705fc3f2c31e4f84f59c977488d8ecd9cae1..d8147567b4dfdc48b86f6349fca084fd
          this.f = false;
          // this.lock.writeLock().unlock(); // Spigot - not required
      }
-@@ -121,7 +194,8 @@ public class DataWatcher {
+@@ -122,7 +194,8 @@ public class DataWatcher {
      }
  
      public <T> T get(DataWatcherObject<T> datawatcherobject) {
 -        return this.b(datawatcherobject).b();
-+	return getEntry(datawatcherobject).b(); // Yatopia
++	    return getEntry(datawatcherobject).b(); // Yatopia
 +        //return this.b(datawatcherobject).b();
      }
  

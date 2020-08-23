@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Wed, 5 Aug 2020 08:08:44 -0500
+Subject: [PATCH] Optimize TileEntity load/unload
+
+
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 9b2c9b57bb8033c90584b3ed57c50dd1ee5ff3d6..500c0af58c04ac0eeb9fb54aeb5ebfa0454982f4 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -43,9 +43,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public static final ResourceKey<World> THE_END = ResourceKey.a(IRegistry.L, new MinecraftKey("the_end"));
+     private static final EnumDirection[] a = EnumDirection.values();
+     //public final List<TileEntity> tileEntityList = Lists.newArrayList(); // Paper - remove unused list
+-    public final List<TileEntity> tileEntityListTick = Lists.newArrayList();
+-    protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
+-    protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
++    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
++    protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
++    protected final List<TileEntity> tileEntityListUnload = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
+     public final Thread serverThread;
+     private final boolean debugWorld;
+     private int d;

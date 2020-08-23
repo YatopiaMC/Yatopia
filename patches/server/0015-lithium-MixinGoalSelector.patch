@@ -6,28 +6,26 @@ Subject: [PATCH] lithium MixinGoalSelector
 Only replaces the set type, might want to also port the logic rewrite in the future
 
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
-you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.15.x/fabric (Yarn mappings)
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
-index b783028e5526df722d98e4760ffb214d5d2f83dd..2378a833cd31d703db462dd6f55a5cb858796b8d 100644
+index b783028e5526df722d98e4760ffb214d5d2f83dd..9be854ebef1eb23ee4cc5d733e43dfca7d6439f7 100644
 --- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
 +++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
-@@ -1,7 +1,8 @@
- package net.minecraft.server;
+@@ -11,6 +11,7 @@ import java.util.function.Supplier;
+ import java.util.stream.Stream;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet; // Yatopia
  
- import com.destroystokyo.paper.util.set.OptimizedSmallEnumSet; // Paper - remove streams from pathfindergoalselector
--import com.google.common.collect.Sets;
-+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
-+
- import java.util.EnumMap;
- import java.util.EnumSet;
- import java.util.Iterator; // Paper - remove streams from pathfindergoalselector
+ public class PathfinderGoalSelector {
+ 
 @@ -27,7 +28,7 @@ public class PathfinderGoalSelector {
          }
      };
      private final Map<PathfinderGoal.Type, PathfinderGoalWrapped> c = new EnumMap(PathfinderGoal.Type.class);
 -    private final Set<PathfinderGoalWrapped> d = Sets.newLinkedHashSet(); public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public
-+    private final Set<PathfinderGoalWrapped> d = new ObjectLinkedOpenHashSet<PathfinderGoalWrapped>();/* Yatopia better set */ public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public
++    private final Set<PathfinderGoalWrapped> d = new ObjectLinkedOpenHashSet<>();/* Yatopia better set */ public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public
      private final Supplier<GameProfilerFiller> e;
      private final EnumSet<PathfinderGoal.Type> f = EnumSet.noneOf(PathfinderGoal.Type.class); // Paper unused, but dummy to prevent plugins from crashing as hard. Theyll need to support paper in a special case if this is super important, but really doesn't seem like it would be.
      private final OptimizedSmallEnumSet<PathfinderGoal.Type> goalTypes = new OptimizedSmallEnumSet<>(PathfinderGoal.Type.class); // Paper - remove streams from pathfindergoalselector

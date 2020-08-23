@@ -4,24 +4,27 @@ Date: Fri, 31 Jul 2020 21:46:32 -0500
 Subject: [PATCH] lithium MixinBiome
 
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
-you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.15.x/fabric (Yarn mappings)
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c2c19a6fbfa2a4aba21aa71789071c69a6246556
+index 0000000000000000000000000000000000000000..15cc7232e4edf6803e4b831ff094a748f95e1f9a
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
-@@ -0,0 +1,168 @@
+@@ -0,0 +1,171 @@
 +package me.jellysquid.mods.lithium.common.util.collections;
 +
-+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-+
-+import java.util.*;
++import java.util.Collection;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.List;
++import java.util.ListIterator;
++import java.util.Set;
 +
 +/**
 + * Wraps a {@link List} with a hash table which provides O(1) lookups for {@link Collection#contains(Object)}.
 + *
-+ * @see https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/fabric/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java
++ * @see <a href="https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/fabric/src/main/java/me/jellysquid/mods/lithium/common/util/collections/HashedList.java">HashedList</a>
 + */
 +public class HashedList<T> implements List<T> {
 +    private final List<T> list;
@@ -177,28 +180,19 @@ index 0000000000000000000000000000000000000000..c2c19a6fbfa2a4aba21aa71789071c69
 +    }
 +
 +    public static <T> HashedList<T> wrapper(List<T> list) {
-+        return new HashedList<>(list, new ObjectArraySet<>(list));
++        return new HashedList<>(list, new HashSet<>(list)); // Yatopia - use hashset
 +    }
 +}
-\ No newline at end of file
-diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
-index b2b654218382cc2cf1649067cd140b539235e3d2..bfaba96eb56dd98a67d2c2179335ae48dcbe3849 100644
---- a/src/main/java/net/minecraft/server/BiomeBase.java
-+++ b/src/main/java/net/minecraft/server/BiomeBase.java
-@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
- import com.mojang.serialization.Codec;
- import com.mojang.serialization.codecs.RecordCodecBuilder;
- import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
-+import me.jellysquid.mods.lithium.common.util.collections.HashedList;
- 
- import java.util.*;
- import java.util.function.Function;
-@@ -139,7 +140,7 @@ public class BiomeBase {
-             for (j = 0; j < i; ++j) {
-                 EnumCreatureType enumcreaturetype = aenumcreaturetype[j];
- 
--                this.v.put(enumcreaturetype, new MobList()); // Paper
-+                this.v.put(enumcreaturetype, HashedList.wrapper(new MobList())); // Paper // Yatopia lithium change
-             }
- 
-         } else {
+diff --git a/src/main/java/net/minecraft/server/BiomeSettingsMobs.java b/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
+index a18ca3f0001a771f21012bd39711f581efb2fef0..0f88b7b38b6191c3adbebdee82427275640c4197 100644
+--- a/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
++++ b/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
+@@ -113,7 +113,7 @@ public class BiomeSettingsMobs {
+         private final Map<EnumCreatureType, List<BiomeSettingsMobs.c>> a = (Map) Stream.of(EnumCreatureType.values()).collect(Maps.toImmutableEnumMap((enumcreaturetype) -> {
+             return enumcreaturetype;
+         }, (enumcreaturetype) -> {
+-            return new MobList(); // Use MobList instead of ArrayList
++            return me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new MobList()); // Use MobList instead of ArrayList // Yatopia - hashedlist
+         }));
+         // Paper end
+         private final Map<EntityTypes<?>, BiomeSettingsMobs.b> b = Maps.newLinkedHashMap();

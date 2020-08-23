@@ -5,10 +5,10 @@ Subject: [PATCH] Item stuck sleep config
 
 
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index 3c654db72bf0a8b56dafd73df8a59f76d27360ae..0273d800eb75ba83edb36dff9e76f4d34031d600 100644
+index fd33954eb91339a8568610f515ee164527d7406b..d70b6af62f7e9a0b49c38fae1170f0eb0584c781 100644
 --- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -215,4 +215,9 @@ public class YatopiaConfig {
+@@ -214,4 +214,9 @@ public class YatopiaConfig {
      private static void pistonPushLimit() {
          pistonPushLimit = getInt("settings.pistonPushLimit", 12);
      }
@@ -18,17 +18,16 @@ index 3c654db72bf0a8b56dafd73df8a59f76d27360ae..0273d800eb75ba83edb36dff9e76f4d3
 +        itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
 +    }
  }
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityItem.java b/src/main/java/net/minecraft/server/EntityItem.java
-index ca9c12151b193c05e42bbb99733f6e3ed2bae221..6869b688810cc72da01f164db1f0853d59752597 100644
+index 129bf6eaf288ef7c3d303194864c4c160a1b863f..c5aaa537f86d42473a7cdbd4d29f250031f67da9 100644
 --- a/src/main/java/net/minecraft/server/EntityItem.java
 +++ b/src/main/java/net/minecraft/server/EntityItem.java
-@@ -81,7 +81,7 @@ public class EntityItem extends Entity {
+@@ -82,7 +82,7 @@ public class EntityItem extends Entity {
  
              if (this.world.isClientSide) {
                  this.noclip = false;
 -            } else {
-+            } else if(!this.onGround || this.noclip || this.ticksLived % dev.tr7zw.yatopia.YatopiaConfig.itemStuckSleepTicks == 0) { // Yatopia
++            } else if (!this.onGround || this.noclip || this.ticksLived % dev.tr7zw.yatopia.YatopiaConfig.itemStuckSleepTicks == 0) { // Yatopia
                  this.noclip = !this.world.getCubes(this);
                  if (this.noclip) {
-                     this.k(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());
+                     this.l(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());

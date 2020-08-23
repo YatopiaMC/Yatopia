@@ -5,8 +5,21 @@ Subject: [PATCH] Yatopia API Bundle
 
 Lagging threshold + Purpur & Rainforest & Origami config
 
+diff --git a/src/main/java/com/destroystokyo/paper/entity/ai/VanillaGoal.java b/src/main/java/com/destroystokyo/paper/entity/ai/VanillaGoal.java
+index b42091752981a1f309ab350e9a394092cb334824..ba03cb48d483b6955d4635e9071fff5bfa472811 100644
+--- a/src/main/java/com/destroystokyo/paper/entity/ai/VanillaGoal.java
++++ b/src/main/java/com/destroystokyo/paper/entity/ai/VanillaGoal.java
+@@ -206,4 +206,8 @@ public interface VanillaGoal<T extends Mob> extends Goal<T> {
+     GoalKey<Zombie> ZOMBIE_ATTACK = GoalKey.of(Zombie.class, NamespacedKey.minecraft("zombie_attack"));
+     GoalKey<Creature> STROLL_VILLAGE_GOLEM = GoalKey.of(Creature.class, NamespacedKey.minecraft("stroll_village_golem"));
+     GoalKey<Mob> UNIVERSAL_ANGER_RESET = GoalKey.of(Mob.class, NamespacedKey.minecraft("universal_anger_reset"));
++    // Yatopia start
++    GoalKey<Phantom> FIND_CRYSTAL_GOAL = GoalKey.of(Phantom.class, NamespacedKey.minecraft("find_crystal_goal"));
++    GoalKey<Phantom> ORBIT_CRYSTAL_GOAL = GoalKey.of(Phantom.class, NamespacedKey.minecraft("orbit_crystal_goal"));
++    // Yatopia end
+ }
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..0770736b4b52f325027671b43f74ad038c97ce7f 100644
+index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..59787c474f1a17dff156e74107f880ac083a7cb3 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
 @@ -1776,4 +1776,15 @@ public final class Bukkit {
@@ -16,9 +29,9 @@ index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..0770736b4b52f325027671b43f74ad03
 +
 +    // Purpur start
 +    /**
-+     * Check if server is lagging according to laggy threshold setting
++     * Check if the server is lagging, according to the laggy threshold setting.
 +     *
-+     * @return True if lagging
++     * @return true if lagging
 +     */
 +    public static boolean isLagging() {
 +        return server.isLagging();
@@ -26,13 +39,25 @@ index 62cc1c74c11f56dcbd1e24e9c5478497742e6351..0770736b4b52f325027671b43f74ad03
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index 1f916988bd54e8386011b0d7e82fc9219939a881..154c24a5a32450636b1c554df1bb5262fa05e9c8 100644
+index 46c4d98ce32a0b1d8cfd391f2c7a9566a045cb55..e5170b299bb4252a7910c1aa5a607dbc3b30a0d1 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -1463,6 +1463,33 @@ public interface Server extends PluginMessageRecipient {
+@@ -1455,6 +1455,54 @@ public interface Server extends PluginMessageRecipient {
          }
-         // Akarin end - Server config
+         // Tuinity end - add config to timings report
  
++        // Akarin start
++        /**
++         * @deprecated yatopia does not import akarin config anymore
++         */
++        @Deprecated
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getAkarinConfig()
++        {
++            return new org.bukkit.configuration.file.YamlConfiguration();
++        }
++        // Akarin end
++
 +        // Rainforest start
 +        @NotNull
 +        public org.bukkit.configuration.file.YamlConfiguration getRainforestConfig()
@@ -43,12 +68,14 @@ index 1f916988bd54e8386011b0d7e82fc9219939a881..154c24a5a32450636b1c554df1bb5262
 +
 +        // Purpur start
 +        @NotNull
-+        public org.bukkit.configuration.file.YamlConfiguration getPurpurConfig() {
++        public org.bukkit.configuration.file.YamlConfiguration getPurpurConfig()
++        {
 +            throw new UnsupportedOperationException("Not supported yet.");
 +        }
 +
 +        @NotNull
-+        public java.util.Properties getServerProperties() {
++        public java.util.Properties getServerProperties()
++        {
 +            throw new UnsupportedOperationException("Not supported yet.");
 +        }
 +        // Purpur end
@@ -59,21 +86,28 @@ index 1f916988bd54e8386011b0d7e82fc9219939a881..154c24a5a32450636b1c554df1bb5262
 +            throw new UnsupportedOperationException("Not supported yet.");
 +        }
 +        // Origami end
++        // Yatopia start - add config to timings report
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getYatopiaConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++        // Yatopia end
 +
          /**
           * Sends the component to the player
           *
-@@ -1563,4 +1590,13 @@ public interface Server extends PluginMessageRecipient {
+@@ -1555,4 +1603,13 @@ public interface Server extends PluginMessageRecipient {
      @NotNull
      com.destroystokyo.paper.entity.ai.MobGoals getMobGoals();
      // Paper end
 +
 +    // Purpur start
 +    /**
-+    * Check if server is lagging according to laggy threshold setting
-+    *
-+    * @return True if lagging
-+    */
++     * Check if the server is lagging, according to the laggy threshold setting.
++     *
++     * @return true if lagging
++     */
 +    boolean isLagging();
 +    // Purpur end
  }

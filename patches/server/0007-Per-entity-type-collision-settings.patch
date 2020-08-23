@@ -1,0 +1,212 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Thu, 13 Aug 2020 15:14:36 +0300
+Subject: [PATCH] Per entity (type) collision settings
+
+Base patch was the only player collisions patch, the original author of was tr7zw <tr7zw@live.de>
+but pretty much the whole implementation changed.
+
+This patch implements per entity (type) collision settings with 100% compatibility with bukkit api and
+vanilla.
+
+The whole code is based around 1 class, the EntityFilter class. Whole filtering logic is there.
+
+Co-authored-by: tr7zw <tr7zw@live.de>
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index cb344a424bf4c657bb1bbca286a1136c9b21b489..82fc63dbfc0d48267e0c1972a312b7143f62e6f0 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -134,6 +134,39 @@ public final class OrigamiConfig {
+         private void observerClock() {
+             disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
+         }
++
++        // Yatopia start
++        public boolean playerCollisions = true;
++        public boolean animalCollisions = true;
++        public boolean ambientCollisions = true;
++        public boolean monsterCollisions = true;
++        public boolean villagerCollisions = true;
++        public boolean pillagerCollisions = true;
++        public boolean ironGolemCollisions = true;
++        public boolean miscCollisions = true;
++        public boolean itemCollisions = true;
++        public boolean waterCreatureCollisions = true;
++        public boolean waterAmbientCollisions = true;
++        public boolean allCollisionsEnabled = false;
++        private void specificCollisionSettings() {
++            playerCollisions = getBoolean("collisions.players", playerCollisions);
++            animalCollisions = getBoolean("collisions.animals", animalCollisions);
++            ambientCollisions = getBoolean("collisions.ambient", ambientCollisions);
++            monsterCollisions = getBoolean("collisions.monsters", monsterCollisions);
++            villagerCollisions = getBoolean("collisions.villagers", villagerCollisions);
++            pillagerCollisions = getBoolean("collisions.pillagers", pillagerCollisions);
++            ironGolemCollisions = getBoolean("collisions.iron-golems", ironGolemCollisions);
++            miscCollisions = getBoolean("collisions.misc", miscCollisions);
++            itemCollisions = getBoolean("collisions.items", itemCollisions);
++            waterCreatureCollisions = getBoolean("collisions.water-creature", waterCreatureCollisions);
++            waterAmbientCollisions = getBoolean("collisions.water-ambient", waterAmbientCollisions);
++
++            allCollisionsEnabled =
++                    playerCollisions && animalCollisions && ambientCollisions && monsterCollisions && villagerCollisions
++                            && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
++                            && waterCreatureCollisions && waterAmbientCollisions;
++        }
++        // Yatopia end
+     }
+ 
+ }
+\ No newline at end of file
+diff --git a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e8211826a342d743b897d816d7ece2e8d4cd0388
+--- /dev/null
++++ b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
+@@ -0,0 +1,133 @@
++package dev.tr7zw.yatopia;
++
++import de.minebench.origami.OrigamiConfig;
++import java.util.function.Predicate;
++import net.minecraft.server.Entity;
++import net.minecraft.server.EntityTypes;
++import net.minecraft.server.EnumCreatureType;
++import net.minecraft.server.IEntitySelector;
++import net.minecraft.server.ScoreboardTeamBase;
++
++public class EntityFilter {
++
++    public static Predicate<Entity> getFilter(Entity entity) {
++        OrigamiConfig.WorldConfig config = entity.world.origamiConfig;
++        if (config.allCollisionsEnabled) {
++            return IEntitySelector.a(entity);
++        }
++
++        ScoreboardTeamBase entityTeam = entity.getScoreboardTeam();
++        ScoreboardTeamBase.EnumTeamPush entityTeamPush =
++                entityTeam == null ?
++                        ScoreboardTeamBase.EnumTeamPush.ALWAYS :
++                        entityTeam.getCollisionRule();
++
++        if (entityTeamPush == ScoreboardTeamBase.EnumTeamPush.NEVER || entity.world.isClientSide
++                || entity.isSpectator()) {
++            return tested -> false;
++        }
++
++        Predicate<Entity> ret = (tested) -> {
++            if (!tested.canCollideWith(entity) || !entity.canCollideWith(tested)) {
++                return false;
++            }
++            ScoreboardTeamBase testedTeam = tested.getScoreboardTeam();
++            ScoreboardTeamBase.EnumTeamPush testedPush =
++                    testedTeam == null ?
++                            ScoreboardTeamBase.EnumTeamPush.ALWAYS :
++                            testedTeam.getCollisionRule();
++
++            if (testedPush == ScoreboardTeamBase.EnumTeamPush.NEVER) {
++                return false;
++            }
++            if (testedTeam != null && entityTeam != null) {
++                // see IEntitySelector#a(Entity)
++                // copied from there, although for me this logic doesn't seem quite right
++                boolean ally = entityTeam.isAlly(testedTeam);
++
++                if ((entityTeamPush == ScoreboardTeamBase.EnumTeamPush.PUSH_OWN_TEAM ||
++                        testedPush == ScoreboardTeamBase.EnumTeamPush.PUSH_OWN_TEAM) && ally) {
++                    return false;
++                }
++                return (entityTeamPush != ScoreboardTeamBase.EnumTeamPush.PUSH_OTHER_TEAMS
++                        && testedPush != ScoreboardTeamBase.EnumTeamPush.PUSH_OTHER_TEAMS) || ally;
++            } else {
++                return testedPush == ScoreboardTeamBase.EnumTeamPush.ALWAYS &&
++                        entityTeamPush == ScoreboardTeamBase.EnumTeamPush.ALWAYS;
++            }
++        };
++
++        ret = ret.and((tested) -> {
++            if (tested.getEntityType() == EntityTypes.PLAYER && config.playerCollisions) {
++                return true;
++            }
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.CREATURE && config.animalCollisions) {
++                return true;
++            }
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.AMBIENT && config.ambientCollisions) {
++                return true;
++            }
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.MONSTER) {
++                if (config.monsterCollisions) {
++                    if (config.pillagerCollisions) {
++                        return true;
++                    } else {
++                        return tested.getEntityType() != EntityTypes.PILLAGER;
++                    }
++                } else {
++                    if (config.pillagerCollisions) {
++                        return tested.getEntityType() == EntityTypes.PILLAGER;
++                    } else {
++                        return false;
++                    }
++                }
++            }
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.MISC) {
++                if (config.miscCollisions) {
++                    if (!config.villagerCollisions) {
++                        if (!config.ironGolemCollisions) {
++                            if (!config.itemCollisions) {
++                                return tested.getEntityType() != EntityTypes.VILLAGER
++                                        && tested.getEntityType() != EntityTypes.IRON_GOLEM
++                                        && tested.getEntityType() != EntityTypes.ITEM;
++                            } else {
++                                return tested.getEntityType() != EntityTypes.VILLAGER
++                                        && tested.getEntityType() != EntityTypes.IRON_GOLEM;
++                            }
++                        } else {
++                            return tested.getEntityType() != EntityTypes.VILLAGER;
++                        }
++                    } else {
++                        return true;
++                    }
++                } else {
++                    if (config.villagerCollisions) {
++                        if (config.ironGolemCollisions) {
++                            if (config.itemCollisions) {
++                                return tested.getEntityType() == EntityTypes.VILLAGER
++                                        || tested.getEntityType() == EntityTypes.IRON_GOLEM
++                                        || tested.getEntityType() == EntityTypes.ITEM;
++                            } else {
++                                return tested.getEntityType() == EntityTypes.VILLAGER
++                                        || tested.getEntityType() == EntityTypes.IRON_GOLEM;
++                            }
++                        } else {
++                            return tested.getEntityType() == EntityTypes.VILLAGER;
++                        }
++                    } else {
++                        return false;
++                    }
++                }
++            }
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_CREATURE && config.waterCreatureCollisions) {
++                return true;
++            }
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_AMBIENT && config.waterAmbientCollisions) {
++                return true;
++            }
++            return false;
++        });
++
++        return ret;
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 88f4c30a03e9139b0284ff1a545ad80941dbd46c..dca7a86dba22bca9bfd830a353a2c9561d1cf0ec 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2849,7 +2849,7 @@ public abstract class EntityLiving extends Entity {
+         // Paper - end don't run getEntities if we're not going to use its result
+         // Tuinity start - reduce memory allocation from collideNearby
+         List<Entity> list = com.tuinity.tuinity.util.CachedLists.getTempGetEntitiesList();
+-        this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this), list);
++        this.world.getEntities(this, this.getBoundingBox(), dev.tr7zw.yatopia.EntityFilter.getFilter(this), list); // Yatopia
+         try {
+         // Tuinity end - reduce memory allocation from collideNearby
+ 

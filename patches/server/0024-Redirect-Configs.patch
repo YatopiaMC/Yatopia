@@ -1,171 +1,93 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Bud Gidiere <sgidiere@gmail.com>
+From: tr7zw <tr7zw@live.de>
 Date: Wed, 5 Aug 2020 08:17:46 -0500
 Subject: [PATCH] Redirect Configs
 
 
-diff --git a/src/main/java/app/akarin/server/Config.java b/src/main/java/app/akarin/server/Config.java
-index 1742facec843dd87897d62e4aab819835fab4a38..358ac3361c814b7cf5f9650a6a49c6efce7dd56a 100644
---- a/src/main/java/app/akarin/server/Config.java
-+++ b/src/main/java/app/akarin/server/Config.java
-@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
- import org.bukkit.configuration.ConfigurationSection;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-+import dev.tr7zw.yatopia.YatopiaConfig;
-+
- import java.io.File;
- import java.lang.reflect.Method;
- import java.lang.reflect.Modifier;
-@@ -22,8 +24,8 @@ public final class Config {
-     private static int configVersion;
- 
-     public static void init(final File file) {
--        Config.configFile = file;
--        final YamlConfiguration config = new YamlConfiguration();
-+        Config.configFile = YatopiaConfig.CONFIG_FILE;
-+        /*final YamlConfiguration config = new YamlConfiguration();
-         config.options().header(CONFIG_HEADER);
-         config.options().copyDefaults(true);
- 
-@@ -40,9 +42,9 @@ public final class Config {
-                 Bukkit.getLogger().log(Level.SEVERE, "Failure to load Akarin config", ex);
-                 throw new RuntimeException(ex);
-             }
--        }
-+        }*/
- 
--        Config.load(config);
-+        Config.load(YatopiaConfig.config);
-     }
- 
-     public static void load(final YamlConfiguration config) {
 diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-index 0d854bda9611b45d78815f9fe9cafb8901de210f..04f5751f7972ed04f97c3f911277a30f14344801 100644
+index f6623032e5d4034c104aa1fc6ff4265169e462ba..c9a61bf6531d761780ac66b69d06a1d036f988d5 100644
 --- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
 +++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-@@ -18,6 +18,8 @@ import org.bukkit.command.Command;
- import org.bukkit.configuration.InvalidConfigurationException;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-+import dev.tr7zw.yatopia.YatopiaConfig;
-+
- // Based on PaperConfig
- public final class RainforestConfig {
-   private static File CONFIG_FILE;
-@@ -37,8 +39,7 @@ public final class RainforestConfig {
+@@ -37,6 +37,8 @@ public final class RainforestConfig {
    private static boolean fatalError;
  
    public static void init(File configFile) {
--    CONFIG_FILE = configFile;
--    config = new YamlConfiguration();
-+    /*config = new YamlConfiguration();
++    // Yatopia start
++    /*
+     CONFIG_FILE = configFile;
+     config = new YamlConfiguration();
      try {
-       config.load(CONFIG_FILE);
-     } catch (IOException ex) {
-@@ -56,7 +57,9 @@ public final class RainforestConfig {
+@@ -56,7 +58,13 @@ public final class RainforestConfig {
  
      version = getInt("config-version", 1);
      set("config-version", 1);
--    readConfig(RainforestConfig.class, null);
-+    readConfig(RainforestConfig.class, null);*/
-+    config = YatopiaConfig.config;
-+    CONFIG_FILE = YatopiaConfig.CONFIG_FILE;
++     */
++    config = dev.tr7zw.yatopia.YatopiaConfig.config;
++    CONFIG_FILE = dev.tr7zw.yatopia.YatopiaConfig.CONFIG_FILE;
++    verbose = dev.tr7zw.yatopia.YatopiaConfig.verbose;
++    version = dev.tr7zw.yatopia.YatopiaConfig.version;
+     readConfig(RainforestConfig.class, null);
++    // Yatopia end
    }
  
    protected static void logError(String s) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index bd107a376eaf660ba1ad61c035f8ed2d9d04749c..157a5c1be65b6b39787e5be11d1a8d5ea4aeb2b8 100644
+index 82fc63dbfc0d48267e0c1972a312b7143f62e6f0..284865f960672645932521ed811a7c5c31c64294 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -3,6 +3,8 @@ package de.minebench.origami;
- import org.bukkit.Bukkit;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-+import dev.tr7zw.yatopia.YatopiaConfig;
-+
- import java.io.File;
- import java.lang.reflect.Method;
- import java.lang.reflect.Modifier;
-@@ -20,7 +22,7 @@ public final class OrigamiConfig {
+@@ -20,6 +20,8 @@ public final class OrigamiConfig {
      private static int configVersion;
  
      public static void init(final File file) {
--        OrigamiConfig.configFile = file;
-+        /*OrigamiConfig.configFile = file;
++        // Yatopia start
++        /*
+         OrigamiConfig.configFile = file;
          OrigamiConfig.config = new YamlConfiguration();
          config.options().header(CONFIG_HEADER);
-         config.options().copyDefaults(true);
-@@ -39,7 +41,9 @@ public final class OrigamiConfig {
+@@ -39,13 +41,16 @@ public final class OrigamiConfig {
                  System.out.println("Failure to load origami config");
                  throw new RuntimeException(ex);
              }
 -        }
+-
+-        OrigamiConfig.load(OrigamiConfig.class, null);
 +        }*/
-+	config = YatopiaConfig.config;
-+	configFile = YatopiaConfig.CONFIG_FILE;
- 
-         OrigamiConfig.load(OrigamiConfig.class, null);
++	    config = dev.tr7zw.yatopia.YatopiaConfig.config;
++	    configFile = dev.tr7zw.yatopia.YatopiaConfig.CONFIG_FILE;
++	    configVersion = dev.tr7zw.yatopia.YatopiaConfig.version;
++	    //OrigamiConfig.load(OrigamiConfig.class, null); // todo: uncomment when config options are ported
++        // Yatopia end
      }
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index 9f04500e167b8403c7487044a4ae03a6be61062a..fb3bf0731512b5517ca7ccb3240085b40e7f2abb 100644
---- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -33,7 +33,7 @@ import org.spigotmc.WatchdogThread;
  
- public class YatopiaConfig {
+     public static void load(Class<?> clazz, Object instance) {
+-        OrigamiConfig.configVersion = OrigamiConfig.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
++        //OrigamiConfig.configVersion = OrigamiConfig.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION); // Yatopia - NO
  
--    private static File CONFIG_FILE;
-+    public static File CONFIG_FILE;
-     private static final String HEADER = "This is the main configuration file for Yatopia.\n"
-             + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
-             + "You have been warned!\n";
+         for (final Method method : clazz.getDeclaredMethods()) {
+             if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 0170f25a694e757798ebd4a37c90b1c1e479d3bd..73f4d52f24d042e287dab351edd4bfa4e22046b4 100644
+index cb4a89940cf02de5c3eefc5c746397a931c96b7a..7e053bc9bbd8abc1a6c060c1b4166ff27c7043d2 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -169,6 +169,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -189,6 +189,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
              return false;
          }
-         com.destroystokyo.paper.PaperConfig.registerCommands();
-+        // Yatopia start
-+        try {
-+            dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
-+            } catch (Exception e) {
-+            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
-+            return false;
-+            }
-+        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
-+        // Yatopia end
-         // Purpur start
-         try {
-             net.pl3x.purpur.PurpurConfig.init((java.io.File) options.valueOf("purpur-settings"));
-@@ -183,14 +192,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
-         com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings")); // Rainforest
--        // Yatopia start
--        try {
--            dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
--            } catch (Exception e) {
--            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
--            return false;
--            }
--        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
+         dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
 +        de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
++        com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings"));
          // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 1a454f74b322605b1006da5be13760b13cc5f931..6820905bf16eb4e8a97615a7ef49b6d3337ab247 100644
+index 5387a50e4a24e2eb49693368c5342a69b8d14b69..6dd3a0e1dde1a114374f52e903d10e973b4ca44f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -304,7 +304,7 @@ public class Main {
+@@ -310,7 +310,7 @@ public class Main {
                  }
                  // Paper end
                  System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
 -                de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config
-+                //de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config
++                //de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config // Yatopia - no load here for u
                  System.out.println("Loading libraries, please wait...");
                  net.minecraft.server.Main.main(options);
              } catch (Throwable t) {

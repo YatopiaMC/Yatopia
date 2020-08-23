@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Patrick Hemmer <patrick.hemmer@gmail.com>
+Date: Tue, 11 Aug 2020 22:11:53 +0300
+Subject: [PATCH] Use block distance in portal search radius
+
+Original author: Patrick Hemmer <patrick.hemmer@gmail.com>
+
+Previously when searching for a portal, the server would use the search radius to determine which chunks it needs to search, and then would
+consider any portal within those chunks as a match, even if it is outside the search radius.
+This changes it so that the portal list is filtered to only include portals within the configured search radius (ignoring the Y coordinate).
+
+Ported to Yatopia and added per world config option by MrIvanPlays <ivan@mrivanplays.com>
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index 284865f960672645932521ed811a7c5c31c64294..70e8655f0516fcdf0fce4151a4395bd52cd5eeaa 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -171,6 +171,11 @@ public final class OrigamiConfig {
+                             && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
+                             && waterCreatureCollisions && waterAmbientCollisions;
+         }
++
++        public boolean useBlockDistanceInPortalSearchRadius = false;
++        private void useBlockDistanceInPortalSearchRadius() {
++            useBlockDistanceInPortalSearchRadius = getBoolean("use-block-distance-in-portal-search-radius", false);
++        }
+         // Yatopia end
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
+index e09fd73d9bbb59323a30dabdbfd9f3e1b8413541..f2640522b34f72c2c53a3cd66818af82ad026f9f 100644
+--- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
++++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
+@@ -31,12 +31,22 @@ public class PortalTravelAgent {
+         boolean seen = false;
+         VillagePlaceRecord best = null;
+         java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
++        // Yatopia start - fix portal bug
++        if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
++            list.removeIf(villagePlaceRecord -> {
++                BlockPosition portalPosition = villagePlaceRecord.getPosition();
++                return Math.abs(portalPosition.getX() - blockposition.getX()) > i
++                        || Math.abs(portalPosition.getZ() - blockposition.getZ()) > i;
++            });
++        }
++        if (!list.isEmpty()) {
+         for (VillagePlaceRecord villagePlaceRecord : list) {
+             if (!seen || comparator.compare(villagePlaceRecord, best) < 0) {
+                 seen = true;
+                 best = villagePlaceRecord;
+             }
+         }
++        } // Yatopia end
+         Optional<VillagePlaceRecord> optional = seen ? Optional.of(best) : Optional.empty();
+ 
+         return optional.map((villageplacerecord) -> {

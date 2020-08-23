@@ -1,50 +1,48 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Bud Gidiere <sgidiere@gmail.com>
+From: tr7zw <tr7zw@live.de>
 Date: Wed, 5 Aug 2020 08:05:10 -0500
 Subject: [PATCH] Add config Yatopia command and basic settings
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 88513b8830ea666ddf831771680b6e76e7cf95f0..6a110318441a16cc3ff7dfa2364768279b16358f 100644
+index b67f05f290db653cf75a89e85bd3decb5044a1e0..11758b6b158d971b9beb1b609d7513dab46be525 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
 @@ -232,6 +232,7 @@ public class TimingsExport extends Thread {
              pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
              pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
-             , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Yatopia - add config to timings report
-+            //, pair("yatopia", mapAsJSON(Bukkit.spigot().getYatopiaConfig(), null)) // Yatopia - add config to timings report
+             , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Purpur - add config to timings report
++            , pair("yatopia", mapAsJSON(Bukkit.spigot().getYatopiaConfig(), null)) // Yatopia - add config to timings report
          ));
  
          new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1e88bc1a89eada5008ffe88f7ed32e107b2fb10c
+index 0000000000000000000000000000000000000000..0ada1657122fd973bbb8ec8b7c7be83de0bd4a00
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
-@@ -0,0 +1,129 @@
+@@ -0,0 +1,141 @@
 +package dev.tr7zw.yatopia;
 +
++import com.google.common.base.Preconditions;
++import com.google.common.collect.Lists;
 +import java.io.File;
-+import java.util.ArrayList;
 +import java.util.Arrays;
 +import java.util.Collection;
 +import java.util.Collections;
-+import java.util.Iterator;
 +import java.util.List;
 +import java.util.Locale;
-+
++import java.util.function.Function;
++import net.minecraft.server.MinecraftKey;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.World;
++import net.minecraft.server.WorldDataServer;
 +import org.bukkit.Bukkit;
 +import org.bukkit.ChatColor;
 +import org.bukkit.Location;
 +import org.bukkit.command.Command;
 +import org.bukkit.command.CommandSender;
-+
-+import com.google.common.base.Functions;
-+import com.google.common.collect.Iterables;
-+import com.google.common.collect.Lists;
-+
-+import net.minecraft.server.MinecraftKey;
-+import net.minecraft.server.MinecraftServer;
++import org.spigotmc.TicksPerSecondCommand;
 +
 +public class YatopiaCommand extends Command {
 +
@@ -57,14 +55,15 @@ index 0000000000000000000000000000000000000000..1e88bc1a89eada5008ffe88f7ed32e10
 +
 +    @Override
 +    public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
-+        if (args.length <= 1)
++        if (args.length <= 1) {
 +            return getListMatchingLast(args, "help", "info", "reload", "version");
++        }
 +        return Collections.emptyList();
 +    }
 +
 +    // Code from Mojang - copyright them
 +    public static List<String> getListMatchingLast(String[] args, String... matches) {
-+        return getListMatchingLast(args, (Collection) Arrays.asList(matches));
++        return getListMatchingLast(args, Arrays.asList(matches));
 +    }
 +
 +    public static boolean matches(String s, String s1) {
@@ -73,27 +72,27 @@ index 0000000000000000000000000000000000000000..1e88bc1a89eada5008ffe88f7ed32e10
 +
 +    public static List<String> getListMatchingLast(String[] strings, Collection<?> collection) {
 +        String last = strings[strings.length - 1];
-+        ArrayList<String> results = Lists.newArrayList();
++        List<String> results = Lists.newArrayList();
 +
 +        if (!collection.isEmpty()) {
-+            Iterator iterator = Iterables.transform(collection, Functions.toStringFunction()).iterator();
-+
-+            while (iterator.hasNext()) {
-+                String s1 = (String) iterator.next();
-+
-+                if (matches(last, s1)) {
-+                    results.add(s1);
++            Function<Object, String> toStringFunction = (o) -> {
++                Preconditions.checkNotNull(o);
++                return o.toString();
++            };
++            for (Object c : collection) {
++                String value = toStringFunction.apply(c);
++                if (matches(last, value)) {
++                    results.add(value);
 +                }
 +            }
 +
 +            if (results.isEmpty()) {
-+                iterator = collection.iterator();
-+
-+                while (iterator.hasNext()) {
-+                    Object object = iterator.next();
-+
-+                    if (object instanceof MinecraftKey && matches(last, ((MinecraftKey) object).getKey())) {
-+                        results.add(String.valueOf(object));
++                for (Object c : collection) {
++                    if (c instanceof MinecraftKey) {
++                        MinecraftKey key = (MinecraftKey) c;
++                        if (matches(last, key.getKey())) {
++                            results.add(key.toString());
++                        }
 +                    }
 +                }
 +            }
@@ -112,9 +111,9 @@ index 0000000000000000000000000000000000000000..1e88bc1a89eada5008ffe88f7ed32e10
 +            return false;
 +        }
 +
-+        switch (args[0].toLowerCase(Locale.ENGLISH))  {
++        switch (args[0].toLowerCase(Locale.ENGLISH)) {
 +            case "info":
-+		doInfo(sender);
++                doInfo(sender);
 +                break;
 +            case "reload":
 +                doReload(sender);
@@ -136,72 +135,71 @@ index 0000000000000000000000000000000000000000..1e88bc1a89eada5008ffe88f7ed32e10
 +    }
 +
 +    private void doInfo(CommandSender sender) {
-+        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Last tick took " + Bukkit.getLastTickMs() + "ms");
-+        //TODO
++        broadcastMessage(sender, ChatColor.GOLD + "Last tick took " + TicksPerSecondCommand.format(Bukkit.getLastTickMs()));
++        for (World world : MinecraftServer.getServer().getWorlds()) {
++            String name = ((WorldDataServer) world.worldData).getName();
++            broadcastMessage(sender, ChatColor.GOLD + "Entities in world " +
++                    ChatColor.YELLOW + "\"" + name + "\"" +
++                    ChatColor.GOLD + ": " + ChatColor.YELLOW + world.getWorld().getEntityCount());
++            broadcastMessage(sender, ChatColor.GOLD + "Chunks loaded in world " +
++                    ChatColor.YELLOW + "\"" + name + "\"" +
++                    ChatColor.GOLD + ": " + ChatColor.YELLOW + world.getWorld().getChunkCount());
++        }
 +    }
 +
 +    private void doReload(CommandSender sender) {
-+        Command.broadcastCommandMessage(sender, ChatColor.RED + "Please note that this command is not supported and may cause issues.");
-+        Command.broadcastCommandMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
++        broadcastMessage(sender, ChatColor.RED + "Please note that this command is not supported and may cause issues.");
++        broadcastMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
 +
 +        MinecraftServer console = MinecraftServer.getServer();
-+        dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
++        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings"));
 +        console.server.reloadCount++;
 +
-+        Command.broadcastCommandMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
++        broadcastMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
++    }
++
++    // utility method
++    private void broadcastMessage(CommandSender sender, String message) {
++        Command.broadcastCommandMessage(sender, message);
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6384f40d9
+index 0000000000000000000000000000000000000000..b67a82569747fb8f4a349b7f81fe502cc4e2a792
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -0,0 +1,209 @@
+@@ -0,0 +1,213 @@
 +package dev.tr7zw.yatopia;
 +
-+import com.destroystokyo.paper.io.chunk.ChunkTaskManager;
-+import com.google.common.base.Strings;
 +import com.google.common.base.Throwables;
-+
 +import java.io.File;
 +import java.io.IOException;
 +import java.lang.reflect.InvocationTargetException;
 +import java.lang.reflect.Method;
 +import java.lang.reflect.Modifier;
-+import java.nio.charset.StandardCharsets;
 +import java.util.HashMap;
 +import java.util.List;
 +import java.util.Map;
-+import java.util.Set;
 +import java.util.concurrent.TimeUnit;
 +import java.util.logging.Level;
 +import java.util.regex.Pattern;
-+
-+import com.google.common.collect.Lists;
 +import net.minecraft.server.MinecraftServer;
 +import org.bukkit.Bukkit;
-+import org.bukkit.ChatColor;
 +import org.bukkit.command.Command;
-+import org.bukkit.configuration.ConfigurationSection;
 +import org.bukkit.configuration.InvalidConfigurationException;
 +import org.bukkit.configuration.file.YamlConfiguration;
-+import co.aikar.timings.Timings;
-+import co.aikar.timings.TimingsManager;
-+import org.spigotmc.SpigotConfig;
-+import org.spigotmc.WatchdogThread;
 +
 +public class YatopiaConfig {
 +
-+    private static File CONFIG_FILE;
++    public static File CONFIG_FILE;
 +    private static final String HEADER = "This is the main configuration file for Yatopia.\n"
-+            + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
-+            + "You have been warned!\n";
++                        + "Yatopia contains many breaking changes and settings, so know what you are doing!\n"
++                        + "You have been warned!\n";
 +    /*========================================================================*/
 +    public static YamlConfiguration config;
-+    static int version;
++    public static int version; // since we're remapping sidestreams' configs we need this public
 +    static Map<String, Command> commands;
-+    private static boolean verbose;
++    public static boolean verbose; // since we're remapping sidestreams' configs we need this public
 +    private static boolean fatalError;
 +    /*========================================================================*/
 +    private static boolean metricsStarted;
@@ -225,7 +223,30 @@ index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6
 +
 +        version = getInt("config-version", 1);
 +        set("config-version", 1);
++        removeLeftovers();
 +        readConfig(YatopiaConfig.class, null);
++    }
++
++    private static void removeLeftovers() {
++        // this method is only to remove non-used values in the config
++
++        // leftover from akarin / rainforest
++        if (config.get("world-settings") != null) {
++            set("world-settings", null);
++        }
++        // unused settings getting removed
++        if (config.get("settings.disablePlayerOutOfWorldBorderCheck") != null) {
++            set("settings.disablePlayerOutOfWorldBorderCheck", null);
++        }
++        if (config.get("settings.disableEntityCollisions") != null) {
++            set("settings.disableEntityCollisions", null);
++        }
++        if (config.get("settings.onlyPlayerCollisions") != null) {
++            set("settings.onlyPlayerCollisions", null);
++        }
++        if (config.get("settings.disableEntityCollisionboxes") != null) {
++            set("settings.disableEntityCollisionboxes", null);
++        }
 +    }
 +
 +    protected static void logError(String s) {
@@ -274,6 +295,7 @@ index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6
 +
 +    private static final Pattern SPACE = Pattern.compile(" ");
 +    private static final Pattern NOT_NUMERIC = Pattern.compile("[^-\\d.]");
++
 +    public static int getSeconds(String str) {
 +        str = SPACE.matcher(str).replaceAll("");
 +        final char unit = str.charAt(str.length() - 1);
@@ -285,10 +307,18 @@ index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6
 +            num = 0D;
 +        }
 +        switch (unit) {
-+            case 'd': num *= (double) 60*60*24; break;
-+            case 'h': num *= (double) 60*60; break;
-+            case 'm': num *= (double) 60; break;
-+            default: case 's': break;
++            case 'd':
++                num *= (double) 60 * 60 * 24;
++                break;
++            case 'h':
++                num *= (double) 60 * 60;
++                break;
++            case 'm':
++                num *= 60;
++                break;
++            default:
++            case 's':
++                break;
 +        }
 +        return (int) num;
 +    }
@@ -336,7 +366,7 @@ index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6
 +        return config.getInt(path, config.getInt(path));
 +    }
 +
-+    private static <T> List getList(String path, T def) {
++    private static <T> List<T> getList(String path, List<T> def) {
 +        config.addDefault(path, def);
 +        return (List<T>) config.getList(path, config.getList(path));
 +    }
@@ -348,77 +378,39 @@ index 0000000000000000000000000000000000000000..19bea6ee83d8b25da022662253328fb6
 +
 +    public static boolean disableEntityStuckChecks = false;
 +    private static void disableEntityStuckChecks() {
-+	disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
-+    }
-+
-+    public static boolean disablePlayerOutOfWorldBorderCheck = false;
-+    private static void disablePlayerOutOfWorldBorderCheck() {
-+	disablePlayerOutOfWorldBorderCheck = getBoolean("settings.disablePlayerOutOfWorldBorderCheck", false);
-+    }
-+
-+    public static boolean disableEntityCollisions = false;
-+    private static void disableEntityCollisions() {
-+	disableEntityCollisions = getBoolean("settings.disableEntityCollisions", false);
-+    }
-+
-+    public static boolean disableEntityCollisionboxes = false;
-+    private static void disableEntityCollisionboxes() {
-+	disableEntityCollisionboxes = getBoolean("settings.disableEntityCollisionboxes", false);
++        disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
 +    }
 +
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 7ac6ef0a125499de4b5e6a9ed80f963ba623b9f6..0170f25a694e757798ebd4a37c90b1c1e479d3bd 100644
+index a60634fc455e8a59399020689b70eb64b6824d12..cb4a89940cf02de5c3eefc5c746397a931c96b7a 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -7,6 +7,7 @@ import com.mojang.authlib.GameProfileRepository;
- import com.mojang.authlib.minecraft.MinecraftSessionService;
- import com.mojang.datafixers.DataFixer;
- import java.io.BufferedReader;
-+import java.io.File;
- import java.io.IOException;
- import java.io.InputStreamReader;
- import java.net.InetAddress;
-@@ -182,7 +183,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -181,6 +181,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         // Paper end
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
-         com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings")); // Rainforest
--
+ 
 +        // Yatopia start
 +        try {
-+            dev.tr7zw.yatopia.YatopiaConfig.init(new File("yatopia.yml"));
-+            } catch (Exception e) {
++            dev.tr7zw.yatopia.YatopiaConfig.init((java.io.File) options.valueOf("yatopia-settings"));
++        } catch (Exception e) {
 +            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
 +            return false;
-+            }
++        }
 +        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
 +        // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
-         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aY());
-diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index dd093e3e624158ff87bad59785ed2496f161f64c..ec84bc4dceff76fd2f823a6a9548fdf180291584 100644
---- a/src/main/java/net/minecraft/server/Entity.java
-+++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1035,7 +1035,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
-         VoxelShapeCollision voxelshapecollision = VoxelShapeCollision.a(this);
-         VoxelShape voxelshape = this.world.getWorldBorder().c();
-         Stream<VoxelShape> stream = !this.world.getWorldBorder().isInBounds(axisalignedbb) ? Stream.empty() : Stream.of(voxelshape); // Paper
--        Stream<VoxelShape> stream1 = this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
-+        Stream<VoxelShape> stream1 = dev.tr7zw.yatopia.YatopiaConfig.disableEntityCollisionboxes ? Stream.empty() : this.world.c(this, axisalignedbb.b(vec3d), (entity) -> {
-             return true;
-         });
-         StreamAccumulator<VoxelShape> streamaccumulator = new StreamAccumulator<>(Stream.concat(stream1, stream));
+         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aZ());
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 0c862b4604540545206ebe6e08d5d79484414279..da08249ee1c61b7c77b79f491cb8482865ecba3c 100644
+index f24f7f1230a380f46112e886fb5dff7c33edb2ce..88f4c30a03e9139b0284ff1a545ad80941dbd46c 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
          //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
          boolean flag = this instanceof EntityHuman;
  
-+        if(!dev.tr7zw.yatopia.YatopiaConfig.disableEntityStuckChecks) { // Yatopia start
++        if (dev.tr7zw.yatopia.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
@@ -426,7 +418,52 @@ index 0c862b4604540545206ebe6e08d5d79484414279..da08249ee1c61b7c77b79f491cb84828
                  }
              }
          }
-+        } // Yatopia end
++        } // Yatopia
  
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 7feb7933d56af0e58605c6eecb4ffb723ec8df0d..ea10950bfa54966d93f578a692388d8c92728c61 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -837,6 +837,7 @@ public final class CraftServer implements Server {
+         net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
+         com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
+         de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
++        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
+         for (WorldServer world : console.getWorlds()) {
+             world.worldDataServer.setDifficulty(config.difficulty);
+             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
+@@ -2264,6 +2265,13 @@ public final class CraftServer implements Server {
+         }
+         // Origami end
+ 
++        // Yatopia start
++        @Override
++        public YamlConfiguration getYatopiaConfig() {
++            return dev.tr7zw.yatopia.YatopiaConfig.config;
++        }
++        // Yatopia end
++
+         @Override
+         public void restart() {
+             org.spigotmc.RestartCommand.restart();
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index 132ad379242d9aa2defc639f79764050b73c572d..5387a50e4a24e2eb49693368c5342a69b8d14b69 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -169,6 +169,14 @@ public class Main {
+                         .describedAs("Yml file");
+                 // Origami end
+ 
++                // Yatopia start
++                acceptsAll(asList("yatopia", "yatopia-settings"), "File for yatopia settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("yatopia.yml"))
++                        .describedAs("Yml file");
++                // Yatopia end
++
+                 // Paper start
+                 acceptsAll(asList("server-name"), "Name of the server")
+                         .withRequiredArg()

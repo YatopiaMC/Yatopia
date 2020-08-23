@@ -5,19 +5,19 @@ Subject: [PATCH] Add getLastTickMs api
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index ee6a2dbc1306871d9ba621f199054befb09744c2..26ee6e9219059c9f7175148e934d2adec2b336a0 100644
+index 94cc21d445ad501e6ddd5cc5d45718e0c915149c..d2f7130752ec50bcb8fa2797652157ec2e97a285 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -930,6 +930,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -928,6 +928,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
      // Paper End
      // Spigot End
  
 +    public static long lastTickMs = 0; // Yatopia
 +
-     protected void v() {
+     protected void w() {
          try {
              long serverStartTime = SystemUtils.getMonotonicNanos(); // Paper
-@@ -998,7 +1000,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -996,7 +998,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                      this.a(gameprofilertick);
                      //this.methodProfiler.a(); // Akarin - remove caller
                      //this.methodProfiler.enter("tick"); // Akarin - remove caller
@@ -28,23 +28,23 @@ index ee6a2dbc1306871d9ba621f199054befb09744c2..26ee6e9219059c9f7175148e934d2ade
                      this.X = true;
                      // Purpur start - tps catchup
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 19d101e02183c04df3f21575356900a262031407..24b0fe67f2ea0a109fa32feb6ced0290cac7e8b7 100644
+index 5219441e22aa126f2640e863d2381ed12fbb5691..7feb7933d56af0e58605c6eecb4ffb723ec8df0d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -2420,4 +2420,11 @@ public final class CraftServer implements Server {
+@@ -2410,4 +2410,11 @@ public final class CraftServer implements Server {
          return getServer().lagging;
      }
      // Purpur end
 +
 +    // Yatopia start
 +    @Override
-+	public long getLastTickMs() {
++    public long getLastTickMs() {
 +        return net.minecraft.server.MinecraftServer.lastTickMs;
 +    }
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..87812ace9e1327f31693bdfb3fa45ac38766799b 100644
+index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..76cf2353754821361a4541c21fc8d5f1a670b0de 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 @@ -33,7 +33,7 @@ public class TicksPerSecondCommand extends Command
@@ -52,7 +52,20 @@ index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..87812ace9e1327f31693bdfb3fa45ac3
              tpsAvg[i] = format( tps[i] );
          }
 -        sender.sendMessage(ChatColor.GOLD + "TPS from last 5s, 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ")); // Purpur
-+        sender.sendMessage(ChatColor.GOLD + "TPS from last 5s, 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ") + " Last tick time: " + org.bukkit.Bukkit.getLastTickMs() + "ms"); // Yatopia // Purpur
++        sender.sendMessage(ChatColor.GOLD + "TPS from last 5s, 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ") + ChatColor.GOLD + " Last tick time: " + format( org.bukkit.Bukkit.getLastTickMs() )); // Purpur // Yatopia
          if (args.length > 0 && args[0].equals("mem") && sender.hasPermission("bukkit.command.tpsmemory")) {
              sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
              if (!hasShownMemoryWarning) {
+@@ -52,4 +52,12 @@ public class TicksPerSecondCommand extends Command
+         return ( ( tps > 18.0 ) ? ChatColor.GREEN : ( tps > 16.0 ) ? ChatColor.YELLOW : ChatColor.RED ).toString()
+                 + ( ( tps > 21.0 ) ? "*" : "" ) + Math.min( Math.round( tps * 100.0 ) / 100.0, 20.0 ); // Paper - only print * at 21, we commonly peak to 20.02 as the tick sleep is not accurate enough, stop the noise
+     }
++
++    // Yatopia start
++    public static String format(long ms)
++    {
++        ChatColor startingColor = ms < 40 ? ChatColor.GREEN : ( ms < 50 ) ? ChatColor.YELLOW : ChatColor.RED;
++        return startingColor.toString() + ms + ChatColor.GOLD + "ms";
++    }
++    // Yatopia end
+ }

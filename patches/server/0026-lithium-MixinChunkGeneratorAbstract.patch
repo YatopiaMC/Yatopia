@@ -4,24 +4,25 @@ Date: Tue, 4 Aug 2020 21:06:02 +0200
 Subject: [PATCH] lithium-MixinChunkGeneratorAbstract
 
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
-you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.15.x/fabric (Yarn mappings)
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/noise/SimplexNoiseCache.java b/src/main/java/me/jellysquid/mods/lithium/common/world/noise/SimplexNoiseCache.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a123b7a039
+index 0000000000000000000000000000000000000000..e6cd19e75a88f4dbf38d3cc63883068d95aa67d4
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/world/noise/SimplexNoiseCache.java
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,135 @@
 +package me.jellysquid.mods.lithium.common.world.noise;
 +
-+import java.util.Arrays;
-+
 +import it.unimi.dsi.fastutil.HashCommon;
++
 +import net.minecraft.server.ChunkCoordIntPair;
 +import net.minecraft.server.MathHelper;
 +import net.minecraft.server.NoiseGenerator3Handler;
++
++import java.util.Arrays;
 +
 +/**
 + * A cache for the End's noise generator that caches computed values. Through the caching, we can eliminate a large
@@ -73,14 +74,14 @@ index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a1
 +
 +        long lx = x;
 +        long lz = z;
-+        long distanceFromOriginSq = lx * lx + lz * lz;
++        long distanceFromOriginSq = lx * lx +  lz * lz;
 +
 +        // Ensure we are 64 grid cells away from the origin.
 +        if (distanceFromOriginSq > 64 * 64) {
 +            // Reduce the number of island-forming grid cells by sampling noise with a threshold
 +            if (this.sampler.a(x, z) < -0.9) {
 +                // Generate a pseudo-random value from 9 to 21
-+                value = (Math.abs(x) * 3439.0F + Math.abs(z) * 147.0F) % 13.0F + 9.0F;
++                value = (Math.abs(x) * 3439.0F +  Math.abs(z) * 147.0F) %13.0F +  9.0F;
 +            }
 +        }
 +
@@ -92,7 +93,8 @@ index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a1
 +    }
 +
 +    /**
-+     * Mapped and cleaned up implementation of the End biome source's sampler. Tries to use cached values wherever possible.
++     * Mapped and cleaned up implementation of the End biome source's sampler. Tries to use cached values wherever
++     * possible.
 +     */
 +    public float getNoiseAt(int x, int z) {
 +        // [VanillaCopy] TheEndBiomeSource#getNoiseAt
@@ -105,16 +107,16 @@ index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a1
 +        int gridOriginZ = z % GRID_SIZE;
 +
 +        // Initialize density for the central island
-+        float density = ISLAND_RADIUS - MathHelper.sqrt(x * x + z * z) * 8.0F;
++        float density = ISLAND_RADIUS - MathHelper.sqrt(x * x +  z * z) * 8.0F;
 +        if (density >= MAX) {
 +            return MAX;
 +        }
 +
 +        // Iterate through 25x25 grid cells
-+        for (int offsetX = -12; offsetX <= 12; ++offsetX) {
-+            for (int offsetZ = -12; offsetZ <= 12; ++offsetZ) {
-+                int globalGridX = gridX + offsetX;
-+                int globalGridZ = gridZ + offsetZ;
++        for (int offsetX = -12; offsetX <= 12; offsetX++) {
++            for (int offsetZ = -12; offsetZ <= 12; offsetZ++) {
++                int globalGridX = gridX +  offsetX;
++                int globalGridZ = gridZ +  offsetZ;
 +
 +                // Try to retrieve values from cache
 +                float distanceFactor = getDistanceFactor(globalGridX, globalGridZ);
@@ -124,7 +126,7 @@ index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a1
 +                    float deltaZ = gridOriginZ - offsetZ * GRID_SIZE;
 +
 +                    // Calculate the density at this grid cell
-+                    float scaledDistance = MathHelper.sqrt(deltaX * deltaX + deltaZ * deltaZ) * distanceFactor;
++                    float scaledDistance = MathHelper.sqrt(deltaX * deltaX +  deltaZ * deltaZ) * distanceFactor;
 +                    float densityHere = ISLAND_RADIUS - scaledDistance;
 +
 +                    // Try to return early if we're over the max
@@ -147,50 +149,41 @@ index 0000000000000000000000000000000000000000..167498cfab7aed0deb32232082ae06a1
 +        return density;
 +    }
 +}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-index 45b771e4121f2ef27c67d5a5ba2dadcfc0f944e0..448745b9e499b86f3ce6938c0f0fb0fbb222a781 100644
+index 321ebe8891defb46f3ad3dfea37c9bb6e2025ad7..119804e5c12aca3f4fbfeaf424f46152f43b3941 100644
 --- a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 +++ b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-@@ -5,6 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
- import it.unimi.dsi.fastutil.objects.ObjectArrayList;
- import it.unimi.dsi.fastutil.objects.ObjectList;
- import it.unimi.dsi.fastutil.objects.ObjectListIterator;
-+import me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache;
-+
- import java.util.Iterator;
- import java.util.List;
- import java.util.Random;
-@@ -56,12 +58,13 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -57,12 +57,13 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
      private final NoiseGenerator t;
      private final NoiseGeneratorOctaves u;
      @Nullable
 -    private final NoiseGenerator3Handler v;
-+    private final NoiseGenerator3Handler v; // Yatopia Note: yarn "SimplexNoiseSampler"
++    private final NoiseGenerator3Handler v; // Yatopia - yarn "SimplexNoiseSampler"
      protected final IBlockData f;
      protected final IBlockData g;
      private final long w;
-     protected final GeneratorSettingBase h;
+     protected final Supplier<GeneratorSettingBase> h;
      private final int x;
-+    private ThreadLocal<SimplexNoiseCache> tlCache; // Yatopia: lithium
++    private ThreadLocal<me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache> tlCache; // Yatopia
  
-     public ChunkGeneratorAbstract(WorldChunkManager worldchunkmanager, long i, GeneratorSettingBase generatorsettingbase) {
-         this(worldchunkmanager, worldchunkmanager, i, generatorsettingbase);
-@@ -96,7 +99,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+     public ChunkGeneratorAbstract(WorldChunkManager worldchunkmanager, long i, Supplier<GeneratorSettingBase> supplier) {
+         this(worldchunkmanager, worldchunkmanager, i, supplier);
+@@ -99,7 +100,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          } else {
              this.v = null;
          }
 -
-+        this.tlCache = ThreadLocal.withInitial(() -> new SimplexNoiseCache(v)); // Yapfa: lithium
++        this.tlCache = ThreadLocal.withInitial(() -> new me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache(v)); // Yatopia
      }
  
      @Override
-@@ -161,7 +164,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -164,7 +165,8 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          double d3;
  
          if (this.v != null) {
 -            d0 = (double) (WorldChunkManagerTheEnd.a(this.v, i, j) - 8.0F);
-+            d0 = (double) (/*WorldChunkManagerTheEnd.a(this.v, i, j) Yatopia lithium*/tlCache.get().getNoiseAt(i, j) - 8.0F);
++            //d0 = (double) (WorldChunkManagerTheEnd.a(this.v, i, j) - 8.0F); // Yatopia
++            d0 = tlCache.get().getNoiseAt(i, j) - 8.0F; // Yatopia
              if (d0 > 0.0D) {
                  d1 = 0.25D;
              } else {

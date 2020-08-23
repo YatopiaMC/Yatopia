@@ -1,19 +1,18 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Bud Gidiere <sgidiere@gmail.com>
-Date: Wed, 5 Aug 2020 14:21:05 -0500
-Subject: [PATCH] Yatopia Server Fixes
+Date: Thu, 6 Aug 2020 19:47:50 -0500
+Subject: [PATCH] Yatopia-Server-Fixes
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 841a8d2b392acdcef90592b841cbbcb2237c6901..88513b8830ea666ddf831771680b6e76e7cf95f0 100644
+index 5dfa0658838c4801cdf260eae8b98163f729e5af..b67f05f290db653cf75a89e85bd3decb5044a1e0 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
-@@ -231,7 +231,7 @@ public class TimingsExport extends Thread {
+@@ -231,6 +231,7 @@ public class TimingsExport extends Thread {
              pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
              pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
              pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
--            , pair("akarin", mapAsJSON(Bukkit.spigot().getAkarinConfig(), null)) // Akarin - Server config
-+            , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Yatopia - add config to timings report
++            , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Purpur - add config to timings report
          ));
  
          new TimingsExport(listeners, parent, history).start();
@@ -32,35 +31,6 @@ index 572780ca665c0fb254cc7431af3dd7759a94f26c..00000000000000000000000000000000
 -         ));
 - 
 -         new TimingsExport(listeners, parent, history).start();
-diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
-index f81bd67a323f2e72bdad76c52016993a0bf88307..98a898f8b8469969e5eb388edb818e519ff68681 100644
---- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
-+++ b/src/main/java/com/destroystokyo/paper/PaperCommand.java
-@@ -439,18 +439,18 @@ public class PaperCommand extends Command {
-                 ChunkProviderServer chunkProviderServer = world.getChunkProvider();
- 
-                 Collection<Entity> entities = world.entitiesById.values();
--                entities.forEach(e -> {
--                    MinecraftKey key = e.getMinecraftKey();
--                    if (e.shouldBeRemoved) return; // Paper
-+                for (Entity entity : entities) {
-+                    MinecraftKey key = entity.getMinecraftKey();
-+                    if (entity.shouldBeRemoved) continue;
- 
-                     MutablePair<Integer, Map<ChunkCoordIntPair, Integer>> info = list.computeIfAbsent(key, k -> MutablePair.of(0, Maps.newHashMap()));
--                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(e.chunkX, e.chunkZ);
-+                    ChunkCoordIntPair chunk = new ChunkCoordIntPair(entity.chunkX, entity.chunkZ);
-                     info.left++;
-                     info.right.put(chunk, info.right.getOrDefault(chunk, 0) + 1);
--                    if (!chunkProviderServer.isInEntityTickingChunk(e)) {
-+                    if (!chunkProviderServer.isInEntityTickingChunk(entity)) {
-                         nonEntityTicking.merge(key, Integer.valueOf(1), Integer::sum);
-                     }
--                });
-+                }
- 
-                 if (names.size() == 1) {
-                     MinecraftKey name = names.iterator().next();
 diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej b/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej
 deleted file mode 100644
 index 8f31dba6a29514aad6e74e265bf000014cd1e3c3..0000000000000000000000000000000000000000
@@ -122,56 +92,452 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 -         this.timingTicking.startTiming();
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
+diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
+index e0af5eb280dfd2ef6c9a80385e1705f7231a5338..f6623032e5d4034c104aa1fc6ff4265169e462ba 100644
+--- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
++++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
+@@ -195,7 +195,7 @@ public final class RainforestConfig {
+     allowSandDuping = getBoolean("allow-sand-duping", allowSandDuping);
+   }
+ 
+-  public static String brandName = "Rainforest";
++  public static String brandName = "Yatopia"; // Yatopia
+   private static void brandName() {
+     brandName = getString("brand-name", brandName);
+   }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index fe7330fabe386966c2d203a190a00a785ea21be0..bd107a376eaf660ba1ad61c035f8ed2d9d04749c 100644
+index fe7330fabe386966c2d203a190a00a785ea21be0..cb344a424bf4c657bb1bbca286a1136c9b21b489 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -112,6 +112,19 @@ public final class OrigamiConfig {
+@@ -16,7 +16,7 @@ public final class OrigamiConfig {
+     private static final Object[] EMPTY = new Object[0];
+ 
+     private static File configFile;
+-    private static YamlConfiguration config;
++    public static YamlConfiguration config; // Yatopia
+     private static int configVersion;
+ 
+     public static void init(final File file) {
+@@ -112,6 +112,28 @@ public final class OrigamiConfig {
              config.addDefault("worlds.default." + path, Double.valueOf(dfl));
              return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
          }
 +
-+        public boolean tickEmptyHoppers = false;
++        public boolean tickEmptyHoppers = true;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
-+            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
++            tickEmptyHoppers = getBoolean("tick-empty-hoppers",  tickEmptyHoppers);
 +            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
 +        }
 +
 +        public boolean fastFeatureSearchDontLoad = false;
 +        private void fastFeatureSearchDontLoad() {
-+		fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", fastFeatureSearchDontLoad);
++            fastFeatureSearchDontLoad = getBoolean("fast-feature-search-dont-load", false);
 +        }
 +
++        public boolean pigmenDontTargetUnlessHit = false;
++        private void pigmenDontTargetUnlessHit() {
++            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
++        }
++
++        public boolean disableObserverClocks = false;
++        private void observerClock() {
++            disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
++        }
      }
  
  }
 \ No newline at end of file
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej b/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
 deleted file mode 100644
-index 8428d4bd05075e86b281312fa38106882c54735b..0000000000000000000000000000000000000000
+index 02f5ccf54210776770d3215afb7c8e82f750d57e..0000000000000000000000000000000000000000
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java.rej
 +++ /dev/null
-@@ -1,14 +0,0 @@
+@@ -1,12 +0,0 @@
 -diff a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java	(rejected hunks)
--@@ -169,6 +169,12 @@ public final class OrigamiConfig {
--                 Bukkit.getLogger().info("Farm detection radius: " + pigmenFarmsRadius + ", count: " + pigmenFarmsCount);
--             }
+-@@ -153,6 +153,10 @@ public final class OrigamiConfig {
+-         public int getTickRate(String type, String typeName, String entityType, int def) {
+-             return tickRates.getOrDefault(type + "." + entityType + "." + typeName, tickRates.getOrDefault(type + "." + typeName, def));
 -         }
--+        public boolean tickEmptyHoppers = false;
--+        public int fullHopperCooldown = 128;
--+        private void hopperOptimizations() {
--+            tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
--+            fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
+-+        public boolean pigmenDontTargetUnlessHit = false;
+-+        private void pigmenDontTargetUnlessHit() {
+-+            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
 -+        }
+-         public int pigmenPortalSpawn = 2000;
+-         public double pigmenPortalBoost = 0.0;
+-         public boolean pigmenFarmsWaterAi = false;
+diff --git a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java
+index 0490f6bb798b94ce69a40f8a940caaa545c4a3c0..65cbe8ea9551ee804ca35a594680e845eebbacac 100644
+--- a/src/main/java/net/minecraft/server/Behavior.java
++++ b/src/main/java/net/minecraft/server/Behavior.java
+@@ -11,6 +11,7 @@ public abstract class Behavior<E extends EntityLiving> {
+     private long c;
+     private final int d;
+     private final int e;
++    co.aikar.timings.Timing timing; // Origami - behavior timing
+ 
+     public Behavior(Map<MemoryModuleType<?>, MemoryStatus> map) {
+         this(map, 60);
+@@ -25,6 +26,9 @@ public abstract class Behavior<E extends EntityLiving> {
+         this.d = i;
+         this.e = j;
+         this.a = map;
++        // Origami start - behavior timing
++        timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(getClass().getSimpleName());
++        // Origami end
+     }
+ 
+     public Behavior.Status a() {
+diff --git a/src/main/java/net/minecraft/server/Behavior.java.rej b/src/main/java/net/minecraft/server/Behavior.java.rej
+deleted file mode 100644
+index c3d129452b4f6ff2069bc066e594b1c632ceb0d4..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Behavior.java.rej
++++ /dev/null
+@@ -1,19 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java	(rejected hunks)
+-@@ -15,6 +15,7 @@ public abstract class Behavior<E extends EntityLiving> {
+-     private final String configKey;
+-     private static final String RATE_TYPE = "behavior";
+-     // Origami end
+-+    co.aikar.timings.Timing timing; // Origami - behavior timing
+- 
+-     public Behavior(Map<MemoryModuleType<?>, MemoryStatus> map) {
+-         this(map, 60);
+-@@ -37,6 +38,9 @@ public abstract class Behavior<E extends EntityLiving> {
+-         }
+-         this.configKey = key;
+-         // Origami end
+-+        // Origami start - behavior timing
+-+        timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(key);
+-+        // Origami end
 -     }
 - 
--     public static boolean teleportingOfVehiclesWithPassenger = true;
+-     public Behavior.Status a() {
+diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
+index 685351f11497a33ef4ba99055fa7da3a8de18af2..5d2e572090865eae17b802c22dca7d41407929a8 100644
+--- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
++++ b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
+@@ -127,6 +127,19 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+     private static boolean a(WorldServer worldserver, EntityLiving entityliving, BlockPosition blockposition) {
+         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+ 
++        // Yatopia start - replaced logic
++        if (!behaviorcontroller.hasMemory(MemoryModuleType.MOBS)) {
++            return false;
++        }
++        boolean match = false;
++        for (EntityLiving entity : behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()) {
++            if (entity.getEntityType() == entityliving.getEntityType() && blockposition.a(entity.getPositionVector(), 2.0D)) {
++                match = b(worldserver, entity, blockposition);
++                if (match) break;
++            }
++        }
++        return match;
++        /*
+         return !behaviorcontroller.hasMemory(MemoryModuleType.MOBS) ? false : (behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()).stream().filter((entityliving1) -> { // CraftBukkit - decompile error
+             return entityliving1.getEntityType() == entityliving.getEntityType();
+         }).filter((entityliving1) -> {
+@@ -134,6 +147,7 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+         }).anyMatch((entityliving1) -> {
+             return b(worldserver, entityliving1, blockposition);
+         });
++         */ // Yatopia end
+     }
+ 
+     private static boolean b(WorldServer worldserver, EntityLiving entityliving, BlockPosition blockposition) {
+diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej
+deleted file mode 100644
+index 738aa0c089e2d1f1d8ecb983d3d6351a1d4f690c..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej
++++ /dev/null
+@@ -1,59 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java	(rejected hunks)
+-@@ -2,6 +2,10 @@ package net.minecraft.server;
+- 
+- import com.google.common.collect.ImmutableMap;
+- import com.google.common.collect.Sets;
+-+import org.bukkit.craftbukkit.block.CraftBlock;
+-+import org.bukkit.event.entity.EntityInteractEvent;
+-+
+-+import java.util.ArrayList;
+- import java.util.Iterator;
+- import java.util.List;
+- import java.util.Set;
+-@@ -19,9 +23,12 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+-         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+-         PathEntity pathentity = (PathEntity) behaviorcontroller.getMemory(MemoryModuleType.PATH).get();
+-         List<GlobalPos> list = (List) behaviorcontroller.getMemory(MemoryModuleType.INTERACTABLE_DOORS).get();
+--        List<BlockPosition> list1 = (List) pathentity.d().stream().map((pathpoint) -> {
+--            return new BlockPosition(pathpoint.a, pathpoint.b, pathpoint.c);
+--        }).collect(Collectors.toList());
+-+        List<BlockPosition> result = new ArrayList<>();
+-+        for (PathPoint pathpoint : pathentity.d()) {
+-+            BlockPosition blockPosition = new BlockPosition(pathpoint.a, pathpoint.b, pathpoint.c);
+-+            result.add(blockPosition);
+-+        }
+-+        List<BlockPosition> list1 = (List) result;
+-         Set<BlockPosition> set = this.a(worldserver, list, list1);
+-         int j = pathentity.f() - 1;
+- 
+-@@ -38,7 +45,7 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+-     }
+- 
+-     private void a(WorldServer worldserver, List<BlockPosition> list, Set<BlockPosition> set, int i, EntityLiving entityliving, BehaviorController<?> behaviorcontroller) {
+--        set.forEach((blockposition) -> {
+-+        for (BlockPosition blockposition : set) {
+-             int j = list.indexOf(blockposition);
+-             IBlockData iblockdata = worldserver.getType(blockposition);
+-             Block block = iblockdata.getBlock();
+-@@ -47,10 +54,10 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+-                 boolean flag = j >= i;
+- 
+-                 // CraftBukkit start - entities opening doors
+--                org.bukkit.event.entity.EntityInteractEvent event = new org.bukkit.event.entity.EntityInteractEvent(entityliving.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(entityliving.world, blockposition));
+-+                EntityInteractEvent event = new EntityInteractEvent(entityliving.getBukkitEntity(), CraftBlock.at(entityliving.world, blockposition));
+-                 entityliving.world.getServer().getPluginManager().callEvent(event);
+-                 if (event.isCancelled()) {
+--                    return;
+-+                    continue;
+-                 }
+-                 // CaftBukkit end
+-                 ((BlockDoor) block).setDoor(worldserver, blockposition, flag);
+-@@ -70,7 +77,7 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+-                 }
+-             }
+- 
+--        });
+-+        }
+-         a(worldserver, list, i, entityliving, behaviorcontroller);
+-     }
+- 
+diff --git a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java
+index bdbb716a91cd320dd9ab39ed6b7442388c92d074..cc88e8c5f24a0f69b75b341ddc1bc2a38bda383e 100644
+--- a/src/main/java/net/minecraft/server/BiomeBase.java
++++ b/src/main/java/net/minecraft/server/BiomeBase.java
+@@ -516,7 +516,7 @@ public final class BiomeBase {
+         private static final Map<String, BiomeBase.Precipitation> e;
+ 
+         static {
+-            Map<String, Precipitation> map = new HashMap<>();
++            Map<String, Precipitation> map = new java.util.HashMap<>(); // Yatopia
+             for (Precipitation biomebase_precipitation : values()) {
+                 if (map.put(biomebase_precipitation.b(), biomebase_precipitation) != null) {
+                     throw new IllegalStateException("Duplicate key");
+@@ -553,7 +553,7 @@ public final class BiomeBase {
+         private static final Map<String, BiomeBase.Geography> s;
+ 
+         static {
+-            Map<String, Geography> map = new HashMap<>();
++            Map<String, Geography> map = new java.util.HashMap<>(); // Yatopia
+             for (Geography biomebase_geography : values()) {
+                 if (map.put(biomebase_geography.b(), biomebase_geography) != null) {
+                     throw new IllegalStateException("Duplicate key");
+diff --git a/src/main/java/net/minecraft/server/BiomeBase.java.rej b/src/main/java/net/minecraft/server/BiomeBase.java.rej
+deleted file mode 100644
+index 96bedf79efa73874a67a7ac6c7672497f3f94f67..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/BiomeBase.java.rej
++++ /dev/null
+@@ -1,74 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/BiomeBase.java b/src/main/java/net/minecraft/server/BiomeBase.java	(rejected hunks)
+-@@ -7,15 +7,8 @@ import com.google.common.collect.Sets;
+- import com.mojang.serialization.Codec;
+- import com.mojang.serialization.codecs.RecordCodecBuilder;
+- import it.unimi.dsi.fastutil.longs.Long2FloatLinkedOpenHashMap;
+--import java.util.Arrays;
+--import java.util.Collection;
+--import java.util.Comparator;
+--import java.util.Iterator;
+--import java.util.List;
+--import java.util.Map;
+--import java.util.Optional;
+--import java.util.Random;
+--import java.util.Set;
+-+
+-+import java.util.*;
+- import java.util.function.Function;
+- import java.util.stream.Collectors;
+- import java.util.stream.Stream;
+-@@ -41,7 +34,14 @@ public class BiomeBase {
+-             WorldGenSurfaceComposite.a.fieldOf("surface_builder").forGetter(biome -> biome.m),
+-             Codec.simpleMap(WorldGenStage.Features.c, WorldGenCarverWrapper.a.listOf().promotePartial(SystemUtils.a("Carver: ", LOGGER::error)), INamable.a(WorldGenStage.Features.values())).fieldOf("carvers").forGetter(biome -> biome.q),
+-             Codec.simpleMap((Codec<WorldGenStage.Decoration>) k1, WorldGenFeatureConfigured.b.listOf().promotePartial(SystemUtils.a("Feature: ", LOGGER::error)), INamable.a(WorldGenStage.Decoration.values())).fieldOf("features").forGetter(biome -> biome.r),
+--            StructureFeature.a.listOf().promotePartial(SystemUtils.a("Structure start: ", LOGGER::error)).fieldOf("starts").forGetter(biome -> biome.u.values().stream().sorted(Comparator.comparing(cf -> IRegistry.STRUCTURE_FEATURE.getKey(cf.b))).collect(Collectors.toList())),
+-+            StructureFeature.a.listOf().promotePartial(SystemUtils.a("Structure start: ", LOGGER::error)).fieldOf("starts").forGetter(biome -> {
+-+                List<StructureFeature<?, ?>> list = new ArrayList<>();
+-+                for (StructureFeature<?, ?> structureFeature : biome.u.values()) {
+-+                    list.add(structureFeature);
+-+                }
+-+                list.sort(Comparator.comparing(cf -> IRegistry.STRUCTURE_FEATURE.getKey(cf.b)));
+-+                return list;
+-+            }),
+-             Codec.simpleMap(EnumCreatureType.g, BiomeMeta.b.listOf().promotePartial(SystemUtils.a("Spawn data: ", LOGGER::error)), INamable.a(EnumCreatureType.values())).fieldOf("spawners").forGetter(biome -> biome.v),
+-             d.a.listOf().fieldOf("climate_parameters").forGetter(biome -> biome.x),
+-             Codec.STRING.optionalFieldOf("parent").forGetter(biome -> Optional.ofNullable(biome.l))
+-@@ -159,9 +159,13 @@ public class BiomeBase {
+-         this.m = worldgensurfacecomposite;
+-         this.q = map;
+-         this.r = map1;
+--        this.u = (Map) list.stream().collect(Collectors.toMap((structurefeature) -> {
+--            return structurefeature.b;
+--        }, Function.identity()));
+-+        Map<StructureGenerator<?>, StructureFeature<?, ?>> result = new HashMap<>();
+-+        for (StructureFeature<?, ?> structurefeature : list) {
+-+            if (result.put(structurefeature.b, structurefeature) != null) {
+-+                throw new IllegalStateException("Duplicate key");
+-+            }
+-+        }
+-+        this.u = (Map) result;
+-         this.v = Maps.newEnumMap(EnumCreatureType.class); this.v.putAll(map2); // Paper
+-         this.x = list1;
+-         this.l = (String) optional.orElse(null); // Paper - decompile fix
+-@@ -727,9 +749,18 @@ public class BiomeBase {
+- 
+-         OCEAN("ocean"), COLD("cold"), MEDIUM("medium"), WARM("warm");
+- 
+--        private static final Map<String, BiomeBase.EnumTemperature> e = (Map) Arrays.stream(values()).collect(Collectors.toMap(BiomeBase.EnumTemperature::a, (biomebase_enumtemperature) -> {
+--            return biomebase_enumtemperature;
+--        }));
+-+        private static final Map<String, BiomeBase.EnumTemperature> e;
+-+
+-+        static {
+-+            Map<String, EnumTemperature> map = new HashMap<>();
+-+            for (EnumTemperature biomebase_enumtemperature : values()) {
+-+                if (map.put(biomebase_enumtemperature.a(), biomebase_enumtemperature) != null) {
+-+                    throw new IllegalStateException("Duplicate key");
+-+                }
+-+            }
+-+            e = (Map) map;
+-+        }
+-+
+-         private final String f;
+- 
+-         private EnumTemperature(String s) {
+diff --git a/src/main/java/net/minecraft/server/Block.java.rej b/src/main/java/net/minecraft/server/Block.java.rej
+deleted file mode 100644
+index 4cc30faacb1ee173cbc546cc57ff4ce032024587..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Block.java.rej
++++ /dev/null
+@@ -1,37 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Block.java b/src/main/java/net/minecraft/server/Block.java	(rejected hunks)
+-@@ -198,9 +198,9 @@ public class Block extends BlockBase implements IMaterial {
+- 
+-     public static void c(IBlockData iblockdata, World world, BlockPosition blockposition) {
+-         if (world instanceof WorldServer) {
+--            a(iblockdata, (WorldServer) world, blockposition, (TileEntity) null).forEach((itemstack) -> {
+-+            for (ItemStack itemstack : a(iblockdata, (WorldServer) world, blockposition, (TileEntity) null)) {
+-                 a(world, blockposition, itemstack);
+--            });
+-+            }
+-         }
+- 
+-         iblockdata.dropNaturally(world, blockposition, ItemStack.b);
+-@@ -208,9 +208,9 @@ public class Block extends BlockBase implements IMaterial {
+-     public static void dropNaturally(IBlockData iblockdata, World world, BlockPosition blockposition, @Nullable TileEntity tileentity) { a(iblockdata, world, blockposition, tileentity); }
+-     public static void a(IBlockData iblockdata, World world, BlockPosition blockposition, @Nullable TileEntity tileentity) {
+-         if (world instanceof WorldServer) {
+--            a(iblockdata, (WorldServer) world, blockposition, tileentity).forEach((itemstack) -> {
+-+            for (ItemStack itemstack : a(iblockdata, (WorldServer) world, blockposition, tileentity)) {
+-                 a(world, blockposition, itemstack);
+--            });
+-+            }
+-         }
+- 
+-         iblockdata.dropNaturally(world, blockposition, ItemStack.b);
+-@@ -218,9 +218,9 @@ public class Block extends BlockBase implements IMaterial {
+- 
+-     public static void dropItems(IBlockData iblockdata, World world, BlockPosition blockposition, @Nullable TileEntity tileentity, Entity entity, ItemStack itemstack) {
+-         if (world instanceof WorldServer) {
+--            getDrops(iblockdata, (WorldServer) world, blockposition, tileentity, entity, itemstack).forEach((itemstack1) -> {
+-+            for (ItemStack itemstack1 : getDrops(iblockdata, (WorldServer) world, blockposition, tileentity, entity, itemstack)) {
+-                 a(world, blockposition, itemstack1);
+--            });
+-+            }
+-         }
+- 
+-         iblockdata.dropNaturally(world, blockposition, itemstack);
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index 4641832a2d6d4b29a3a0e635f01f398900fd2589..f292bc8b78b965e455befe1809bfbadc90b52755 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -715,9 +715,14 @@ public abstract class BlockBase {
+                 }
+ 
+                 this.b = block.c(iblockdata, BlockAccessAir.INSTANCE, BlockPosition.ZERO, VoxelShapeCollision.a());
+-                this.c = Arrays.stream(EnumDirection.EnumAxis.values()).anyMatch((enumdirection_enumaxis) -> {
+-                    return this.b.b(enumdirection_enumaxis) < 0.0D || this.b.c(enumdirection_enumaxis) > 1.0D;
+-                });
++                boolean result = false;
++                for (EnumDirection.EnumAxis axis : EnumDirection.EnumAxis.values()) {
++                    if (this.b.b(axis) < 0.0D || this.b.c(axis) > 1.0D) {
++                        result = true;
++                        break;
++                    }
++                }
++                this.c = result;
+                 this.j = new boolean[BlockBase.BlockData.Cache.e.length * BlockBase.BlockData.Cache.f];
+                 EnumDirection[] aenumdirection1 = BlockBase.BlockData.Cache.e;
+                 int k = aenumdirection1.length;
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java.rej b/src/main/java/net/minecraft/server/BlockBase.java.rej
+deleted file mode 100644
+index 4e6f3d695d5c1a888fe73ea81e936642f3667f48..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/BlockBase.java.rej
++++ /dev/null
+@@ -1,19 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java	(rejected hunks)
+-@@ -700,9 +700,14 @@ public abstract class BlockBase {
+-                 }
+- 
+-                 this.b = block.c(iblockdata, BlockAccessAir.INSTANCE, BlockPosition.ZERO, VoxelShapeCollision.a());
+--                this.c = Arrays.stream(EnumDirection.EnumAxis.values()).anyMatch((enumdirection_enumaxis) -> {
+--                    return this.b.b(enumdirection_enumaxis) < 0.0D || this.b.c(enumdirection_enumaxis) > 1.0D;
+--                });
+-+                boolean result = false;
+-+                for (EnumDirection.EnumAxis enumdirection_enumaxis : EnumDirection.EnumAxis.values()) {
+-+                    if (this.b.b(enumdirection_enumaxis) < 0.0D || this.b.c(enumdirection_enumaxis) > 1.0D) {
+-+                        result = true;
+-+                        break;
+-+                    }
+-+                }
+-+                this.c = result;
+-                 this.d = new boolean[6];
+-                 EnumDirection[] aenumdirection1 = f;
+-                 int k = aenumdirection1.length;
+diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
+index 2291135eaef64c403183724cb6e413cd7e472672..6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f 100644
+--- a/src/main/java/net/minecraft/server/BlockPosition.java
++++ b/src/main/java/net/minecraft/server/BlockPosition.java
+@@ -56,6 +56,12 @@ public class BlockPosition extends BaseBlockPosition {
+         this(baseblockposition.getX(), baseblockposition.getY(), baseblockposition.getZ());
+     }
+ 
++    // Yatopia start - helper method
++    public BlockPosition(Entity entity) {
++        this(entity.locX(), entity.locY(), entity.locZ());
++    }
++    // Yatopia end
++
+     public static long getAdjacent(int baseX, int baseY, int baseZ, EnumDirection enumdirection) { return asLong(baseX + enumdirection.getAdjacentX(), baseY + enumdirection.getAdjacentY(), baseZ + enumdirection.getAdjacentZ()); } // Paper
+     public static long a(long i, EnumDirection enumdirection) {
+         return a(i, enumdirection.getAdjacentX(), enumdirection.getAdjacentY(), enumdirection.getAdjacentZ());
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index ee10abb6bc4d957676e7eef377cdc68dc3f43370..c12f4326f68020fbb140e97f0ef43ddcf5a71072 100644
+index dde38e0222e658b5a841a32af3fc5153ecb02392..5af513cb052382c34e157110265f80a1a2efef15 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-@@ -974,11 +974,11 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -739,11 +739,11 @@ public class ChunkProviderServer extends IChunkProvider {
+             if (this.a(playerchunk, l)) {
+                 GameProfilerFiller gameprofilerfiller = this.world.getMethodProfiler();
+ 
+-                gameprofilerfiller.enter("chunkLoad");
++                //gameprofilerfiller.enter("chunkLoad"); // Akarin - remove caller
+                 chunkMapDistance.delayDistanceManagerTick = false; // Paper - ensure this is never false
+                 this.tickDistanceManager();
+                 playerchunk = this.getChunk(k);
+-                gameprofilerfiller.exit();
++                //gameprofilerfiller.exit(); // Akarin - remove caller
+                 if (this.a(playerchunk, l)) {
+                     this.chunkMapDistance.removeTicketAtLevel(TicketType.REQUIRED_LOAD, chunkcoordintpair, l, identifier); // Tuinity
+                     throw (IllegalStateException) SystemUtils.c((Throwable) (new IllegalStateException("No chunk holder after ticket has been added")));
+@@ -981,11 +981,11 @@ public class ChunkProviderServer extends IChunkProvider {
                  player.playerNaturallySpawnedEvent = event;
              }
              // Paper end - optimize isOutisdeRange
@@ -187,11 +553,25 @@ index ee10abb6bc4d957676e7eef377cdc68dc3f43370..c12f4326f68020fbb140e97f0ef43ddc
              // Paper start - per player mob spawning
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java.rej b/src/main/java/net/minecraft/server/ChunkProviderServer.java.rej
 deleted file mode 100644
-index d1152585c5f482e554966f965561626c78ac4d3a..0000000000000000000000000000000000000000
+index 7dd44fa8dc734862bf87691f1d7f4a5dae53b152..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java.rej
 +++ /dev/null
-@@ -1,15 +0,0 @@
+@@ -1,29 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java	(rejected hunks)
+-@@ -732,11 +732,11 @@ public class ChunkProviderServer extends IChunkProvider {
+-             if (this.a(playerchunk, l)) {
+-                 GameProfilerFiller gameprofilerfiller = this.world.getMethodProfiler();
+- 
+--                gameprofilerfiller.enter("chunkLoad");
+-+                //gameprofilerfiller.enter("chunkLoad"); // Akarin - remove caller
+-                 chunkMapDistance.delayDistanceManagerTick = false; // Paper - ensure this is never false
+-                 this.tickDistanceManager();
+-                 playerchunk = this.getChunk(k);
+--                gameprofilerfiller.exit();
+-+                //gameprofilerfiller.exit(); // Akarin - remove caller
+-                 if (this.a(playerchunk, l)) {
+-                     this.chunkMapDistance.removeTicketAtLevel(TicketType.REQUIRED_LOAD, chunkcoordintpair, l, identifier); // Tuinity
+-                     throw (IllegalStateException) SystemUtils.c(new IllegalStateException("No chunk holder after ticket has been added"));
 -@@ -971,11 +971,11 @@ public class ChunkProviderServer extends IChunkProvider {
 -                 player.lastEntitySpawnRadiusSquared = (double)((range << 4) * (range << 4)); // used in isOutsideRange
 -             }
@@ -206,18 +586,120 @@ index d1152585c5f482e554966f965561626c78ac4d3a..00000000000000000000000000000000
 -             this.world.timings.countNaturalMobs.startTiming(); // Paper - timings
 -             int l = this.chunkMapDistance.b();
 -             // Paper start - per player mob spawning
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 77b6e4dd34893f0959574f95078bc3fa6896e69c..7ac6ef0a125499de4b5e6a9ed80f963ba623b9f6 100644
---- a/src/main/java/net/minecraft/server/DedicatedServer.java
-+++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -181,6 +181,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         // Paper end
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         app.akarin.server.Config.init((java.io.File) options.valueOf("akarin-settings")); // Akarin - Server Config
-+        com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings")); // Rainforest
+diff --git a/src/main/java/net/minecraft/server/ContainerSmithing.java b/src/main/java/net/minecraft/server/ContainerSmithing.java
+index a575dddb262021fd68b4db1435e67a1f0768c633..ac550534e1857eda046a93ac26231e6d71c5ef4e 100644
+--- a/src/main/java/net/minecraft/server/ContainerSmithing.java
++++ b/src/main/java/net/minecraft/server/ContainerSmithing.java
+@@ -73,9 +73,12 @@ public class ContainerSmithing extends ContainerAnvilAbstract {
  
-         this.setPVP(dedicatedserverproperties.pvp);
-         this.setAllowFlight(dedicatedserverproperties.allowFlight);
+     @Override
+     protected boolean a(ItemStack itemstack) {
+-        return this.i.stream().anyMatch((recipesmithing) -> {
+-            return recipesmithing.a(itemstack);
+-        });
++        for (RecipeSmithing recipe : this.i) {
++            if (recipe.a(itemstack)) {
++                return true;
++            }
++        }
++        return false;
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/ContainerSmithing.java.rej b/src/main/java/net/minecraft/server/ContainerSmithing.java.rej
+deleted file mode 100644
+index 2317638f225d0ccba97020c4e739d7dea99b78db..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/ContainerSmithing.java.rej
++++ /dev/null
+@@ -1,17 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/ContainerSmithing.java b/src/main/java/net/minecraft/server/ContainerSmithing.java	(rejected hunks)
+-@@ -70,9 +70,12 @@ public class ContainerSmithing extends ContainerAnvilAbstract {
+- 
+-     @Override
+-     protected boolean a(ItemStack itemstack) {
+--        return this.i.stream().anyMatch((recipesmithing) -> {
+--            return recipesmithing.a(itemstack);
+--        });
+-+        for (RecipeSmithing recipesmithing : this.i) {
+-+            if (recipesmithing.a(itemstack)) {
+-+                return true;
+-+            }
+-+        }
+-+        return false;
+-     }
+- 
+-     // CraftBukkit start
+diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
+index b0b49904e9590b91743ebafb7983a392a6c95083..2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393 100644
+--- a/src/main/java/net/minecraft/server/CraftingManager.java
++++ b/src/main/java/net/minecraft/server/CraftingManager.java
+@@ -124,15 +124,22 @@ public class CraftingManager extends ResourceDataJson {
+     }
+ 
+     public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
+-        return this.recipes.values().stream().map((map) -> {
+-            return map.get(minecraftkey); // CraftBukkit - decompile error
+-        }).filter(Objects::nonNull).findFirst();
++        // CraftBukkit - decompile error
++        for (Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> map : this.recipes.values()) {
++            IRecipe<?> iRecipe = map.get(minecraftkey);
++            if (iRecipe != null) {
++                return Optional.<IRecipe<?>>of(iRecipe);
++            }
++        }
++        return Optional.empty();
+     }
+ 
+     public Collection<IRecipe<?>> b() {
+-        return (Collection) this.recipes.values().stream().flatMap((map) -> {
+-            return map.values().stream();
+-        }).collect(Collectors.toSet());
++        Set<IRecipe<?>> set = new HashSet<>();
++        for (Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> map : this.recipes.values()) {
++            set.addAll(map.values());
++        }
++        return set;
+     }
+ 
+     public Stream<MinecraftKey> d() {
+diff --git a/src/main/java/net/minecraft/server/CraftingManager.java.rej b/src/main/java/net/minecraft/server/CraftingManager.java.rej
+deleted file mode 100644
+index adeca862cc3a3d1001c9d515fa2083acef0520e2..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/CraftingManager.java.rej
++++ /dev/null
+@@ -1,32 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java	(rejected hunks)
+-@@ -127,15 +124,24 @@ public class CraftingManager extends ResourceDataJson {
+-     }
+- 
+-     public Optional<? extends IRecipe<?>> a(MinecraftKey minecraftkey) {
+--        return this.recipes.values().stream().map((map) -> {
+--            return map.get(minecraftkey); // CraftBukkit - decompile error
+--        }).filter(Objects::nonNull).findFirst();
+-+        // CraftBukkit - decompile error
+-+        for (Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> map : this.recipes.values()) {
+-+            IRecipe<?> iRecipe = map.get(minecraftkey);
+-+            if (iRecipe != null) {
+-+                return Optional.<IRecipe<?>>of(iRecipe);
+-+            }
+-+        }
+-+        return Optional.empty();
+-     }
+- 
+-     public Collection<IRecipe<?>> b() {
+--        return (Collection) this.recipes.values().stream().flatMap((map) -> {
+--            return map.values().stream();
+--        }).collect(Collectors.toSet());
+-+        Set<IRecipe<?>> set = new HashSet<>();
+-+        for (Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> map : this.recipes.values()) {
+-+            for (IRecipe<?> iRecipe : map.values()) {
+-+                set.add(iRecipe);
+-+            }
+-+        }
+-+        return (Collection) set;
+-     }
+- 
+-     public Stream<MinecraftKey> d() {
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java.rej b/src/main/java/net/minecraft/server/DedicatedServer.java.rej
 deleted file mode 100644
 index 4c2d5b3e080c925d687733ec40d4fb4b22552c96..0000000000000000000000000000000000000000
@@ -233,96 +715,1231 @@ index 4c2d5b3e080c925d687733ec40d4fb4b22552c96..00000000000000000000000000000000
 - 
 -         this.setPVP(dedicatedserverproperties.pvp);
 -         this.setAllowFlight(dedicatedserverproperties.allowFlight);
-diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index 83e232deaeb78f0c97bce42d67fc220e8fb88368..bbcded1e80a4b0e4618affd77bcaa6e41589b9fe 100644
---- a/src/main/java/net/minecraft/server/EntityInsentient.java
-+++ b/src/main/java/net/minecraft/server/EntityInsentient.java
-@@ -758,7 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
-         this.goalSelector.doTick();
-         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
-         //this.world.getMethodProfiler().enter("navigation"); // Akarin - remove caller
--        this.navigation.c();
-+        // Paper start - async navigation
-+        if (this.navigation instanceof AsyncNavigationAbstract)
-+             ((AsyncNavigationAbstract) this.navigation).asyncTick();
-+        else
-+        // Paper end
-         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
-         //this.world.getMethodProfiler().enter("mob tick"); // Akarin - remove caller
-         this.mobTick();
-diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java.rej b/src/main/java/net/minecraft/server/EntityInsentient.java.rej
+diff --git a/src/main/java/net/minecraft/server/DispenserRegistry.java.rej b/src/main/java/net/minecraft/server/DispenserRegistry.java.rej
 deleted file mode 100644
-index de5ec59cb607030703e7b0361b1fa615b95e289e..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/EntityInsentient.java.rej
+index 8347faf8a7ee62d27cf5eb9f285695fddadfa624..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/DispenserRegistry.java.rej
 +++ /dev/null
 @@ -1,13 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/DispenserRegistry.java b/src/main/java/net/minecraft/server/DispenserRegistry.java	(rejected hunks)
+-@@ -156,9 +156,9 @@ public class DispenserRegistry {
+-             throw new IllegalArgumentException("Not bootstrapped");
+-         } else {
+-             if (SharedConstants.d) {
+--                b().forEach((s) -> {
+-+                for (String s : b()) {
+-                     DispenserRegistry.LOGGER.error("Missing translations: " + s);
+--                });
+-+                }
+-             }
+- 
+-             AttributeDefaults.a();
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 672de5bc48ea83055f5de2aa35d22bd444500e3b..4cab3f19366a1ea0d6708011e83e4e44b7eff875 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -3,6 +3,7 @@ package net.minecraft.server;
+ import com.google.common.collect.Iterables;
+ import com.google.common.collect.Lists;
+ import com.google.common.collect.Sets;
++import com.proximyst.rainforest.RainforestConfig;
+ import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+ import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
+ import java.util.Arrays;
+@@ -441,7 +442,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+     public void setPosition(double d0, double d1, double d2) {
+         this.setPositionRaw(d0, d1, d2);
+         //this.a(this.size.a(d0, d1, d2)); // Paper - move into setPositionRaw
+-        if (valid) ((WorldServer) world).chunkCheck(this); // CraftBukkit
++        if (valid && !dead) ((WorldServer) world).chunkCheck(this); // CraftBukkit // Purpur
+     }
+ 
+     protected void ae() {
+@@ -524,7 +525,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+         }
+ 
+         this.justCreated = false;
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+     }
+ 
+     public void resetPortalCooldown() {
+@@ -2371,7 +2372,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+                 WorldServer worldserver1 = minecraftserver.getWorldServer(resourcekey);
+ 
+                 if (true && !this.isPassenger() && this.portalTicks++ >= i) { // CraftBukkit
+-                    this.world.getMethodProfiler().enter("portal");
++                    //this.world.getMethodProfiler().enter("portal"); // Akarin - remove caller
+                     this.portalTicks = i;
+                     this.resetPortalCooldown();
+                     // CraftBukkit start
+@@ -2381,7 +2382,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+                         this.b(worldserver1);
+                     }
+                     // CraftBukkit end
+-                    this.world.getMethodProfiler().exit();
++                    //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+                 }
+ 
+                 this.inPortal = false;
+@@ -2764,14 +2765,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+         }
+         // Paper end
+         if (this.world instanceof WorldServer && !this.dead) {
+-            this.world.getMethodProfiler().enter("changeDimension");
++            //this.world.getMethodProfiler().enter("changeDimension"); // Akarin - remove caller
+             // CraftBukkit start
+             // this.decouple();
+             if (worldserver == null) {
+                 return null;
+             }
+             // CraftBukkit end
+-            this.world.getMethodProfiler().enter("reposition");
++            //this.world.getMethodProfiler().enter("reposition"); // Akarin - remove caller
+             ShapeDetectorShape shapedetectorshape = (location == null) ? this.a(worldserver) : new ShapeDetectorShape(new Vec3D(location.getX(), location.getY(), location.getZ()), Vec3D.a, this.yaw, this.pitch, worldserver, null); // CraftBukkit
+ 
+             if (shapedetectorshape == null) {
+@@ -2798,16 +2799,16 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+                     entity.bukkitEntity = this.getBukkitEntity();
+ 
+                     if (this instanceof EntityInsentient) {
+-                        ((EntityInsentient) this).unleash(true, true); // Paper drop lead
++                        ((EntityInsentient) this).unleash(true, !RainforestConfig.allowRidableChestDuping); // Paper drop lead // Rainforest
+                     }
+                     // CraftBukkit end
+                 }
+ 
+                 this.bM();
+-                this.world.getMethodProfiler().exit();
++                //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+                 ((WorldServer) this.world).resetEmptyTime();
+                 worldserver.resetEmptyTime();
+-                this.world.getMethodProfiler().exit();
++                //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+                 return entity;
+             }
+         } else {
+@@ -3042,7 +3043,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+                     entity.a(entity1, Entity::teleportAndSync);
+                 }
+ 
+-            }
++            }); // Yatopia
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/Entity.java.rej b/src/main/java/net/minecraft/server/Entity.java.rej
+deleted file mode 100644
+index 47a9acd713e774f141d718067d654f6b7ca10856..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Entity.java.rej
++++ /dev/null
+@@ -1,18 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java	(rejected hunks)
+-@@ -5,6 +5,7 @@ import co.aikar.timings.Timing;
+- import com.google.common.collect.Iterables;
+- import com.google.common.collect.Lists;
+- import com.google.common.collect.Sets;
+-+import com.proximyst.rainforest.RainforestConfig;
+- import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+- import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
+- import org.apache.logging.log4j.LogManager;
+-@@ -2696,7 +2698,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+-                 entity.bukkitEntity = this.getBukkitEntity();
+- 
+-                 if (this instanceof EntityInsentient) {
+--                    ((EntityInsentient)this).unleash(true, true); // Paper drop lead
+-+                    ((EntityInsentient)this).unleash(true, !RainforestConfig.allowRidableChestDuping); // Paper drop lead // Rainforest
+-                 }
+-                 // CraftBukkit end
+-             }
+diff --git a/src/main/java/net/minecraft/server/EntityEnderCrystal.java b/src/main/java/net/minecraft/server/EntityEnderCrystal.java
+index 1942fae27051af79b6eb1d790a219da100bf889e..edad9669c67cab0df88947fa86b467c26deaa5f0 100644
+--- a/src/main/java/net/minecraft/server/EntityEnderCrystal.java
++++ b/src/main/java/net/minecraft/server/EntityEnderCrystal.java
+@@ -63,7 +63,7 @@ public class EntityEnderCrystal extends Entity {
+         }
+ 
+         if (targetPhantom == null) {
+-            for (EntityPhantom phantom : world.getEntitiesInAABB(EntityPhantom.class, getBoundingBox().grow(world.purpurConfig.phantomAttackedByCrystalRadius))) {
++            for (EntityPhantom phantom : world.getEntities(EntityPhantom.class, getBoundingBox().grow(world.purpurConfig.phantomAttackedByCrystalRadius), null)) { // Yatopia
+                 if (phantom.hasLineOfSight(this)) {
+                     attackPhantom(phantom);
+                     break;
+diff --git a/src/main/java/net/minecraft/server/EntityEnderDragon.java b/src/main/java/net/minecraft/server/EntityEnderDragon.java
+index 6b2c5e8d4640e19d33cbfe76d2399e6100890dbc..8b8ebffb89f11cfbc51b470e77171ea490a9aa18 100644
+--- a/src/main/java/net/minecraft/server/EntityEnderDragon.java
++++ b/src/main/java/net/minecraft/server/EntityEnderDragon.java
+@@ -839,6 +839,7 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
+         if (nbttagcompound.hasKey("DragonPhase")) {
+             this.bG.setControllerPhase(DragonControllerPhase.getById(nbttagcompound.getInt("DragonPhase")));
+         }
++        if (!world.rainforestConfig.allowEnderDragonExpDuping) // Rainforest
+         this.deathAnimationTicks = nbttagcompound.getInt("Paper.DeathTick"); // Paper
+ 
+     }
+diff --git a/src/main/java/net/minecraft/server/EntityEnderDragon.java.rej b/src/main/java/net/minecraft/server/EntityEnderDragon.java.rej
+deleted file mode 100644
+index a8d2be07d45549cf7a8ac048b44284c4c0a96686..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityEnderDragon.java.rej
++++ /dev/null
+@@ -1,9 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityEnderDragon.java b/src/main/java/net/minecraft/server/EntityEnderDragon.java	(rejected hunks)
+-@@ -839,6 +839,7 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
+-         if (nbttagcompound.hasKey("DragonPhase")) {
+-             this.bN.setControllerPhase(DragonControllerPhase.getById(nbttagcompound.getInt("DragonPhase")));
+-         }
+-+        if (!world.rainforestConfig.allowEnderDragonExpDuping) // Rainforest
+-         this.deathAnimationTicks = nbttagcompound.getInt("Paper.DeathTick"); // Paper
+- 
+-     }
+diff --git a/src/main/java/net/minecraft/server/EntityFox.java.rej b/src/main/java/net/minecraft/server/EntityFox.java.rej
+deleted file mode 100644
+index c3c7738570d3670b50f144f145b61dcc2d35bb85..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityFox.java.rej
++++ /dev/null
+@@ -1,37 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityFox.java b/src/main/java/net/minecraft/server/EntityFox.java	(rejected hunks)
+-@@ -1404,12 +1398,29 @@ public class EntityFox extends EntityAnimal {
+- 
+-         RED(0, "red", new BiomeBase[]{Biomes.TAIGA, Biomes.TAIGA_HILLS, Biomes.TAIGA_MOUNTAINS, Biomes.GIANT_TREE_TAIGA, Biomes.GIANT_SPRUCE_TAIGA, Biomes.GIANT_TREE_TAIGA_HILLS, Biomes.GIANT_SPRUCE_TAIGA_HILLS}), SNOW(1, "snow", new BiomeBase[]{Biomes.SNOWY_TAIGA, Biomes.SNOWY_TAIGA_HILLS, Biomes.SNOWY_TAIGA_MOUNTAINS});
+- 
+--        private static final EntityFox.Type[] c = (EntityFox.Type[]) Arrays.stream(values()).sorted(Comparator.comparingInt(EntityFox.Type::c)).toArray((i) -> {
+--            return new EntityFox.Type[i];
+--        });
+--        private static final Map<String, EntityFox.Type> d = (Map) Arrays.stream(values()).collect(Collectors.toMap(EntityFox.Type::a, (entityfox_type) -> {
+--            return entityfox_type;
+--        }));
+-+        private static final EntityFox.Type[] c;
+-+
+-+        static {
+-+            List<Type> list = new ArrayList<>();
+-+            for (Type type : values()) {
+-+                list.add(type);
+-+            }
+-+            list.sort(Comparator.comparingInt(Type::c));
+-+            c = (Type[]) list.toArray(new Type[0]);
+-+        }
+-+
+-+        private static final Map<String, EntityFox.Type> d;
+-+
+-+        static {
+-+            Map<String, Type> map = new HashMap<>();
+-+            for (Type entityfox_type : values()) {
+-+                if (map.put(entityfox_type.a(), entityfox_type) != null) {
+-+                    throw new IllegalStateException("Duplicate key");
+-+                }
+-+            }
+-+            d = (Map) map;
+-+        }
+-+
+-         private final int e;
+-         private final String f;
+-         private final List<BiomeBase> g;
+diff --git a/src/main/java/net/minecraft/server/EntityGiantZombie.java b/src/main/java/net/minecraft/server/EntityGiantZombie.java
+index e53d22447b8978a5389f03a438faf260e41bfa0d..8d1cc5d8181af17fdc516da3ce8af3995b5f1b59 100644
+--- a/src/main/java/net/minecraft/server/EntityGiantZombie.java
++++ b/src/main/java/net/minecraft/server/EntityGiantZombie.java
+@@ -4,8 +4,61 @@ public class EntityGiantZombie extends EntityMonster {
+ 
+     public EntityGiantZombie(EntityTypes<? extends EntityGiantZombie> entitytypes, World world) {
+         super(entitytypes, world);
++        // Purpur start
++        setStepHeight(world.purpurConfig.giantStepHeight);
++        // Purpur end
+     }
+ 
++    // Purpur start
++    @Override
++    protected void initPathfinder() {
++        if (world.purpurConfig.giantHaveAI) {
++            this.goalSelector.a(0, new PathfinderGoalFloat(this));
++            this.goalSelector.a(7, new PathfinderGoalRandomStrollLand(this, 1.0D));
++            this.goalSelector.a(8, new PathfinderGoalLookAtPlayer(this, EntityHuman.class, 16.0F));
++            this.goalSelector.a(8, new PathfinderGoalRandomLookaround(this));
++            this.goalSelector.a(5, new PathfinderGoalMoveTowardsRestriction(this, 1.0D));
++            if (world.purpurConfig.giantHaveHostileAI) {
++                this.goalSelector.a(2, new PathfinderGoalMeleeAttack(this, 1.0D, false));
++                this.targetSelector.a(1, new PathfinderGoalHurtByTarget(this).a(EntityPigZombie.class));
++                this.targetSelector.a(2, new PathfinderGoalNearestAttackableTarget<>(this, EntityHuman.class, true));
++                this.targetSelector.a(3, new PathfinderGoalNearestAttackableTarget<>(this, EntityVillager.class, false));
++                this.targetSelector.a(4, new PathfinderGoalNearestAttackableTarget<>(this, EntityIronGolem.class, true));
++                this.targetSelector.a(5, new PathfinderGoalNearestAttackableTarget<>(this, EntityTurtle.class, true));
++            }
++        }
++    }
++
++    @Override
++    public GroupDataEntity prepare(WorldAccess worldaccess, DifficultyDamageScaler difficultydamagescaler, EnumMobSpawn enummobspawn, @javax.annotation.Nullable GroupDataEntity groupdataentity, @javax.annotation.Nullable NBTTagCompound nbttagcompound) {
++        GroupDataEntity groupData = super.prepare(worldaccess, difficultydamagescaler, enummobspawn, groupdataentity, nbttagcompound);
++        getAttributeMap().getAttribute(GenericAttributes.MAX_HEALTH).setValue(world.purpurConfig.giantMaxHealth);
++        getAttributeMap().getAttribute(GenericAttributes.MOVEMENT_SPEED).setValue(world.purpurConfig.giantMovementSpeed);
++        getAttributeMap().getAttribute(GenericAttributes.ATTACK_DAMAGE).setValue(world.purpurConfig.giantAttackDamage);
++        if (groupData == null) {
++            setEquipmentBasedOnDifficulty(difficultydamagescaler);
++            setEnchantmentBasedOnDifficulty(difficultydamagescaler);
++        }
++        return groupData;
++    }
++
++    @Override
++    protected void setEquipmentBasedOnDifficulty(DifficultyDamageScaler difficulty) {
++        super.setEquipmentBasedOnDifficulty(difficulty);
++        // TODO make configurable
++        if (random.nextFloat() < (world.getDifficulty() == EnumDifficulty.HARD ? 0.1F : 0.05F)) {
++            setSlot(EnumItemSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
++        }
++    }
++
++    @Override
++    public float getJumpHeight() {
++        // make giants jump as high as everything else relative to their size
++        // 1.0 makes bottom of feet about as high as their waist when they jump
++        return world.purpurConfig.giantJumpHeight;
++    }
++    // Purpur end
++
+     @Override
+     protected float b(EntityPose entitypose, EntitySize entitysize) {
+         return 10.440001F;
+diff --git a/src/main/java/net/minecraft/server/EntityGiantZombie.java.rej b/src/main/java/net/minecraft/server/EntityGiantZombie.java.rej
+deleted file mode 100644
+index ceb9077935f5405f1c0f07b6d9afc7d64a26ac30..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityGiantZombie.java.rej
++++ /dev/null
+@@ -1,71 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityGiantZombie.java b/src/main/java/net/minecraft/server/EntityGiantZombie.java	(rejected hunks)
+-@@ -4,9 +4,68 @@ public class EntityGiantZombie extends EntityMonster {
+- 
+-     public EntityGiantZombie(EntityTypes<? extends EntityGiantZombie> entitytypes, World world) {
+-         super(entitytypes, world);
+--        this.safeFallDistance = 10.0F; // Purpur
+-+        // Purpur start
+-+        this.safeFallDistance = 10.0F;
+-+        setStepHeight(world.purpurConfig.giantStepHeight);
+-+        // Purpur end
+-     }
+- 
+-+    // Purpur start
+-+    @Override
+-+    protected void initPathfinder() {
+-+        if (world.purpurConfig.giantHaveAI) {
+-+            this.goalSelector.a(0, new PathfinderGoalFloat(this));
+-+            this.goalSelector.a(7, new PathfinderGoalRandomStrollLand(this, 1.0D));
+-+            this.goalSelector.a(8, new PathfinderGoalLookAtPlayer(this, EntityHuman.class, 16.0F));
+-+            this.goalSelector.a(8, new PathfinderGoalRandomLookaround(this));
+-+            this.goalSelector.a(5, new PathfinderGoalMoveTowardsRestriction(this, 1.0D));
+-+            if (world.purpurConfig.giantHaveHostileAI) {
+-+                this.goalSelector.a(2, new PathfinderGoalMeleeAttack(this, 1.0D, false));
+-+                this.targetSelector.a(1, new PathfinderGoalHurtByTarget(this).a(EntityPigZombie.class));
+-+                this.targetSelector.a(2, new PathfinderGoalNearestAttackableTarget<>(this, EntityHuman.class, true));
+-+                this.targetSelector.a(3, new PathfinderGoalNearestAttackableTarget<>(this, EntityVillager.class, false));
+-+                this.targetSelector.a(4, new PathfinderGoalNearestAttackableTarget<>(this, EntityIronGolem.class, true));
+-+                this.targetSelector.a(5, new PathfinderGoalNearestAttackableTarget<>(this, EntityTurtle.class, true));
+-+            }
+-+        }
+-+    }
+-+
+-+    @Override
+-+    protected void initAttributes(World world) {
+-+        if (world != null) {
+-+            getAttributeMap().getAttribute(GenericAttributes.MAX_HEALTH).setValue(world.purpurConfig.giantMaxHealth);
+-+            getAttributeMap().getAttribute(GenericAttributes.MOVEMENT_SPEED).setValue(world.purpurConfig.giantMovementSpeed);
+-+            getAttributeMap().getAttribute(GenericAttributes.ATTACK_DAMAGE).setValue(world.purpurConfig.giantAttackDamage);
+-+        }
+-+    }
+-+
+-+    @Override
+-+    public GroupDataEntity prepare(WorldAccess worldaccess, DifficultyDamageScaler difficultydamagescaler, EnumMobSpawn enummobspawn, @javax.annotation.Nullable GroupDataEntity groupdataentity, @javax.annotation.Nullable NBTTagCompound nbttagcompound) {
+-+        GroupDataEntity groupData = super.prepare(worldaccess, difficultydamagescaler, enummobspawn, groupdataentity, nbttagcompound);
+-+        if (groupData == null) {
+-+            setEquipmentBasedOnDifficulty(difficultydamagescaler);
+-+            setEnchantmentBasedOnDifficulty(difficultydamagescaler);
+-+        }
+-+        return groupData;
+-+    }
+-+
+-+    @Override
+-+    protected void setEquipmentBasedOnDifficulty(DifficultyDamageScaler difficulty) {
+-+        super.setEquipmentBasedOnDifficulty(difficulty);
+-+        // TODO make configurable
+-+        if (random.nextFloat() < (world.getDifficulty() == EnumDifficulty.HARD ? 0.1F : 0.05F)) {
+-+            setSlot(EnumItemSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
+-+        }
+-+    }
+-+
+-+    @Override
+-+    public float getJumpHeight() {
+-+        // make giants jump as high as everything else relative to their size
+-+        // 1.0 makes bottom of feet about as high as their waist when they jump
+-+        return world.purpurConfig.giantJumpHeight;
+-+    }
+-+    // Purpur end
+-+
+-     @Override
+-     protected float b(EntityPose entitypose, EntitySize entitysize) {
+-         return 10.440001F;
+diff --git a/src/main/java/net/minecraft/server/EntityHoglin.java b/src/main/java/net/minecraft/server/EntityHoglin.java
+index cf64c8ca2c5348782bf65a13f210564856b69311..5e3094198ce5b720a17db704ab295b1cd5a99ce9 100644
+--- a/src/main/java/net/minecraft/server/EntityHoglin.java
++++ b/src/main/java/net/minecraft/server/EntityHoglin.java
+@@ -13,7 +13,7 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+     public int conversionTicks = 0;
+     public boolean cannotBeHunted = false;
+     protected static final ImmutableList<? extends SensorType<? extends Sensor<? super EntityHoglin>>> bo = ImmutableList.of(SensorType.c, SensorType.d, SensorType.n, SensorType.m);
+-    protected static final ImmutableList<? extends MemoryModuleType<?>> bp = ImmutableList.of(MemoryModuleType.BREED_TARGET, MemoryModuleType.MOBS, MemoryModuleType.VISIBLE_MOBS, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, new MemoryModuleType[]{MemoryModuleType.AVOID_TARGET, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.NEAREST_VISIBLE_ADULY, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.PACIFIED});
++    protected static final ImmutableList<MemoryModuleType<?>> bp = ImmutableList.of(MemoryModuleType.BREED_TARGET, MemoryModuleType.MOBS, MemoryModuleType.VISIBLE_MOBS, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, new MemoryModuleType[]{MemoryModuleType.AVOID_TARGET, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.NEAREST_VISIBLE_ADULY, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.PACIFIED}); // Yatopia - decompile fix
+ 
+     public EntityHoglin(EntityTypes<? extends EntityHoglin> entitytypes, World world) {
+         super(entitytypes, world);
+@@ -77,14 +77,14 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+ 
+     @Override
+     public BehaviorController<EntityHoglin> getBehaviorController() {
+-        return super.getBehaviorController();
++        return (BehaviorController<EntityHoglin>) super.getBehaviorController(); // Yatopia - decompile fix
+     }
+ 
+     @Override
+     protected void mobTick() {
+-        this.world.getMethodProfiler().enter("hoglinBrain");
+-        this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().enter("hoglinBrain"); // Akarin - remove caller
++        this.getBehaviorController().a((WorldServer) this.world, this); // Yatopia - decompile fix
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         HoglinAI.a(this);
+         if (this.isConverting()) {
+             ++this.conversionTicks;
+@@ -259,7 +259,7 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+ 
+     @Override
+     protected SoundEffect getSoundAmbient() {
+-        return this.world.isClientSide ? null : (SoundEffect) HoglinAI.b(this).orElse((Object) null);
++        return this.world.isClientSide ? null : (SoundEffect) HoglinAI.b(this).orElse(null); // Yatopia - decompile fix
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/EntityHoglin.java.rej b/src/main/java/net/minecraft/server/EntityHoglin.java.rej
+deleted file mode 100644
+index be7a4b07540f6cc29c9ed76668bc1eaf9850013c..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityHoglin.java.rej
++++ /dev/null
+@@ -1,13 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityHoglin.java b/src/main/java/net/minecraft/server/EntityHoglin.java	(rejected hunks)
+-@@ -83,9 +83,9 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+- 
+-     @Override
+-     protected void mobTick() {
+--        this.world.getMethodProfiler().enter("hoglinBrain");
+-+        //this.world.getMethodProfiler().enter("hoglinBrain"); // Akarin - remove caller
+-         this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
+--        this.world.getMethodProfiler().exit();
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-         HoglinAI.a(this);
+-         if (this.eO()) {
+-             ++this.bz;
+diff --git a/src/main/java/net/minecraft/server/EntityIllagerIllusioner.java b/src/main/java/net/minecraft/server/EntityIllagerIllusioner.java
+index 7b2c459adc489702137944602627e0fc54af26e8..6b4fad730cc43bf2c70e499adbf9bf28d8d111d7 100644
+--- a/src/main/java/net/minecraft/server/EntityIllagerIllusioner.java
++++ b/src/main/java/net/minecraft/server/EntityIllagerIllusioner.java
+@@ -19,17 +19,6 @@ public class EntityIllagerIllusioner extends EntityIllagerWizard implements IRan
+ 
+     }
+ 
+-    // Purpur start
+-    @Override
+-    protected void initAttributes(World world) {
+-        if (world != null) {
+-            getAttributeMap().getAttribute(GenericAttributes.MOVEMENT_SPEED).setValue(world.purpurConfig.illusionerMovementSpeed);
+-            getAttributeMap().getAttribute(GenericAttributes.FOLLOW_RANGE).setValue(world.purpurConfig.illusionerFollowRange);
+-            getAttributeMap().getAttribute(GenericAttributes.MAX_HEALTH).setValue(world.purpurConfig.illusionerMaxHealth);
+-        }
+-    }
+-    // Purpur end
+-
+     @Override
+     protected void initPathfinder() {
+         super.initPathfinder();
+@@ -54,6 +43,11 @@ public class EntityIllagerIllusioner extends EntityIllagerWizard implements IRan
+     @Override
+     public GroupDataEntity prepare(WorldAccess worldaccess, DifficultyDamageScaler difficultydamagescaler, EnumMobSpawn enummobspawn, @Nullable GroupDataEntity groupdataentity, @Nullable NBTTagCompound nbttagcompound) {
+         this.setSlot(EnumItemSlot.MAINHAND, new ItemStack(Items.BOW));
++        // Purpur start
++        getAttributeMap().getAttribute(GenericAttributes.MOVEMENT_SPEED).setValue(world.purpurConfig.illusionerMovementSpeed);
++        getAttributeMap().getAttribute(GenericAttributes.FOLLOW_RANGE).setValue(world.purpurConfig.illusionerFollowRange);
++        getAttributeMap().getAttribute(GenericAttributes.MAX_HEALTH).setValue(world.purpurConfig.illusionerMaxHealth);
++        // Purpur end
+         return super.prepare(worldaccess, difficultydamagescaler, enummobspawn, groupdataentity, nbttagcompound);
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
+index 33a3c42dea777076327b6e8aa1ea5325e1852d13..4688e9ae108efc50a645b205972e0da30087a3a8 100644
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java
++++ b/src/main/java/net/minecraft/server/EntityInsentient.java
+@@ -242,13 +242,13 @@ public abstract class EntityInsentient extends EntityLiving {
+     @Override
+     public void entityBaseTick() {
+         super.entityBaseTick();
+-        this.world.getMethodProfiler().enter("mobBaseTick");
++        //this.world.getMethodProfiler().enter("mobBaseTick"); // Akarin - remove caller
+         if (this.isAlive() && this.random.nextInt(1000) < this.e++) {
+             this.m();
+             this.F();
+         }
+         incrementTicksSinceLastInteraction(); // Purpur
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+     }
+ 
+     // Purpur start
+@@ -779,30 +779,30 @@ public abstract class EntityInsentient extends EntityLiving {
+             return;
+         }
+         // Paper end
+-        this.world.getMethodProfiler().enter("sensing");
++        //this.world.getMethodProfiler().enter("sensing"); // Akarin - remove caller
+         this.bo.a();
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("targetSelector");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("targetSelector"); // Akarin - remove caller
+         this.targetSelector.doTick();
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("goalSelector");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("goalSelector"); // Akarin - remove caller
+         this.goalSelector.doTick();
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("navigation");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("navigation"); // Akarin - remove caller
+         this.navigation.c();
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("mob tick");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("mob tick"); // Akarin - remove caller
+         this.mobTick();
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("controls");
+-        this.world.getMethodProfiler().enter("move");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("controls"); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("move"); // Akarin - remove caller
+         this.moveController.a();
+-        this.world.getMethodProfiler().exitEnter("look");
++        //this.world.getMethodProfiler().exitEnter("look"); // Akarin - remove caller
+         this.lookController.a();
+-        this.world.getMethodProfiler().exitEnter("jump");
++        //this.world.getMethodProfiler().exitEnter("jump"); // Akarin - remove caller
+         this.bi.b();
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         this.M();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java.rej b/src/main/java/net/minecraft/server/EntityInsentient.java.rej
+deleted file mode 100644
+index bccb7cd89241ca30549f5442a4ef9847cfdb67a9..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java.rej
++++ /dev/null
+@@ -1,64 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java	(rejected hunks)
--@@ -757,6 +758,11 @@ public abstract class EntityInsentient extends EntityLiving {
+-@@ -241,13 +241,13 @@ public abstract class EntityInsentient extends EntityLiving {
+-     @Override
+-     public void entityBaseTick() {
+-         super.entityBaseTick();
+--        this.world.getMethodProfiler().enter("mobBaseTick");
+-+        //this.world.getMethodProfiler().enter("mobBaseTick"); // Akarin - remove caller
+-         if (this.isAlive() && this.random.nextInt(1000) < this.e++) {
+-             this.eJ();
+-             this.F();
+-         }
+- 
+--        this.world.getMethodProfiler().exit();
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-     }
+- 
+-     @Override
+-@@ -747,30 +747,30 @@ public abstract class EntityInsentient extends EntityLiving {
+-             return;
+-         }
+-         // Paper end
+--        this.world.getMethodProfiler().enter("sensing");
+-+        //this.world.getMethodProfiler().enter("sensing"); // Akarin - remove caller
+-         this.bv.a();
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("targetSelector");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("targetSelector"); // Akarin - remove caller
+-         this.targetSelector.doTick();
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("goalSelector");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("goalSelector"); // Akarin - remove caller
 -         this.goalSelector.doTick();
--         this.world.getMethodProfiler().exit();
--         this.world.getMethodProfiler().enter("navigation");
--+        // Paper start - async navigation
--+        if (this.navigation instanceof AsyncNavigationAbstract)
--+            ((AsyncNavigationAbstract) this.navigation).asyncTick();
--+        else
--+            // Paper end
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("navigation");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("navigation"); // Akarin - remove caller
 -         this.navigation.c();
--         this.world.getMethodProfiler().exit();
--         this.world.getMethodProfiler().enter("mob tick");
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("mob tick");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("mob tick"); // Akarin - remove caller
+-         this.mobTick();
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("controls");
+--        this.world.getMethodProfiler().enter("move");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("controls"); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("move"); // Akarin - remove caller
+-         this.moveController.a();
+--        this.world.getMethodProfiler().exitEnter("look");
+-+        //this.world.getMethodProfiler().exitEnter("look"); // Akarin - remove caller
+-         this.lookController.a();
+--        this.world.getMethodProfiler().exitEnter("jump");
+-+        //this.world.getMethodProfiler().exitEnter("jump"); // Akarin - remove caller
+-         this.bp.b();
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().exit();
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-         this.M();
+-     }
+- 
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 1c96e59322ff83e8449e7e4ffa0358480313237d..f24f7f1230a380f46112e886fb5dff7c33edb2ce 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -365,7 +365,7 @@ public abstract class EntityLiving extends Entity {
+         this.aD = this.aC;
+         this.lastYaw = this.yaw;
+         this.lastPitch = this.pitch;
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+     }
+ 
+     public boolean cM() {
+@@ -2503,10 +2503,10 @@ public abstract class EntityLiving extends Entity {
+         }
+ 
+         this.aK += (f3 - this.aK) * 0.3F;
+-        this.world.getMethodProfiler().enter("headTurn");
++        //this.world.getMethodProfiler().enter("headTurn"); // Akarin - remove caller
+         f2 = this.f(f1, f2);
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("rangeChecks");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("rangeChecks"); // Akarin - remove caller
+ 
+         while (this.yaw - this.lastYaw < -180.0F) {
+             this.lastYaw -= 360.0F;
+@@ -2540,7 +2540,7 @@ public abstract class EntityLiving extends Entity {
+             this.aD += 360.0F;
+         }
+ 
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         this.aL += f2;
+         if (this.isGliding()) {
+             ++this.be;
+@@ -2741,19 +2741,19 @@ public abstract class EntityLiving extends Entity {
+         }
+ 
+         this.setMot(d4, d5, d6);
+-        this.world.getMethodProfiler().enter("ai");
++        //this.world.getMethodProfiler().enter("ai"); // Akarin - remove caller
+         if (this.isFrozen()) {
+             this.jumping = false;
+             this.aR = 0.0F;
+             this.aT = 0.0F;
+         } else if (this.doAITick()) {
+-            this.world.getMethodProfiler().enter("newAi");
++            //this.world.getMethodProfiler().enter("newAi"); // Akarin - remove caller
+             this.doTick();
+-            this.world.getMethodProfiler().exit();
++            //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         }
+ 
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("jump");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("jump"); // Akarin - remove caller
+         if (this.jumping && this.cS()) {
+             double d7;
+ 
+@@ -2780,8 +2780,8 @@ public abstract class EntityLiving extends Entity {
+             this.jumpTicks = 0;
+         }
+ 
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("travel");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("travel"); // Akarin - remove caller
+         this.aR *= 0.98F;
+         this.aT *= 0.98F;
+         this.r();
+@@ -2790,15 +2790,15 @@ public abstract class EntityLiving extends Entity {
+         // SpigotTimings.timerEntityAIMove.startTiming(); // Spigot // Paper
+         this.g(new Vec3D((double) this.aR, (double) this.aS, (double) this.aT));
+         // SpigotTimings.timerEntityAIMove.stopTiming(); // Spigot // Paper
+-        this.world.getMethodProfiler().exit();
+-        this.world.getMethodProfiler().enter("push");
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
++        //this.world.getMethodProfiler().enter("push"); // Akarin - remove caller
+         if (this.bf > 0) {
+             --this.bf;
+             this.a(axisalignedbb, this.getBoundingBox());
+         }
+ 
+         this.collideNearby();
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         if (!this.world.isClientSide && this.dN() && this.aF()) {
+             this.damageEntity(DamageSource.DROWN, 1.0F);
+         }
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java.rej b/src/main/java/net/minecraft/server/EntityLiving.java.rej
+deleted file mode 100644
+index 947d12a17358d209be65c828e9dd297c54af91ac..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityLiving.java.rej
++++ /dev/null
+@@ -1,87 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java	(rejected hunks)
+-@@ -365,7 +365,7 @@ public abstract class EntityLiving extends Entity {
+-         this.aK = this.aJ;
+-         this.lastYaw = this.yaw;
+-         this.lastPitch = this.pitch;
+--        this.world.getMethodProfiler().exit();
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-     }
+- 
+-     public boolean cM() {
+-@@ -2497,10 +2497,10 @@ public abstract class EntityLiving extends Entity {
+-         }
+- 
+-         this.aR += (f3 - this.aR) * 0.3F;
+--        this.world.getMethodProfiler().enter("headTurn");
+-+        //this.world.getMethodProfiler().enter("headTurn"); // Akarin - remove caller
+-         f2 = this.f(f1, f2);
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("rangeChecks");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("rangeChecks"); // Akarin - remove caller
+- 
+-         while (this.yaw - this.lastYaw < -180.0F) {
+-             this.lastYaw -= 360.0F;
+-@@ -2534,7 +2534,7 @@ public abstract class EntityLiving extends Entity {
+-             this.aK += 360.0F;
+-         }
+- 
+--        this.world.getMethodProfiler().exit();
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-         this.aS += f2;
+-         if (this.isGliding()) {
+-             ++this.bl;
+-@@ -2733,19 +2733,19 @@ public abstract class EntityLiving extends Entity {
+-         }
+- 
+-         this.setMot(d4, d5, d6);
+--        this.world.getMethodProfiler().enter("ai");
+-+        //this.world.getMethodProfiler().enter("ai"); // Akarin - remove caller
+-         if (this.isFrozen()) {
+-             this.jumping = false;
+-             this.aY = 0.0F;
+-             this.ba = 0.0F;
+-         } else if (this.doAITick()) {
+--            this.world.getMethodProfiler().enter("newAi");
+-+            //this.world.getMethodProfiler().enter("newAi"); // Akarin - remove caller
+-             this.doTick();
+--            this.world.getMethodProfiler().exit();
+-+            //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-         }
+- 
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("jump");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("jump"); // Akarin - remove caller
+-         if (this.jumping && this.cS()) {
+-             double d7;
+- 
+-@@ -2772,23 +2772,23 @@ public abstract class EntityLiving extends Entity {
+-             this.jumpTicks = 0;
+-         }
+- 
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("travel");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("travel"); // Akarin - remove caller
+-         this.aY *= 0.98F;
+-         this.ba *= 0.98F;
+-         this.t();
+-         AxisAlignedBB axisalignedbb = this.getBoundingBox();
+- 
+-         this.f(new Vec3D((double) this.aY, (double) this.aZ, (double) this.ba));
+--        this.world.getMethodProfiler().exit();
+--        this.world.getMethodProfiler().enter("push");
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-+        //this.world.getMethodProfiler().enter("push"); // Akarin - remove caller
+-         if (this.bm > 0) {
+-             --this.bm;
+-             this.a(axisalignedbb, this.getBoundingBox());
+-         }
+- 
+-         this.collideNearby();
+--        this.world.getMethodProfiler().exit();
+-+        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+-         if (!this.world.isClientSide && this.dN() && this.aC()) {
+-             this.damageEntity(DamageSource.DROWN, 1.0F);
+-         }
+diff --git a/src/main/java/net/minecraft/server/EntityPhantom.java b/src/main/java/net/minecraft/server/EntityPhantom.java
+index b3616185d285849c51ce1c0d2ac61e61e0fa8d97..d62f15d7bfa9bd1f7ff4f41cbd26150623729692 100644
+--- a/src/main/java/net/minecraft/server/EntityPhantom.java
++++ b/src/main/java/net/minecraft/server/EntityPhantom.java
+@@ -240,7 +240,7 @@ public class EntityPhantom extends EntityFlying implements IMonster {
+         @Override
+         public boolean a() { // shouldExecute
+             double range = maxTargetRange();
+-            List<EntityEnderCrystal> crystals = world.getEntitiesInAABB(EntityEnderCrystal.class, phantom.getBoundingBox().grow(range));
++            List<EntityEnderCrystal> crystals = world.getEntities(EntityEnderCrystal.class, phantom.getBoundingBox().grow(range), null); // Yatopia
+             if (crystals.isEmpty()) {
+                 return false;
+             }
+diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java
+index 13a2af03fc5a511f13a9be28a813e7275448d09d..ad42bc283e5b64cce893b65a101b8220aef9c5c2 100644
+--- a/src/main/java/net/minecraft/server/EntityPigZombie.java
++++ b/src/main/java/net/minecraft/server/EntityPigZombie.java
+@@ -70,7 +70,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+             this.eY();
+         }
+ 
+-        if (this.isAngry()) {
++        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
+             this.lastDamageByPlayerTime = this.ticksLived;
+         }
+ 
+@@ -103,15 +103,11 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+         double d0 = this.b(GenericAttributes.FOLLOW_RANGE);
+         AxisAlignedBB axisalignedbb = AxisAlignedBB.a(this.getPositionVector()).grow(d0, 10.0D, d0);
+ 
+-        this.world.b(EntityPigZombie.class, axisalignedbb).stream().filter((entitypigzombie) -> {
+-            return entitypigzombie != this;
+-        }).filter((entitypigzombie) -> {
+-            return entitypigzombie.getGoalTarget() == null;
+-        }).filter((entitypigzombie) -> {
+-            return !entitypigzombie.r(this.getGoalTarget());
+-        }).forEach((entitypigzombie) -> {
+-            entitypigzombie.setGoalTarget(this.getGoalTarget(), org.bukkit.event.entity.EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true); // CraftBukkit
+-        });
++        for (EntityPigZombie pigZombie : this.world.b(EntityPigZombie.class, axisalignedbb)) {
++            if (pigZombie != this && pigZombie.getGoalTarget() == null && !pigZombie.r(this.getGoalTarget())) {
++                pigZombie.setGoalTarget(this.getGoalTarget(), EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true);
++            }
++        }
+     }
+ 
+     private void fa() {
+diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java.rej b/src/main/java/net/minecraft/server/EntityPigZombie.java.rej
+deleted file mode 100644
+index 7c6c99ccd4d034994668f62d82fa8180ab0bba57..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityPigZombie.java.rej
++++ /dev/null
+@@ -1,10 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java	(rejected hunks)
+-@@ -68,7 +68,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+-             this.eZ();
+-         }
+- 
+--        if (this.isAngry()) {
+-+        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
+-             this.lastDamageByPlayerTime = this.ticksLived;
+-         }
+- 
+diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java b/src/main/java/net/minecraft/server/EntityPiglin.java
+index e1b4330074cf3c3de31dbfcd9e1b99feb7baf669..2581c6da77c3fcec5a18f5fcacf30a36bf6b5ee6 100644
+--- a/src/main/java/net/minecraft/server/EntityPiglin.java
++++ b/src/main/java/net/minecraft/server/EntityPiglin.java
+@@ -143,7 +143,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+ 
+     @Override
+     public BehaviorController<EntityPiglin> getBehaviorController() {
+-        return super.getBehaviorController();
++        return (BehaviorController<EntityPiglin>) super.getBehaviorController(); // Yatopia - decompile fix
+     }
+ 
+     @Override
+@@ -201,9 +201,9 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+ 
+     @Override
+     protected void mobTick() {
+-        this.world.getMethodProfiler().enter("piglinBrain");
+-        this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().enter("piglinBrain"); // Akarin - remove caller
++        this.getBehaviorController().a((WorldServer) this.world, this); // Yatopia - decompile fix
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         PiglinAI.b(this);
+         super.mobTick();
+     }
+@@ -341,7 +341,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+ 
+     @Override
+     protected SoundEffect getSoundAmbient() {
+-        return this.world.isClientSide ? null : (SoundEffect) PiglinAI.d(this).orElse((Object) null);
++        return this.world.isClientSide ? null : (SoundEffect) PiglinAI.d(this).orElse(null); // Yatopia - decompile fix
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java.rej b/src/main/java/net/minecraft/server/EntityPiglin.java.rej
+deleted file mode 100644
+index d1016d22fbb2dd15042fd6ccdf2ee7848351e518..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityPiglin.java.rej
++++ /dev/null
+@@ -1,23 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityPiglin.java b/src/main/java/net/minecraft/server/EntityPiglin.java	(rejected hunks)
+-@@ -63,7 +63,9 @@ public class EntityPiglin extends EntityMonster implements ICrossbow {
+-     @Override
+-     protected void dropDeathLoot(DamageSource damagesource, int i, boolean flag) {
+-         super.dropDeathLoot(damagesource, i, flag);
+--        this.bB.f().forEach(this::a);
+-+        for (ItemStack itemStack : this.bB.f()) {
+-+            a(itemStack);
+-+        }
+-     }
+- 
+-     protected ItemStack k(ItemStack itemstack) {
+-@@ -259,7 +261,9 @@ public class EntityPiglin extends EntityMonster implements ICrossbow {
+- 
+-     private void b(WorldServer worldserver) {
+-         PiglinAI.c(this);
+--        this.bB.f().forEach(this::a);
+-+        for (ItemStack itemStack : this.bB.f()) {
+-+            a(itemStack);
+-+        }
+-         EntityPigZombie entitypigzombie = (EntityPigZombie) this.b(EntityTypes.ZOMBIFIED_PIGLIN);
+- 
+-         entitypigzombie.addEffect(new MobEffect(MobEffects.CONFUSION, 200, 0));
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index 5e4eb269bc849ee6b8dc8603a4f90639822b8bee..2b7dcf88e2feba50e5ae306ab3e746cd8b60ef02 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -135,7 +135,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         this.playerInteractManager = playerinteractmanager;
+         this.server = minecraftserver;
+         this.serverStatisticManager = minecraftserver.getPlayerList().getStatisticManager(this);
+-        this.advancementDataPlayer = minecraftserver.getPlayerList().f(this);
++        this.advancementDataPlayerCompletableFuture = minecraftserver.getPlayerList().loadAdvancementDataPlayerAsync(this); // Paper - async advancements
+         this.G = 1.0F;
+         //this.c(worldserver); // Paper - don't move to spawn on login, only first join
+ 
+@@ -501,6 +501,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             CriterionTriggers.u.a(this, this.cf, this.ticksLived - this.cg);
+         }
+ 
++        if (areAdvancementsLoaded()) // Paper - async advancements: don't tick advancements until they're loaded
+         this.advancementDataPlayer.b(this);
+     }
+ 
+@@ -917,7 +918,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             ShapeDetectorShape shapedetectorshape = this.a(worldserver);
+ 
+             if (shapedetectorshape != null) {
+-                worldserver1.getMethodProfiler().enter("moving");
++                //worldserver1.getMethodProfiler().enter("moving"); // Akarin - remove caller
+                 worldserver = shapedetectorshape.world; // CraftBukkit
+                 if (worldserver == null) { } else // CraftBukkit - empty to fall through to null to event
+                 if (resourcekey == DimensionManager.OVERWORLD && worldserver.getTypeKey() == DimensionManager.THE_NETHER) { // CraftBukkit
+@@ -940,8 +941,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             worldserver = ((CraftWorld) exit.getWorld()).getHandle();
+             // CraftBukkit end
+ 
+-            worldserver1.getMethodProfiler().exit();
+-            worldserver1.getMethodProfiler().enter("placing");
++            //worldserver1.getMethodProfiler().exit(); // Akarin - remove caller
++            //worldserver1.getMethodProfiler().enter("placing"); // Akarin - remove caller
+             if (true) { // CraftBukkit
+                 this.worldChangeInvuln = true; // CraftBukkit - Set teleport invulnerability only if player changing worlds
+ 
+@@ -958,7 +959,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+                 worldserver.addPlayerPortal(this);
+                 this.playerConnection.teleport(exit); // CraftBukkit - use internal teleport without event
+                 this.playerConnection.syncPosition(); // CraftBukkit - sync position after changing it (from PortalTravelAgent#findAndteleport)
+-                worldserver1.getMethodProfiler().exit();
++                //worldserver1.getMethodProfiler().exit(); // Akarin - remove caller
+                 this.triggerDimensionAdvancements(worldserver1);
+                 this.playerInteractManager.a(worldserver);
+                 this.playerConnection.sendPacket(new PacketPlayOutAbilities(this.abilities));
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java.rej b/src/main/java/net/minecraft/server/EntityPlayer.java.rej
+deleted file mode 100644
+index 96d58c9dcfcd1715b5d970054710e51e678cc188..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java.rej
++++ /dev/null
+@@ -1,18 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java	(rejected hunks)
+-@@ -130,7 +131,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+-         this.playerInteractManager = playerinteractmanager;
+-         this.server = minecraftserver;
+-         this.serverStatisticManager = minecraftserver.getPlayerList().getStatisticManager(this);
+--        this.advancementDataPlayer = minecraftserver.getPlayerList().f(this);
+-+        this.advancementDataPlayerCompletableFuture = minecraftserver.getPlayerList().loadAdvancementDataPlayerAsync(this); // Paper - async advancements
+-         this.G = 1.0F;
+-         //this.b(worldserver); // Paper - don't move to spawn on login, only first join
+- 
+-@@ -494,6 +495,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+-             CriterionTriggers.u.a(this, this.cm, this.ticksLived - this.cn);
+-         }
+- 
+-+        if (areAdvancementsLoaded()) // Paper - async advancements: don't tick advancements until they're loaded
+-         this.advancementDataPlayer.b(this);
+-     }
+- 
+diff --git a/src/main/java/net/minecraft/server/EntitySheep.java.rej b/src/main/java/net/minecraft/server/EntitySheep.java.rej
+deleted file mode 100644
+index 1137eb4819b638cd04d630ec1692b67ec40c740f..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/EntitySheep.java.rej
++++ /dev/null
+@@ -1,23 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/EntitySheep.java b/src/main/java/net/minecraft/server/EntitySheep.java	(rejected hunks)
+-@@ -35,9 +33,18 @@ public class EntitySheep extends EntityAnimal implements IShearable {
+-         enummap.put(EnumColor.RED, Blocks.RED_WOOL);
+-         enummap.put(EnumColor.BLACK, Blocks.BLACK_WOOL);
+-     });
+--    private static final Map<EnumColor, float[]> bx = Maps.newEnumMap((Map) Arrays.stream(EnumColor.values()).collect(Collectors.toMap((enumcolor) -> {
+--        return enumcolor;
+--    }, EntitySheep::c)));
+-+    private static final Map<EnumColor, float[]> bx;
+-+
+-+    static {
+-+        Map<EnumColor, float[]> map = new HashMap<>();
+-+        for (EnumColor enumcolor : EnumColor.values()) {
+-+            if (map.put(enumcolor, c(enumcolor)) != null) {
+-+                throw new IllegalStateException("Duplicate key");
+-+            }
+-+        }
+-+        bx = Maps.newEnumMap((Map) map);
+-+    }
+-+
+-     private int by;
+-     private PathfinderGoalEatTile bz;
+- 
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 70ae2923e21d7a0312e629a903ca9e380d6c6114..d906c5e530c2e7f779df079223aee619a73b5d51 100644
+index c245f66dea9f751423311034b3216385f142c1cc..1104196cf6dc448dada2e190e5e9e27c9f18d2dc 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
-@@ -164,6 +164,10 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -175,13 +175,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     @Override
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
-         //this.world.getMethodProfiler().enter("villagerBrain"); // Akarin - remove caller
-+        // Purpur start
-+        boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
-+        if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
-+        // Purpur end
+-        this.world.getMethodProfiler().enter("villagerBrain");
++        //this.world.getMethodProfiler().enter("villagerBrain"); // Akarin - remove caller
+         // Purpur start
+         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
+         if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
+         // Purpur end
          if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
-         if (this.bM) {
-             this.bM = false;
+-        this.world.getMethodProfiler().exit();
++        //this.world.getMethodProfiler().exit(); // Akarin - remove caller
+         if (this.bF) {
+             this.bF = false;
+         }
+@@ -827,9 +827,12 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     private int fv() {
+         InventorySubcontainer inventorysubcontainer = this.getInventory();
+ 
+-        return EntityVillager.bp.entrySet().stream().mapToInt((entry) -> {
+-            return inventorysubcontainer.a((Item) entry.getKey()) * (Integer) entry.getValue();
+-        }).sum();
++        int sum = 0;
++        for (Map.Entry<Item, Integer> entry : EntityVillager.bp.entrySet()) {
++            int i1 = inventorysubcontainer.a(entry.getKey()) * entry.getValue();
++            sum += i1;
++        }
++        return sum;
+     }
+ 
+     public boolean canPlant() {
+@@ -877,9 +880,14 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         if (this.a(i)) {
+             AxisAlignedBB axisalignedbb = this.getBoundingBox().grow(10.0D, 10.0D, 10.0D);
+             List<EntityVillager> list = worldserver.a(EntityVillager.class, axisalignedbb);
+-            List<EntityVillager> list1 = (List) list.stream().filter((entityvillager) -> {
+-                return entityvillager.a(i);
+-            }).limit(5L).collect(Collectors.toList());
++            List<EntityVillager> list1 = new ArrayList<>();
++            long limit = 5L;
++            for (EntityVillager villager : list) {
++                if (villager.a(i)) {
++                    if (limit-- == 0) break;
++                    list1.add(villager);
++                }
++            }
+ 
+             if (list1.size() >= j) {
+                 EntityIronGolem entityirongolem = this.d(worldserver);
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java.rej b/src/main/java/net/minecraft/server/EntityVillager.java.rej
 deleted file mode 100644
-index 68f0fc0230a4148ab9fc4181736ce93297c7e1b9..0000000000000000000000000000000000000000
+index a40eff6d66cb3518d1773856dfdf2da816c52470..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/EntityVillager.java.rej
 +++ /dev/null
-@@ -1,12 +0,0 @@
+@@ -1,46 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java	(rejected hunks)
--@@ -166,6 +168,10 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
--     protected void mobTick() { mobTick(false); }
--     protected void mobTick(boolean inactive) {
--         this.world.getMethodProfiler().enter("villagerBrain");
+-@@ -807,9 +803,12 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+-     private int fu() {
+-         InventorySubcontainer inventorysubcontainer = this.getInventory();
+- 
+--        return EntityVillager.bw.entrySet().stream().mapToInt((entry) -> {
+--            return inventorysubcontainer.a((Item) entry.getKey()) * (Integer) entry.getValue();
+--        }).sum();
+-+        int sum = 0;
+-+        for (Map.Entry<Item, Integer> entry : EntityVillager.bw.entrySet()) {
+-+            int i1 = inventorysubcontainer.a(entry.getKey()) * entry.getValue();
+-+            sum += i1;
+-+        }
+-+        return sum;
+-     }
+- 
+-     public boolean canPlant() {
+-@@ -857,17 +856,23 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+-         if (this.a(i)) {
+-             AxisAlignedBB axisalignedbb = this.getBoundingBox().grow(10.0D, 10.0D, 10.0D);
+-             List<EntityVillager> list = this.world.a(EntityVillager.class, axisalignedbb);
+--            List<EntityVillager> list1 = (List) list.stream().filter((entityvillager) -> {
+--                return entityvillager.a(i);
+--            }).limit(5L).collect(Collectors.toList());
+-+            List<EntityVillager> result = new ArrayList<>();
+-+            long limit = 5L;
+-+            for (EntityVillager entityVillager : list) {
+-+                if (entityVillager.a(i)) {
+-+                    if (limit-- == 0) break;
+-+                    result.add(entityVillager);
+-+                }
+-+            }
+-+            List<EntityVillager> list1 = (List) result;
+- 
+-             if (list1.size() >= j) {
+-                 EntityIronGolem entityirongolem = this.fw();
+- 
+-                 if (entityirongolem != null) {
+--                    list.forEach((entityvillager) -> {
+-+                    for (EntityVillager entityvillager : list) {
+-                         entityvillager.b(i);
+--                    });
+-+                    }
+-                 }
+-             }
+-         }
+diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
+index 375f974e391f0f233ad5f0bd755471ec68d7bf6d..3833a6dfdd507f2d2bf6736e1b7fcf80188a419f 100644
+--- a/src/main/java/net/minecraft/server/Explosion.java
++++ b/src/main/java/net/minecraft/server/Explosion.java
+@@ -105,7 +105,7 @@ public class Explosion {
+         int i;
+         int j;
+ 
+-        if (this.a || this.b != Effect.NONE) { // EMC - don't run block processing if neither flag is set
++        if (this.b || this.c != Effect.NONE) { // EMC - don't run block processing if neither flag is set
+         for (int k = 0; k < 16; ++k) {
+             for (i = 0; i < 16; ++i) {
+                 for (j = 0; j < 16; ++j) {
+@@ -284,7 +284,7 @@ public class Explosion {
+                 if (!iblockdata.isAir() && iblockdata.isDestroyable()) { // Paper
+                     BlockPosition blockposition1 = blockposition.immutableCopy();
+ 
+-                    this.world.getMethodProfiler().enter("explosion_blocks");
++                    //this.world.getMethodProfiler().enter("explosion_blocks"); // Akarin - remove caller
+                     if (block.a(this) && this.world instanceof WorldServer) {
+                         TileEntity tileentity = block.isTileEntity() ? this.world.getTileEntity(blockposition) : null;
+                         LootTableInfo.Builder loottableinfo_builder = (new LootTableInfo.Builder((WorldServer) this.world)).a(this.world.random).set(LootContextParameters.ORIGIN, Vec3D.a((BaseBlockPosition) blockposition)).set(LootContextParameters.TOOL, ItemStack.b).setOptional(LootContextParameters.BLOCK_ENTITY, tileentity).setOptional(LootContextParameters.THIS_ENTITY, this.source);
+diff --git a/src/main/java/net/minecraft/server/Explosion.java.rej b/src/main/java/net/minecraft/server/Explosion.java.rej
+deleted file mode 100644
+index 98a910fa6bfc9542b1d1cb56b6621809acd6b279..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Explosion.java.rej
++++ /dev/null
+@@ -1,10 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java	(rejected hunks)
+-@@ -281,7 +281,7 @@ public class Explosion {
+-                 if (!iblockdata.isAir() && iblockdata.isDestroyable()) { // Paper
+-                     BlockPosition blockposition1 = blockposition.immutableCopy();
+- 
+--                    this.world.getMethodProfiler().enter("explosion_blocks");
+-+                    //this.world.getMethodProfiler().enter("explosion_blocks"); // Akarin - remove caller
+-                     if (block.a(this) && this.world instanceof WorldServer) {
+-                         TileEntity tileentity = block.isTileEntity() ? this.world.getTileEntity(blockposition) : null;
+-                         LootTableInfo.Builder loottableinfo_builder = (new LootTableInfo.Builder((WorldServer) this.world)).a(this.world.random).set(LootContextParameters.POSITION, blockposition).set(LootContextParameters.TOOL, ItemStack.b).setOptional(LootContextParameters.BLOCK_ENTITY, tileentity).setOptional(LootContextParameters.THIS_ENTITY, this.source);
+diff --git a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java
+index 0bac6b0506dc35c5117f13db0e9c67b1a0d3154e..4a62043f9b2b9a3bf4ab9a18070a61124cb98348 100644
+--- a/src/main/java/net/minecraft/server/IProjectile.java
++++ b/src/main/java/net/minecraft/server/IProjectile.java
+@@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
+     private UUID shooter;
+     private int c;
+     private boolean d;
++    public int despawnCounter; // Purpur - moved from EntityArrow
+ 
+     IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
+         super(entitytypes, world);
+@@ -79,7 +80,22 @@ public abstract class IProjectile extends Entity {
+         }
+ 
+         super.tick();
++
++        // Purpur start
++        if (!(this instanceof EntityArrow)) {
++            if (ticksLived > 200) this.tickDespawnCounter(); // Paper - tick despawnCounter regardless after 10 seconds
++        }
++        // Purpur end
++    }
++
++    // Purpur start - copied from EntityArrow
++    protected void tickDespawnCounter() {
++        ++this.despawnCounter;
++        if (this.despawnCounter >= world.spigotConfig.arrowDespawnRate) {
++            this.die();
++        }
+     }
++    // Purpur end
+ 
+     private boolean h() {
+         Entity entity = this.getShooter();
+diff --git a/src/main/java/net/minecraft/server/IProjectile.java.rej b/src/main/java/net/minecraft/server/IProjectile.java.rej
+deleted file mode 100644
+index 33186fa6911f0396adfc5e650034daba5b950143..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/IProjectile.java.rej
++++ /dev/null
+@@ -1,32 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java	(rejected hunks)
+-@@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
+-     private UUID shooter;
+-     private int c;
+-     private boolean d; public boolean leftOwner() { return d; } public void setLeftOwner(boolean leftOwner) { this.d = leftOwner; } // Purpur - OBFHELPER
+-+    public int despawnCounter; // Purpur - moved from EntityArrow
+- 
+-     IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
+-         super(entitytypes, world);
+-@@ -79,7 +80,22 @@ public abstract class IProjectile extends Entity {
+-         }
+- 
+-         super.tick();
+-+
 -+        // Purpur start
--+        boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
--+        if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
+-+        if (!(this instanceof EntityArrow)) {
+-+            if (ticksLived > 200) this.tickDespawnCounter(); // Paper - tick despawnCounter regardless after 10 seconds
+-+        }
 -+        // Purpur end
--         if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
--         if (this.bM) {
--             this.bM = false;
-diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 9d6d882ad1479771b2a9e7c3a14c71dd00b63172..cc22d89d540a4f86e11d7d09ad2be7fcf070f43d 100644
---- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
-+++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -334,10 +334,14 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
-     private final java.util.List<Runnable> post = new java.util.ArrayList<>();
-     private void b() {
-         if (queue.poll(pre, post)) {
--            pre.forEach(Runnable::run);
-+            for (Runnable runnable1 : pre) {
-+                runnable1.run();
-+            }
-             pre.clear();
-             super.a(Integer.MAX_VALUE, true, true);
--            post.forEach(Runnable::run);
-+            for (Runnable runnable : post) {
-+                runnable.run();
-+            }
-             post.clear();
-         } else {
-             // might have level updates to go still
+-+    }
+-+
+-+    // Purpur start - copied from EntityArrow
+-+    protected void tickDespawnCounter() {
+-+        ++this.despawnCounter;
+-+        if (this.despawnCounter >= world.spigotConfig.arrowDespawnRate) {
+-+            this.die();
+-+        }
+-     }
+-+    // Purpur end
+- 
+-     public boolean checkIfLeftOwner() { return this.h(); } // Purpur - OBFHELPER
+-     private boolean h() {
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java.rej b/src/main/java/net/minecraft/server/LightEngineThreaded.java.rej
 deleted file mode 100644
 index 74d10212e547adf96762155adb03c0158df00a16..0000000000000000000000000000000000000000
@@ -348,10 +1965,10 @@ index 74d10212e547adf96762155adb03c0158df00a16..00000000000000000000000000000000
 -             ran = true;
 -         }
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index ff1692c131b43f217de1fb6657a8274136a3dd08..5960ed2e91008b363dad900c72064055413eafd9 100644
+index 6a113ac7598c284dd17fc638c67c7f53aa9d04c8..4a8a768e66ee00c7230eb955c3cc14e100112dc2 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1001,7 +1001,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -999,7 +999,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                      this.a(this::canSleepForTick);
                      //this.methodProfiler.exitEnter("nextTickWait"); // Akarin - remove caller
                      this.X = true;
@@ -366,14 +1983,23 @@ index ff1692c131b43f217de1fb6657a8274136a3dd08..5960ed2e91008b363dad900c72064055
                      this.sleepForTick();
                      //this.methodProfiler.exit(); // Akarin - remove caller
                      //this.methodProfiler.b(); // Akarin - remove caller
+@@ -1288,7 +1294,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+                 playerSaveInterval = autosavePeriod;
+             }
+             // Paper end
+-            this.methodProfiler.enter("save");
++            //this.methodProfiler.enter("save"); // Akarin - remove caller
+             if (playerSaveInterval > 0) { // Paper
+             this.playerList.savePlayers(playerSaveInterval); // Paper
+             }// Paper
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java.rej b/src/main/java/net/minecraft/server/MinecraftServer.java.rej
 deleted file mode 100644
-index b005dd817e9ecffcf2172b4a807b0ecc632570b0..0000000000000000000000000000000000000000
+index 33ba20cb8dc21b5a0fbb05acc78e4bc6819d4b1a..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java.rej
 +++ /dev/null
 @@ -1,16 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java	(rejected hunks)
--@@ -1003,7 +1003,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+-@@ -1001,7 +1001,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
 -                     this.a(this::canSleepForTick);
 -                     this.methodProfiler.exitEnter("nextTickWait");
 -                     this.X = true;
@@ -388,172 +2014,178 @@ index b005dd817e9ecffcf2172b4a807b0ecc632570b0..00000000000000000000000000000000
 -                     this.sleepForTick();
 -                     this.methodProfiler.exit();
 -                     this.methodProfiler.b();
-diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 2f2f8d74acef3cdaeda0faab67ace0d28e2d4627..d155d843c03ee1e16180657886a87844e6b34aa6 100644
---- a/src/main/java/net/minecraft/server/NavigationAbstract.java
-+++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
-@@ -8,25 +8,25 @@ import javax.annotation.Nullable;
+diff --git a/src/main/java/net/minecraft/server/PiglinAI.java b/src/main/java/net/minecraft/server/PiglinAI.java
+index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..65abc7fbddf78662c4eb2a918848f775a0cd2eb0 100644
+--- a/src/main/java/net/minecraft/server/PiglinAI.java
++++ b/src/main/java/net/minecraft/server/PiglinAI.java
+@@ -359,16 +359,17 @@ public class PiglinAI {
+     public static void a(EntityHuman entityhuman, boolean flag) {
+         List<EntityPiglinAbstract> list = entityhuman.world.a(EntityPiglin.class, entityhuman.getBoundingBox().g(16.0D)); // CraftBukkit - decompile error
  
- public abstract class NavigationAbstract {
- 
--    protected final EntityInsentient a; public Entity getEntity() { return a; } // Paper - OBFHELPER
--    protected final World b;
-+    protected final EntityInsentient a; public EntityInsentient getEntity() { return a; } // Paper - OBFHELPER
-+    protected final World b; protected final World getWorld() { return this.b; } // Paper - OBFHELPER
-     @Nullable
--    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } // Paper - OBFHELPER
--    protected double d;
--    protected int e;
--    protected int f;
--    protected Vec3D g;
--    protected BaseBlockPosition h;
--    protected long i;
--    protected long j;
--    protected double k;
--    protected float l;
-+    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } protected final void setCurrentPath(PathEntity path) { this.c = path; } // Paper - OBFHELPER
-+    protected double d; protected final double getSpeed() { return this.d; } // Paper - OBFHELPER
-+    protected int e; protected final int getCurrentTick() { return this.e; } protected final void incrementTick() { ++this.e; } // Paper - OBFHELPER
-+    protected int f; protected final int getCurrentPathStartTime() { return this.f; } protected final void setCurrentPathStartTime(int time) { this.f = time; } // Paper - OBFHELPER
-+    protected Vec3D g; protected final Vec3D getCurrentPathStartPosition() { return this.g; } protected final void setCurrentPathStartPosition(Vec3D position) { this.g = position; } // Paper - OBFHELPER
-+    protected BaseBlockPosition h; protected final BaseBlockPosition getLastNodePosition() { return this.h; } protected final void setLastNodePosition(BaseBlockPosition position) { this.h = position; } // Paper - OBFHELPER
-+    protected long i; protected final long getCurrentNodeStartTickMs() { return this.i; } protected final void addToCurrentNodeStartTickMs(long amount) { this.i += amount; } // Paper - OBFHELPER
-+    protected long j; protected final long getLastActiveTickMs() { return this.j; } protected final void setLastActiveTickMs(long ms) { this.j = ms; } // Paper - OBFHELPER
-+    protected double k; protected final double getCurrentNodeTimeout() { return this.k; } protected final void setCurrentNodeTimeout(double timeout) { this.k = timeout; } // Paper - OBFHELPER
-+    protected float l; protected final float getChebyshevMinimumReachProximity() { return this.l; } protected final void setChebyshevMinimumReachProximity(float proximity) { this.l = proximity; } // Paper - OBFHELPER
-     protected boolean m; protected final boolean needsPathRecalculation() { return this.m; } // Tuinity - OBFHELPER
-     protected long n;
--    protected PathfinderAbstract o;
--    private BlockPosition p;
--    private int q;
--    private float r;
-+    protected PathfinderAbstract o; protected final PathfinderAbstract getNodeCreator() { return this.o; } // Paper - OBFHELPER
-+    private BlockPosition p; protected final BlockPosition getCurrentTarget() { return this.p; } protected final void setCurrentTarget(BlockPosition target) { this.p = target; } // Paper - OBFHELPER
-+    private int q; protected final int getCurrentDistance() { return this.q; } // Paper - OBFHELPER
-+    private float r; protected final float getRangeMultiplier() { return this.r; } // Paper - OBFHELPER
-     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
- 
-     // Tuinity start
-diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java.rej b/src/main/java/net/minecraft/server/NavigationAbstract.java.rej
-deleted file mode 100644
-index 3b706d3951c187dfdd158b7c4c73014d271855ca..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/NavigationAbstract.java.rej
-+++ /dev/null
-@@ -1,43 +0,0 @@
--diff a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java	(rejected hunks)
--@@ -8,25 +8,25 @@ import javax.annotation.Nullable;
-- 
-- public abstract class NavigationAbstract {
-- 
---    protected final EntityInsentient a; public Entity getEntity() { return a; } // Paper - OBFHELPER
---    protected final World b;
--+    protected final EntityInsentient a; public EntityInsentient getEntity() { return a; } // Paper - OBFHELPER
--+    protected final World b; protected final World getWorld() { return this.b; } // Paper - OBFHELPER
--     @Nullable
---    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } // Paper - OBFHELPER
---    protected double d;
---    protected int e;
---    protected int f;
---    protected Vec3D g;
---    protected BaseBlockPosition h;
---    protected long i;
---    protected long j;
---    protected double k;
---    protected float l;
--+    protected PathEntity c; protected final PathEntity getCurrentPath() { return this.c; } protected final void setCurrentPath(PathEntity path) { this.c = path; } // Paper - OBFHELPER
--+    protected double d; protected final double getSpeed() { return this.d; } // Paper - OBFHELPER
--+    protected int e; protected final int getCurrentTick() { return this.e; } protected final void incrementTick() { ++this.e; } // Paper - OBFHELPER
--+    protected int f; protected final int getCurrentPathStartTime() { return this.f; } protected final void setCurrentPathStartTime(int time) { this.f = time; } // Paper - OBFHELPER
--+    protected Vec3D g; protected final Vec3D getCurrentPathStartPosition() { return this.g; } protected final void setCurrentPathStartPosition(Vec3D position) { this.g = position; } // Paper - OBFHELPER
--+    protected BaseBlockPosition h; protected final BaseBlockPosition getLastNodePosition() { return this.h; } protected final void setLastNodePosition(BaseBlockPosition position) { this.h = position; } // Paper - OBFHELPER
--+    protected long i; protected final long getCurrentNodeStartTickMs() { return this.i; } protected final void addToCurrentNodeStartTickMs(long amount) { this.i += amount; } // Paper - OBFHELPER
--+    protected long j; protected final long getLastActiveTickMs() { return this.j; } protected final void setLastActiveTickMs(long ms) { this.j = ms; } // Paper - OBFHELPER
--+    protected double k; protected final double getCurrentNodeTimeout() { return this.k; } protected final void setCurrentNodeTimeout(double timeout) { this.k = timeout; } // Paper - OBFHELPER
--+    protected float l; protected final float getChebyshevMinimumReachProximity() { return this.l; } protected final void setChebyshevMinimumReachProximity(float proximity) { this.l = proximity; } // Paper - OBFHELPER
--     protected boolean m;
--     protected long n;
---    protected PathfinderAbstract o;
---    private BlockPosition p;
---    private int q;
---    private float r;
--+    protected PathfinderAbstract o; protected final PathfinderAbstract getNodeCreator() { return this.o; } // Paper - OBFHELPER
--+    private BlockPosition p; protected final BlockPosition getCurrentTarget() { return this.p; } protected final void setCurrentTarget(BlockPosition target) { this.p = target; } // Paper - OBFHELPER
--+    private int q; protected final int getCurrentDistance() { return this.q; } // Paper - OBFHELPER
--+    private float r; protected final float getRangeMultiplier() { return this.r; } // Paper - OBFHELPER
--     private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
-- 
--     public NavigationAbstract(EntityInsentient entityinsentient, World world) {
-diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index fe43603ecdc52f26fdaf4c94f14ea27e76b5a71b..a794e4523decded103b88433a5f63213fc243683 100644
---- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
-+++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -505,40 +505,40 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-         double playerChunkZ = MathHelper.floor(player.locZ()) >> 4;
-         pos.setValues(player.locX(), 0, player.locZ());
-         double twoThirdModifier = 2D / 3D;
--        MCUtil.getSpiralOutChunks(pos, Math.min(6, viewDistance)).forEach(coord -> {
--            if (shouldSkipPrioritization(coord)) return;
-+        for (ChunkCoordIntPair coordIntPair : MCUtil.getSpiralOutChunks(pos, Math.min(6, viewDistance))) {
-+            if (shouldSkipPrioritization(coordIntPair)) continue;
- 
--            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
-+            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coordIntPair.x, 0, coordIntPair.z);
-             // Prioritize immediate
-             if (dist <= 4 * 4) {
--                updateChunkPriorityMap(priorities, coord.pair(), (int) (27 - Math.sqrt(dist)));
--                return;
-+                updateChunkPriorityMap(priorities, coordIntPair.pair(), (int) (27 - Math.sqrt(dist)));
-+                continue;
+-        list.stream().filter(PiglinAI::d).filter((entitypiglin) -> {
+-            return !flag || BehaviorUtil.c(entitypiglin, entityhuman);
+-        }).forEach((entitypiglin) -> {
+-            if (entitypiglin.world.getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
+-                d((EntityPiglinAbstract) entitypiglin, (EntityLiving) entityhuman);
+-            } else {
+-                c((EntityPiglinAbstract) entitypiglin, (EntityLiving) entityhuman);
++        for (EntityPiglinAbstract entitypiglin : list) {
++            if (d(entitypiglin)) {
++                if (!flag || BehaviorUtil.c(entitypiglin, entityhuman)) {
++                    if (entitypiglin.world.getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
++                        d(entitypiglin, entityhuman);
++                    } else {
++                        c(entitypiglin, entityhuman);
++                    }
++                }
              }
- 
-             // Prioritize nearby chunks
--            updateChunkPriorityMap(priorities, coord.pair(), (int) (20 - Math.sqrt(dist) * twoThirdModifier));
+-
 -        });
-+            updateChunkPriorityMap(priorities, coordIntPair.pair(), (int) (20 - Math.sqrt(dist) * twoThirdModifier));
 +        }
+     }
  
-         // Prioritize Frustum near 3
-         ChunkCoordIntPair front3 = player.getChunkInFront(3);
-         pos.setValues(front3.x << 4, 0, front3.z << 4);
--        MCUtil.getSpiralOutChunks(pos, Math.min(5, viewDistance)).forEach(coord -> {
--            if (shouldSkipPrioritization(coord)) return;
-+        for (ChunkCoordIntPair chunkCoordIntPair : MCUtil.getSpiralOutChunks(pos, Math.min(5, viewDistance))) {
-+            if (shouldSkipPrioritization(chunkCoordIntPair)) continue;
+     public static EnumInteractionResult a(EntityPiglin entitypiglin, EntityHuman entityhuman, EnumHand enumhand) {
+@@ -460,9 +461,13 @@ public class PiglinAI {
+     }
  
--            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
--            updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
+     protected static boolean e(EntityPiglin entitypiglin) {
+-        return entitypiglin.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY) || m(entitypiglin).stream().anyMatch((entitypiglinabstract) -> {
+-            return entitypiglinabstract.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY);
 -        });
-+            double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, chunkCoordIntPair.x, 0, chunkCoordIntPair.z);
-+            updateChunkPriorityMap(priorities, chunkCoordIntPair.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
-+        }
- 
-         // Prioritize Frustum near 5
-         if (viewDistance > 4) {
-             ChunkCoordIntPair front5 = player.getChunkInFront(5);
-             pos.setValues(front5.x << 4, 0, front5.z << 4);
--            MCUtil.getSpiralOutChunks(pos, 4).forEach(coord -> {
--                if (shouldSkipPrioritization(coord)) return;
-+            for (ChunkCoordIntPair coord : MCUtil.getSpiralOutChunks(pos, 3)) {
-+                if (shouldSkipPrioritization(coord)) continue;
- 
-                 double dist = MCUtil.distance(playerChunkX, 0, playerChunkZ, coord.x, 0, coord.z);
-                 updateChunkPriorityMap(priorities, coord.pair(), (int) (25 - Math.sqrt(dist) * twoThirdModifier));
--            });
++        if (entitypiglin.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY)) return true;
++        for (EntityPiglinAbstract entitypiglin1 : m(entitypiglin)) {
++            if (entitypiglin1.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY)) {
++                return true;
 +            }
-         }
++        }
++        return false;
+     }
  
-         // Prioritize Frustum far 7
-@@ -1168,7 +1168,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-                 }
- 
-                 this.getVillagePlace().loadInData(chunkcoordintpair, chunkHolder.poiData);
--                chunkHolder.tasks.forEach(Runnable::run);
-+                for (Runnable task : chunkHolder.tasks) {
-+                    task.run();
-+                 }
-                 // Paper end
- 
-                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
+     private static List<EntityPiglinAbstract> m(EntityPiglin entitypiglin) {
+diff --git a/src/main/java/net/minecraft/server/PiglinAI.java.rej b/src/main/java/net/minecraft/server/PiglinAI.java.rej
+deleted file mode 100644
+index c15111ef7bbb8f71d1b5e5ce812f4526746a3651..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/PiglinAI.java.rej
++++ /dev/null
+@@ -1,90 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/PiglinAI.java b/src/main/java/net/minecraft/server/PiglinAI.java	(rejected hunks)
+-@@ -358,16 +358,18 @@ public class PiglinAI {
+-     public static void a(EntityHuman entityhuman, boolean flag) {
+-         List<EntityPiglin> list = entityhuman.world.a(EntityPiglin.class, entityhuman.getBoundingBox().g(16.0D));
+- 
+--        list.stream().filter(PiglinAI::k).filter((entitypiglin) -> {
+--            return !flag || BehaviorUtil.c(entitypiglin, entityhuman);
+--        }).forEach((entitypiglin) -> {
+--            if (entitypiglin.world.getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
+--                f(entitypiglin, entityhuman);
+--            } else {
+--                c(entitypiglin, (EntityLiving) entityhuman);
+--            }
+-+        for (EntityPiglin entitypiglin : list) {
+-+            if (k(entitypiglin)) {
+-+                if (!flag || BehaviorUtil.c(entitypiglin, entityhuman)) {
+-+                    if (entitypiglin.world.getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
+-+                        f(entitypiglin, entityhuman);
+-+                    } else {
+-+                        c(entitypiglin, entityhuman);
+-+                    }
+- 
+--        });
+-+                }
+-+            }
+-+        }
+-     }
+- 
+-     public static EnumInteractionResult a(EntityPiglin entitypiglin, EntityHuman entityhuman, EnumHand enumhand) {
+-@@ -459,9 +461,13 @@ public class PiglinAI {
+-     }
+- 
+-     protected static boolean e(EntityPiglin entitypiglin) {
+--        return entitypiglin.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY) || q(entitypiglin).stream().anyMatch((entitypiglin1) -> {
+--            return entitypiglin1.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY);
+--        });
+-+        if (entitypiglin.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY)) return true;
+-+        for (EntityPiglin entitypiglin1 : q(entitypiglin)) {
+-+            if (entitypiglin1.getBehaviorController().hasMemory(MemoryModuleType.HUNTED_RECENTLY)) {
+-+                return true;
+-+            }
+-+        }
+-+        return false;
+-     }
+- 
+-     private static List<EntityPiglin> q(EntityPiglin entitypiglin) {
+-@@ -501,23 +507,25 @@ public class PiglinAI {
+-     }
+- 
+-     protected static void b(EntityPiglin entitypiglin, EntityLiving entityliving) {
+--        r(entitypiglin).forEach((entitypiglin1) -> {
+-+        for (EntityPiglin entitypiglin1 : r(entitypiglin)) {
+-             if (entityliving.getEntityType() != EntityTypes.HOGLIN || entitypiglin1.eN() && ((EntityHoglin) entityliving).eP()) {
+-                 g(entitypiglin1, entityliving);
+-             }
+--        });
+-+        }
+-     }
+- 
+-     protected static void f(EntityPiglin entitypiglin) {
+--        r(entitypiglin).forEach((entitypiglin1) -> {
+-+        for (EntityPiglin entitypiglin1 : r(entitypiglin)) {
+-             i(entitypiglin1).ifPresent((entityhuman) -> {
+--                c(entitypiglin1, (EntityLiving) entityhuman);
+-+                c(entitypiglin1, entityhuman);
+-             });
+--        });
+-+        }
+-     }
+- 
+-     protected static void g(EntityPiglin entitypiglin) {
+--        q(entitypiglin).forEach(PiglinAI::j);
+-+        for (EntityPiglin entityPiglin : q(entitypiglin)) {
+-+            j(entityPiglin);
+-+        }
+-     }
+- 
+-     protected static void c(EntityPiglin entitypiglin, EntityLiving entityliving) {
+-@@ -568,9 +576,9 @@ public class PiglinAI {
+-     }
+- 
+-     private static void h(EntityPiglin entitypiglin, EntityLiving entityliving) {
+--        q(entitypiglin).forEach((entitypiglin1) -> {
+-+        for (EntityPiglin entitypiglin1 : q(entitypiglin)) {
+-             i(entitypiglin1, entityliving);
+--        });
+-+        }
+-     }
+- 
+-     private static void i(EntityPiglin entitypiglin, EntityLiving entityliving) {
+diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java.rej b/src/main/java/net/minecraft/server/PlayerChunk.java.rej
+deleted file mode 100644
+index fce02f5fcef5179e63997c0b06277601c911ecb7..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/PlayerChunk.java.rej
++++ /dev/null
+@@ -1,22 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java	(rejected hunks)
+-@@ -2,6 +2,7 @@ package net.minecraft.server;
+- 
+- import com.mojang.datafixers.util.Either;
+- import java.util.List;
+-+import java.util.Map;
+- import java.util.Optional;
+- import java.util.concurrent.CompletableFuture;
+- import java.util.concurrent.atomic.AtomicReferenceArray;
+-@@ -745,7 +746,11 @@ public class PlayerChunk {
+-         if (getCurrentPriority() != priority) {
+-             this.v.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
+-             int neighborsPriority = getNeighborsPriority();
+--            this.neighbors.forEach((neighbor, neighborDesired) -> neighbor.setNeighborPriority(this, neighborsPriority));
+-+            for (Map.Entry<PlayerChunk, ChunkStatus> entry : this.neighbors.entrySet()) {
+-+                PlayerChunk neighbor = entry.getKey();
+-+                ChunkStatus neighborDesired = entry.getValue();
+-+                neighbor.setNeighborPriority(this, neighborsPriority);
+-+            }
+-         }
+-         // Paper end
+-         this.oldTicketLevel = this.ticketLevel;
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej b/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej
 deleted file mode 100644
 index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..0000000000000000000000000000000000000000
@@ -644,11 +2276,137 @@ index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..00000000000000000000000000000000
 -                 // Paper end
 - 
 -                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 0b574089783b1491ba8cbe4058efae32e286fa27..9bbb1bcf3e715b1fb50954e62b1faa139384c59f 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -189,7 +189,7 @@ public abstract class PlayerList {
+         // Spigot - view distance
+         playerconnection.sendPacket(new PacketPlayOutLogin(entityplayer.getId(), entityplayer.playerInteractManager.getGameMode(), entityplayer.playerInteractManager.c(), BiomeManager.a(worldserver1.getSeed()), worlddata.isHardcore(), this.server.F(), this.s, worldserver1.getDimensionManager(), worldserver1.getDimensionKey(), this.getMaxPlayers(), worldserver1.getChunkProvider().playerChunkMap.getLoadViewDistance(), flag1, !flag, worldserver1.isDebugWorld(), worldserver1.isFlatWorld())); // Paper - no-tick view distance
+         entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
+-        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(this.getServer().getServerModName())));
++        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(com.proximyst.rainforest.RainforestConfig.brandName))); // Rainforest - custom brand name
+         playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
+         playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
+         playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java.rej b/src/main/java/net/minecraft/server/PlayerList.java.rej
+deleted file mode 100644
+index 7c9d7ae5f875ba36b13d6b9b76581be0df903b49..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/PlayerList.java.rej
++++ /dev/null
+@@ -1,10 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java	(rejected hunks)
+-@@ -189,7 +189,7 @@ public abstract class PlayerList {
+-         // Spigot - view distance
+-         playerconnection.sendPacket(new PacketPlayOutLogin(entityplayer.getId(), entityplayer.playerInteractManager.getGameMode(), entityplayer.playerInteractManager.c(), BiomeManager.a(worldserver1.getSeed()), worlddata.isHardcore(), this.server.E(), this.s, worldserver1.getTypeKey(), worldserver1.getDimensionKey(), this.getMaxPlayers(), worldserver1.getChunkProvider().playerChunkMap.getLoadViewDistance(), flag1, !flag, worldserver1.isDebugWorld(), worldserver1.isFlatWorld())); // Paper - no-tick view distance
+-         entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
+--        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(this.getServer().getServerModName())));
+-+        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(com.proximyst.rainforest.RainforestConfig.brandName))); // Rainforest - custom brand name
+-         playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
+-         playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
+-         playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
+diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
+index 205f3f697e9c31674a4ac8db38467bb2e61cfe6b..e09fd73d9bbb59323a30dabdbfd9f3e1b8413541 100644
+--- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
++++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
+@@ -23,15 +23,21 @@ public class PortalTravelAgent {
+         // CraftBukkit end
+ 
+         villageplace.a(this.world, blockposition, i);
+-        Optional<VillagePlaceRecord> optional = villageplace.b((villageplacetype) -> {
+-            return villageplacetype == VillagePlaceType.v;
+-        }, blockposition, i, VillagePlace.Occupancy.ANY).sorted(Comparator.comparingDouble((VillagePlaceRecord villageplacerecord) -> { // CraftBukkit - decompile error
++        Comparator<VillagePlaceRecord> comparator = Comparator.comparingDouble((VillagePlaceRecord villageplacerecord) -> { // CraftBukkit - decompile error
+             return villageplacerecord.f().j(blockposition);
+         }).thenComparingInt((villageplacerecord) -> {
+             return villageplacerecord.f().getY();
+-        })).filter((villageplacerecord) -> {
+-            return this.world.getType(villageplacerecord.f()).b(BlockProperties.E);
+-        }).findFirst();
++        });
++        boolean seen = false;
++        VillagePlaceRecord best = null;
++        java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
++        for (VillagePlaceRecord villagePlaceRecord : list) {
++            if (!seen || comparator.compare(villagePlaceRecord, best) < 0) {
++                seen = true;
++                best = villagePlaceRecord;
++            }
++        }
++        Optional<VillagePlaceRecord> optional = seen ? Optional.of(best) : Optional.empty();
+ 
+         return optional.map((villageplacerecord) -> {
+             BlockPosition blockposition1 = villageplacerecord.f();
+diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java.rej b/src/main/java/net/minecraft/server/PortalTravelAgent.java.rej
+deleted file mode 100644
+index e8002e718bce73e4cfedcab7636a85a773dfb099..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/PortalTravelAgent.java.rej
++++ /dev/null
+@@ -1,24 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java	(rejected hunks)
+-@@ -57,11 +57,20 @@ public class PortalTravelAgent {
+-         List<VillagePlaceRecord> list = (List) villageplace.b((villageplacetype) -> {
+-             return villageplacetype == VillagePlaceType.v;
+-         }, blockposition, searchRadius, VillagePlace.Occupancy.ANY).collect(Collectors.toList()); // CraftBukkit - searchRadius
+--        Optional<VillagePlaceRecord> optional = list.stream().min(Comparator.<VillagePlaceRecord>comparingDouble((villageplacerecord) -> { // CraftBukkit - decompile error
+-+        boolean seen = false;
+-+        VillagePlaceRecord best = null;
+-+        Comparator<VillagePlaceRecord> comparator = Comparator.<VillagePlaceRecord>comparingDouble((villageplacerecord) -> { // CraftBukkit - decompile error
+-             return villageplacerecord.f().j(blockposition);
+-         }).thenComparingInt((villageplacerecord) -> {
+-             return villageplacerecord.f().getY();
+--        }));
+-+        });
+-+        for (VillagePlaceRecord villagePlaceRecord : list) {
+-+            if (!seen || comparator.compare(villagePlaceRecord, best) < 0) {
+-+                seen = true;
+-+                best = villagePlaceRecord;
+-+            }
+-+        }
+-+        Optional<VillagePlaceRecord> optional = seen ? Optional.of(best) : Optional.empty();
+- 
+-         return (ShapeDetector.Shape) optional.map((villageplacerecord) -> {
+-             BlockPosition blockposition1 = villageplacerecord.f();
+diff --git a/src/main/java/net/minecraft/server/RegistryMaterials.java.rej b/src/main/java/net/minecraft/server/RegistryMaterials.java.rej
+deleted file mode 100644
+index c29a9979eb97870b2b13c4b5fa68395aa40e8059..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/RegistryMaterials.java.rej
++++ /dev/null
+@@ -1,29 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/RegistryMaterials.java b/src/main/java/net/minecraft/server/RegistryMaterials.java	(rejected hunks)
+-@@ -181,17 +181,22 @@ public class RegistryMaterials<T> extends IRegistryWritable<T> {
+-         return Codec.unboundedMap(MinecraftKey.a.xmap(ResourceKey.a(resourcekey), ResourceKey::a), mapcodec.codec()).xmap((map) -> {
+-             RegistryMaterials<T> registrymaterials = new RegistryMaterials<>(resourcekey, lifecycle);
+- 
+--            map.forEach((resourcekey1, object) -> {
+-+            for (Entry<ResourceKey<T>, T> entry : map.entrySet()) {
+-+                ResourceKey<T> resourcekey1 = entry.getKey();
+-+                T object = entry.getValue();
+-                 registrymaterials.a(registrymaterials.bd, resourcekey1, object);
+-                 registrymaterials.d(resourcekey1);
+--            });
+-+            }
+-             return registrymaterials;
+-         }, (registrymaterials) -> {
+-             com.google.common.collect.ImmutableMap.Builder<ResourceKey<T>, T> com_google_common_collect_immutablemap_builder = ImmutableMap.builder();
+- 
+--            registrymaterials.bb.entrySet().stream().filter((entry) -> {
+--                return registrymaterials.c((ResourceKey) entry.getKey());
+--            }).forEach(entry1 -> com_google_common_collect_immutablemap_builder.put((java.util.Map.Entry<? extends net.minecraft.server.ResourceKey<T>,? extends T>) entry1)); // Paper - compiler fix (expand method reference + add cast)
+-+            // Paper - compiler fix (expand method reference + add cast)
+-+            for (Entry<ResourceKey<T>, T> entry : registrymaterials.bb.entrySet()) {
+-+                if (registrymaterials.c(entry.getKey())) {
+-+                    com_google_common_collect_immutablemap_builder.put(entry);
+-+                }
+-+            }
+-             return com_google_common_collect_immutablemap_builder.build();
+-         });
+-     }
 diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java
-index 6eb81504146af614a806add6e5effe0c2b111c8a..512afdfcbaab630a291d1aa120a90e554855d34f 100644
+index c3bd58069d8dbdf36f70f1dafd7c24000f31708b..f915cb4e1110e39178527903ae93508f9459d7ca 100644
 --- a/src/main/java/net/minecraft/server/StructureGenerator.java
 +++ b/src/main/java/net/minecraft/server/StructureGenerator.java
-@@ -139,6 +139,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
+@@ -143,6 +143,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
                              int j2 = i1 + k * l1;
                              ChunkCoordIntPair chunkcoordintpair = this.a(structuresettingsfeature, j, seededrandom, i2, j2);
                              if (!iworldreader.getWorldBorder().isChunkInBounds(chunkcoordintpair.x, chunkcoordintpair.z)) { continue; } // Paper
@@ -680,7 +2438,7 @@ index 8b5d001fb8ecb4a5b96bda6532cf8d5900816290..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 2fbbc1588c2943c8998550db4da6642e666650d8..3ff61141aede4b5a09bf83153222de0d14db5ad0 100644
+index 299196ad134593a2979a867b86d44532a23a40f2..95bede605c6401af10f18b641cd12c9d8ec2f207 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -508,6 +508,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
@@ -691,12 +2449,20 @@ index 2fbbc1588c2943c8998550db4da6642e666650d8..3ff61141aede4b5a09bf83153222de0d
              return true;
          }
          return false; // EMC
+@@ -765,6 +766,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+             BlockPosition blockposition = this.getPosition();
+ 
+             if (VoxelShapes.c(VoxelShapes.a(entity.getBoundingBox().d((double) (-blockposition.getX()), (double) (-blockposition.getY()), (double) (-blockposition.getZ()))), this.aa_(), OperatorBoolean.AND)) {
++                enableTicking(this, 0); // Origami - don't tick empty hoppers
+                 this.a(() -> {
+                     return a((IInventory) this, (EntityItem) entity);
+                 });
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java.rej b/src/main/java/net/minecraft/server/TileEntityHopper.java.rej
 deleted file mode 100644
-index cc8866ec1ccbc131e8491c50eda4f85590bb667b..0000000000000000000000000000000000000000
+index 3f481f57d8e0b156b7d632085265e3acfb2f4fa8..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java.rej
 +++ /dev/null
-@@ -1,9 +0,0 @@
+@@ -1,17 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java	(rejected hunks)
 -@@ -466,6 +497,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
 -                 entityitem = (EntityItem) iterator.next();
@@ -706,69 +2472,81 @@ index cc8866ec1ccbc131e8491c50eda4f85590bb667b..00000000000000000000000000000000
 -             return true;
 -         }
 -     }
-diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
-index 7fe085e48b6ad625a510edf33b112bef24f7d7ad..9459efde54d507231b4aacb7cba14e9905ebb4d7 100644
---- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
-+++ b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java
-@@ -11,7 +11,18 @@ import org.bukkit.entity.HumanEntity;
- 
- public class TileEntityShulkerBox extends TileEntityLootable implements IWorldInventory, ITickable {
- 
--    private static final int[] a = IntStream.range(0, 27).toArray();
-+    private static final int[] a;
-+
-+    static {
-+        int[] arr = new int[10];
-+        int count = 0;
-+        for (int i1 = 0; i1 < 27; i1++) {
-+            if (arr.length == count) arr = Arrays.copyOf(arr, count * 2);
-+            arr[count++] = i1;
-+        }
-+        arr = Arrays.copyOfRange(arr, 0, count);
-+        a = arr;
-+    }
-     private NonNullList<ItemStack> contents;
-     public int c; // PAIL private -> public, rename viewerCount
-     private TileEntityShulkerBox.AnimationPhase i;
+-@@ -722,6 +754,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+-             BlockPosition blockposition = this.getPosition();
+- 
+-             if (VoxelShapes.c(VoxelShapes.a(entity.getBoundingBox().d((double) (-blockposition.getX()), (double) (-blockposition.getY()), (double) (-blockposition.getZ()))), this.ac_(), OperatorBoolean.AND)) {
+-+                enableTicking(this, 0); // Origami - don't tick empty hoppers
+-                 this.a(() -> {
+-                     return a((IInventory) this, (EntityItem) entity);
+-                 });
+diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
+deleted file mode 100644
+index bada470cba41cce9beb9eb04227b42c1d489d731..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
++++ /dev/null
+@@ -1,22 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java	(rejected hunks)
+-@@ -10,7 +11,19 @@ import org.bukkit.entity.HumanEntity;
+- 
+- public class TileEntityShulkerBox extends TileEntityLootable implements IWorldInventory, ITickable {
+- 
+--    private static final int[] a = IntStream.range(0, 27).toArray();
+-+    private static final int[] a;
+-+
+-+    static {
+-+        int[] arr = new int[10];
+-+        int count = 0;
+-+        for (int i1 = 0; i1 < 27; i1++) {
+-+            if (arr.length == count) arr = Arrays.copyOf(arr, count * 2);
+-+            arr[count++] = i1;
+-+        }
+-+        arr = Arrays.copyOfRange(arr, 0, count);
+-+        a = arr;
+-+    }
+-+
+-     private NonNullList<ItemStack> contents;
+-     private int c;
+-     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 0890bca50858ec8d544be2e1ff4ac2da73c7d830..44af511da96b265a8441052cc87e356e630699a6 100644
+index ea37d6d4bf67ef807b4fd311d71559f75712b8d2..9b2c9b57bb8033c90584b3ed57c50dd1ee5ff3d6 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -97,6 +97,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -97,6 +97,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
-     public final app.akarin.server.Config.WorldConfig akarinConfig; // Akarin - Server Config
-+    public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
-+    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World Config
+     public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
++    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World config
 +    public final RainforestWorldConfig rainforestConfig; // Rainforest
  
      public final co.aikar.timings.WorldTimingsHandler timings; // Paper
      public static BlockPosition lastPhysicsProblem; // Spigot
-@@ -127,6 +130,11 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
-         this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this.paperConfig, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
+@@ -130,6 +132,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.spigotConfig); // Paper
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
-         this.akarinConfig = new app.akarin.server.Config.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Akarin - Server Config
-+        this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
-+        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami - World Config
-+        this.rainforestConfig = new RainforestWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.paperConfig); // Rainforest
-+
-+
+         this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
++        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami
++        this.rainforestConfig = new RainforestWorldConfig(((WorldDataServer)worlddatamutable).getName(), paperConfig); // Rainforest
+         this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
-         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
-@@ -637,6 +645,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -422,9 +426,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+                 IBlockData iblockdata2 = this.getType(blockposition);
  
-     public void b(BlockPosition blockposition, IBlockData iblockdata, IBlockData iblockdata1) {}
+                 if ((i & 128) == 0 && iblockdata2 != iblockdata1 && (iblockdata2.b((IBlockAccess) this, blockposition) != iblockdata1.b((IBlockAccess) this, blockposition) || iblockdata2.f() != iblockdata1.f() || iblockdata2.e() || iblockdata1.e())) {
+-                    this.getMethodProfiler().enter("queueCheckLight");
++                    //this.getMethodProfiler().enter("queueCheckLight"); // Akarin - remove caller
+                     this.getChunkProvider().getLightEngine().a(blockposition);
+-                    this.getMethodProfiler().exit();
++                    //this.getMethodProfiler().exit(); // Akarin - remove caller
+                 }
  
-+
-     public void applyPhysics(BlockPosition blockposition, Block block) {
-         if (captureBlockStates) { return; } // Paper - Cancel all physics during placement
-         this.a(blockposition.west(), block, blockposition);
-@@ -674,6 +683,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+                 /*
+@@ -615,6 +619,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      }
  
-+    public void neighborChanged(BlockPosition pos, Block blockIn, BlockPosition fromPos) { a(pos, blockIn, fromPos); } // Paper - OBFHELPER
++    public final void neighborChanged(BlockPosition pos, Block blockIn, BlockPosition fromPos) { a(pos, blockIn, fromPos); } // Paper - OBFHELPER
      public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
          if (!this.isClientSide) {
              IBlockData iblockdata = this.getTypeIfLoaded(blockposition); // EMC
@@ -787,11 +2565,110 @@ index c632cd030e36d8abfd92a14948e4893d885823ad..00000000000000000000000000000000
 -     public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
 -         if (!this.isClientSide) {
 -             IBlockData iblockdata = this.getType(blockposition);
+diff --git a/src/main/java/net/minecraft/server/WorldDataServer.java b/src/main/java/net/minecraft/server/WorldDataServer.java
+index a7e623044aece1f46e2d039cd2dcf710120ac267..dbcee8f22389e8a1ce58539cd8839bcc4fc3c720 100644
+--- a/src/main/java/net/minecraft/server/WorldDataServer.java
++++ b/src/main/java/net/minecraft/server/WorldDataServer.java
+@@ -122,7 +122,10 @@ public class WorldDataServer implements IWorldDataServer, SaveData {
+     private void a(IRegistryCustom iregistrycustom, NBTTagCompound nbttagcompound, @Nullable NBTTagCompound nbttagcompound1) {
+         NBTTagList nbttaglist = new NBTTagList();
+ 
+-        this.C.stream().map(NBTTagString::a).forEach(nbttaglist::add);
++        for (String s : C) {
++            NBTTagString a = NBTTagString.a(s);
++            nbttaglist.add(a);
++        }
+         nbttagcompound.set("ServerBrands", nbttaglist);
+         nbttagcompound.setBoolean("WasModded", this.D);
+         NBTTagCompound nbttagcompound2 = new NBTTagCompound();
+diff --git a/src/main/java/net/minecraft/server/WorldDataServer.java.rej b/src/main/java/net/minecraft/server/WorldDataServer.java.rej
+deleted file mode 100644
+index ce6a0e3807550ef3652d4e1ab8695f7afe9fc8f8..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/WorldDataServer.java.rej
++++ /dev/null
+@@ -1,13 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/WorldDataServer.java b/src/main/java/net/minecraft/server/WorldDataServer.java	(rejected hunks)
+-@@ -120,7 +120,10 @@ public class WorldDataServer implements IWorldDataServer, SaveData {
+-     private void a(IRegistryCustom iregistrycustom, NBTTagCompound nbttagcompound, @Nullable NBTTagCompound nbttagcompound1) {
+-         NBTTagList nbttaglist = new NBTTagList();
+- 
+--        this.B.stream().map(NBTTagString::a).forEach(nbttaglist::add);
+-+        for (String s : this.B) {
+-+            NBTTagString a = NBTTagString.a(s);
+-+            nbttaglist.add(a);
+-+        }
+-         nbttagcompound.set("ServerBrands", nbttaglist);
+-         nbttagcompound.setBoolean("WasModded", this.C);
+-         NBTTagCompound nbttagcompound2 = new NBTTagCompound();
+diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+index d627a25830646d8808950238f451fa0adbab4ec6..a959672f5857b987001252c3fd7ace9e83e07c9b 100644
+--- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
++++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+@@ -61,7 +61,7 @@ public class WorldNBTStorage {
+             }
+             // Spigot End
+ 
+-            if (file.exists() && file.isFile()) {
++            if (normalFile) { // Akarin - avoid double I/O operation
+                 nbttagcompound = NBTCompressedStreamTools.a(file);
+             }
+             // Spigot Start
+diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java.rej b/src/main/java/net/minecraft/server/WorldNBTStorage.java.rej
+deleted file mode 100644
+index 3a35169eaf680c45fe42922eb5f0014fa422c31c..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/WorldNBTStorage.java.rej
++++ /dev/null
+@@ -1,10 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java	(rejected hunks)
+-@@ -62,7 +63,7 @@ public class WorldNBTStorage {
+-             }
+-             // Spigot End
+- 
+--            if (file.exists() && file.isFile()) {
+-+            if (normalFile) { // Akarin - avoid double I/O operation
+-                 nbttagcompound = NBTCompressedStreamTools.a((InputStream) (new FileInputStream(file)));
+-             }
+-             // Spigot Start
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 64f7fc40a6847ebc6c84b3c179614e186f861e1f..3782d329dc62a9e834f16a9009f4102b5b4aad6f 100644
+index 952cf3a18c5368e1646e7e057ec02a9b91bebd48..fa91be82444dabaa6f404e07e06bf76b0bbde5c0 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -943,7 +943,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -869,11 +869,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+         this.P();
+         this.b();
+-        gameprofilerfiller.exitEnter("chunkSource");
++        //gameprofilerfiller.exitEnter("chunkSource"); // Akarin - remove caller
+         this.timings.chunkProviderTick.startTiming(); // Paper - timings
+         this.getChunkProvider().tick(booleansupplier);
+         this.timings.chunkProviderTick.stopTiming(); // Paper - timings
+-        gameprofilerfiller.exitEnter("tickPending");
++        //gameprofilerfiller.exitEnter("tickPending"); // Akarin - remove caller
+         timings.scheduledBlocks.startTiming(); // Paper
+         if (!this.isDebugWorld()) {
+             this.nextTickListBlock.b();
+@@ -882,17 +882,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         timings.scheduledBlocks.stopTiming(); // Paper
+ 
+         // Tuinity - replace logic
+-        gameprofilerfiller.exitEnter("raid");
++        //gameprofilerfiller.exitEnter("raid"); // Akarin - remove caller
+         this.timings.raids.startTiming(); // Paper - timings
+         this.persistentRaid.a();
+         this.timings.raids.stopTiming(); // Paper - timings
+-        gameprofilerfiller.exitEnter("blockEvents");
++        //gameprofilerfiller.exitEnter("blockEvents"); // Akarin - remove caller
+         timings.doSounds.startTiming(); // Spigot
+         this.aj();
+         timings.doSounds.stopTiming(); // Spigot
+         // Tuinity - replace logic
+         this.ticking = false;
+-        gameprofilerfiller.exitEnter("entities");
++        //gameprofilerfiller.exitEnter("entities"); // Akarin - remove caller
+         boolean flag3 = true || !this.players.isEmpty() || !this.getForceLoadedChunks().isEmpty(); // CraftBukkit - this prevents entity cleanup, other issues on servers with no players
+ 
+         if (flag3) {
+@@ -924,7 +924,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  }
                  // CraftBukkit end */
  
@@ -800,7 +2677,7 @@ index 64f7fc40a6847ebc6c84b3c179614e186f861e1f..3782d329dc62a9e834f16a9009f4102b
                  if (!entity.dead) {
                      entity.checkDespawn();
                      // Tuinity start - optimise notify()
-@@ -955,7 +955,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -936,7 +936,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                      // Tuinity end - optimise notify()
                  }
  
@@ -809,7 +2686,7 @@ index 64f7fc40a6847ebc6c84b3c179614e186f861e1f..3782d329dc62a9e834f16a9009f4102b
                  if (entity1 != null) {
                      if (!entity1.dead && entity1.w(entity)) {
                          continue;
-@@ -964,13 +964,13 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -945,13 +945,13 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                      entity.stopRiding();
                  }
  
@@ -826,7 +2703,7 @@ index 64f7fc40a6847ebc6c84b3c179614e186f861e1f..3782d329dc62a9e834f16a9009f4102b
                  if (entity.dead) {
                      this.removeEntityFromChunk(entity);
                      this.entitiesById.remove(entity.getId()); // Tuinity
-@@ -982,7 +982,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -963,7 +963,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  }
                  // Tuinity end - optimise notify()
  
@@ -835,22 +2712,66 @@ index 64f7fc40a6847ebc6c84b3c179614e186f861e1f..3782d329dc62a9e834f16a9009f4102b
              }
              timings.entityTick.stopTiming(); // Spigot
  
-@@ -1414,7 +1414,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1050,7 +1050,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         int k = chunkcoordintpair.e();
+         GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
+ 
+-        gameprofilerfiller.enter("thunder");
++        //gameprofilerfiller.enter("thunder"); // Akarin - remove caller
+         final BlockPosition.MutableBlockPosition blockposition = this.chunkTickMutablePosition; // Paper - use mutable to reduce allocation rate, final to force compile fail on change
+ 
+         if (!this.paperConfig.disableThunder && flag && this.V() && this.random.nextInt(100000) == 0) { // Paper - Disable thunder
+@@ -1401,7 +1401,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  // Tuinity end
              }
  
 -            this.getMethodProfiler().exit();
-+            // this.getMethodProfiler().exit(); // Akarin - remove caller
++            //this.getMethodProfiler().exit(); // Akarin - remove caller
          }
      }
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java.rej b/src/main/java/net/minecraft/server/WorldServer.java.rej
 deleted file mode 100644
-index 87367c60dd036f8623d6593e73dd2412a477f6a4..0000000000000000000000000000000000000000
+index 6b024f18ebc32034d1d81ef98f7117944bc0cd0a..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/WorldServer.java.rej
 +++ /dev/null
-@@ -1,50 +0,0 @@
+@@ -1,94 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java	(rejected hunks)
+-@@ -887,11 +887,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+- 
+-         this.N();
+-         this.b();
+--        gameprofilerfiller.exitEnter("chunkSource");
+-+        //gameprofilerfiller.exitEnter("chunkSource"); // Akarin - remove caller
+-         this.timings.chunkProviderTick.startTiming(); // Paper - timings
+-         this.getChunkProvider().tick(booleansupplier);
+-         this.timings.chunkProviderTick.stopTiming(); // Paper - timings
+--        gameprofilerfiller.exitEnter("tickPending");
+-+        //gameprofilerfiller.exitEnter("tickPending"); // Akarin - remove caller
+-         timings.scheduledBlocks.startTiming(); // Paper
+-         if (!this.isDebugWorld()) {
+-             this.nextTickListBlock.b();
+-@@ -900,17 +900,17 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+-         timings.scheduledBlocks.stopTiming(); // Paper
+- 
+-         // Tuinity - replace logic
+--        gameprofilerfiller.exitEnter("raid");
+-+        //gameprofilerfiller.exitEnter("raid"); // Akarin - remove caller
+-         this.timings.raids.startTiming(); // Paper - timings
+-         this.persistentRaid.a();
+-         this.timings.raids.stopTiming(); // Paper - timings
+--        gameprofilerfiller.exitEnter("blockEvents");
+-+        //gameprofilerfiller.exitEnter("blockEvents"); // Akarin - remove caller
+-         timings.doSounds.startTiming(); // Spigot
+-         this.ah();
+-         timings.doSounds.stopTiming(); // Spigot
+-         // Tuinity - replace logic
+-         this.ticking = false;
+--        gameprofilerfiller.exitEnter("entities");
+-+        //gameprofilerfiller.exitEnter("entities"); // Akarin - remove caller
+-         boolean flag3 = true || !this.players.isEmpty() || !this.getForceLoadedChunks().isEmpty(); // CraftBukkit - this prevents entity cleanup, other issues on servers with no players
+- 
+-         if (flag3) {
 -@@ -943,12 +943,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
 -                 }
 -                 // CraftBukkit end */
@@ -891,6 +2812,15 @@ index 87367c60dd036f8623d6593e73dd2412a477f6a4..00000000000000000000000000000000
 -             }
 -             timings.entityTick.stopTiming(); // Spigot
 - 
+-@@ -1049,7 +1049,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+-         int k = chunkcoordintpair.e();
+-         GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
+- 
+--        gameprofilerfiller.enter("thunder");
+-+        //gameprofilerfiller.enter("thunder"); // Akarin - remove caller
+-         final BlockPosition.MutableBlockPosition blockposition = this.chunkTickMutablePosition; // Paper - use mutable to reduce allocation rate, final to force compile fail on change
+- 
+-         if (!this.paperConfig.disableThunder && flag && this.T() && this.random.nextInt(100000) == 0) { // Paper - Disable thunder
 -@@ -1377,7 +1377,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
 -                 }
 -             }
@@ -901,27 +2831,25 @@ index 87367c60dd036f8623d6593e73dd2412a477f6a4..00000000000000000000000000000000
 -     }
 - 
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index 1d00832bffc2b6bcc6153b9065a92035ba974138..b3d6e713c2bfa1a0432b4afc3e8c31d4d7ca5844 100644
+index 4a7285bd8e9ba3b7ad94c67c1880cc216cea5bc9..b7000990cfbf8116e9c3e98ea8e84e6541a989c8 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-@@ -127,4 +127,23 @@ public class PurpurConfig {
-         config.addDefault(path, def);
+@@ -129,11 +129,6 @@ public class PurpurConfig {
          return config.getString(path, config.getString(path));
      }
-+
-+    public static double laggingThreshold = 19.0D;
-+    private static void tickLoopSettings() {
-+        laggingThreshold = getDouble("settings.lagging-threshold", laggingThreshold);
-+    }
-+
-+    public static boolean useAlternateKeepAlive = false;
-+    private static void useAlternateKeepAlive() {
-+        useAlternateKeepAlive = getBoolean("settings.use-alternate-keepalive", useAlternateKeepAlive);
-+    }
-+    public static boolean dontSendUselessEntityPackets = false;
-+    private static void dontSendUselessEntityPackets() {
-+        dontSendUselessEntityPackets = getBoolean("settings.dont-send-useless-entity-packets", dontSendUselessEntityPackets);
-+    }
+ 
+-    public static String timingsUrl = "https://timings.pl3x.net";
+-    private static void timingsSettings() {
+-        timingsUrl = getString("settings.timings.url", timingsUrl);
+-    }
+-
+     public static double laggingThreshold = 19.0D;
+     private static void tickLoopSettings() {
+         laggingThreshold = getDouble("settings.lagging-threshold", laggingThreshold);
+@@ -172,4 +167,9 @@ public class PurpurConfig {
+     private static void fixItemPositionDesync() {
+         fixItemPositionDesync = getBoolean("settings.fix-item-position-desync", fixItemPositionDesync);
+     }
 +
 +    public static boolean tpsCatchup = true;
 +    private static void tpsCatchup() {
@@ -946,98 +2874,278 @@ index ff05ff6aef1e0f61eb4437253020632745ee2bd2..00000000000000000000000000000000
 -+    }
 - }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-index 361f7857e461578e90cb71e15027dadaf794cb69..7cde55ae407012b3445f11b07a0ebc9d00e031e3 100644
+index 361f7857e461578e90cb71e15027dadaf794cb69..1739821b6b0759bcca89b01452fa9bb25da441e1 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-@@ -56,4 +56,16 @@ public class PurpurWorldConfig {
+@@ -1,7 +1,18 @@
+ package net.pl3x.purpur;
+ 
++import java.util.ArrayList;
++import java.util.HashSet;
+ import org.bukkit.configuration.ConfigurationSection;
+ import java.util.List;
++import java.util.Set;
++import java.util.logging.Level;
++import net.minecraft.server.Block;
++import net.minecraft.server.Explosion;
++import net.minecraft.server.IRegistry;
++import net.minecraft.server.Item;
++import net.minecraft.server.Items;
++import net.minecraft.server.MinecraftKey;
++
+ import static net.pl3x.purpur.PurpurConfig.log;
+ 
+ public class PurpurWorldConfig {
+@@ -56,4 +67,187 @@ public class PurpurWorldConfig {
          PurpurConfig.config.addDefault("world-settings.default." + path, def);
          return PurpurConfig.config.getString("world-settings." + worldName + "." + path, PurpurConfig.config.getString("world-settings.default." + path));
      }
 +
 +    public int villagerBrainTicks = 1;
 +    public boolean villagerUseBrainTicksOnlyWhenLagging = true;
++    public boolean villagerFollowEmeraldBlock = false;
++    public boolean villagerCanBeLeashed = false;
 +    private void villagerSettings() {
 +        villagerBrainTicks = getInt("mobs.villager.brain-ticks", villagerBrainTicks);
 +        villagerUseBrainTicksOnlyWhenLagging = getBoolean("mobs.villager.use-brain-ticks-only-when-lagging", villagerUseBrainTicksOnlyWhenLagging);
++        villagerFollowEmeraldBlock = getBoolean("mobs.villager.follow-emerald-blocks", villagerFollowEmeraldBlock);
++        villagerCanBeLeashed = getBoolean("mobs.villager.can-be-leashed", villagerCanBeLeashed);
++    }
++
++    public boolean villagerTraderFollowEmeraldBlock = false;
++    public boolean villagerTraderCanBeLeashed = false;
++    private void villagerTraderSettings() {
++        villagerTraderCanBeLeashed = getBoolean("mobs.wandering_trader.can-be-leashed", villagerTraderCanBeLeashed);
++        villagerTraderFollowEmeraldBlock = getBoolean("mobs.wandering_trader.follow-emerald-blocks", villagerTraderFollowEmeraldBlock);
 +    }
 +
 +    public boolean saveProjectilesToDisk = true;
++    public boolean milkCuresBadOmen = true;
 +    private void miscGameplayMechanicsSettings() {
 +        saveProjectilesToDisk = getBoolean("gameplay-mechanics.save-projectiles-to-disk", saveProjectilesToDisk);
++        milkCuresBadOmen = getBoolean("gameplay-mechanics.milk-cures-bad-omen", milkCuresBadOmen);
++    }
++
++    public boolean anvilAllowColors = false;
++    private void anvilSettings() {
++        anvilAllowColors = getBoolean("blocks.anvil.allow-colors", anvilAllowColors);
++    }
++
++    public boolean foxTypeChangesWithTulips = false;
++    private void foxSettings() {
++        foxTypeChangesWithTulips = getBoolean("mobs.fox.tulips-change-type", foxTypeChangesWithTulips);
++    }
++
++    public float giantStepHeight = 2.0F;
++    public float giantJumpHeight = 1.0F;
++    public double giantMaxHealth = 100.0D;
++    public double giantMovementSpeed = 0.5D;
++    public double giantAttackDamage = 50.0D;
++    public boolean giantHaveAI = false;
++    public boolean giantHaveHostileAI = false;
++    private void giantSettings() {
++        giantStepHeight = (float) getDouble("mobs.giant.step-height", giantStepHeight);
++        giantJumpHeight = (float) getDouble("mobs.giant.jump-height", giantJumpHeight);
++        giantMaxHealth = getDouble("mobs.giant.max-health", giantMaxHealth);
++        giantMovementSpeed = getDouble("mobs.giant.movement-speed", giantMovementSpeed);
++        giantAttackDamage = getDouble("mobs.giant.attack-damage", giantAttackDamage);
++        giantHaveAI = getBoolean("mobs.giant.have-ai", giantHaveAI);
++        giantHaveHostileAI = getBoolean("mobs.giant.have-hostile-ai", giantHaveHostileAI);
++    }
++
++    public double illusionerMaxHealth = 32.0D;
++    public double illusionerMovementSpeed = 0.5D;
++    public double illusionerFollowRange = 18.0D;
++    private void illusionerSettings() {
++        illusionerMaxHealth = getDouble("mobs.illusioner.max-health", illusionerMaxHealth);
++        illusionerMovementSpeed = getDouble("mobs.illusioner.movement-speed", illusionerMovementSpeed);
++        illusionerFollowRange = getDouble("mobs.illusioner.follow-range", illusionerFollowRange);
++    }
++
++    public double zombieHorseSpawnChance = 0.0D;
++    private void zombieHorseSettings() {
++        zombieHorseSpawnChance = getDouble("mobs.zombie_horse.spawn-chance", zombieHorseSpawnChance);
++    }
++
++    public double creeperChargedChance = 0.0D;
++    private void creeperSettings() {
++        creeperChargedChance = getDouble("mobs.creeper.naturally-charged-chance", creeperChargedChance);
++    }
++
++    public double rabbitNaturalToast = 0.0D;
++    public double rabbitNaturalKiller = 0.0D;
++    private void rabbitSettings() {
++        rabbitNaturalToast = getDouble("mobs.rabbit.spawn-toast-chance", rabbitNaturalToast);
++        rabbitNaturalKiller = getDouble("mobs.rabbit.spawn-killer-rabbit-chance", rabbitNaturalKiller);
++    }
++
++    public int cowFeedMushrooms = 0;
++    private void cowSettings() {
++        cowFeedMushrooms = getInt("mobs.cow.feed-mushrooms-for-mooshroom", cowFeedMushrooms);
++    }
++
++    public boolean snowGolemDropsPumpkin = false;
++    public boolean snowGolemPutPumpkinBack = false;
++    private void snowGolemSettings() {
++        snowGolemDropsPumpkin = getBoolean("mobs.snow_golem.drop-pumpkin-when-sheared", snowGolemDropsPumpkin);
++        snowGolemPutPumpkinBack = getBoolean("mobs.snow_golem.pumpkin-can-be-added-back", snowGolemPutPumpkinBack);
++    }
++
++    public boolean farmlandGetsMoistFromBelow = false;
++    private void farmlandSettings() {
++        farmlandGetsMoistFromBelow = getBoolean("blocks.farmland.gets-moist-from-below", farmlandGetsMoistFromBelow);
++    }
++
++    public boolean respawnAnchorExplode = true;
++    public double respawnAnchorExplosionPower = 5.0D;
++    public boolean respawnAnchorExplosionFire = true;
++    public Explosion.Effect respawnAnchorExplosionEffect = Explosion.Effect.DESTROY;
++    private void respawnAnchorSettings() {
++        respawnAnchorExplode = getBoolean("blocks.respawn_anchor.explode", respawnAnchorExplode);
++        respawnAnchorExplosionPower = getDouble("blocks.respawn_anchor.explosion-power", respawnAnchorExplosionPower);
++        respawnAnchorExplosionFire = getBoolean("blocks.respawn_anchor.explosion-fire", respawnAnchorExplosionFire);
++        try {
++            respawnAnchorExplosionEffect = Explosion.Effect.valueOf(getString("blocks.respawn_anchor.explosion-effect", respawnAnchorExplosionEffect.name()));
++        } catch (IllegalArgumentException e) {
++            log(Level.SEVERE, "Unknown value for `blocks.respawn_anchor.explosion-effect`! Using default of `DESTROY`");
++            respawnAnchorExplosionEffect = Explosion.Effect.DESTROY;
++        }
++    }
++
++    public boolean bedExplode = true;
++    public double bedExplosionPower = 5.0D;
++    public boolean bedExplosionFire = true;
++    public Explosion.Effect bedExplosionEffect = Explosion.Effect.DESTROY;
++    private void bedSettings() {
++        bedExplode = getBoolean("blocks.bed.explode", bedExplode);
++        bedExplosionPower = getDouble("blocks.bed.explosion-power", bedExplosionPower);
++        bedExplosionFire = getBoolean("blocks.bed.explosion-fire", bedExplosionFire);
++        try {
++            bedExplosionEffect = Explosion.Effect.valueOf(getString("blocks.bed.explosion-effect", bedExplosionEffect.name()));
++        } catch (IllegalArgumentException e) {
++            log(Level.SEVERE, "Unknown value for `blocks.bed.explosion-effect`! Using default of `DESTROY`");
++            bedExplosionEffect = Explosion.Effect.DESTROY;
++        }
++    }
++
++    public int entityLifeSpan = 0;
++    private void entitySettings() {
++        entityLifeSpan = getInt("gameplay-mechanics.entity-lifespan", entityLifeSpan);
++    }
++
++    public boolean spawnerDeactivateByRedstone = false;
++    private void spawnerSettings() {
++        spawnerDeactivateByRedstone = getBoolean("blocks.spawner.deactivate-by-redstone", spawnerDeactivateByRedstone);
++    }
++
++    public String polarBearBreedableItemString = "";
++    public Item polarBearBreedableItem = null;
++    private void polarBearSettings() {
++        polarBearBreedableItemString = getString("mobs.polar_bear.breedable-item", polarBearBreedableItemString);
++        Item item = IRegistry.ITEM.get(new MinecraftKey(polarBearBreedableItemString));
++        if (item != Items.AIR) polarBearBreedableItem = item;
++    }
++
++    public double phantomAttackedByCrystalRadius = 0.0D;
++    public float phantomAttackedByCrystalDamage = 1.0F;
++    public double phantomOrbitCrystalRadius = 0.0D;
++    private void phantomSettings() {
++        phantomAttackedByCrystalRadius = getDouble("mobs.phantom.attacked-by-crystal-range", phantomAttackedByCrystalRadius);
++        phantomAttackedByCrystalDamage = (float) getDouble("mobs.phantom.attacked-by-crystal-damage", phantomAttackedByCrystalDamage);
++        phantomOrbitCrystalRadius = getDouble("mobs.phantom.orbit-crystal-radius", phantomOrbitCrystalRadius);
++    }
++
++    public boolean squidImmuneToEAR = true;
++    private void squidSettings() {
++        squidImmuneToEAR = getBoolean("mobs.squid.immune-to-EAR", squidImmuneToEAR);
++    }
++
++    public Set<Block> noTickBlocks = new HashSet<>();
++    private void noTickBlocks() {
++        getList("blocks.no-tick", new ArrayList<>()).forEach(key -> {
++            Block block = IRegistry.BLOCK.get(new MinecraftKey(key.toString()));
++            if (!block.getBlockData().isAir()) {
++                noTickBlocks.add(block);
++            }
++        });
++    }
++
++    public boolean dolphinDisableTreasureSearching = false;
++    private void dolphinSettings() {
++        dolphinDisableTreasureSearching = getBoolean("mobs.dolphin.disable-treasure-searching", dolphinDisableTreasureSearching);
++    }
++
++    public boolean turtleEggsBreakFromExpOrbs = true;
++    public boolean turtleEggsBreakFromItems = true;
++    public boolean turtleEggsBreakFromMinecarts = true;
++    private void turtleEggSettings() {
++        turtleEggsBreakFromExpOrbs = getBoolean("blocks.turtle_egg.break-from-exp-orbs", turtleEggsBreakFromExpOrbs);
++        turtleEggsBreakFromItems = getBoolean("blocks.turtle_egg.break-from-items", turtleEggsBreakFromItems);
++        turtleEggsBreakFromMinecarts = getBoolean("blocks.turtle_egg.break-from-minecarts", turtleEggsBreakFromMinecarts);
 +    }
  }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 deleted file mode 100644
-index 120d0df27e76c9beef9f09e6cdc0972454fdd4ca..0000000000000000000000000000000000000000
+index 2899c94ef3dadf9e139f8d78003805814288544e..0000000000000000000000000000000000000000
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 +++ /dev/null
-@@ -1,15 +0,0 @@
+@@ -1,13 +0,0 @@
 -diff a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java	(rejected hunks)
--@@ -113,11 +113,13 @@ public class PurpurWorldConfig {
--     public boolean disableDropsOnCrammingDeath = false;
--     public boolean entitiesPickUpLootBypassMobGriefing = false;
--     public boolean milkCuresBadOmen = true;
--+    public boolean saveProjectilesToDisk = true;
--     public double tridentLoyaltyVoidReturnHeight = 0.0D;
--     private void miscGameplayMechanicsSettings() {
--         disableDropsOnCrammingDeath = getBoolean("gameplay-mechanics.disable-drops-on-cramming-death", disableDropsOnCrammingDeath);
--         entitiesPickUpLootBypassMobGriefing = getBoolean("gameplay-mechanics.entities-pick-up-loot-bypass-mob-griefing", entitiesPickUpLootBypassMobGriefing);
--         milkCuresBadOmen = getBoolean("gameplay-mechanics.milk-cures-bad-omen", milkCuresBadOmen);
--+        saveProjectilesToDisk = getBoolean("gameplay-mechanics.save-projectiles-to-disk", saveProjectilesToDisk);
--         tridentLoyaltyVoidReturnHeight = getDouble("gameplay-mechanics.trident-loyalty-void-return-height", tridentLoyaltyVoidReturnHeight);
+-@@ -336,6 +336,11 @@ public class PurpurWorldConfig {
+-         creeperChargedChance = getDouble("mobs.creeper.naturally-charged-chance", creeperChargedChance);
 -     }
 - 
+-+    public boolean dolphinDisableTreasureSearching = false;
+-+    private void dolphinSettings() {
+-+        dolphinDisableTreasureSearching = getBoolean("mobs.dolphin.disable-treasure-searching", dolphinDisableTreasureSearching);
+-+    }
+-+
+-     public boolean drownedJockeyOnlyBaby = true;
+-     public double drownedJockeyChance = 0.05D;
+-     public boolean drownedJockeyTryExistingChickens = true;
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index afaa6ab4744190b134aeb616a1355cefd1333e37..4153c9f6ab5876e96b745f9270ed1003dcfa2950 100644
+index 0a4acfe46a26ef6b66d0489273376538c6343480..0d148d3be8b1df52e7989bbc98e476942038e0a2 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -836,6 +836,9 @@ public final class CraftServer implements Server {
+@@ -835,6 +835,8 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         app.akarin.server.Config.init((File) console.options.valueOf("akarin-settings")); // Akarin - Server Config
-+        net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
-+        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
+         net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
 +        com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
++        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -872,6 +875,9 @@ public final class CraftServer implements Server {
+@@ -871,6 +873,8 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
-             world.akarinConfig.init(); // Akarin - Server Config
+             world.purpurConfig.init(); // Purpur
 +            world.rainforestConfig.init(); // Rainforest
-+            world.purpurConfig.init(); // Purpur
-+            world.origamiConfig.init(); // Origami - World Config
++            world.origamiConfig.init(); // Origami
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2249,6 +2255,25 @@ public final class CraftServer implements Server {
+@@ -2247,6 +2251,19 @@ public final class CraftServer implements Server {
          }
-         // Akarin End - Server Config
+         // Purpur end
  
 +        // Rainforest start
 +        @Override
 +        public YamlConfiguration getRainforestConfig() {
-+        return com.proximyst.rainforest.RainforestConfig.config;
-+                }
-+        // Rainforest end
-+
-+        // Purpur start
-+        @Override
-+        public YamlConfiguration getPurpurConfig() {
-+                    return net.pl3x.purpur.PurpurConfig.config;
++            return com.proximyst.rainforest.RainforestConfig.config;
 +        }
-+        /*@Override
-+        public java.util.Properties getServerProperties() {
-+                    return getProperties().properties;
-+        }*/
-+        // Purpur end
-+
++        // Rainforest end
++        // Origami start
++        @Override
++        public YamlConfiguration getOrigamiConfig() {
++            return de.minebench.origami.OrigamiConfig.config;
++        }
++        // Origami end
 +
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2388,4 +2413,11 @@ public final class CraftServer implements Server {
+@@ -2386,4 +2403,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -1087,36 +3195,27 @@ index a3c8dfd94f78b49341e5f5aba1735651096c9d70..00000000000000000000000000000000
 -         public void restart() {
 -             org.spigotmc.RestartCommand.restart();
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 2d12ad72be927712d38d6fb6991f4af7a196fb9b..1a454f74b322605b1006da5be13760b13cc5f931 100644
+index b2e2fcad2637e73cd69e14ac186c37c628da2761..132ad379242d9aa2defc639f79764050b73c572d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -138,6 +138,7 @@ public class Main {
-                         .defaultsTo(new File("paper.yml"))
+@@ -154,6 +154,21 @@ public class Main {
                          .describedAs("Yml file");
-                 // Paper end
-+
-                 // Tuinity Start - Server Config
-                 acceptsAll(asList("tuinity", "tuinity-settings"), "File for tuinity settings")
-                         .withRequiredArg()
-@@ -154,6 +155,22 @@ public class Main {
-                         .describedAs("Yml file");
-                 // Akarin End - Server Config
+                 // Purpur end
  
-+                // Origami Start - Server Config
-+                        acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
-+                        .withRequiredArg()
-+                    .ofType(File.class)
-+                    .defaultsTo(new File("origami.yml"))
-+                    .describedAs("Yml file");
-+                // Origami end - Server Config
-+
-+                // Purpur Start
-+                acceptsAll(asList("purpur", "purpur-settings"), "File for purpur settings")
++                // Rainforest start
++                acceptsAll(asList("rainforest", "rainforest-settings"), "File for rainforest settings")
 +                        .withRequiredArg()
 +                        .ofType(File.class)
-+                        .defaultsTo(new File("purpur.yml"))
++                        .defaultsTo(new File("rainforest.yml"))
 +                        .describedAs("Yml file");
-+                // Purpur end
++                // Rainforest end
++                // Origami start
++                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("origami.yml"))
++                        .describedAs("Yml file");
++                // Origami end
 +
                  // Paper start
                  acceptsAll(asList("server-name"), "Name of the server")
@@ -1143,3 +3242,44 @@ index 916603085d652444027e4513b77293ece84a6c4f..00000000000000000000000000000000
 -                 // Paper start
 -                 acceptsAll(asList("server-name"), "Name of the server")
 -                         .withRequiredArg()
+diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
+index 744b2a00fa0743598cabb46c539ae65238cdc736..1a311092aaa5763396503bd7fd2464b2e41058fc 100644
+--- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
++++ b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java
+@@ -670,8 +670,12 @@ public class CraftBlock implements Block {
+ 
+         // Modelled off EntityHuman#hasBlock
+         if (item == null || !iblockdata.isRequiresSpecialTool() || nms.canDestroySpecialBlock(iblockdata)) {
+-            return net.minecraft.server.Block.getDrops(iblockdata, (WorldServer) world.getMinecraftWorld(), position, world.getTileEntity(position), entity == null ? null : ((CraftEntity) entity).getHandle(), nms)
+-                    .stream().map(CraftItemStack::asBukkitCopy).collect(Collectors.toList());
++            List<ItemStack> list = new ArrayList<>();
++            for (net.minecraft.server.ItemStack itemStack : net.minecraft.server.Block.getDrops(iblockdata, world.getMinecraftWorld(), position, world.getTileEntity(position), entity == null ? null : ((CraftEntity) entity).getHandle(), nms)) {
++                ItemStack stack = CraftItemStack.asBukkitCopy(itemStack);
++                list.add(stack);
++            }
++            return list;
+         } else {
+             return Collections.emptyList();
+         }
+diff --git a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java.rej b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java.rej
+deleted file mode 100644
+index a0c4f6c35175538d82f4019f306aeca122522e20..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java.rej
++++ /dev/null
+@@ -1,16 +0,0 @@
+-diff a/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java b/src/main/java/org/bukkit/craftbukkit/block/CraftBlock.java	(rejected hunks)
+-@@ -675,8 +677,12 @@ public class CraftBlock implements Block {
+- 
+-         // Modelled off EntityHuman#hasBlock
+-         if (item == null || !iblockdata.isAlwaysDestroyable() || nms.canDestroySpecialBlock(iblockdata)) {
+--            return net.minecraft.server.Block.getDrops(iblockdata, (WorldServer) world.getMinecraftWorld(), position, world.getTileEntity(position), entity == null ? null : ((CraftEntity) entity).getHandle(), nms)
+--                    .stream().map(CraftItemStack::asBukkitCopy).collect(Collectors.toList());
+-+            List<ItemStack> list = new ArrayList<>();
+-+            for (net.minecraft.server.ItemStack itemStack : net.minecraft.server.Block.getDrops(iblockdata, (WorldServer) world.getMinecraftWorld(), position, world.getTileEntity(position), entity == null ? null : ((CraftEntity) entity).getHandle(), nms)) {
+-+                ItemStack stack = CraftItemStack.asBukkitCopy(itemStack);
+-+                list.add(stack);
+-+            }
+-+            return list;
+-         } else {
+-             return Collections.emptyList();
+-         }

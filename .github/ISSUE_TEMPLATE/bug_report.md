@@ -1,24 +1,24 @@
 ---
 name: Bug report
 about: Report a bug
-title: "[Bug]"
-labels: bug
-assignees: 'tr7zw'
 
 ---
 
-**Describe the bug**
-
-**To Reproduce**
-Steps to reproduce the behavior:
-
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+<!-- Tell us what behavior is expected --> 
 
-**Server Setup**
-Server Specifications:
+**Observed behavior**
+<!-- Tell us what is happening -->
 
-Plugins used:
+**Steps to reproduce (if known)**
+<!-- Tell us how did you make this happen
+     details are always useful -->
+
+**Installed plugins**
+<!-- Give us a screenshot of your /plugins -->
+
+**Version**
+<!-- This can be seen by the output of /version . Just screenshot that and give it to us -->
 
 **Additional context**
-Add any other context about the problem here.
+<!-- Anything other you want us to know -->

@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Mon, 17 Aug 2020 08:51:44 +0300
+Subject: [PATCH] Send more packets immediately
+
+Paper did some changes around packet sending by introducing a queue and making (most of) the PLAY packets
+send synchronously. This is completely fine, however the are some people who want to have better experience
+with "cosmetic" stuff such as boss bar's, title's and scoreboard's. We allow those packets to pass instantly,
+as the server shouldn't really care about those packets - they're not related with overall gameplay.
+
+Additionally, I'm thinking of making those packets send asynchronously.
+
+diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
+index 72a62b9be5e1767f64991fc0614fc82967daad18..cf4cac9bae35121146657bcf567ea062e33b08a3 100644
+--- a/src/main/java/net/minecraft/server/NetworkManager.java
++++ b/src/main/java/net/minecraft/server/NetworkManager.java
+@@ -229,7 +229,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+             return networkManager.isPending || networkManager.protocol != EnumProtocol.PLAY ||
+                 packet instanceof PacketPlayOutKeepAlive ||
+                 packet instanceof PacketPlayOutChat ||
+-                packet instanceof PacketPlayOutTabComplete;
++                packet instanceof PacketPlayOutTabComplete || // Yatopia
++                // Yatopia start
++                packet instanceof PacketPlayOutBoss ||
++                packet instanceof PacketPlayOutTitle;
++                // Yatopia end
+         }
+         // Paper end
+     }
