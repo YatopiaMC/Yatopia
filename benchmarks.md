@@ -1,1 +1,16 @@
 ## Chunkgen benchmarks
+
+| Server type | Minecraft Version | server ver | avg ch/s (jdk.16+12.r7.gb2da6e1a905-1) |   |
+|-------------|-------------------|------------|----------------------------------------|---|
+| Yatopia     | 1.16.1            | d06e04f1f6b1052fc36f5edc5622cbd248c96cb0 |                                        |   |
+| Yatopia     | 1.16.2            | 21c8252193da50ec0faf6252bee8e576715ba355 | 25.0                                   |   |
+| Paper       | 1.16.1            |                                          |                                        |   |
+| Tuinity     |                   |                                          |                                        |   |
+| Tuinity     |                   |                                          |                                        |   |
+| Spigot      |                   |                                          |                                        |   |
+| Akarin      |                   |                                          |                                        |   |
+
+
+
+### How it was tested
+This was tested on a raspberry pi 4, 4gb (overclocked to 2ghz), with aikar's flags and 2500MB allocated towards the server. The java version is displayed in the table. The seed is "mojang".
