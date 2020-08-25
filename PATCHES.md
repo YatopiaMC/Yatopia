@@ -101,7 +101,6 @@ This is an overview over all patches that are currently used.
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
-| server |  Tweak Explosions      | Aikar |  |
 | server |  Use arrow despawn rate for all projectiles      | William Blake Galbreath |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
