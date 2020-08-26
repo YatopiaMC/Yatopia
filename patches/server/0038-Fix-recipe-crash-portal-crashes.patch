@@ -17,17 +17,16 @@ index b7635ab1625c5b2540e44aafc2b908749820f7e2..9031f138e75f51f1f4074bd1eea5e51c
          double d0 = (double) blockutil_rectangle.side1;
          double d1 = (double) blockutil_rectangle.side2;
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..ebb002a15e3b8c67b776d4118c90a31bb18314bf 100644
+index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..de7d5ed8d6260ce5ee4164df29cdaf69f561045c 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -78,9 +78,16 @@ public class CraftingManager extends ResourceDataJson {
+@@ -78,9 +78,15 @@ public class CraftingManager extends ResourceDataJson {
  
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
          // CraftBukkit start
 +        // Yatopia start - replace stream
-+        java.util.List<IRecipe<C>> collection = new java.util.ArrayList<>(this.b(recipes).values());
-+        Optional<T> recipe = Optional.empty();
-+        if (!collection.isEmpty()) recipe = recipes.a(collection.get(0), world, c0);
++        List<IRecipe<C>> collection = new java.util.ArrayList<>(this.b(recipes).values());
++        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.get(0), world, c0);
 +        /*
          Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
              return SystemUtils.a(recipes.a(irecipe, world, c0));
@@ -37,3 +36,36 @@ index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..ebb002a15e3b8c67b776d4118c90a31b
          c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
          // CraftBukkit end
          // Yatopia start
+@@ -111,11 +117,20 @@ public class CraftingManager extends ResourceDataJson {
+     }
+ 
+     public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
++        // Yatopia start - WHY?! WHO DID THIS TO YOU!?!
++        Collection<IRecipe<C>> recipeCollection = this.b(recipes).values();
++        if (recipeCollection.isEmpty()) return java.util.Collections.emptyList();
++        List<T> ret = new java.util.ArrayList<>();
++        for (IRecipe<C> iRecipe : recipeCollection) recipes.a(iRecipe, world, c0).ifPresent(ret::add);
++        ret.sort(Comparator.comparing((iRecipe) -> iRecipe.getResult().getTranslationKey()));
++        return ret;
++        /*
+         return (List) this.b(recipes).values().stream().flatMap((irecipe) -> {
+             return SystemUtils.a(recipes.a(irecipe, world, c0));
+         }).sorted(Comparator.comparing((irecipe) -> {
+             return irecipe.getResult().j();
+         })).collect(Collectors.toList());
++         */ // Yatopia end
+     }
+ 
+     private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
+diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
+index ace50805bfebbf4c3485ba1de334d975830a7d3c..a12d7e868093f5c2892ba3c269f34a034b575051 100644
+--- a/src/main/java/net/minecraft/server/ItemStack.java
++++ b/src/main/java/net/minecraft/server/ItemStack.java
+@@ -570,6 +570,7 @@ public final class ItemStack {
+         return !this.e() ? this.doMaterialsMatch(itemstack) : !itemstack.isEmpty() && this.getItem() == itemstack.getItem();
+     }
+ 
++    public final String getTranslationKey() { return j(); } // Yatopia
+     public String j() {
+         return this.getItem().f(this);
+     }
