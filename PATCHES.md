@@ -73,7 +73,6 @@ This is an overview over all patches that are currently used.
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
-| server |  Optimize Hopper logic      | tr7zw |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Aikar | MrIvanPlays |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
@@ -82,7 +81,6 @@ This is an overview over all patches that are currently used.
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
-| server |  PaperMC - Buffer joins      | Shane Freeder |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | server |  Player-saving-async-FileIO      | tr7zw |  |

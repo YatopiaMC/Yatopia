@@ -1507,18 +1507,9 @@ index b3616185d285849c51ce1c0d2ac61e61e0fa8d97..d62f15d7bfa9bd1f7ff4f41cbd261506
                  return false;
              }
 diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java
-index 13a2af03fc5a511f13a9be28a813e7275448d09d..ad42bc283e5b64cce893b65a101b8220aef9c5c2 100644
+index b1d96013e38f4ef1af0c1e398795be53fd9d81e5..ad42bc283e5b64cce893b65a101b8220aef9c5c2 100644
 --- a/src/main/java/net/minecraft/server/EntityPigZombie.java
 +++ b/src/main/java/net/minecraft/server/EntityPigZombie.java
-@@ -70,7 +70,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
-             this.eY();
-         }
- 
--        if (this.isAngry()) {
-+        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
-             this.lastDamageByPlayerTime = this.ticksLived;
-         }
- 
 @@ -103,15 +103,11 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
          double d0 = this.b(GenericAttributes.FOLLOW_RANGE);
          AxisAlignedBB axisalignedbb = AxisAlignedBB.a(this.getPositionVector()).grow(d0, 10.0D, d0);
@@ -1542,20 +1533,37 @@ index 13a2af03fc5a511f13a9be28a813e7275448d09d..ad42bc283e5b64cce893b65a101b8220
      private void fa() {
 diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java.rej b/src/main/java/net/minecraft/server/EntityPigZombie.java.rej
 deleted file mode 100644
-index 7c6c99ccd4d034994668f62d82fa8180ab0bba57..0000000000000000000000000000000000000000
+index 39ea87798a00d40a1512c337b74d10c41330cc99..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/EntityPigZombie.java.rej
 +++ /dev/null
-@@ -1,10 +0,0 @@
+@@ -1,27 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java	(rejected hunks)
--@@ -68,7 +68,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
--             this.eZ();
--         }
+-@@ -101,15 +103,16 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+-         double d0 = this.b(GenericAttributes.FOLLOW_RANGE);
+-         AxisAlignedBB axisalignedbb = AxisAlignedBB.a(this.getPositionVector()).grow(d0, 10.0D, d0);
 - 
---        if (this.isAngry()) {
--+        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
--             this.lastDamageByPlayerTime = this.ticksLived;
--         }
+--        this.world.b(EntityPigZombie.class, axisalignedbb).stream().filter((entitypigzombie) -> {
+--            return entitypigzombie != this;
+--        }).filter((entitypigzombie) -> {
+--            return entitypigzombie.getGoalTarget() == null;
+--        }).filter((entitypigzombie) -> {
+--            return !entitypigzombie.r(this.getGoalTarget());
+--        }).forEach((entitypigzombie) -> {
+--            entitypigzombie.setGoalTarget(this.getGoalTarget(), org.bukkit.event.entity.EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true); // CraftBukkit
+--        });
+-+        // CraftBukkit
+-+        for (EntityPigZombie entitypigzombie : this.world.b(EntityPigZombie.class, axisalignedbb)) {
+-+            if (entitypigzombie != this) {
+-+                if (entitypigzombie.getGoalTarget() == null) {
+-+                    if (!entitypigzombie.r(this.getGoalTarget())) {
+-+                        entitypigzombie.setGoalTarget(this.getGoalTarget(), EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY, true);
+-+                    }
+-+                }
+-+            }
+-+        }
+-     }
 - 
+-     private void fb() {
 diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java b/src/main/java/net/minecraft/server/EntityPiglin.java
 index e1b4330074cf3c3de31dbfcd9e1b99feb7baf669..2581c6da77c3fcec5a18f5fcacf30a36bf6b5ee6 100644
 --- a/src/main/java/net/minecraft/server/EntityPiglin.java
@@ -2268,10 +2276,10 @@ index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..00000000000000000000000000000000
 - 
 -                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 68ab91309cce095090940c909caeeae4a1f341b6..511862b33897371f19da9c0a61f81fbd0522e6a2 100644
+index 69a14bc78261c58903398e22b09ab276c37c4bf2..1ccbc31ee11693f732e9b2450f3967ec9e99a042 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -2827,7 +2827,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2828,7 +2828,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
      // Paper end
  
      public final boolean isDisconnected() {
@@ -2448,12 +2456,12 @@ index c3bd58069d8dbdf36f70f1dafd7c24000f31708b..f915cb4e1110e39178527903ae93508f
  
 diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java.rej b/src/main/java/net/minecraft/server/StructureGenerator.java.rej
 deleted file mode 100644
-index 8b5d001fb8ecb4a5b96bda6532cf8d5900816290..0000000000000000000000000000000000000000
+index 2ae4a20ca763c60c9661661d2ae558bd5b6f79a1..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/StructureGenerator.java.rej
 +++ /dev/null
 @@ -1,13 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java	(rejected hunks)
--@@ -139,6 +139,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
+-@@ -143,6 +143,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
 -                             int j2 = i1 + k * l1;
 -                             ChunkCoordIntPair chunkcoordintpair = this.a(structuresettingsfeature, j, seededrandom, i2, j2);
 -                             if (!iworldreader.getWorldBorder().isChunkInBounds(chunkcoordintpair.x, chunkcoordintpair.z)) { continue; } // Paper
@@ -2466,7 +2474,7 @@ index 8b5d001fb8ecb4a5b96bda6532cf8d5900816290..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java
-index 299196ad134593a2979a867b86d44532a23a40f2..95bede605c6401af10f18b641cd12c9d8ec2f207 100644
+index 63ced11539767c22aac635280dc163b731ec6e5f..95bede605c6401af10f18b641cd12c9d8ec2f207 100644
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java
 +++ b/src/main/java/net/minecraft/server/TileEntityHopper.java
 @@ -508,6 +508,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
@@ -2477,20 +2485,12 @@ index 299196ad134593a2979a867b86d44532a23a40f2..95bede605c6401af10f18b641cd12c9d
              return true;
          }
          return false; // EMC
-@@ -765,6 +766,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
-             BlockPosition blockposition = this.getPosition();
- 
-             if (VoxelShapes.c(VoxelShapes.a(entity.getBoundingBox().d((double) (-blockposition.getX()), (double) (-blockposition.getY()), (double) (-blockposition.getZ()))), this.aa_(), OperatorBoolean.AND)) {
-+                enableTicking(this, 0); // Origami - don't tick empty hoppers
-                 this.a(() -> {
-                     return a((IInventory) this, (EntityItem) entity);
-                 });
 diff --git a/src/main/java/net/minecraft/server/TileEntityHopper.java.rej b/src/main/java/net/minecraft/server/TileEntityHopper.java.rej
 deleted file mode 100644
-index 3f481f57d8e0b156b7d632085265e3acfb2f4fa8..0000000000000000000000000000000000000000
+index cc8866ec1ccbc131e8491c50eda4f85590bb667b..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/TileEntityHopper.java.rej
 +++ /dev/null
-@@ -1,17 +0,0 @@
+@@ -1,9 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/TileEntityHopper.java b/src/main/java/net/minecraft/server/TileEntityHopper.java	(rejected hunks)
 -@@ -466,6 +497,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
 -                 entityitem = (EntityItem) iterator.next();
@@ -2500,14 +2500,6 @@ index 3f481f57d8e0b156b7d632085265e3acfb2f4fa8..00000000000000000000000000000000
 -             return true;
 -         }
 -     }
--@@ -722,6 +754,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
--             BlockPosition blockposition = this.getPosition();
-- 
--             if (VoxelShapes.c(VoxelShapes.a(entity.getBoundingBox().d((double) (-blockposition.getX()), (double) (-blockposition.getY()), (double) (-blockposition.getZ()))), this.ac_(), OperatorBoolean.AND)) {
--+                enableTicking(this, 0); // Origami - don't tick empty hoppers
--                 this.a(() -> {
--                     return a((IInventory) this, (EntityItem) entity);
--                 });
 diff --git a/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej b/src/main/java/net/minecraft/server/TileEntityShulkerBox.java.rej
 deleted file mode 100644
 index bada470cba41cce9beb9eb04227b42c1d489d731..0000000000000000000000000000000000000000
