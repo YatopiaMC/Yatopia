@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Wed, 26 Aug 2020 10:48:41 +0300
+Subject: [PATCH] Fix recipe crash & portal crashes
+
+
+diff --git a/src/main/java/net/minecraft/server/BlockPortalShape.java b/src/main/java/net/minecraft/server/BlockPortalShape.java
+index b7635ab1625c5b2540e44aafc2b908749820f7e2..9031f138e75f51f1f4074bd1eea5e51c7216df29 100644
+--- a/src/main/java/net/minecraft/server/BlockPortalShape.java
++++ b/src/main/java/net/minecraft/server/BlockPortalShape.java
+@@ -224,6 +224,7 @@ public class BlockPortalShape {
+     public static ShapeDetectorShape a(WorldServer worldserver, BlockUtil.Rectangle blockutil_rectangle, EnumDirection.EnumAxis enumdirection_enumaxis, Vec3D vec3d, EntitySize entitysize, Vec3D vec3d1, float f, float f1, CraftPortalEvent portalEventInfo) { // CraftBukkit // PAIL rename toDetectorShape
+         BlockPosition blockposition = blockutil_rectangle.origin;
+         IBlockData iblockdata = worldserver.getType(blockposition);
++        if (iblockdata.isAir()) return null; // Yatopia
+         EnumDirection.EnumAxis enumdirection_enumaxis1 = (EnumDirection.EnumAxis) iblockdata.get(BlockProperties.E);
+         double d0 = (double) blockutil_rectangle.side1;
+         double d1 = (double) blockutil_rectangle.side2;
+diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
+index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..ebb002a15e3b8c67b776d4118c90a31bb18314bf 100644
+--- a/src/main/java/net/minecraft/server/CraftingManager.java
++++ b/src/main/java/net/minecraft/server/CraftingManager.java
+@@ -78,9 +78,16 @@ public class CraftingManager extends ResourceDataJson {
+ 
+     public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
+         // CraftBukkit start
++        // Yatopia start - replace stream
++        java.util.List<IRecipe<C>> collection = new java.util.ArrayList<>(this.b(recipes).values());
++        Optional<T> recipe = Optional.empty();
++        if (!collection.isEmpty()) recipe = recipes.a(collection.get(0), world, c0);
++        /*
+         Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
+             return SystemUtils.a(recipes.a(irecipe, world, c0));
+         }).findFirst();
++         */
++        // Yatopia end
+         c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
+         // CraftBukkit end
+         // Yatopia start

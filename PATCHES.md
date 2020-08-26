@@ -54,6 +54,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
+| server |  Fix recipe crash &amp; portal crashes      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
