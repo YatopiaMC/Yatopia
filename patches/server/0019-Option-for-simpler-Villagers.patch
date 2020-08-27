@@ -21,7 +21,7 @@ index d70b6af62f7e9a0b49c38fae1170f0eb0584c781..039255d795f0e00b2a40861aa05c38c1
 +    }
  }
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..cb8363a93c8a0dbdfb9ac510b7140b300ad56f76 100644
+index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..0537c82a9fcf56acd1fb485f75d06fa7fbdf2345 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -27,6 +27,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
@@ -94,7 +94,7 @@ index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..cb8363a93c8a0dbdfb9ac510b7140b30
          BehaviorController<EntityVillager> behaviorcontroller = this.cJ().a(dynamic);
  
          this.a(behaviorcontroller);
-@@ -172,6 +212,28 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -172,10 +212,39 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
      // Spigot End
  
@@ -123,10 +123,7 @@ index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..cb8363a93c8a0dbdfb9ac510b7140b30
      @Override
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
-@@ -180,6 +242,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
-         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
-         if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
-         // Purpur end
+         //this.world.getMethodProfiler().enter("villagerBrain"); // Akarin - remove caller
 +        // Yatopia start
 +        if (simplerVillagerBehavior && this.getVillagerData().getProfession() == VillagerProfession.NONE) {
 +            this.setVillagerData(this.getVillagerData().withProfession(getRandomProfession()));
@@ -134,9 +131,9 @@ index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..cb8363a93c8a0dbdfb9ac510b7140b30
 +        if (simplerVillagerBehavior && canRefresh()) restUses();
 +        if (simplerVillagerBehavior) return;
 +        // Yatopia end
-         if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
-         //this.world.getMethodProfiler().exit(); // Akarin - remove caller
-         if (this.bF) {
+         // Purpur start
+         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
+         if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
 @@ -345,6 +414,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return this.bD == 0 || this.bD < 2 && this.world.getTime() > this.bC + 2400L;
      }
