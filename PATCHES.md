@@ -59,6 +59,7 @@ This is an overview over all patches that are currently used.
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
+| server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
