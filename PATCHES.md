@@ -54,11 +54,12 @@ This is an overview over all patches that are currently used.
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
-| server |  Fix recipe crash &amp; portal crashes      | Ivan Pekov |  |
+| server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
+| server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
@@ -67,6 +68,7 @@ This is an overview over all patches that are currently used.
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
+| server |  Load also the chunk that you&#39;re teleporting to      | Ivan Pekov |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-171420 - Fix deop kicking non-whitelisted player when      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
@@ -78,7 +80,6 @@ This is an overview over all patches that are currently used.
 | server |  Optimize Villagers      | Aikar | MrIvanPlays |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
-| server |  Optimize redstone algorithm      | theosib | egg82 |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
@@ -92,6 +93,7 @@ This is an overview over all patches that are currently used.
 | api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove a few more streams      | Sotr |  |
+| server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |

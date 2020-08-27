@@ -16,13 +16,53 @@ index b67f05f290db653cf75a89e85bd3decb5044a1e0..11758b6b158d971b9beb1b609d7513da
          ));
  
          new TimingsExport(listeners, parent, history).start();
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index a60634fc455e8a59399020689b70eb64b6824d12..3601f6f104d204c10b4dacc013525651b128c2a8 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -181,6 +181,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+         // Paper end
+         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
+ 
++        // Yatopia start
++        try {
++            net.yatopia.server.YatopiaConfig.init((java.io.File) options.valueOf("yatopia-settings"));
++        } catch (Exception e) {
++            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
++            return false;
++        }
++        net.yatopia.server.YatopiaConfig.registerCommands();
++        // Yatopia end
+         this.setPVP(dedicatedserverproperties.pvp);
+         this.setAllowFlight(dedicatedserverproperties.allowFlight);
+         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aZ());
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 32843a27ebe0235e4ef5a7c32c08bff9dad2abc2..4078582952fefe368e8e8c9c820d78ce8be5ca64 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
+         //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
+         boolean flag = this instanceof EntityHuman;
+ 
++        if (!net.yatopia.server.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
+         if (this.isAlive()) {
+             if (this.inBlock()) {
+                 this.damageEntity(DamageSource.STUCK, 1.0F);
+@@ -281,6 +282,7 @@ public abstract class EntityLiving extends Entity {
+                 }
+             }
+         }
++        } // Yatopia
+ 
+         if (this.isFireProof() || this.world.isClientSide) {
+             this.extinguish();
+diff --git a/src/main/java/net/yatopia/server/YatopiaCommand.java b/src/main/java/net/yatopia/server/YatopiaCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0ada1657122fd973bbb8ec8b7c7be83de0bd4a00
+index 0000000000000000000000000000000000000000..3a3cda53b253e42556268506e2c32b65be84bedb
 --- /dev/null
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaCommand.java
++++ b/src/main/java/net/yatopia/server/YatopiaCommand.java
 @@ -0,0 +1,141 @@
-+package dev.tr7zw.yatopia;
++package net.yatopia.server;
 +
 +import com.google.common.base.Preconditions;
 +import com.google.common.collect.Lists;
@@ -152,7 +192,7 @@ index 0000000000000000000000000000000000000000..0ada1657122fd973bbb8ec8b7c7be83d
 +        broadcastMessage(sender, ChatColor.RED + "If you encounter any issues please use the /stop command to restart your server.");
 +
 +        MinecraftServer console = MinecraftServer.getServer();
-+        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings"));
++        YatopiaConfig.init((File) console.options.valueOf("yatopia-settings"));
 +        console.server.reloadCount++;
 +
 +        broadcastMessage(sender, ChatColor.GREEN + "Yatopia config reload complete.");
@@ -163,13 +203,13 @@ index 0000000000000000000000000000000000000000..0ada1657122fd973bbb8ec8b7c7be83d
 +        Command.broadcastCommandMessage(sender, message);
 +    }
 +}
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b67a82569747fb8f4a349b7f81fe502cc4e2a792
+index 0000000000000000000000000000000000000000..bf91f41cee803734bbee82d783705bf7aa1cbace
 --- /dev/null
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -0,0 +1,213 @@
-+package dev.tr7zw.yatopia;
++package net.yatopia.server;
 +
 +import com.google.common.base.Throwables;
 +import java.io.File;
@@ -382,55 +422,15 @@ index 0000000000000000000000000000000000000000..b67a82569747fb8f4a349b7f81fe502c
 +    }
 +
 +}
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index a60634fc455e8a59399020689b70eb64b6824d12..cb4a89940cf02de5c3eefc5c746397a931c96b7a 100644
---- a/src/main/java/net/minecraft/server/DedicatedServer.java
-+++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -181,6 +181,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         // Paper end
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
- 
-+        // Yatopia start
-+        try {
-+            dev.tr7zw.yatopia.YatopiaConfig.init((java.io.File) options.valueOf("yatopia-settings"));
-+        } catch (Exception e) {
-+            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
-+            return false;
-+        }
-+        dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
-+        // Yatopia end
-         this.setPVP(dedicatedserverproperties.pvp);
-         this.setAllowFlight(dedicatedserverproperties.allowFlight);
-         this.setResourcePack(dedicatedserverproperties.resourcePack, this.aZ());
-diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index f24f7f1230a380f46112e886fb5dff7c33edb2ce..421b01b7ded3d8bc7b425ad3ae4b008fd3203093 100644
---- a/src/main/java/net/minecraft/server/EntityLiving.java
-+++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -266,6 +266,7 @@ public abstract class EntityLiving extends Entity {
-         //this.world.getMethodProfiler().enter("livingEntityBaseTick"); // Akarin - remove caller
-         boolean flag = this instanceof EntityHuman;
- 
-+        if (!dev.tr7zw.yatopia.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
-         if (this.isAlive()) {
-             if (this.inBlock()) {
-                 this.damageEntity(DamageSource.STUCK, 1.0F);
-@@ -281,6 +282,7 @@ public abstract class EntityLiving extends Entity {
-                 }
-             }
-         }
-+        } // Yatopia
- 
-         if (this.isFireProof() || this.world.isClientSide) {
-             this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 2d32ab02d7edee9a964dc2d9248c0c769e7dcac8..9f9bbd1c7830a93da3fcbd399bb2e402b7698ec3 100644
+index 2d32ab02d7edee9a964dc2d9248c0c769e7dcac8..d4e9558a8ababf3a611ebc55a84b0e76843137b5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -844,6 +844,7 @@ public final class CraftServer implements Server {
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
          com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
          de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
-+        dev.tr7zw.yatopia.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
++        net.yatopia.server.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
@@ -441,7 +441,7 @@ index 2d32ab02d7edee9a964dc2d9248c0c769e7dcac8..9f9bbd1c7830a93da3fcbd399bb2e402
 +        // Yatopia start
 +        @Override
 +        public YamlConfiguration getYatopiaConfig() {
-+            return dev.tr7zw.yatopia.YatopiaConfig.config;
++            return net.yatopia.server.YatopiaConfig.config;
 +        }
 +        // Yatopia end
 +

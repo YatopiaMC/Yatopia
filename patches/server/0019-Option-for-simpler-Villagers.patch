@@ -4,31 +4,15 @@ Date: Fri, 31 Jul 2020 21:58:24 -0500
 Subject: [PATCH] Option for simpler Villagers
 
 
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index d70b6af62f7e9a0b49c38fae1170f0eb0584c781..039255d795f0e00b2a40861aa05c38c11db425cd 100644
---- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-@@ -219,4 +219,11 @@ public class YatopiaConfig {
-     private static void itemStuckSleepTicks() {
-         itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
-     }
-+
-+    public static boolean simplerVillagerBehavior = false;
-+    public static boolean villagersHideAtNight = false;
-+    private static void villagerSettings() {
-+        simplerVillagerBehavior = getBoolean("settings.villager.simplerVillagerBehavior", false);
-+        villagersHideAtNight = getBoolean("settings.villager.villagersHideAtNight", false);
-+    }
- }
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..0537c82a9fcf56acd1fb485f75d06fa7fbdf2345 100644
+index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..da2bd7c597a3f691ec13ff37dd2ef87d44271a97 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -27,6 +27,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
  
  public class EntityVillager extends EntityVillagerAbstract implements ReputationHandler, VillagerDataHolder {
  
-+    private boolean simplerVillagerBehavior = dev.tr7zw.yatopia.YatopiaConfig.simplerVillagerBehavior; // Yatopia - so we don't make them bork upon reload
++    private boolean simplerVillagerBehavior = net.yatopia.server.YatopiaConfig.simplerVillagerBehavior; // Yatopia - so we don't make them bork upon reload
      private static final DataWatcherObject<VillagerData> br = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bp = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
      private static final Set<Item> bs = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
@@ -57,7 +41,7 @@ index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..0537c82a9fcf56acd1fb485f75d06fa7
 +            return;
 +        }
 +        this.goalSelector.a(0, new PathfinderGoalFloat(this));
-+        if (dev.tr7zw.yatopia.YatopiaConfig.villagersHideAtNight) {
++        if (net.yatopia.server.YatopiaConfig.villagersHideAtNight) {
 +            this.goalSelector.a(0, new PathfinderGoalUseItem<>(this, PotionUtil.a(new ItemStack(Items.POTION), Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
 +                return !this.world.isDay() && !entityvillagertrader.isInvisible();
 +            }));
@@ -166,3 +150,19 @@ index 1104196cf6dc448dada2e190e5e9e27c9f18d2dc..0537c82a9fcf56acd1fb485f75d06fa7
          if (this.world instanceof WorldServer) {
              MinecraftServer minecraftserver = ((WorldServer) this.world).getMinecraftServer();
  
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index bf8b625c12a37108e0a071ca628f0f67ba51754b..3499f743e875338f51c2193dff0ded5881ac70b7 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -219,4 +219,11 @@ public class YatopiaConfig {
+     private static void itemStuckSleepTicks() {
+         itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
+     }
++
++    public static boolean simplerVillagerBehavior = false;
++    public static boolean villagersHideAtNight = false;
++    private static void villagerSettings() {
++        simplerVillagerBehavior = getBoolean("settings.villager.simplerVillagerBehavior", false);
++        villagersHideAtNight = getBoolean("settings.villager.villagersHideAtNight", false);
++    }
+ }

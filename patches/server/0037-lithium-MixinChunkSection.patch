@@ -7,38 +7,20 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index f292bc8b78b965e455befe1809bfbadc90b52755..5ca5345d121a86ab284d6467ce7ce5fc3ab570fa 100644
+index 1d02880e5818d22c13d67d3f44844a2cca51c164..13f541390040d07229de0fbb1cfa4bcfe7d0794f 100644
 --- a/src/main/java/net/minecraft/server/BlockBase.java
 +++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -601,7 +601,25 @@ public abstract class BlockBase {
+@@ -345,6 +345,8 @@ public abstract class BlockBase {
          }
+         // Tuinity end
  
-         public IBlockData updateState(EnumDirection enumdirection, IBlockData iblockdata, GeneratorAccess generatoraccess, BlockPosition blockposition, BlockPosition blockposition1) {
--            return this.getBlock().updateState(this.p(), enumdirection, iblockdata, generatoraccess, blockposition, blockposition1);
-+            // Yatopia start
-+            IBlockData updated = this.getBlock().updateState(this.p(), enumdirection, iblockdata, generatoraccess, blockposition, blockposition1);
-+            if (updated.shapeExceedsCube()) {
-+                IChunkAccess chunk = generatoraccess.getChunkIfLoadedImmediately(blockposition1.getX() >> 4, blockposition1.getZ() >> 4);
-+                if (chunk != null) {
-+                    ChunkSection section = chunk.getSections()[blockposition1.getY() >> 4];
-+                    if (section != null) section.oversizedBlockCount++;
-+                }
-+            } else {
-+                if (iblockdata.shapeExceedsCube()) {
-+                    IChunkAccess chunk = generatoraccess.getChunkIfLoadedImmediately(blockposition.getX() >> 4, blockposition.getZ() >> 4);
-+                    if (chunk != null) {
-+                        ChunkSection section = chunk.getSections()[blockposition.getY() >> 4];
-+                        if (section != null) section.oversizedBlockCount--;
-+                    }
-+                }
-+            }
-+            return updated;
-+            // Yatopia end
-         }
- 
-         public boolean a(IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
++        public final boolean shapeExceedsCubeUncached() { return this.a == null || this.a.c; } // Yatopia - uncached shapeExceedsCube due to collisions stuff
++
+         // Tuinity start
+         protected boolean isTicking;
+         protected Fluid fluid;
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
-index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659bd2aecf5 100644
+index cebd808e273dbdb88feb16920dd7a2f60390b34f..d210ac3d5775491e9beb885dde608f5e8fda8eb2 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
 +++ b/src/main/java/net/minecraft/server/ChunkSection.java
 @@ -4,7 +4,7 @@ import java.util.function.Predicate;
@@ -54,11 +36,27 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659
      short tickingBlockCount; // Paper - private -> package-private
      private short e;
      final DataPaletteBlock<IBlockData> blockIds; // Paper - package-private
-+    short oversizedBlockCount = 0; // Yatopia
++    private short oversizedBlockCount = 0; // Yatopia
  
      final com.destroystokyo.paper.util.maplist.IBlockDataList tickingList = new com.destroystokyo.paper.util.maplist.IBlockDataList(); // Paper
  
-@@ -126,10 +127,12 @@ public class ChunkSection {
+@@ -67,6 +68,7 @@ public class ChunkSection {
+ 
+         if (!iblockdata1.isAir()) {
+             --this.nonEmptyBlockCount;
++            if (iblockdata1.shapeExceedsCubeUncached()) this.oversizedBlockCount--; // Yatopia
+             if (iblockdata1.isTicking()) {
+                 --this.tickingBlockCount;
+                 // Paper start
+@@ -81,6 +83,7 @@ public class ChunkSection {
+ 
+         if (!iblockdata.isAir()) {
+             ++this.nonEmptyBlockCount;
++            if (iblockdata.shapeExceedsCubeUncached()) this.oversizedBlockCount++; // Yatopia
+             if (iblockdata.isTicking()) {
+                 ++this.tickingBlockCount;
+                 // Paper start
+@@ -126,10 +129,12 @@ public class ChunkSection {
          // Paper start
          this.tickingList.clear();
          // Paper end
@@ -67,11 +65,11 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659
          this.tickingBlockCount = 0;
          this.e = 0;
          this.blockIds.forEachLocation((iblockdata, location) -> { // Paper
-+            if (iblockdata.shapeExceedsCube()) this.oversizedBlockCount += location; // Yatopia
++            if (iblockdata.shapeExceedsCubeUncached()) this.oversizedBlockCount += location; // Yatopia
              Fluid fluid = iblockdata.getFluid();
  
              if (!iblockdata.isAir()) {
-@@ -173,4 +176,11 @@ public class ChunkSection {
+@@ -173,4 +178,11 @@ public class ChunkSection {
      public boolean a(Predicate<IBlockData> predicate) {
          return this.blockIds.contains(predicate);
      }

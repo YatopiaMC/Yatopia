@@ -5,7 +5,7 @@ Subject: [PATCH] Redirect Configs
 
 
 diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-index f6623032e5d4034c104aa1fc6ff4265169e462ba..c9a61bf6531d761780ac66b69d06a1d036f988d5 100644
+index f6623032e5d4034c104aa1fc6ff4265169e462ba..4bc94e4598cff801d08e457ebbf184fbaadb3b19 100644
 --- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
 +++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
 @@ -37,6 +37,8 @@ public final class RainforestConfig {
@@ -22,20 +22,27 @@ index f6623032e5d4034c104aa1fc6ff4265169e462ba..c9a61bf6531d761780ac66b69d06a1d0
      version = getInt("config-version", 1);
      set("config-version", 1);
 +     */
-+    config = dev.tr7zw.yatopia.YatopiaConfig.config;
-+    CONFIG_FILE = dev.tr7zw.yatopia.YatopiaConfig.CONFIG_FILE;
-+    verbose = dev.tr7zw.yatopia.YatopiaConfig.verbose;
-+    version = dev.tr7zw.yatopia.YatopiaConfig.version;
++    config = net.yatopia.server.YatopiaConfig.config;
++    CONFIG_FILE = net.yatopia.server.YatopiaConfig.CONFIG_FILE;
++    verbose = net.yatopia.server.YatopiaConfig.verbose;
++    version = net.yatopia.server.YatopiaConfig.version;
      readConfig(RainforestConfig.class, null);
 +    // Yatopia end
    }
  
    protected static void logError(String s) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 82fc63dbfc0d48267e0c1972a312b7143f62e6f0..284865f960672645932521ed811a7c5c31c64294 100644
+index 82fc63dbfc0d48267e0c1972a312b7143f62e6f0..7fc45446218ee6a31abca2e16d192efff5e4aaf9 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -20,6 +20,8 @@ public final class OrigamiConfig {
+@@ -1,5 +1,6 @@
+ package de.minebench.origami;
+ 
++import net.yatopia.server.YatopiaConfig;
+ import org.bukkit.Bukkit;
+ import org.bukkit.configuration.file.YamlConfiguration;
+ 
+@@ -20,6 +21,8 @@ public final class OrigamiConfig {
      private static int configVersion;
  
      public static void init(final File file) {
@@ -44,7 +51,7 @@ index 82fc63dbfc0d48267e0c1972a312b7143f62e6f0..284865f960672645932521ed811a7c5c
          OrigamiConfig.configFile = file;
          OrigamiConfig.config = new YamlConfiguration();
          config.options().header(CONFIG_HEADER);
-@@ -39,13 +41,16 @@ public final class OrigamiConfig {
+@@ -39,13 +42,16 @@ public final class OrigamiConfig {
                  System.out.println("Failure to load origami config");
                  throw new RuntimeException(ex);
              }
@@ -52,9 +59,9 @@ index 82fc63dbfc0d48267e0c1972a312b7143f62e6f0..284865f960672645932521ed811a7c5c
 -
 -        OrigamiConfig.load(OrigamiConfig.class, null);
 +        }*/
-+	    config = dev.tr7zw.yatopia.YatopiaConfig.config;
-+	    configFile = dev.tr7zw.yatopia.YatopiaConfig.CONFIG_FILE;
-+	    configVersion = dev.tr7zw.yatopia.YatopiaConfig.version;
++	    config = net.yatopia.server.YatopiaConfig.config;
++	    configFile = net.yatopia.server.YatopiaConfig.CONFIG_FILE;
++	    configVersion = net.yatopia.server.YatopiaConfig.version;
 +	    //OrigamiConfig.load(OrigamiConfig.class, null); // todo: uncomment when config options are ported
 +        // Yatopia end
      }
@@ -66,13 +73,13 @@ index 82fc63dbfc0d48267e0c1972a312b7143f62e6f0..284865f960672645932521ed811a7c5c
          for (final Method method : clazz.getDeclaredMethods()) {
              if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index cb4a89940cf02de5c3eefc5c746397a931c96b7a..7e053bc9bbd8abc1a6c060c1b4166ff27c7043d2 100644
+index 3601f6f104d204c10b4dacc013525651b128c2a8..6892b9de4552d78b01c57c0f67896a3cc62cb819 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -189,6 +189,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
              return false;
          }
-         dev.tr7zw.yatopia.YatopiaConfig.registerCommands();
+         net.yatopia.server.YatopiaConfig.registerCommands();
 +        de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
 +        com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings"));
          // Yatopia end

@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Wed, 26 Aug 2020 21:01:33 +0300
+Subject: [PATCH] Load also the chunk that you're teleporting to
+
+Fixes Tuinity-178
+
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index db2666d2cb03b5f8c714249ab9ebffa783fde334..adda64b92b7ea1a62d18ebe81c9a5bc5547f21e0 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -225,7 +225,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         return true;
+     }
+ 
+-    public final void loadChunksForMoveAsync(AxisAlignedBB axisalignedbb, double toX, double toZ,
++    public final void loadChunksForMoveAsync(AxisAlignedBB axisalignedbb, int toX, int toZ, // Yatopia
+                                              java.util.function.Consumer<List<IChunkAccess>> onLoad) {
+         if (Thread.currentThread() != this.serverThread) {
+             this.getChunkProvider().serverThreadQueue.execute(() -> {
+@@ -282,6 +282,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 chunkProvider.getChunkAtAsynchronously(cx, cz, ChunkStatus.FULL, true, false, consumer);
+             }
+         }
++        chunkProvider.getChunkAtAsynchronously(toX >> 4, toZ >> 4, ChunkStatus.FULL, true, false, consumer); // Yatopia
+     }
+     // Tuinity end
+ 
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+index f1710a53fa0440281013221b4c518ecaf1707fc4..8b9aae9e3b5e7b2e74b7f9fadc0118c328ba92db 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+@@ -545,7 +545,7 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+         net.minecraft.server.WorldServer world = ((CraftWorld)locationClone.getWorld()).getHandle();
+         java.util.concurrent.CompletableFuture<Boolean> ret = new java.util.concurrent.CompletableFuture<>();
+ 
+-        world.loadChunksForMoveAsync(getHandle().getBoundingBoxAt(locationClone.getX(), locationClone.getY(), locationClone.getZ()), location.getX(), location.getZ(), (list) -> {
++        world.loadChunksForMoveAsync(getHandle().getBoundingBoxAt(locationClone.getX(), locationClone.getY(), locationClone.getZ()), location.getBlockX(), location.getBlockZ(), (list) -> { // Yatopia
+             net.minecraft.server.ChunkProviderServer chunkProviderServer = world.getChunkProvider();
+             for (net.minecraft.server.IChunkAccess chunk : list) {
+                 chunkProviderServer.addTicketAtLevel(net.minecraft.server.TicketType.POST_TELEPORT, chunk.getPos(), 33, CraftEntity.this.getEntityId());

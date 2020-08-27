@@ -5,7 +5,7 @@ Subject: [PATCH] Player-saving-async-FileIO
 
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index cf539c98073b475eb5b769c8cc11d48a7e6d58f1..b19c702bae3e750bee13c8b1b3eaa62f0d3ba1ae 100644
+index cf539c98073b475eb5b769c8cc11d48a7e6d58f1..20b97d1e68132a9f1b62dece5c26da80e67347b7 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -50,6 +50,7 @@ public class AdvancementDataPlayer {
@@ -21,7 +21,7 @@ index cf539c98073b475eb5b769c8cc11d48a7e6d58f1..b19c702bae3e750bee13c8b1b3eaa62f
          jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
  
 +        // Yatopia start - replace whole logic
-+        saveThread.submit(() -> {
++        saveThread.execute(() -> {
 +            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(f), Charsets.UTF_8.newEncoder())) {
 +                AdvancementDataPlayer.b.toJson(jsonelement, writer);
 +            } catch (Throwable e) {
@@ -77,10 +77,10 @@ index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..a52c0391b171c8a57de75f87c534ce1e
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 2a15972c0a48153fba481b08351642ed36a9da12..75953420936f1c6e8de221c1331df4d6c2fc7af6 100644
+index 334fd6fe58f53ad8989ac4ddf523b156a8dd264d..8bec2ac5e78f28e879db69e1673b0cd90f5abc31 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -1284,6 +1284,28 @@ public abstract class PlayerList {
+@@ -1283,6 +1283,28 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -109,7 +109,7 @@ index 2a15972c0a48153fba481b08351642ed36a9da12..75953420936f1c6e8de221c1331df4d6
      }
      // Paper end
  
-@@ -1321,13 +1343,13 @@ public abstract class PlayerList {
+@@ -1320,13 +1342,13 @@ public abstract class PlayerList {
              File file = this.server.a(SavedFile.STATS).toFile();
              File file1 = new File(file, uuid + ".json");
  
@@ -126,7 +126,7 @@ index 2a15972c0a48153fba481b08351642ed36a9da12..75953420936f1c6e8de221c1331df4d6
              serverstatisticmanager = new ServerStatisticManager(this.server, file1);
              // this.o.put(uuid, serverstatisticmanager); // CraftBukkit
 diff --git a/src/main/java/net/minecraft/server/ServerStatisticManager.java b/src/main/java/net/minecraft/server/ServerStatisticManager.java
-index 3c3b87e37cbf69c223da007e8b7eb646ec83691e..e2d12750bce9cb5ef087412b03809632a678bc04 100644
+index 3c3b87e37cbf69c223da007e8b7eb646ec83691e..ef20b3e43eb9598e79ee3ded40f50ae0cc100872 100644
 --- a/src/main/java/net/minecraft/server/ServerStatisticManager.java
 +++ b/src/main/java/net/minecraft/server/ServerStatisticManager.java
 @@ -30,6 +30,7 @@ public class ServerStatisticManager extends StatisticManager {
@@ -141,7 +141,7 @@ index 3c3b87e37cbf69c223da007e8b7eb646ec83691e..e2d12750bce9cb5ef087412b03809632
              this.a.put( wrapper, entry.getValue().intValue() );
          }
          // Spigot end
-+        saveThread.submit(() -> { // Yatopia
++        saveThread.execute(() -> { // Yatopia
          if (file.isFile()) {
              try {
                  this.a(minecraftserver.getDataFixer(), org.apache.commons.io.FileUtils.readFileToString(file));
@@ -157,7 +157,7 @@ index 3c3b87e37cbf69c223da007e8b7eb646ec83691e..e2d12750bce9cb5ef087412b03809632
          if ( org.spigotmc.SpigotConfig.disableStatSaving ) return; // Spigot
 +        // Yatopia start
 +        String str = this.b();
-+        saveThread.submit(() -> {
++        saveThread.execute(() -> {
          try {
 -            org.apache.commons.io.FileUtils.writeStringToFile(this.d, this.b());
 +            org.apache.commons.io.FileUtils.writeStringToFile(this.d, str);
@@ -179,7 +179,7 @@ index 3c3b87e37cbf69c223da007e8b7eb646ec83691e..e2d12750bce9cb5ef087412b03809632
                                                  ServerStatisticManager.LOGGER.warn("Invalid statistic in {}: Don't know what {} is", this.d, s2);
                                              });
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index a959672f5857b987001252c3fd7ace9e83e07c9b..bcae104ac104d6dcdf8653f291b24601247b5a55 100644
+index a959672f5857b987001252c3fd7ace9e83e07c9b..d8969f7f5244548452e5d12325e6fa735ecd3a00 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -17,6 +17,7 @@ public class WorldNBTStorage {
@@ -195,7 +195,7 @@ index a959672f5857b987001252c3fd7ace9e83e07c9b..bcae104ac104d6dcdf8653f291b24601
      public void save(EntityHuman entityhuman) {
          if(!com.destroystokyo.paper.PaperConfig.savePlayerData) return; // Paper - Make player data saving configurable
 +        entityhuman.takeSnapshot(); // Yatopia
-+        saveThread.submit(() -> { // Yatopia
++        saveThread.execute(() -> { // Yatopia
          try {
              NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
              File file = File.createTempFile(entityhuman.getUniqueIDString() + "-", ".dat", this.playerDir);

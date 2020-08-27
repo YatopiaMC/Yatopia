@@ -4,10 +4,41 @@ Date: Fri, 31 Jul 2020 21:28:00 -0500
 Subject: [PATCH] Allow to change the piston push limit
 
 
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index b67a82569747fb8f4a349b7f81fe502cc4e2a792..fd33954eb91339a8568610f515ee164527d7406b 100644
---- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
+index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..71636ce642efcd3453b6c5bfb2b2ef0edc6baee7 100644
+--- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java
++++ b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
+@@ -79,7 +79,7 @@ public class PistonExtendsChecker {
+         } else {
+             int i = 1;
+ 
+-            if (i + this.f.size() > 12) {
++            if (i + this.f.size() > net.yatopia.server.YatopiaConfig.pistonPushLimit) { // Yatopia
+                 return false;
+             } else {
+                 while (a(block)) {
+@@ -93,7 +93,7 @@ public class PistonExtendsChecker {
+                     }
+ 
+                     ++i;
+-                    if (i + this.f.size() > 12) {
++                    if (i + this.f.size() > net.yatopia.server.YatopiaConfig.pistonPushLimit) { // Yatopia
+                         return false;
+                     }
+                 }
+@@ -141,7 +141,7 @@ public class PistonExtendsChecker {
+                         return true;
+                     }
+ 
+-                    if (this.f.size() >= 12) {
++                    if (this.f.size() >= net.yatopia.server.YatopiaConfig.pistonPushLimit) { // Yatopia
+                         return false;
+                     }
+ 
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index bf91f41cee803734bbee82d783705bf7aa1cbace..5b0e2d01fbcc5d15e30a05d456f1c6533cd13412 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -210,4 +210,8 @@ public class YatopiaConfig {
          disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
      }
@@ -17,34 +48,3 @@ index b67a82569747fb8f4a349b7f81fe502cc4e2a792..fd33954eb91339a8568610f515ee1645
 +        pistonPushLimit = getInt("settings.pistonPushLimit", 12);
 +    }
  }
-diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
-index 95aeaaf0bb07c5ecf7117dae3382b0f0aac6426f..89385896af6f6088a9749a13ad5c1d0c581fa502 100644
---- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java
-+++ b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
-@@ -79,7 +79,7 @@ public class PistonExtendsChecker {
-         } else {
-             int i = 1;
- 
--            if (i + this.f.size() > 12) {
-+            if (i + this.f.size() > dev.tr7zw.yatopia.YatopiaConfig.pistonPushLimit) { // Yatopia
-                 return false;
-             } else {
-                 while (a(block)) {
-@@ -93,7 +93,7 @@ public class PistonExtendsChecker {
-                     }
- 
-                     ++i;
--                    if (i + this.f.size() > 12) {
-+                    if (i + this.f.size() > dev.tr7zw.yatopia.YatopiaConfig.pistonPushLimit) { // Yatopia
-                         return false;
-                     }
-                 }
-@@ -141,7 +141,7 @@ public class PistonExtendsChecker {
-                         return true;
-                     }
- 
--                    if (this.f.size() >= 12) {
-+                    if (this.f.size() >= dev.tr7zw.yatopia.YatopiaConfig.pistonPushLimit) { // Yatopia
-                         return false;
-                     }
- 
