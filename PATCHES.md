@@ -120,3 +120,5 @@ This is an overview over all patches that are currently used.
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium-MixinChunkGeneratorAbstract      | JellySquid | tr7zw |
 | server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |
+| server |  Fix: Lithium oversized blocks counter      | 2No2Name | smonn |
+
