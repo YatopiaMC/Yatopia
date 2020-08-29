@@ -38,7 +38,7 @@ index f292bc8b78b965e455befe1809bfbadc90b52755..5ca5345d121a86ab284d6467ce7ce5fc
  
          public boolean a(IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
-index cebd808e273dbdb88feb16920dd7a2f60390b34f..478af91f52272424da61d626534298290d6385f5 100644
+index cebd808e273dbdb88feb16920dd7a2f60390b34f..3780fe2dff80b0790badfcc8924d8a66ac1c783a 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
 +++ b/src/main/java/net/minecraft/server/ChunkSection.java
 @@ -4,7 +4,7 @@ import java.util.function.Predicate;
@@ -58,27 +58,29 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..478af91f52272424da61d62653429829
  
      final com.destroystokyo.paper.util.maplist.IBlockDataList tickingList = new com.destroystokyo.paper.util.maplist.IBlockDataList(); // Paper
  
-@@ -67,6 +68,9 @@ public class ChunkSection {
+@@ -67,6 +68,10 @@ public class ChunkSection {
  
          if (!iblockdata1.isAir()) {
              --this.nonEmptyBlockCount;
++            iblockdata.a();
 +            if(iblockdata1.shapeExceedsCube()){ //Yatopia - lithium oversized blocks count
 +                --this.oversizedBlockCount;
 +            } // Yatopia end
              if (iblockdata1.isTicking()) {
                  --this.tickingBlockCount;
                  // Paper start
-@@ -81,6 +85,9 @@ public class ChunkSection {
+@@ -81,6 +86,10 @@ public class ChunkSection {
  
          if (!iblockdata.isAir()) {
              ++this.nonEmptyBlockCount;
++            iblockdata.a();
 +            if(iblockdata.shapeExceedsCube()){ //Yatopia - lithium oversized blocks count
 +                ++this.oversizedBlockCount;
 +            } // Yatopia end
              if (iblockdata.isTicking()) {
                  ++this.tickingBlockCount;
                  // Paper start
-@@ -126,10 +133,12 @@ public class ChunkSection {
+@@ -126,10 +135,13 @@ public class ChunkSection {
          // Paper start
          this.tickingList.clear();
          // Paper end
@@ -87,11 +89,12 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..478af91f52272424da61d62653429829
          this.tickingBlockCount = 0;
          this.e = 0;
          this.blockIds.forEachLocation((iblockdata, location) -> { // Paper
++            iblockdata.a();
 +            if (iblockdata.shapeExceedsCube()) this.oversizedBlockCount += location; // Yatopia
              Fluid fluid = iblockdata.getFluid();
  
              if (!iblockdata.isAir()) {
-@@ -173,4 +182,11 @@ public class ChunkSection {
+@@ -173,4 +185,11 @@ public class ChunkSection {
      public boolean a(Predicate<IBlockData> predicate) {
          return this.blockIds.contains(predicate);
      }
