@@ -13,7 +13,6 @@
 A blazing fast fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), featuring patches/code from the following repos:
 
 * [EMC](https://github.com/starlis/empirecraft)
-* [Lithium](https://github.com/jellysquid3/lithium-fabric)
 * [Akarin](https://github.com/Akarin-project/Akarin)
 * [Rainforest](https://github.com/Proximyst/Rainforest)
 * [Origami](https://github.com/Minebench/Origami)
