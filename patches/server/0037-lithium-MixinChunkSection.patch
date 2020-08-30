@@ -7,10 +7,33 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index f292bc8b78b965e455befe1809bfbadc90b52755..5ca5345d121a86ab284d6467ce7ce5fc3ab570fa 100644
+index f292bc8b78b965e455befe1809bfbadc90b52755..fe5ec1614ee8ff5e2c1ed21bd40902885ebe4975 100644
 --- a/src/main/java/net/minecraft/server/BlockBase.java
 +++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -601,7 +601,25 @@ public abstract class BlockBase {
+@@ -333,10 +333,11 @@ public abstract class BlockBase {
+         // Paper end
+ 
+         // Tuinity start - micro the hell out of this call
+-        protected boolean shapeExceedsCube = true;
++        protected boolean shapeExceedsCube = this.shapeExceedsCube(); // Yatopia start - re add this function or collisions break
+         public final boolean shapeExceedsCube() {
+-            return this.shapeExceedsCube;
++            return this.a == null || this.a.c;
+         }
++        // Yatiopia end
+         // Tuinity end
+ 
+         // Tuinity start
+@@ -350,8 +351,6 @@ public abstract class BlockBase {
+             if (!this.getBlock().o()) {
+                 this.a = new BlockBase.BlockData.Cache(this.p());
+             }
+-            this.shapeExceedsCube = this.a == null || this.a.c; // Tuinity - moved from actual method to here
+-
+         }
+ 
+         public Block getBlock() {
+@@ -601,7 +600,25 @@ public abstract class BlockBase {
          }
  
          public IBlockData updateState(EnumDirection enumdirection, IBlockData iblockdata, GeneratorAccess generatoraccess, BlockPosition blockposition, BlockPosition blockposition1) {
@@ -38,7 +61,7 @@ index f292bc8b78b965e455befe1809bfbadc90b52755..5ca5345d121a86ab284d6467ce7ce5fc
  
          public boolean a(IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
-index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659bd2aecf5 100644
+index cebd808e273dbdb88feb16920dd7a2f60390b34f..478af91f52272424da61d626534298290d6385f5 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
 +++ b/src/main/java/net/minecraft/server/ChunkSection.java
 @@ -4,7 +4,7 @@ import java.util.function.Predicate;
@@ -58,7 +81,27 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659
  
      final com.destroystokyo.paper.util.maplist.IBlockDataList tickingList = new com.destroystokyo.paper.util.maplist.IBlockDataList(); // Paper
  
-@@ -126,10 +127,12 @@ public class ChunkSection {
+@@ -67,6 +68,9 @@ public class ChunkSection {
+ 
+         if (!iblockdata1.isAir()) {
+             --this.nonEmptyBlockCount;
++            if(iblockdata1.shapeExceedsCube()){ //Yatopia - lithium oversized blocks count
++                --this.oversizedBlockCount;
++            } // Yatopia end
+             if (iblockdata1.isTicking()) {
+                 --this.tickingBlockCount;
+                 // Paper start
+@@ -81,6 +85,9 @@ public class ChunkSection {
+ 
+         if (!iblockdata.isAir()) {
+             ++this.nonEmptyBlockCount;
++            if(iblockdata.shapeExceedsCube()){ //Yatopia - lithium oversized blocks count
++                ++this.oversizedBlockCount;
++            } // Yatopia end
+             if (iblockdata.isTicking()) {
+                 ++this.tickingBlockCount;
+                 // Paper start
+@@ -126,10 +133,12 @@ public class ChunkSection {
          // Paper start
          this.tickingList.clear();
          // Paper end
@@ -71,7 +114,7 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..c2d584759f290a4766ee077d6d05e659
              Fluid fluid = iblockdata.getFluid();
  
              if (!iblockdata.isAir()) {
-@@ -173,4 +176,11 @@ public class ChunkSection {
+@@ -173,4 +182,11 @@ public class ChunkSection {
      public boolean a(Predicate<IBlockData> predicate) {
          return this.blockIds.contains(predicate);
      }
