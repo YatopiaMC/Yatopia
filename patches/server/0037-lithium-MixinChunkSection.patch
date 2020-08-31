@@ -7,28 +7,19 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index 1d02880e5818d22c13d67d3f44844a2cca51c164..84d948bc8f4c834c5e04d3e4f79029d0bf162269 100644
+index 1d02880e5818d22c13d67d3f44844a2cca51c164..453d5cfd6227907820a9b09a818a75dc094af370 100644
 --- a/src/main/java/net/minecraft/server/BlockBase.java
 +++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -341,10 +341,16 @@ public abstract class BlockBase {
-         // Tuinity start - micro the hell out of this call
-         protected boolean shapeExceedsCube = true;
-         public final boolean shapeExceedsCube() {
--            return this.shapeExceedsCube;
-+            return shapeExceedsCube;
+@@ -345,6 +345,8 @@ public abstract class BlockBase {
          }
          // Tuinity end
  
-+        // Yatopia start - uncached shapeExceedsCube due to collisions stuff
-+        public final boolean shapeExceedsCubeUncached() {
-+            return this.a == null || this.a.c;
-+        }
-+        // Yatopia end
++        public final boolean shapeExceedsCubeUncached() { return this.a == null || this.a.c; } // Yatopia - uncached shapeExceedsCube due to collisions stuff
 +
          // Tuinity start
          protected boolean isTicking;
          protected Fluid fluid;
-@@ -607,7 +613,31 @@ public abstract class BlockBase {
+@@ -607,7 +609,31 @@ public abstract class BlockBase {
          }
  
          public IBlockData updateState(EnumDirection enumdirection, IBlockData iblockdata, GeneratorAccess generatoraccess, BlockPosition blockposition, BlockPosition blockposition1) {
