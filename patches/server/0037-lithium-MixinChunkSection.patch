@@ -53,7 +53,7 @@ index 1d02880e5818d22c13d67d3f44844a2cca51c164..453d5cfd6227907820a9b09a818a75dc
  
          public boolean a(IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
-index cebd808e273dbdb88feb16920dd7a2f60390b34f..9766c6db668657d6b33d4995559782dd5a9552e1 100644
+index cebd808e273dbdb88feb16920dd7a2f60390b34f..4c174c3e9ff832c1229fdb1c0ed4bb4bc24dd6ae 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
 +++ b/src/main/java/net/minecraft/server/ChunkSection.java
 @@ -4,7 +4,7 @@ import java.util.function.Predicate;
@@ -69,7 +69,7 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..9766c6db668657d6b33d4995559782dd
      short tickingBlockCount; // Paper - private -> package-private
      private short e;
      final DataPaletteBlock<IBlockData> blockIds; // Paper - package-private
-+    short oversizedBlockCount = 0; // Yatopia
++    int oversizedBlockCount = 0; // Yatopia
  
      final com.destroystokyo.paper.util.maplist.IBlockDataList tickingList = new com.destroystokyo.paper.util.maplist.IBlockDataList(); // Paper
  
@@ -77,7 +77,7 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..9766c6db668657d6b33d4995559782dd
  
          if (!iblockdata1.isAir()) {
              --this.nonEmptyBlockCount;
-+            if (iblockdata.shapeExceedsCubeUncached()) this.oversizedBlockCount++; // Yatopia
++            if (iblockdata.shapeExceedsCubeUncached()) this.oversizedBlockCount--; // Yatopia
              if (iblockdata1.isTicking()) {
                  --this.tickingBlockCount;
                  // Paper start
@@ -85,7 +85,7 @@ index cebd808e273dbdb88feb16920dd7a2f60390b34f..9766c6db668657d6b33d4995559782dd
  
          if (!iblockdata.isAir()) {
              ++this.nonEmptyBlockCount;
-+            if (iblockdata.shapeExceedsCubeUncached()) this.oversizedBlockCount--; // Yatopia
++            if (iblockdata.shapeExceedsCubeUncached()) this.oversizedBlockCount++; // Yatopia
              if (iblockdata.isTicking()) {
                  ++this.tickingBlockCount;
                  // Paper start
