@@ -7,10 +7,10 @@ Original code by JellySquid, licensed under GNU Lesser General Public License v3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/AxisAlignedBB.java b/src/main/java/net/minecraft/server/AxisAlignedBB.java
-index d54bf71409fe299671aa3f72315f18a188b0db9d..661331bc005ba1c6ba6c6a4df22e0205bfd2b660 100644
+index 6aa9f07336c23150ca72bdf3d45677e8d40ee4e9..e2d6b4ff007d5cef9bfbe2c989c2bb503c44508f 100644
 --- a/src/main/java/net/minecraft/server/AxisAlignedBB.java
 +++ b/src/main/java/net/minecraft/server/AxisAlignedBB.java
-@@ -155,12 +155,38 @@ public class AxisAlignedBB {
+@@ -185,12 +185,38 @@ public class AxisAlignedBB {
          return new AxisAlignedBB(vec3d.x, vec3d.y, vec3d.z, vec3d.x + 1.0D, vec3d.y + 1.0D, vec3d.z + 1.0D);
      }
  
@@ -20,8 +20,6 @@ index d54bf71409fe299671aa3f72315f18a188b0db9d..661331bc005ba1c6ba6c6a4df22e0205
 +     */
      public double a(EnumDirection.EnumAxis enumdirection_enumaxis) {
 -        return enumdirection_enumaxis.a(this.minX, this.minY, this.minZ);
--    }
--
 +		switch (enumdirection_enumaxis) {
 +		case X:
 +			return this.minX;
@@ -32,8 +30,8 @@ index d54bf71409fe299671aa3f72315f18a188b0db9d..661331bc005ba1c6ba6c6a4df22e0205
 +		}
 +
 +		throw new IllegalArgumentException();
-+    }
-+
+     }
+ 
 +    /**
 +     * @reason Simplify the code to better help the JVM optimize it
 +     * @author JellySquid
