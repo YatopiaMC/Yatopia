@@ -16,13 +16,26 @@ index 74ed02fa9296583977bb721014b10ff8b708b43c..a13c7b2b5bc79ecaea404779149ed02c
                  .variable(LineReader.HISTORY_FILE, java.nio.file.Paths.get(".console_history"))
                  .completer(new ConsoleCommandCompleter(this.server))
          );
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java b/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 4a8a768e66ee00c7230eb955c3cc14e100112dc2..94cc21d445ad501e6ddd5cc5d45718e0c915149c 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1519,7 +1519,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+     }
+ 
+     public String getServerModName() {
+-        return "Tuinity"; // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
++        return "Yatopia"; // Yatopia // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
+     }
+ 
+     public CrashReport b(CrashReport crashreport) {
+diff --git a/src/main/java/net/yatopia/server/YatopiaVersionFetcher.java b/src/main/java/net/yatopia/server/YatopiaVersionFetcher.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..84bc8f6586fdbb44b839a8963f721d8ff0792fcc
+index 0000000000000000000000000000000000000000..f30ef479696fbe3a3ff31ec1c6de882d236e8c1b
 --- /dev/null
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaVersionFetcher.java
++++ b/src/main/java/net/yatopia/server/YatopiaVersionFetcher.java
 @@ -0,0 +1,96 @@
-+package dev.tr7zw.yatopia;
++package net.yatopia.server;
 +
 +import com.destroystokyo.paper.VersionHistoryManager;
 +import com.google.common.base.Charsets;
@@ -119,19 +132,6 @@ index 0000000000000000000000000000000000000000..84bc8f6586fdbb44b839a8963f721d8f
 +
 +}
 \ No newline at end of file
-diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 4a8a768e66ee00c7230eb955c3cc14e100112dc2..94cc21d445ad501e6ddd5cc5d45718e0c915149c 100644
---- a/src/main/java/net/minecraft/server/MinecraftServer.java
-+++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1519,7 +1519,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-     }
- 
-     public String getServerModName() {
--        return "Tuinity"; // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
-+        return "Yatopia"; // Yatopia // Tuinity //Paper - Paper > // Spigot - Spigot > // CraftBukkit - cb > vanilla!
-     }
- 
-     public CrashReport b(CrashReport crashreport) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 index 510e82002ed6ada5c2f4b14e01021068806a98e8..8bc7c1598807dc3c34355c347983047d13597670 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
@@ -146,7 +146,7 @@ index 510e82002ed6ada5c2f4b14e01021068806a98e8..8bc7c1598807dc3c34355c347983047d
      private final String bukkitVersion = Versioning.getBukkitVersion();
      private final Logger logger = Logger.getLogger("Minecraft");
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
-index a9728c6c538822b8c751b5d08f5fcd14031dbc77..2be65ae6a04855986b4a8fad9b8dbdb5e2f0860d 100644
+index a9728c6c538822b8c751b5d08f5fcd14031dbc77..69ab3c815e38a86fb33b30452220602e8ff2e1aa 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 @@ -327,7 +327,7 @@ public final class CraftMagicNumbers implements UnsafeValues {
@@ -154,7 +154,7 @@ index a9728c6c538822b8c751b5d08f5fcd14031dbc77..2be65ae6a04855986b4a8fad9b8dbdb5
      @Override
      public com.destroystokyo.paper.util.VersionFetcher getVersionFetcher() {
 -        return new com.destroystokyo.paper.PaperVersionFetcher();
-+        return new dev.tr7zw.yatopia.YatopiaVersionFetcher(); //Yatopia
++        return new net.yatopia.server.YatopiaVersionFetcher(); // Yatopia
      }
  
      @Override

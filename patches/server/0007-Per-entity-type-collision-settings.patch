@@ -58,13 +58,26 @@ index cb344a424bf4c657bb1bbca286a1136c9b21b489..82fc63dbfc0d48267e0c1972a312b714
  
  }
 \ No newline at end of file
-diff --git a/src/main/java/dev/tr7zw/yatopia/EntityFilter.java b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 4078582952fefe368e8e8c9c820d78ce8be5ca64..9a0348feab24e5fece91971e3f4e9dfdbf142a52 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2849,7 +2849,7 @@ public abstract class EntityLiving extends Entity {
+         // Paper - end don't run getEntities if we're not going to use its result
+         // Tuinity start - reduce memory allocation from collideNearby
+         List<Entity> list = com.tuinity.tuinity.util.CachedLists.getTempGetEntitiesList();
+-        this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this), list);
++        this.world.getEntities(this, this.getBoundingBox(), net.yatopia.server.EntityFilter.getFilter(this), list); // Yatopia
+         try {
+         // Tuinity end - reduce memory allocation from collideNearby
+ 
+diff --git a/src/main/java/net/yatopia/server/EntityFilter.java b/src/main/java/net/yatopia/server/EntityFilter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e8211826a342d743b897d816d7ece2e8d4cd0388
+index 0000000000000000000000000000000000000000..83361a74380620a664ecf15100905f54bc81b4fa
 --- /dev/null
-+++ b/src/main/java/dev/tr7zw/yatopia/EntityFilter.java
++++ b/src/main/java/net/yatopia/server/EntityFilter.java
 @@ -0,0 +1,133 @@
-+package dev.tr7zw.yatopia;
++package net.yatopia.server;
 +
 +import de.minebench.origami.OrigamiConfig;
 +import java.util.function.Predicate;
@@ -197,16 +210,3 @@ index 0000000000000000000000000000000000000000..e8211826a342d743b897d816d7ece2e8
 +        return ret;
 +    }
 +}
-diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index a3fd38a37c74226a2dc00036d5890759fc2f7653..0e7b032c4bbec414e0f55f98557c2d23470ea1d1 100644
---- a/src/main/java/net/minecraft/server/EntityLiving.java
-+++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -2849,7 +2849,7 @@ public abstract class EntityLiving extends Entity {
-         // Paper - end don't run getEntities if we're not going to use its result
-         // Tuinity start - reduce memory allocation from collideNearby
-         List<Entity> list = com.tuinity.tuinity.util.CachedLists.getTempGetEntitiesList();
--        this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this), list);
-+        this.world.getEntities(this, this.getBoundingBox(), dev.tr7zw.yatopia.EntityFilter.getFilter(this), list); // Yatopia
-         try {
-         // Tuinity end - reduce memory allocation from collideNearby
- 

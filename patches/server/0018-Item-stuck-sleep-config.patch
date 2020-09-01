@@ -4,10 +4,23 @@ Date: Fri, 31 Jul 2020 21:48:14 -0500
 Subject: [PATCH] Item stuck sleep config
 
 
-diff --git a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-index fd33954eb91339a8568610f515ee164527d7406b..d70b6af62f7e9a0b49c38fae1170f0eb0584c781 100644
---- a/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
-+++ b/src/main/java/dev/tr7zw/yatopia/YatopiaConfig.java
+diff --git a/src/main/java/net/minecraft/server/EntityItem.java b/src/main/java/net/minecraft/server/EntityItem.java
+index 77ff666b5d380c665fd22f5c08f61f8cc6d79141..66bc667f028a075f591c0f9a9483ae14b974fdf0 100644
+--- a/src/main/java/net/minecraft/server/EntityItem.java
++++ b/src/main/java/net/minecraft/server/EntityItem.java
+@@ -82,7 +82,7 @@ public class EntityItem extends Entity {
+ 
+             if (this.world.isClientSide) {
+                 this.noclip = false;
+-            } else {
++            } else if (!this.onGround || this.noclip || this.ticksLived % net.yatopia.server.YatopiaConfig.itemStuckSleepTicks == 0) { // Yatopia
+                 this.noclip = !this.world.getCubes(this);
+                 if (this.noclip) {
+                     this.l(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index 5b0e2d01fbcc5d15e30a05d456f1c6533cd13412..bf8b625c12a37108e0a071ca628f0f67ba51754b 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -214,4 +214,9 @@ public class YatopiaConfig {
      private static void pistonPushLimit() {
          pistonPushLimit = getInt("settings.pistonPushLimit", 12);
@@ -18,16 +31,3 @@ index fd33954eb91339a8568610f515ee164527d7406b..d70b6af62f7e9a0b49c38fae1170f0eb
 +        itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
 +    }
  }
-diff --git a/src/main/java/net/minecraft/server/EntityItem.java b/src/main/java/net/minecraft/server/EntityItem.java
-index 77ff666b5d380c665fd22f5c08f61f8cc6d79141..16bce81823cd06f70c267c964546ad9b2625695d 100644
---- a/src/main/java/net/minecraft/server/EntityItem.java
-+++ b/src/main/java/net/minecraft/server/EntityItem.java
-@@ -82,7 +82,7 @@ public class EntityItem extends Entity {
- 
-             if (this.world.isClientSide) {
-                 this.noclip = false;
--            } else {
-+            } else if (!this.onGround || this.noclip || this.ticksLived % dev.tr7zw.yatopia.YatopiaConfig.itemStuckSleepTicks == 0) { // Yatopia
-                 this.noclip = !this.world.getCubes(this);
-                 if (this.noclip) {
-                     this.l(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());

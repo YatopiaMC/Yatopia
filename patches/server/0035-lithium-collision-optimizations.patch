@@ -8,29 +8,6 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
-diff --git a/src/main/java/dev/tr7zw/yatopia/HoldingConsumer.java b/src/main/java/dev/tr7zw/yatopia/HoldingConsumer.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..f0ead67b4c5354c4077c615dd873bc4ec7b81676
---- /dev/null
-+++ b/src/main/java/dev/tr7zw/yatopia/HoldingConsumer.java
-@@ -0,0 +1,17 @@
-+package dev.tr7zw.yatopia;
-+
-+import java.util.function.Consumer;
-+
-+public final class HoldingConsumer<T> implements Consumer<T> {
-+
-+    private T value;
-+
-+    @Override
-+    public void accept(T t) {
-+        this.value = t;
-+    }
-+
-+    public T getValue() {
-+        return value;
-+    }
-+}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/EntityClassGroup.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..b400a5870b64b9eb92b6a8311793f5c8ea8df9af
@@ -178,13 +155,12 @@ index 0000000000000000000000000000000000000000..20f80ae80de91615ea02f0771f7c020c
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a009068a2ac9c1671978cfd942b83c5b414b3c7a
+index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e461d4cc03
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 @@ -0,0 +1,179 @@
 +package me.jellysquid.mods.lithium.common.entity;
 +
-+import dev.tr7zw.yatopia.EntityFilter;
 +import java.util.Iterator;
 +import java.util.List;
 +import java.util.function.Consumer;
@@ -199,6 +175,7 @@ index 0000000000000000000000000000000000000000..a009068a2ac9c1671978cfd942b83c5b
 +import net.minecraft.server.VoxelShape;
 +import net.minecraft.server.VoxelShapes;
 +import net.minecraft.server.WorldBorder;
++import net.yatopia.server.EntityFilter;
 +
 +public class LithiumEntityCollisions {
 +    public static final double EPSILON = 1.0E-7D;
@@ -648,13 +625,12 @@ index 0000000000000000000000000000000000000000..508fe7cf5281cff7528b90e584c17e73
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0ee0aa4b2a20183cc78cb639c9e3e608e3eb46c9
+index 0000000000000000000000000000000000000000..e6660fe1a552635e563103aa6fa078d422e6c0c7
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 @@ -0,0 +1,49 @@
 +package me.jellysquid.mods.lithium.common.util;
 +
-+import dev.tr7zw.yatopia.HoldingConsumer;
 +import java.util.List;
 +import java.util.Spliterator;
 +import java.util.Spliterators;
@@ -662,6 +638,7 @@ index 0000000000000000000000000000000000000000..0ee0aa4b2a20183cc78cb639c9e3e608
 +import java.util.function.Function;
 +import java.util.stream.Stream;
 +import java.util.stream.StreamSupport;
++import net.yatopia.server.HoldingConsumer;
 +
 +public interface Producer<T> {
 +    /**
@@ -849,7 +826,7 @@ index ac6e5e3309affc830d4db07fd9b8d809c3085033..37a3b26cdeb02acb8051f0a99313de79
      }
  
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index ea752b4c6b0aa0c14f505668e2ac6c8c3aa91314..10b1fbddcfc124f320424a56b9e3712b5fd3aaf1 100644
+index 6dbac13e0d590ecfa72a31fbc45f1c4ff944a263..e80465d0b3b32da51013194491d5e416108e770c 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -75,7 +75,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -1079,3 +1056,26 @@ index d58d167217171e074c9f4e403991fded5565abfd..db2666d2cb03b5f8c714249ab9ebffa7
              Iterator iterator = entityslice.iterator();
  
              while (iterator.hasNext()) {
+diff --git a/src/main/java/net/yatopia/server/HoldingConsumer.java b/src/main/java/net/yatopia/server/HoldingConsumer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..44f39064fa52b8249887f83494b71699d653c4f8
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/HoldingConsumer.java
+@@ -0,0 +1,17 @@
++package net.yatopia.server;
++
++import java.util.function.Consumer;
++
++public final class HoldingConsumer<T> implements Consumer<T> {
++
++    private T value;
++
++    @Override
++    public void accept(T t) {
++        this.value = t;
++    }
++
++    public T getValue() {
++        return value;
++    }
++}
