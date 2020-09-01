@@ -192,21 +192,3 @@ index eb7282c33dd4f0bb26b9ccafc42bd92e6fdb997e..404b90d6de6ade3f442476d051c99477
      default Stream<IBlockData> c(AxisAlignedBB axisalignedbb) {
          int i = MathHelper.floor(axisalignedbb.minX);
          int j = MathHelper.floor(axisalignedbb.maxX);
-diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 841887bc81fc212e803476949e610e6ec78ee0da..301d3aca40a046c9f6d653d344b1b68a736ac6b0 100644
---- a/src/main/java/net/minecraft/server/PlayerConnection.java
-+++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -518,7 +518,12 @@ public class PlayerConnection implements PacketListenerPlayIn {
-     }
- 
-     private boolean a(Entity entity) {
--        return entity.world.a(entity.getBoundingBox().g(0.0625D).b(0.0D, -0.55D, 0.0D)).allMatch(BlockBase.BlockData::isAir);
-+        // Yatopia start - replace stream
-+        java.util.List<IBlockData> list = entity.world.aList(entity.getBoundingBox().g(0.0625D).b(0.0D, -0.55D, 0.0D));
-+        for (IBlockData data : list) { if (!data.isAir()) { return false; } }
-+        return true;
-+        //return entity.world.a(entity.getBoundingBox().g(0.0625D).b(0.0D, -0.55D, 0.0D)).allMatch(BlockBase.BlockData::isAir);
-+        // Yatopia end
-     }
- 
-     @Override
