@@ -20,7 +20,7 @@ cd mc-dev
 
 # prepare to push
 if [ ! -d ".git" ]; then
-    $gitcmd init
+  $gitcmd init
 fi
 
 # reset dev files to raw nms in spigot naming
@@ -31,11 +31,10 @@ cp $decompile/net/minecraft/server/*.java src/net/minecraft/server
 paperserver="$basedir/Tuinity/Tuinity-Server/src/main/java/net/minecraft/server"
 cd $basedir/mc-dev/src/net/minecraft/server/
 
-for file in $(/bin/ls $paperserver)
-do
-    if [ -f "$file" ]; then
-        rm -f "$file"
-    fi
+for file in $(/bin/ls $paperserver); do
+  if [ -f "$file" ]; then
+    rm -f "$file"
+  fi
 done
 
 # push the dev project

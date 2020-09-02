@@ -21,8 +21,8 @@ serverjar="$basedir/Yatopia-Server/target/yatopia-$mcver.jar"
 vanillajar="$paperworkdir/Minecraft/$mcver/$mcver.jar"
 
 (
-    cd "$paperworkdir/Paperclip"
-    mvn clean package "-Dmcver=$mcver" "-Dpaperjar=$serverjar" "-Dvanillajar=$vanillajar"
+  cd "$paperworkdir/Paperclip"
+  mvn clean package "-Dmcver=$mcver" "-Dpaperjar=$serverjar" "-Dvanillajar=$vanillajar"
 )
 mkdir -p "$basedir/target"
 cp "$paperworkdir/Paperclip/assembly/target/paperclip-${mcver}.jar" "$basedir/yatopia-${mcver}-paperclip.jar"
