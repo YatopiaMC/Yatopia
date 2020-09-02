@@ -56,6 +56,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
+| server |  Fix vanilla generation deadlock      | Aikar |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
