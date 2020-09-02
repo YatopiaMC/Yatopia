@@ -2286,10 +2286,10 @@ index 759862aba781ec6f1ae0c9a76c4ab6352d603a4c..00000000000000000000000000000000
 - 
 -                 if (chunkHolder.protoChunk != null) {try (Timing ignored2 = this.world.timings.chunkLoadLevelTimer.startTimingIfSync()) { // Paper start - timings // Paper - chunk is created async
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 205f3f697e9c31674a4ac8db38467bb2e61cfe6b..e09fd73d9bbb59323a30dabdbfd9f3e1b8413541 100644
+index 205f3f697e9c31674a4ac8db38467bb2e61cfe6b..6b2465bfe540af5d609160e6d232564b1d6c0617 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-@@ -23,15 +23,21 @@ public class PortalTravelAgent {
+@@ -23,15 +23,17 @@ public class PortalTravelAgent {
          // CraftBukkit end
  
          villageplace.a(this.world, blockposition, i);
@@ -2304,16 +2304,12 @@ index 205f3f697e9c31674a4ac8db38467bb2e61cfe6b..e09fd73d9bbb59323a30dabdbfd9f3e1
 -            return this.world.getType(villageplacerecord.f()).b(BlockProperties.E);
 -        }).findFirst();
 +        });
-+        boolean seen = false;
-+        VillagePlaceRecord best = null;
 +        java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
-+        for (VillagePlaceRecord villagePlaceRecord : list) {
-+            if (!seen || comparator.compare(villagePlaceRecord, best) < 0) {
-+                seen = true;
-+                best = villagePlaceRecord;
-+            }
++        Optional<VillagePlaceRecord> optional = Optional.empty();
++        if (!list.isEmpty()) {
++            list.sort(comparator);
++            optional = Optional.of(list.get(0));
 +        }
-+        Optional<VillagePlaceRecord> optional = seen ? Optional.of(best) : Optional.empty();
  
          return optional.map((villageplacerecord) -> {
              BlockPosition blockposition1 = villageplacerecord.f();
