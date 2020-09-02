@@ -26,11 +26,11 @@ papersrcdir="$basedir/Yatopia-Server/src/main/java"
 papernmsdir="$papersrcdir/net/minecraft/server"
 
 (
-    # fast-fail if Paper not set
-    if [ ! -d "$papernmsdir" ]; then
-        echo "  $(bashcolor 1 31)Exception$(bashcolorend) - Paper sources not generated, run updateUpstream.sh to setup."
-        exit 1
-    fi
+  # fast-fail if Paper not set
+  if [ ! -d "$papernmsdir" ]; then
+    echo "  $(bashcolor 1 31)Exception$(bashcolorend) - Paper sources not generated, run updateUpstream.sh to setup."
+    exit 1
+  fi
 )
 
 minecraftversion=$(cat "$basedir"/Tuinity/Paper/work/BuildData/info.json | grep minecraftVersion | cut -d '"' -f 4)
@@ -40,123 +40,108 @@ nms="net/minecraft/server"
 export IMPORT_LOG="" # for commit message, list all files and source for libs
 basedir
 
-function importToPaperWorkspace {
-    if [ -f "$papernmsdir/$1.java" ]; then
-        # echo "  $(bashcolor 1 33)Skipped$(bashcolorend) - Already imported $1.java"
-        return 0
-    fi
+function importToPaperWorkspace() {
+  if [ -f "$papernmsdir/$1.java" ]; then
+    return 0
+  fi
 
-    file="$1.java"
-    target="$papernmsdir/$file"
-    base="$decompiledir/$nms/$file"
+  file="$1.java"
+  target="$papernmsdir/$file"
+  base="$decompiledir/$nms/$file"
 
-    if [[ ! -f "$target" ]]; then
-        export IMPORT_LOG="$IMPORT_LOG Import: $file\n";
-        echo "Import: $file"
-        cp "$base" "$target"
-    fi
+  if [[ ! -f "$target" ]]; then
+    export IMPORT_LOG="$IMPORT_LOG Import: $file\n"
+    echo "Import: $file"
+    cp "$base" "$target"
+  fi
 }
 
-function importLibraryToPaperWorkspace {
-    group=$1
-    lib=$2
-    prefix=$3
-    shift 3
-    for file in "$@"; do
-        file="$prefix/$file"
-        target="$papersrcdir/$file"
-        targetdir=$(dirname "$target")
-        mkdir -p "${targetdir}"
-		
-        base="$paperworkdir/Minecraft/$minecraftversion/libraries/${group}/${lib}/$file"
-        if [ ! -f "$base" ]; then
-            echo "  $(bashcolor 1 31)Exception$(bashcolorend) - Cannot find file $file.java of lib $lib in group $group to import, re-decomplie or remove the import."
-            exit 1
-        fi
-		
-        export IMPORT_LOG="$IMPORT_LOG Import: $file from lib $lib\n";
-		echo "Import: $file ($lib)"
-        sed 's/\r$//' "$base" > "$target" || exit 1
-    done
+function importLibraryToPaperWorkspace() {
+  group=$1
+  lib=$2
+  prefix=$3
+  shift 3
+  for file in "$@"; do
+    file="$prefix/$file"
+    target="$papersrcdir/$file"
+    targetdir=$(dirname "$target")
+    mkdir -p "${targetdir}"
+
+    base="$paperworkdir/Minecraft/$minecraftversion/libraries/${group}/${lib}/$file"
+    if [ ! -f "$base" ]; then
+      echo "  $(bashcolor 1 31)Exception$(bashcolorend) - Cannot find file $file.java of lib $lib in group $group to import, re-decomplie or remove the import."
+      exit 1
+    fi
+
+    export IMPORT_LOG="$IMPORT_LOG Import: $file from lib $lib\n"
+    echo "Import: $file ($lib)"
+    sed 's/\r$//' "$base" >"$target" || exit 1
+  done
 }
 
 (
-    # Reset to last NORMAL commit if already have imported before
-    cd "$paperserverdir"
-    lastcommit=$(git log -1 --pretty=oneline --abbrev-commit)
-    if [[ "$lastcommit" = *"Extra dev imports of $forkname"* ]]; then
-        git reset --hard HEAD^
-    fi
+  # Reset to last NORMAL commit if already have imported before
+  cd "$paperserverdir"
+  lastcommit=$(git log -1 --pretty=oneline --abbrev-commit)
+  if [[ "$lastcommit" == *"Extra dev imports of $forkname"* ]]; then
+    git reset --hard HEAD^
+  fi
 )
 
 # Filter and import every files which have patch to modify
 
 if [[ $forkname != "Yatopia" ]]; then
-	if [[ $forkname != null ]]; then
-        echo "test: $forkname == Purpur"
-		patchedFiles=$(cat patches/$forkname/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-		patchedFilesNonNMS=$(cat patches/$forkname/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-	else
-        echo "test: $forkname == Yatopia"
-		patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-		patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-	fi
-else
+  if [[ $forkname != null ]]; then
+    echo "test: $forkname == Purpur"
+    patchedFiles=$(cat patches/$forkname/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+    patchedFilesNonNMS=$(cat patches/$forkname/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+  else
     echo "test: $forkname == Yatopia"
-	patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
-	patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+    patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+    patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+  fi
+else
+  echo "test: $forkname == Yatopia"
+  patchedFiles=$(cat patches/server/* | grep "+++ b/src/main/java/net/minecraft/server/" | sort | uniq | sed 's/\+\+\+ b\/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
+  patchedFilesNonNMS=$(cat patches/server/* | grep "create mode " | grep -Po "src/main/java/net/minecraft/server/(.*?).java" | sort | uniq | sed 's/src\/main\/java\/net\/minecraft\/server\///g' | sed 's/.java//g')
 fi
 (
-    cd "$paperserverdir"
-    #$gitcmd fetch --all &> /dev/null
-	# Create the upstream branch in Paper project with current state
-    #$gitcmd checkout master >/dev/null 2>&1 # possibly already in
-    #if [[ $3 != "Yatopia" ]]; then
-	    #if [[ $3 != null ]]; then
-            #$gitcmd branch -D ${3}-upstream &>/dev/null
-	        #$gitcmd branch -f ${3}-upstream HEAD && $gitcmd checkout ${3}-upstream
-        #else
-	        #$gitcmd branch -D upstream &>/dev/null
-	        #$gitcmd branch -f upstream HEAD && $gitcmd checkout upstream
-        #fi
-    #else
-   	#$gitcmd branch -D upstream &>/dev/null
-	#$gitcmd branch -f upstream HEAD && $gitcmd checkout upstream   
-    #fi  
+  cd "$paperserverdir"
 )
 
 basedir
 for f in $patchedFiles; do
-    containsElement "$f" ${patchedFilesNonNMS[@]}
-    if [ "$?" == "1" ]; then
-        if [ ! -f "$papersrcdir/$nms/$f.java" ]; then
-            if [ ! -f "$decompiledir/$nms/$f.java" ]; then
-				echo "  $(bashcolor 1 31)Exception$(bashcolorend) - Cannot find NMS file $f.java to import, re-decomplie or remove the import."
-                exit 1
-            else
-                importToPaperWorkspace $f
-            fi
-        fi
+  containsElement "$f" ${patchedFilesNonNMS[@]}
+  if [ "$?" == "1" ]; then
+    if [ ! -f "$papersrcdir/$nms/$f.java" ]; then
+      if [ ! -f "$decompiledir/$nms/$f.java" ]; then
+        echo "  $(bashcolor 1 31)Exception$(bashcolorend) - Cannot find NMS file $f.java to import, re-decomplie or remove the import."
+        exit 1
+      else
+        importToPaperWorkspace $f
+      fi
     fi
+  fi
 done
 
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
 
 # Library import format (multiple files are supported):
+# NOTE: Imported libraries aren't a temporary change, YOU NEED TO LEAVE THEM AS IS!!!!
 # importLibraryToPaperWorkspace com.mojang datafixerupper com/mojang/datafixers/util Either.java
 # Submit imports by commit with file descriptions
 (
-    cd "$paperserverdir"
-    # rm -rf nms-patches
-    git add . &> /dev/null
-    echo -e "Extra dev imports of $forkname\n\n$IMPORT_LOG"
-	git commit -m "Extra dev imports of $forkname"
-	echo "  $(bashcolor 1 32)Succeed$(bashcolorend) - Sources have been imported to Paper/Paper-Server (branch upstream)"
-	
-    if [[ $maintask != "0" ]]; then # this is magical
-	    echo "----------------------------------------"
-		echo "  Subtask finished"
-		echo "----------------------------------------"
-	fi
+  cd "$paperserverdir"
+  # rm -rf nms-patches
+  git add . &>/dev/null
+  echo -e "Extra dev imports of $forkname\n\n$IMPORT_LOG"
+  git commit -m "Extra dev imports of $forkname"
+  echo "  $(bashcolor 1 32)Succeed$(bashcolorend) - Sources have been imported to Paper/Paper-Server (branch upstream)"
+
+  if [[ $maintask != "0" ]]; then # this is magical
+    echo "----------------------------------------"
+    echo "  Subtask finished"
+    echo "----------------------------------------"
+  fi
 )
