@@ -1,0 +1,194 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 1 Sep 2020 19:11:50 +0300
+Subject: [PATCH] Nuke streams off BlockPosition
+
+
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index 13f541390040d07229de0fbb1cfa4bcfe7d0794f..575f1f40a99871bab59f301072ada056628b37ff 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -637,6 +637,7 @@ public abstract class BlockBase {
+             return this.getBlock().getInventory(this.p(), world, blockposition);
+         }
+ 
++        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
+         public boolean a(Tag<Block> tag) {
+             return this.getBlock().a(tag);
+         }
+@@ -645,6 +646,7 @@ public abstract class BlockBase {
+             return this.getBlock().a(tag) && predicate.test(this);
+         }
+ 
++        public final boolean isBlock(Block block) { return a(block); } // Yatopia - OBFHELPER
+         public boolean a(Block block) {
+             return this.getBlock().a(block);
+         }
+diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
+index e6b5a21c523c598f53207d024322301fbae74825..5e0aa6e35b1d4e23fdf42add15420665045ef3ff 100644
+--- a/src/main/java/net/minecraft/server/BlockPosition.java
++++ b/src/main/java/net/minecraft/server/BlockPosition.java
+@@ -318,9 +318,29 @@ public class BlockPosition extends BaseBlockPosition {
+     }
+ 
+     public static Optional<BlockPosition> a(BlockPosition blockposition, int i, int j, Predicate<BlockPosition> predicate) {
+-        return b(blockposition, i, j, i).filter(predicate).findFirst();
++        // Yatopia start - replace
++        BlockPosition best = null;
++        for (BlockPosition pos : bList(blockposition, i, j, i)) {
++            if (predicate.test(pos)) {
++                best = pos;
++                break;
++            }
++        }
++        return Optional.ofNullable(best);
++        //return b(blockposition, i, j, i).filter(predicate).findFirst();
++        // Yatopia end
+     }
+ 
++    // Yatopia start
++    public static java.util.List<BlockPosition> bList(BlockPosition pos, int i, int j, int k) {
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        Iterable<BlockPosition> iterable = a(pos, i, j, k);
++        net.yatopia.server.HoldingConsumer<BlockPosition> consumer = new net.yatopia.server.HoldingConsumer<>();
++        java.util.Spliterator<BlockPosition> spliterator = iterable.spliterator();
++        while (spliterator.tryAdvance(consumer)) ret.add(consumer.getValue());
++        return ret;
++    }
++    // Yatopia end
+     public static Stream<BlockPosition> b(BlockPosition blockposition, int i, int j, int k) {
+         return StreamSupport.stream(a(blockposition, i, j, k).spliterator(), false);
+     }
+@@ -329,6 +349,16 @@ public class BlockPosition extends BaseBlockPosition {
+         return b(Math.min(blockposition.getX(), blockposition1.getX()), Math.min(blockposition.getY(), blockposition1.getY()), Math.min(blockposition.getZ(), blockposition1.getZ()), Math.max(blockposition.getX(), blockposition1.getX()), Math.max(blockposition.getY(), blockposition1.getY()), Math.max(blockposition.getZ(), blockposition1.getZ()));
+     }
+ 
++    // Yatopia start
++    public static java.util.List<BlockPosition> bList(BlockPosition pos, BlockPosition pos1) {
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        Iterable<BlockPosition> iterable = a(pos, pos1);
++        net.yatopia.server.HoldingConsumer<BlockPosition> consumer = new net.yatopia.server.HoldingConsumer<>();
++        java.util.Spliterator<BlockPosition> spliterator = iterable.spliterator();
++        while (spliterator.tryAdvance(consumer)) ret.add(consumer.getValue());
++        return ret;
++    }
++    // Yatopia end
+     public static Stream<BlockPosition> b(BlockPosition blockposition, BlockPosition blockposition1) {
+         return StreamSupport.stream(a(blockposition, blockposition1).spliterator(), false);
+     }
+@@ -337,6 +367,11 @@ public class BlockPosition extends BaseBlockPosition {
+         return a(Math.min(structureboundingbox.a, structureboundingbox.d), Math.min(structureboundingbox.b, structureboundingbox.e), Math.min(structureboundingbox.c, structureboundingbox.f), Math.max(structureboundingbox.a, structureboundingbox.d), Math.max(structureboundingbox.b, structureboundingbox.e), Math.max(structureboundingbox.c, structureboundingbox.f));
+     }
+ 
++    // Yatopia start
++    public static java.util.List<BlockPosition> aList(AxisAlignedBB box) {
++        return getPositions(MathHelper.floor(box.minX), MathHelper.floor(box.minY), MathHelper.floor(box.minZ), MathHelper.floor(box.maxX), MathHelper.floor(box.maxY), MathHelper.floor(box.maxZ));
++    }
++    // Yatopia end
+     public static Stream<BlockPosition> a(AxisAlignedBB axisalignedbb) {
+         return a(MathHelper.floor(axisalignedbb.minX), MathHelper.floor(axisalignedbb.minY), MathHelper.floor(axisalignedbb.minZ), MathHelper.floor(axisalignedbb.maxX), MathHelper.floor(axisalignedbb.maxY), MathHelper.floor(axisalignedbb.maxZ));
+     }
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index e80465d0b3b32da51013194491d5e416108e770c..e0cf923b9ce79e64fc5b20d0046b04f0561e40a1 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -804,11 +804,25 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+             float f2 = this.getBlockSpeedFactor();
+ 
+             this.setMot(this.getMot().d((double) f2, 1.0D, (double) f2));
++            // Yatopia start - replace
++            /*
+             if (this.world.c(this.getBoundingBox().shrink(0.001D)).noneMatch((iblockdata1) -> {
+                 return iblockdata1.a((Tag) TagsBlock.FIRE) || iblockdata1.a(Blocks.LAVA);
+             }) && this.fireTicks <= 0) {
+                 this.setFireTicks(-this.getMaxFireTicks());
+             }
++             */
++            boolean noneMatch = true;
++            for (IBlockData iblockdata1 : world.cList(getBoundingBox().shrink(0.001D))) {
++                if (iblockdata1.hasTag(TagsBlock.FIRE) || iblockdata1.isBlock(Blocks.LAVA)) {
++                    noneMatch = false;
++                    break;
++                }
++            }
++            if (noneMatch && this.fireTicks <= 0) {
++                this.setFireTicks(-this.getMaxFireTicks());
++            }
++            // Yatopia end
+ 
+             if (this.aF() && this.isBurning()) {
+                 this.playSound(SoundEffects.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.7F, 1.6F + (this.random.nextFloat() - this.random.nextFloat()) * 0.4F);
+diff --git a/src/main/java/net/minecraft/server/EntityFishingHook.java b/src/main/java/net/minecraft/server/EntityFishingHook.java
+index 5c2f6b0454f44c4b85cfd6d06eee584dfa0e0c6d..146e5c2cecde8585ade47b0b62c55f099f2513b6 100644
+--- a/src/main/java/net/minecraft/server/EntityFishingHook.java
++++ b/src/main/java/net/minecraft/server/EntityFishingHook.java
+@@ -377,9 +377,24 @@ public class EntityFishingHook extends IProjectile {
+     }
+ 
+     private EntityFishingHook.WaterPosition a(BlockPosition blockposition, BlockPosition blockposition1) {
+-        return (EntityFishingHook.WaterPosition) BlockPosition.b(blockposition, blockposition1).map(this::c).reduce((entityfishinghook_waterposition, entityfishinghook_waterposition1) -> {
++        // Yatopia start - replace stream
++        java.util.function.BinaryOperator<EntityFishingHook.WaterPosition> operation = ((entityfishinghook_waterposition, entityfishinghook_waterposition1) -> {
+             return entityfishinghook_waterposition == entityfishinghook_waterposition1 ? entityfishinghook_waterposition : EntityFishingHook.WaterPosition.INVALID;
+-        }).orElse(EntityFishingHook.WaterPosition.INVALID);
++        });
++        boolean foundAny = false;
++        EntityFishingHook.WaterPosition result = null;
++        for (BlockPosition pos : BlockPosition.bList(blockposition, blockposition1)) {
++            EntityFishingHook.WaterPosition waterPos = this.c(pos);
++            if (!foundAny) {
++                foundAny = true;
++                result = waterPos;
++            } else {
++                result = operation.apply(result, waterPos);
++            }
++        }
++        if (!foundAny || result == null) result = EntityFishingHook.WaterPosition.INVALID;
++        return result;
++        // Yatopia end
+     }
+ 
+     private EntityFishingHook.WaterPosition c(BlockPosition blockposition) {
+diff --git a/src/main/java/net/minecraft/server/IBlockAccess.java b/src/main/java/net/minecraft/server/IBlockAccess.java
+index b90c9990668f7956e8ef67413bcfc5d7d9616db1..cd4d53719cc179abb302a3bdd6ceae03fb62acc7 100644
+--- a/src/main/java/net/minecraft/server/IBlockAccess.java
++++ b/src/main/java/net/minecraft/server/IBlockAccess.java
+@@ -40,6 +40,15 @@ public interface IBlockAccess {
+         return 256;
+     }
+ 
++    // Yatopia start
++    default java.util.List<IBlockData> aList(AxisAlignedBB box) {
++        java.util.List<BlockPosition> posList = BlockPosition.aList(box);
++        if (posList.isEmpty()) return java.util.Collections.emptyList();
++        java.util.List<IBlockData> ret = new java.util.ArrayList<>();
++        for (BlockPosition pos : posList) ret.add(getType(pos));
++        return ret;
++    }
++    // Yatopia end
+     default Stream<IBlockData> a(AxisAlignedBB axisalignedbb) {
+         return BlockPosition.a(axisalignedbb).map(this::getType);
+     }
+diff --git a/src/main/java/net/minecraft/server/IWorldReader.java b/src/main/java/net/minecraft/server/IWorldReader.java
+index eb7282c33dd4f0bb26b9ccafc42bd92e6fdb997e..404b90d6de6ade3f442476d051c9947753e2b6f7 100644
+--- a/src/main/java/net/minecraft/server/IWorldReader.java
++++ b/src/main/java/net/minecraft/server/IWorldReader.java
+@@ -22,6 +22,18 @@ public interface IWorldReader extends IBlockLightAccess, ICollisionAccess, Biome
+         return this.d().a(blockposition);
+     }
+ 
++    // Yatopia start
++    default java.util.List<IBlockData> cList(AxisAlignedBB box) {
++        int i = MathHelper.floor(box.minX);
++        int j = MathHelper.floor(box.maxX);
++        int k = MathHelper.floor(box.minY);
++        int l = MathHelper.floor(box.maxY);
++        int i1 = MathHelper.floor(box.minZ);
++        int j1 = MathHelper.floor(box.maxZ);
++
++        return isAreaLoaded(i, k, i1, j, l, j1) ? aList(box) : java.util.Collections.emptyList();
++    }
++    // Yatopia end
+     default Stream<IBlockData> c(AxisAlignedBB axisalignedbb) {
+         int i = MathHelper.floor(axisalignedbb.minX);
+         int j = MathHelper.floor(axisalignedbb.maxX);
