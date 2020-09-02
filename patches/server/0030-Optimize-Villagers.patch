@@ -42,9 +42,18 @@ Ported to Yatopia and 1.16.1 by MrIvanPlays
 Co-authored-by: MrIvanPlays <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 63a761ebef80d4af09cdc2682e496d78492c4a3a..db72d203ebfdfcd27f2dae240ccb998d746d518d 100644
+index 63a761ebef80d4af09cdc2682e496d78492c4a3a..d97373816e9c44edc2de090bd22aa696404e0012 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+@@ -16,7 +16,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+     private final VillagePlaceType b;
+     private final MemoryModuleType<GlobalPos> c;
+     private final boolean d;
+-    private final Optional<Byte> e;
++    private final Optional<Byte> e; private Optional<Byte> getPoiAquisitionEvent() { return this.e; } // Yatopia - OBFHELPER
+     private long f;
+     private final Long2ObjectMap<BehaviorFindPosition.a> g;
+ 
 @@ -48,7 +48,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
          if (this.d && entitycreature.isBaby()) {
              return false;
@@ -87,14 +96,14 @@ index 63a761ebef80d4af09cdc2682e496d78492c4a3a..db72d203ebfdfcd27f2dae240ccb998d
 +                        }
 +                        double poiDist = pos.distanceSquared(blockposition2);
 +                        if (poiDist <= (double) requiredDist) {
-+                            this.g.put(key, new BehaviorFindPosition.a(java.util.concurrent.ThreadLocalRandom.current(), (long) (this.f + Math.sqrt(poiDist) * 4)))
-+                            ; // use dist instead of 40 to blacklist longer if farther distance
++                            this.g.put(key, new BehaviorFindPosition.a(java.util.concurrent.ThreadLocalRandom.current(), (long) (this.f + Math.sqrt(poiDist) * 4))); // use dist instead of 40 to blacklist longer if farther distance
 +                            ++poiAttempts;
 +                            PathEntity pathentity = entitycreature.getNavigation().a(com.google.common.collect.ImmutableSet.of(pos), 8, false, this.b.getValidRange());
 +
 +                            if (pathentity != null && pathentity.canReach()) {
 +                                GlobalPos globalPos = GlobalPos.create(worldserver.getDimensionKey(), pos);
 +                                entitycreature.getBehaviorController().setMemory(c, globalPos);
++                                this.getPoiAquisitionEvent().ifPresent((event) -> worldserver.broadcastEntityEffect(entitycreature, event));
 +                                break OUT;
 +                            }
 +                            if (poiAttempts >= maxPoiAttempts) {
