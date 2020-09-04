@@ -19,14 +19,14 @@ function updateAll {
   update Origami 1.16
   update Purpur ver/1.16.2
   update Rainforest ver/1.16
-  update Tuinity 1.16.2tmp
+  update Tuinity ver/1.16.2
   git submodule update --recursive
 }
 
 if [ -z "$1" ]; then
   updateAll
 elif [ "$1" == "true" ]; then
-  update Tuinity 1.16.2tmp
+  update Tuinity ver/1.16.2
   git submodule update --recursive
 elif [ "$1" == "false" ]; then
   if [ "$2" == "true" ]; then
@@ -36,7 +36,7 @@ elif [ "$1" == "false" ]; then
     git clean -fx
     git clean -fd
     git fetch
-    git reset --hard origin/1.16.2tmp
+    git reset --hard origin/ver/1.16.2
     git submodule update --init --recursive -f
   else 
     updateAll
