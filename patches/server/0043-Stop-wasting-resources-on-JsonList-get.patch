@@ -1,0 +1,82 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Fri, 4 Sep 2020 10:07:42 +0300
+Subject: [PATCH] Stop wasting resources on JsonList#get
+
+Previously, when a banned player attempted to join the server was removing all the stale entries.
+This caused a resource waste, which was unnoticeable to users that use ban plugins which doesn't
+use the ban list. Akarin's changes for saving it async lowered the pressure, however it was
+still pretty high.
+
+Our changes are the following:
+1. Stop removing all stale entries when JsonList#get is called.
+2. Only if a player joins and his ban has expired, remove his ban which triggers a save which then
+   triggers removing of all stale entries.
+
+diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
+index 3fb72d6ee587d66a9b7e1dec27fc4f64b82ab4df..596815d70e69fd645bec5b6e8c1ebc7b2fa5345a 100644
+--- a/src/main/java/net/minecraft/server/JsonList.java
++++ b/src/main/java/net/minecraft/server/JsonList.java
+@@ -69,9 +69,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+         // Paper start
+         // this.g();
+         // return (V) this.d.get(this.a(k0)); // CraftBukkit - fix decompile error
++        // Yatopia start - only remove if it expires and has been requested
++        return this.getBackingMap().get(this.getMappingKey(k0));
++        /*
+         return (V) this.getBackingMap().computeIfPresent(this.getMappingKey(k0), (k, v) -> {
+             return v.hasExpired() ? null : v;
+         });
++         */ // Yatopia end
+         // Paper end
+     }
+ 
+@@ -150,12 +154,23 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+         this.removeStaleEntries(); // Paper - remove expired values before saving
+         JsonArray jsonarray = new JsonArray();
+ 
++        // Yatopia start - we're nuking streams wherever possible
++        // this is async due to akarin's changes, yet we still need it F A S T E R
++        /*
+         this.d.values().stream().map((jsonlistentry) -> {
+             JsonObject jsonobject = new JsonObject();
+ 
+             jsonlistentry.getClass();
+             return (JsonObject) SystemUtils.a(jsonobject, jsonlistentry::a); // CraftBukkit - decompile error
+         }).forEach(jsonarray::add);
++        */
++        for (V value : this.d.values()) {
++            JsonObject obj = new JsonObject();
++            // todo: obfhelper for this?
++            value.a(obj);
++            jsonarray.add(obj);
++        }
++        // Yatopia end
+         BufferedWriter bufferedwriter = null;
+         Throwable throwable = null;
+ 
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index 8bec2ac5e78f28e879db69e1673b0cd90f5abc31..2fdca1dc83ba77dbf0c84ebfac1af6cb330d52fa 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -634,6 +634,7 @@ public abstract class PlayerList {
+         GameProfileBanEntry gameprofilebanentry;
+         if (getProfileBans().isBanned(gameprofile) && (gameprofilebanentry = getProfileBans().get(gameprofile)) != null) {
+             // Paper end
++            if (!gameprofilebanentry.hasExpired()) { // Yatopia
+ 
+             chatmessage = new ChatMessage("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
+             if (gameprofilebanentry.getExpires() != null) {
+@@ -641,7 +642,11 @@ public abstract class PlayerList {
+             }
+ 
+             // return chatmessage;
+-            if (!gameprofilebanentry.hasExpired()) event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage)); // Spigot
++            // Yatopia start
++            /* if (!gameprofilebanentry.hasExpired()) */  event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage)); // Spigot
++            } else {
++                getProfileBans().remove(gameprofile);
++            } // Yatopia end
+         } else if (!this.isWhitelisted(gameprofile, event)) { // Paper
+             chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted");
+             //event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot // Paper - moved to isWhitelisted

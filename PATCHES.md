@@ -103,6 +103,7 @@ This is an overview over all patches that are currently used.
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
+| server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Use arrow despawn rate for all projectiles      | William Blake Galbreath |  |
