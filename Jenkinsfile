@@ -1,9 +1,6 @@
 pipeline {
     agent { label 'slave' }
     options { timestamps() }
-    triggers {
-        pollSCM('H/10 * * * *')
-    }
     stages {
         stage('Cleanup') {
             steps {
