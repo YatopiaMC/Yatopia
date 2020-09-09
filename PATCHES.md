@@ -56,6 +56,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
+| server |  Further improve tuinity&#39;s portal crash fix      | Ivan Pekov |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
@@ -88,6 +89,8 @@ This is an overview over all patches that are currently used.
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | server |  Player-saving-async-FileIO      | tr7zw |  |
+| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |

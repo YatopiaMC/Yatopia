@@ -31,7 +31,7 @@ index 8005f7eb073270a46f38601705ca4e89899015b1..4f228fd552b7edbb810dc85636123a92
      public CrashReport b(CrashReport crashreport) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaVersionFetcher.java b/src/main/java/net/yatopia/server/YatopiaVersionFetcher.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f30ef479696fbe3a3ff31ec1c6de882d236e8c1b
+index 0000000000000000000000000000000000000000..b0d5d8df1c1107294ee0cd7cbad271395e2eb76b
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/YatopiaVersionFetcher.java
 @@ -0,0 +1,96 @@
@@ -58,7 +58,7 @@ index 0000000000000000000000000000000000000000..f30ef479696fbe3a3ff31ec1c6de882d
 +
 +    @Override
 +    public long getCacheTime() {
-+        return Long.MAX_VALUE;
++        return 720000;
 +    }
 +
 +    @Nonnull
@@ -172,7 +172,7 @@ index 001b1e5197eaa51bfff9031aa6c69876c9a47960..0525370b7e3bf24147b4948caf522ad7
  
          if (stream != null) {
 diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
-index 4d310908489953d6d061b2358f614142edacb62e..870a3b64aaf933ba22c32b699b576a96ca4dae25 100644
+index 4d310908489953d6d061b2358f614142edacb62e..fd3e1d363a8ed18af6132421e927e83680ff8e76 100644
 --- a/src/main/java/org/spigotmc/WatchdogThread.java
 +++ b/src/main/java/org/spigotmc/WatchdogThread.java
 @@ -26,7 +26,7 @@ public class WatchdogThread extends Thread
@@ -202,7 +202,7 @@ index 4d310908489953d6d061b2358f614142edacb62e..870a3b64aaf933ba22c32b699b576a96
                  //
                  if ( net.minecraft.server.World.lastPhysicsProblem != null )
                  {
-@@ -188,7 +188,7 @@ public class WatchdogThread extends Thread
+@@ -188,12 +188,12 @@ public class WatchdogThread extends Thread
                  // Paper end
                  } else
                  {
@@ -211,6 +211,12 @@ index 4d310908489953d6d061b2358f614142edacb62e..870a3b64aaf933ba22c32b699b576a96
                      log.log(Level.SEVERE, "The server has not responded for " + (currentTime - lastTick) / 1000 + " seconds! Creating thread dump");
                  }
                  // Paper end - Different message for short timeout
+                 log.log( Level.SEVERE, "------------------------------" );
+-                log.log( Level.SEVERE, "Server thread dump (Look for plugins here before reporting to Paper!):" ); // Paper
++                log.log( Level.SEVERE, "Server thread dump (Look for plugins here before reporting to Yatopia!):" ); // Paper // Yatopia
+                 ChunkTaskManager.dumpAllChunkLoadInfo(); // Paper
+                 this.dumpTickingInfo(); // Tuinity - log detailed tick information
+                 dumpThread( ManagementFactory.getThreadMXBean().getThreadInfo( server.serverThread.getId(), Integer.MAX_VALUE ), log );
 @@ -209,7 +209,7 @@ public class WatchdogThread extends Thread
                      dumpThread( thread, log );
                  }
