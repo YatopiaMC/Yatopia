@@ -101,6 +101,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
+| server |  Respect permissions when constructing InventoryEnderChest      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |

@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Thu, 10 Sep 2020 09:02:02 +0300
+Subject: [PATCH] Respect permissions when constructing InventoryEnderChest
+
+Fixes Purpur-46
+
+diff --git a/src/main/java/net/minecraft/server/InventoryEnderChest.java b/src/main/java/net/minecraft/server/InventoryEnderChest.java
+index d147377e5d2ee818f941f50f7392a1bc7f584ffb..6df8bb07b62979561d7c3773a542aba7c74857e4 100644
+--- a/src/main/java/net/minecraft/server/InventoryEnderChest.java
++++ b/src/main/java/net/minecraft/server/InventoryEnderChest.java
+@@ -20,7 +20,27 @@ public class InventoryEnderChest extends InventorySubcontainer {
+     }
+ 
+     public InventoryEnderChest(EntityHuman owner) {
+-        super(net.pl3x.purpur.PurpurConfig.enderChestSixRows ? 54 : 27); // Purpur
++        super(() -> { // Yatopia start
++            if (net.pl3x.purpur.PurpurConfig.enderChestSixRows) {
++                if (net.pl3x.purpur.PurpurConfig.enderChestPermissionRows) {
++                    if (owner.getBukkitEntity().hasPermission("purpur.enderchest.rows.six")) {
++                        return 54;
++                    } else if (owner.getBukkitEntity().hasPermission("purpur.enderchest.rows.five")) {
++                        return 45;
++                    } else if (owner.getBukkitEntity().hasPermission("purpur.enderchest.rows.four")) {
++                        return 36;
++                    } else if (owner.getBukkitEntity().hasPermission("purpur.enderchest.rows.three")) {
++                        return 27;
++                    } else if (owner.getBukkitEntity().hasPermission("purpur.enderchest.rows.two")) {
++                        return 18;
++                    } else if (owner.getBukkitEntity().hasPermission("purpur.enderchest.rows.one")) {
++                        return 9;
++                    } else { /* prevent breakage */ return 27; }
++                } else {
++                    return 54;
++                }
++            } else { return 27; }
++        }); // Purpur // Yatopia end
+         this.owner = owner;
+         // CraftBukkit end
+     }
+diff --git a/src/main/java/net/minecraft/server/InventorySubcontainer.java b/src/main/java/net/minecraft/server/InventorySubcontainer.java
+index 4cf5dad0939ecb636752e19ad19aec2c882d5efc..5bb7699397c98473197c1134acf8444533cb8507 100644
+--- a/src/main/java/net/minecraft/server/InventorySubcontainer.java
++++ b/src/main/java/net/minecraft/server/InventorySubcontainer.java
+@@ -58,6 +58,8 @@ public class InventorySubcontainer implements IInventory, AutoRecipeOutput {
+         return null;
+     }
+ 
++    public InventorySubcontainer(java.util.function.Supplier<Integer> size) { this(size.get()); } // Yatopia
++
+     public InventorySubcontainer(int i) {
+         this(i, null);
+     }
