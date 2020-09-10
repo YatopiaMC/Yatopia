@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Thu, 10 Sep 2020 10:36:21 +0300
+Subject: [PATCH] Fix "Unable to save chunk" error
+
+
+diff --git a/src/main/java/net/minecraft/server/EntitySlice.java b/src/main/java/net/minecraft/server/EntitySlice.java
+index 5b5f45a987b58bf639292ac8398ae08b3cb9a1bf..1e88e8de984a857c5414895f48af93e368d4951a 100644
+--- a/src/main/java/net/minecraft/server/EntitySlice.java
++++ b/src/main/java/net/minecraft/server/EntitySlice.java
+@@ -104,7 +104,7 @@ public class EntitySlice<T> extends AbstractCollection<T> implements me.jellysqu
+     }
+ 
+     public Iterator<T> iterator() {
+-        return (Iterator) (this.c.isEmpty() ? Collections.emptyIterator() : Iterators.unmodifiableIterator(this.c.iterator()));
++        return (this.c.isEmpty() ? Collections.emptyIterator() : this.c.iterator()); // Yatopia - fix unable to save chunk
+     }
+ 
+     public List<T> a() {

@@ -50,6 +50,7 @@ This is an overview over all patches that are currently used.
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
+| server |  Fix &quot;Unable to save chunk&quot; error      | Ivan Pekov |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
