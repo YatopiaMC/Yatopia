@@ -17,7 +17,7 @@ rainforest=$(changeLog Rainforest)
 updated=""
 logsuffix=""
 if [ ! -z "$tuinity" ]; then
-    logsuffix="$logsuffix\nTuinity Changes:\n$tuinity"
+    logsuffix="$logsuffix\n\nTuinity Changes:\n$tuinity"
     updated="Tuinity"
 fi
 if [ ! -z "$akarin" ]; then
