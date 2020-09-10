@@ -53,11 +53,13 @@ This is an overview over all patches that are currently used.
 | server |  Fix &quot;Unable to save chunk&quot; error      | Ivan Pekov |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
+| server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
+| server |  Give them items motion      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
@@ -101,6 +103,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
+| server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Respect permissions when constructing InventoryEnderChest      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
