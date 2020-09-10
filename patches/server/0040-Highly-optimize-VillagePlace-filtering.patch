@@ -7,27 +7,6 @@ Replaced all streams I could. I expect this to be dropped in the next
 major release and reimplemented again if mojang changes stuff with
 villagers again.
 
-diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-index e6660fe1a552635e563103aa6fa078d422e6c0c7..0f2c992d35a552f53550f9890a7e674c10a152a4 100644
---- a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-+++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -40,6 +40,16 @@ public interface Producer<T> {
-         while (producer.computeNext(consumer)) list.add(consumer.getValue());
-     }
- 
-+    static <T> void fillList(Producer<T> producer, List<T> list, int boundSize) {
-+        HoldingConsumer<T> consumer = new HoldingConsumer<>();
-+        while (producer.computeNext(consumer)) {
-+            if (list.size() >= boundSize) {
-+                break;
-+            }
-+            list.add(consumer.getValue());
-+        }
-+    }
-+
-     Producer<?> EMPTY_PRODUCER = consumer -> false;
- 
-     @SuppressWarnings("unchecked")
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
 index 6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f..e6b5a21c523c598f53207d024322301fbae74825 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
@@ -409,7 +388,7 @@ index 0000000000000000000000000000000000000000..c7942b83b5c2d49e31c14eb51297baa3
 +}
 diff --git a/src/main/java/net/yatopia/server/YatopiaChunkSectionPos.java b/src/main/java/net/yatopia/server/YatopiaChunkSectionPos.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ba916bb61514e682b3cd074f8f07bf34af4ad026
+index 0000000000000000000000000000000000000000..d76e96eb055731338b670c6df2e3d9fcdc7e9a03
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/YatopiaChunkSectionPos.java
 @@ -0,0 +1,32 @@
@@ -426,7 +405,7 @@ index 0000000000000000000000000000000000000000..ba916bb61514e682b3cd074f8f07bf34
 +
 +    public static List<SectionPosition> getChunkSectionPosList(int i, int j, int k, int l, int i1, int j1) {
 +        List<SectionPosition> list = new LinkedList<>();
-+        Producer.fillList(getChunkSectionPosProducer(i, j, k, l, i1, j1), list, (l - i + 1) * (i1 - j + 1) * (j1 - k + 1));
++        Producer.fillList(getChunkSectionPosProducer(i, j, k, l, i1, j1), list);
 +        return list;
 +    }
 +
