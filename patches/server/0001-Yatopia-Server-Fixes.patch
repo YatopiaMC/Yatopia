@@ -812,36 +812,21 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
      }
  
 diff --git a/src/main/java/net/minecraft/server/Entity.java.rej b/src/main/java/net/minecraft/server/Entity.java.rej
-index 4383822bece27e6f165c3c6bdd20458f09da58f5..4ae5cdecd0df82e4a9269e23115748f5aafbcf74 100644
+deleted file mode 100644
+index 4383822bece27e6f165c3c6bdd20458f09da58f5..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/Entity.java.rej
-+++ b/src/main/java/net/minecraft/server/Entity.java.rej
-@@ -1,10 +1,18 @@
- diff a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java	(rejected hunks)
++++ /dev/null
+@@ -1,10 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java	(rejected hunks)
 -@@ -3015,7 +3015,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
 -             WorldServer worldserver = (WorldServer) this.world;
-+@@ -2770,14 +2770,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
-+         }
-+         // Paper end
-+         if (this.world instanceof WorldServer && !this.dead) {
-+-            this.world.getMethodProfiler().enter("changeDimension");
-++            //this.world.getMethodProfiler().enter("changeDimension"); // Akarin - remove caller
-+             // CraftBukkit start
-+             // this.decouple();
-+             if (worldserver == null) {
-+                 return null;
-+             }
-+             // CraftBukkit end
-+-            this.world.getMethodProfiler().enter("reposition");
-++            //this.world.getMethodProfiler().enter("reposition"); // Akarin - remove caller
-+             ShapeDetectorShape shapedetectorshape = (location == null) ? this.a(worldserver) : new ShapeDetectorShape(new Vec3D(location.getX(), location.getY(), location.getZ()), Vec3D.a, this.yaw, this.pitch, worldserver, null); // CraftBukkit
-  
+- 
 -             this.setPositionRotation(d0, d1, d2, this.yaw, this.pitch);
 --            this.collectPassengers().forEach((entity) -> { // Akarin - remove stream
 -+            for (Entity entity : this.collectPassengers()) {// Akarin - remove stream
 -                 worldserver.chunkCheck(entity);
 -                 entity.aE = true;
 -                 Iterator iterator = entity.passengers.iterator();
-+             if (shapedetectorshape == null) {
 diff --git a/src/main/java/net/minecraft/server/EntityEnderCrystal.java b/src/main/java/net/minecraft/server/EntityEnderCrystal.java
 index 1942fae27051af79b6eb1d790a219da100bf889e..edad9669c67cab0df88947fa86b467c26deaa5f0 100644
 --- a/src/main/java/net/minecraft/server/EntityEnderCrystal.java
