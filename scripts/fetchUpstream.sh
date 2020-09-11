@@ -17,16 +17,16 @@ function updateAll {
   update Akarin 1.16.2
   update Empirecraft ver/1.16.2
   update Origami 1.16
-  update Purpur ver/1.16.2
+  update Purpur ver/1.16.3
   update Rainforest ver/1.16
-  update Tuinity ver/1.16.2
+  update Tuinity ver/1.16.3
   git submodule update --recursive
 }
 
 if [ -z "$1" ]; then
   updateAll
 elif [ "$1" == "true" ]; then
-  update Tuinity ver/1.16.2
+  update Tuinity ver/1.16.3
   git submodule update --recursive
 elif [ "$1" == "false" ]; then
   if [ "$2" == "true" ]; then
@@ -36,7 +36,7 @@ elif [ "$1" == "false" ]; then
     git clean -fx
     git clean -fd
     git fetch
-    git reset --hard origin/ver/1.16.2
+    git reset --hard origin/ver/1.16.3
     git submodule update --init --recursive -f
   else 
     updateAll

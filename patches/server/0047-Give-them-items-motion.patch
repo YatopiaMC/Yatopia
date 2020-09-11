@@ -5,15 +5,15 @@ Subject: [PATCH] Give them items motion
 
 
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 344177bc815264e07a3695d9f0c3a1cd90899aa7..dff2bd940a327061aa906a5e26646b09cc0b23b8 100644
+index 07ae7f9592d78b3e0f0dd7ef543e8c8ac10543ca..ebe17a86dc340338fb4b4f1a5112bce8cc46dfd2 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -1551,7 +1551,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -1548,7 +1548,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
      }
  
      public void setPositionRotation(double d0, double d1, double d2, float f, float f1) {
 -        this.mot = new Vec3D(0, 0, 0); // Paper - cancel entity velocity if teleported
-+        if (this instanceof EntityPlayer) { this.mot = Vec3D.a; }  // Paper - cancel entity velocity if teleported // Yatopia - fix PaperMC-4292
++        if (this instanceof EntityPlayer) { this.mot = Vec3D.ORIGIN; }  // Paper - cancel entity velocity if teleported // Yatopia - fix PaperMC-4292
          this.g(d0, d1, d2);
          this.yaw = f;
          this.pitch = f1;

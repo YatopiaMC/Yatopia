@@ -5,7 +5,7 @@ Subject: [PATCH] Add timings for Pathfinder
 
 
 diff --git a/src/main/java/co/aikar/timings/MinecraftTimings.java b/src/main/java/co/aikar/timings/MinecraftTimings.java
-index 85b25eace786fa0d7694afa405f9d2bdf4937b6e..2dca961498651b1c06ee61d33507055706afb63e 100644
+index 68ab5ccb2fcfe1de0503c9336572f28e11832b2d..4d4c25cb328b0ca2e16d3c823214aca5854e4deb 100644
 --- a/src/main/java/co/aikar/timings/MinecraftTimings.java
 +++ b/src/main/java/co/aikar/timings/MinecraftTimings.java
 @@ -54,6 +54,8 @@ public final class MinecraftTimings {
@@ -18,18 +18,18 @@ index 85b25eace786fa0d7694afa405f9d2bdf4937b6e..2dca961498651b1c06ee61d335070557
       * Gets a timer associated with a plugins tasks.
       * @param bukkitTask
 diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index ed37caf036ef9ae4c39622caf9b582678fecdccf..19753de35a3fef41fedd37eaab9f3ad2d5d91308 100644
+index d26f8499460c7a26b4e26a39cf52c0d8d2510a80..888744131fd4b51d035be51aa0c9e3fb7e3997b4 100644
 --- a/src/main/java/net/minecraft/server/NavigationAbstract.java
 +++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
-@@ -28,6 +28,7 @@ public abstract class NavigationAbstract {
-     private int q;
+@@ -29,6 +29,7 @@ public abstract class NavigationAbstract {
      private float r;
      private final Pathfinder s; public Pathfinder getPathfinder() { return this.s; } // Paper - OBFHELPER
+     private boolean t;
 +    private co.aikar.timings.Timing timing; // Yatopia
  
      // Tuinity start
      public boolean isViableForPathRecalculationChecking() {
-@@ -46,6 +47,7 @@ public abstract class NavigationAbstract {
+@@ -47,6 +48,7 @@ public abstract class NavigationAbstract {
          int i = MathHelper.floor(entityinsentient.b(GenericAttributes.FOLLOW_RANGE) * 16.0D);
  
          this.s = this.a(i);
@@ -37,7 +37,7 @@ index ed37caf036ef9ae4c39622caf9b582678fecdccf..19753de35a3fef41fedd37eaab9f3ad2
      }
  
      public void g() {
-@@ -229,6 +231,10 @@ public abstract class NavigationAbstract {
+@@ -230,6 +232,10 @@ public abstract class NavigationAbstract {
      }
  
      public void c() {
@@ -48,7 +48,7 @@ index ed37caf036ef9ae4c39622caf9b582678fecdccf..19753de35a3fef41fedd37eaab9f3ad2
          ++this.e;
          if (this.m) {
              this.j();
-@@ -256,6 +262,11 @@ public abstract class NavigationAbstract {
+@@ -257,6 +263,11 @@ public abstract class NavigationAbstract {
                  this.a.getControllerMove().a(vec3d.x, this.b.getType(blockposition.down()).isAir() ? vec3d.y : PathfinderNormal.a((IBlockAccess) this.b, blockposition), vec3d.z, this.d);
              }
          }
