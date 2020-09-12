@@ -159,6 +159,18 @@ index 02f5ccf54210776770d3215afb7c8e82f750d57e..00000000000000000000000000000000
 -         public int pigmenPortalSpawn = 2000;
 -         public double pigmenPortalBoost = 0.0;
 -         public boolean pigmenFarmsWaterAi = false;
+diff --git a/src/main/java/net/minecraft/server/BaseBlockPosition.java b/src/main/java/net/minecraft/server/BaseBlockPosition.java
+index e811295b4d6afcd920f60e0ce5440e43300d9085..d1064bd1c76eb23ce12e4a0703ce9f2622952897 100644
+--- a/src/main/java/net/minecraft/server/BaseBlockPosition.java
++++ b/src/main/java/net/minecraft/server/BaseBlockPosition.java
+@@ -111,6 +111,7 @@ public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
+         return this.distanceSquared((double) baseblockposition.getX(), (double) baseblockposition.getY(), (double) baseblockposition.getZ(), false) < d0 * d0;
+     }
+ 
++    public final boolean distanceSquared(IPosition pos, double dist) { return a(pos, dist); } // Yatopia - OBFHELPER
+     public boolean a(IPosition iposition, double d0) {
+         return this.distanceSquared(iposition.getX(), iposition.getY(), iposition.getZ(), true) < d0 * d0;
+     }
 diff --git a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java
 index 0490f6bb798b94ce69a40f8a940caaa545c4a3c0..65cbe8ea9551ee804ca35a594680e845eebbacac 100644
 --- a/src/main/java/net/minecraft/server/Behavior.java
@@ -206,6 +218,36 @@ index c3d129452b4f6ff2069bc066e594b1c632ceb0d4..00000000000000000000000000000000
 -     }
 - 
 -     public Behavior.Status a() {
+diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
+index 685351f11497a33ef4ba99055fa7da3a8de18af2..31f9001142ff8507499098f7da013b2b61d6847b 100644
+--- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
++++ b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
+@@ -127,6 +127,17 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+     private static boolean a(WorldServer worldserver, EntityLiving entityliving, BlockPosition blockposition) {
+         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+ 
++        // Yatopia start - replaced logic
++        if (!behaviorcontroller.hasMemory(MemoryModuleType.MOBS)) return false;
++        for (EntityLiving entity : behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()) {
++            if (entity.getEntityType() == entityliving.getEntityType()
++                    && blockposition.distanceSquared(entity.getPositionVector(), 2.0D)
++                    && b(worldserver, entity, blockposition)) {
++                return true;
++            }
++        }
++        return false;
++        /*
+         return !behaviorcontroller.hasMemory(MemoryModuleType.MOBS) ? false : (behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()).stream().filter((entityliving1) -> { // CraftBukkit - decompile error
+             return entityliving1.getEntityType() == entityliving.getEntityType();
+         }).filter((entityliving1) -> {
+@@ -134,6 +145,7 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+         }).anyMatch((entityliving1) -> {
+             return b(worldserver, entityliving1, blockposition);
+         });
++         */ // Yatopia end
+     }
+ 
+     private static boolean b(WorldServer worldserver, EntityLiving entityliving, BlockPosition blockposition) {
 diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej
 deleted file mode 100644
 index 738aa0c089e2d1f1d8ecb983d3d6351a1d4f690c..0000000000000000000000000000000000000000

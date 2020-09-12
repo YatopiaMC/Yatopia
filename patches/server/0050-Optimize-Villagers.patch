@@ -3,11 +3,37 @@ From: Ivan Pekov <ivan@mrivanplays.com>
 Date: Sat, 12 Sep 2020 19:17:05 +0300
 Subject: [PATCH] Optimize Villagers
 
-Replaced stream off BehaviorFindPosition and made sure that chunks are loaded for the positions that are gonna be tried.
-Also added a profession cache which nuked 1 more stream too.
+These changes aim to fix the following:
+- Villagers trying to push farther POIs (Points Of Interest)
+- Villagers ignoring doors most of the times
+- Villagers pushing POIs (Points Of Interest) to unloaded chunks
 
+The following has been done to fix the mentioned problems:
+- Replaced stream off BehaviorFindPosition
+- Made sure that chunks are loaded for the POIs (Points Of Interest) that are gonna be tried.
+- Added a profession cache, which followed by a stream removal.
+- Added a config option, villagers-only-open-doors-if-attacked-by-mobs , the default of is "true", defaulting to
+  vanilla behavior. If the specified option is false, then if the villager is not going to a path, he will try
+  to go to the nearest door.
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index 9549b857020bb749c039420950684c74c1108945..d3fd3c41092dbd80f9ae774f57bca0716d71cd95 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -170,6 +170,11 @@ public final class OrigamiConfig {
+         private void useBlockDistanceInPortalSearchRadius() {
+             useBlockDistanceInPortalSearchRadius = getBoolean("use-block-distance-in-portal-search-radius", false);
+         }
++
++        public boolean villagersOnlyOpenDoorsIfAttackedByMobs = true;
++        private void villagersOnlyOpenDoorsIfAttackedByMobs() {
++            villagersOnlyOpenDoorsIfAttackedByMobs = getBoolean("villagers-only-open-doors-if-attacked-by-mobs", true);
++        }
+         // Yatopia end
+     }
+ 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 63a761ebef80d4af09cdc2682e496d78492c4a3a..9150625cc3a878845afb6f00d9b827e86a86c72c 100644
+index 63a761ebef80d4af09cdc2682e496d78492c4a3a..047910f441b5e8ad97024177afbac703a0d0c5e9 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 @@ -48,7 +48,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
@@ -28,7 +54,12 @@ index 63a761ebef80d4af09cdc2682e496d78492c4a3a..9150625cc3a878845afb6f00d9b827e8
          VillagePlace villageplace = worldserver.y();
  
          this.g.long2ObjectEntrySet().removeIf((entry) -> {
-@@ -70,11 +70,28 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -66,15 +66,32 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+             BehaviorFindPosition.a behaviorfindposition_a = (BehaviorFindPosition.a) this.g.get(blockposition.asLong());
+ 
+             if (behaviorfindposition_a == null) {
+-                return true;
++                return worldserver.getChunkIfLoaded(blockposition.getX() >> 4, blockposition.getZ() >> 4) != null; // Yatopia
              } else if (!behaviorfindposition_a.c(i)) {
                  return false;
              } else {
@@ -76,6 +107,31 @@ index 63a761ebef80d4af09cdc2682e496d78492c4a3a..9150625cc3a878845afb6f00d9b827e8
                  });
              }
          }
+diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
+index 31f9001142ff8507499098f7da013b2b61d6847b..eb1df4046a81a011901d2763b51f2b5885e2095f 100644
+--- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
++++ b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
+@@ -128,6 +128,12 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+ 
+         // Yatopia start - replaced logic
++        if (!worldserver.origamiConfig.villagersOnlyOpenDoorsIfAttackedByMobs) {
++            if (b(worldserver, entityliving, blockposition)) {
++                return false;
++            }
++            return blockposition.distanceSquared(entityliving.getPositionVector(), 2.0D);
++        } else {
+         if (!behaviorcontroller.hasMemory(MemoryModuleType.MOBS)) return false;
+         for (EntityLiving entity : behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()) {
+             if (entity.getEntityType() == entityliving.getEntityType()
+@@ -137,6 +143,7 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
+             }
+         }
+         return false;
++        }
+         /*
+         return !behaviorcontroller.hasMemory(MemoryModuleType.MOBS) ? false : (behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()).stream().filter((entityliving1) -> { // CraftBukkit - decompile error
+             return entityliving1.getEntityType() == entityliving.getEntityType();
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceType.java b/src/main/java/net/minecraft/server/VillagePlaceType.java
 index a5718af9b614ae505067131f04ebb490617d6aa4..2ea0cfad4b35264cd3b70b930dd28de58c77d0c0 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceType.java
