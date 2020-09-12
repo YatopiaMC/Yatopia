@@ -81,7 +81,6 @@ This is an overview over all patches that are currently used.
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
-| server |  Optimize Villagers      | Aikar | MrIvanPlays |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
 | server |  Option for simpler Villagers      | tr7zw |  |

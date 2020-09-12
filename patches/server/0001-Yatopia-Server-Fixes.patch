@@ -206,36 +206,6 @@ index c3d129452b4f6ff2069bc066e594b1c632ceb0d4..00000000000000000000000000000000
 -     }
 - 
 -     public Behavior.Status a() {
-diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-index 685351f11497a33ef4ba99055fa7da3a8de18af2..5c19047bbc464869a6d65ef02e7955eabac92809 100644
---- a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-+++ b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java
-@@ -127,6 +127,17 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
-     private static boolean a(WorldServer worldserver, EntityLiving entityliving, BlockPosition blockposition) {
-         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
- 
-+        // Yatopia start - replaced logic
-+        if (!behaviorcontroller.hasMemory(MemoryModuleType.MOBS)) return false;
-+        for (EntityLiving entity : behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()) {
-+            if (entity.getEntityType() == entityliving.getEntityType()
-+                    && blockposition.a(entity.getPositionVector(), 2.0D)
-+                    && b(worldserver, entity, blockposition)) {
-+                return true;
-+            }
-+        }
-+        return false;
-+        /*
-         return !behaviorcontroller.hasMemory(MemoryModuleType.MOBS) ? false : (behaviorcontroller.getMemory(MemoryModuleType.MOBS).get()).stream().filter((entityliving1) -> { // CraftBukkit - decompile error
-             return entityliving1.getEntityType() == entityliving.getEntityType();
-         }).filter((entityliving1) -> {
-@@ -134,6 +145,7 @@ public class BehaviorInteractDoor extends Behavior<EntityLiving> {
-         }).anyMatch((entityliving1) -> {
-             return b(worldserver, entityliving1, blockposition);
-         });
-+         */ // Yatopia end
-     }
- 
-     private static boolean b(WorldServer worldserver, EntityLiving entityliving, BlockPosition blockposition) {
 diff --git a/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej b/src/main/java/net/minecraft/server/BehaviorInteractDoor.java.rej
 deleted file mode 100644
 index 738aa0c089e2d1f1d8ecb983d3d6351a1d4f690c..0000000000000000000000000000000000000000
@@ -3083,6 +3053,43 @@ index bae899f354afe1819c7850f30d827a33696b00fa..74aa903d3c362351f688979daa0c4f41
 +    }
 +    // Purpur end
  }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej b/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
+deleted file mode 100644
+index bd0dcb52322f39c6f82864b480c2fece8bd6be3a..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
++++ /dev/null
+@@ -1,31 +0,0 @@
+-diff a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java	(rejected hunks)
+-@@ -854,6 +854,7 @@ public final class CraftServer implements Server {
+- 
+-         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
+-         com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
+-+        com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
+-         for (WorldServer world : console.getWorlds()) {
+-             world.worldDataServer.setDifficulty(config.difficulty);
+-             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
+-@@ -888,6 +889,7 @@ public final class CraftServer implements Server {
+-             }
+-             world.spigotConfig.init(); // Spigot
+-             world.paperConfig.init(); // Paper
+-+            world.rainforestConfig.init(); // Rainforest
+-         }
+- 
+-         Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
+-@@ -2239,6 +2241,13 @@ public final class CraftServer implements Server {
+-             return com.destroystokyo.paper.PaperConfig.config;
+-         }
+- 
+-+        // Rainforest start
+-+        @Override
+-+        public YamlConfiguration getRainforestConfig() {
+-+            return com.proximyst.rainforest.RainforestConfig.config;
+-+        }
+-+        // Rainforest end
+-+
+-         @Override
+-         public void restart() {
+-             org.spigotmc.RestartCommand.restart();
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
 index 210cb10ea75b99d3b5d7b5bce5cea44e3cc0fc20..1acfbf3a63ee0e8d4bd4773f06b4be1e4961f527 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
