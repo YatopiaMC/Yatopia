@@ -106,6 +106,7 @@ This is an overview over all patches that are currently used.
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Respect permissions when constructing InventoryEnderChest      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
+| server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
