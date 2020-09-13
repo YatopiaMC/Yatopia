@@ -1,14 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: foss-mc <69294560+foss-mc@users.noreply.github.com>
 Date: Sat, 12 Sep 2020 11:12:23 +0800
-Subject: [PATCH] Shutdown Bootstrap thread pool
+Subject: [PATCH] Nuke Bootstrap thread pool
 
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/DataConverterRegistry.java b/src/main/java/net/minecraft/server/DataConverterRegistry.java
-index 48e31e9142ffeb2725af6b1f483de67410e25694..b149e32aac86ce2f7521958fa7394e4f5b852174 100644
+index 48e31e9142ffeb2725af6b1f483de67410e25694..1b5b06cad7771a7d351aca0a009d902f23f07d9d 100644
 --- a/src/main/java/net/minecraft/server/DataConverterRegistry.java
 +++ b/src/main/java/net/minecraft/server/DataConverterRegistry.java
-@@ -15,14 +15,16 @@ public class DataConverterRegistry {
+@@ -15,14 +15,15 @@ public class DataConverterRegistry {
  
      private static final BiFunction<Integer, Schema, Schema> a = Schema::new;
      private static final BiFunction<Integer, Schema, Schema> b = DataConverterSchemaNamed::new;
@@ -22,32 +23,36 @@ index 48e31e9142ffeb2725af6b1f483de67410e25694..b149e32aac86ce2f7521958fa7394e4f
  
          a(datafixerbuilder);
 -        return datafixerbuilder.build(SystemUtils.e());
-+        c = datafixerbuilder.build(SystemUtils.d);
-+        SystemUtils.d.shutdown();
++        c = datafixerbuilder.build(SystemUtils.getMainExecutor());
      }
 +    // Yatopia end
  
      public static DataFixer getDataFixer() { return a(); } // Paper - OBFHELPER
      public static DataFixer a() {
 diff --git a/src/main/java/net/minecraft/server/SystemUtils.java b/src/main/java/net/minecraft/server/SystemUtils.java
-index 20f1c25db110c17eff6630c9db2e109e58159a22..51cbe01e171f8019a8b57c91c55980280d6857db 100644
+index 869dcf1545601358a273a5cfb47afa88fa13a11c..cbb5bcbeaac5487c99b6f2171a5ba28ea7fe171a 100644
 --- a/src/main/java/net/minecraft/server/SystemUtils.java
 +++ b/src/main/java/net/minecraft/server/SystemUtils.java
 @@ -48,7 +48,7 @@ import org.apache.logging.log4j.Logger;
  public class SystemUtils {
  
      private static final AtomicInteger c = new AtomicInteger(1);
--    private static final ExecutorService d = a("Bootstrap");
-+    public static final ExecutorService d = a("Bootstrap"); // Yatopia - private -> public
-     private static final ExecutorService e = a("Main");
+-    private static final ExecutorService d = a("Bootstrap", -2); // Paper - add -2 priority
++    //private static final ExecutorService d = a("Bootstrap", -2); // Paper - add -2 priority // Yatopia - nuke this shit
+     private static final ExecutorService e = a("Main", -1); // Paper - add -1 priority
      private static final ExecutorService f = n();
      public static LongSupplier a = System::nanoTime;
-@@ -111,7 +111,7 @@ public class SystemUtils {
+@@ -111,10 +111,13 @@ public class SystemUtils {
          return (ExecutorService) object;
      }
  
--    public static Executor e() {
-+    public static Executor e_unused() { // Yatopia - unused
++    /* // Yatopia start - ditch this
+     public static Executor e() {
          return SystemUtils.d;
      }
++     */ // Yatopia end
  
++    public static Executor getMainExecutor() { return f(); } // Yatopia - OBFHELPER
+     public static Executor f() {
+         return SystemUtils.e;
+     }
