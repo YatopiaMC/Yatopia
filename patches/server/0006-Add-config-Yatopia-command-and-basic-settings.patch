@@ -5,17 +5,26 @@ Subject: [PATCH] Add config Yatopia command and basic settings
 
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index b67f05f290db653cf75a89e85bd3decb5044a1e0..11758b6b158d971b9beb1b609d7513dab46be525 100644
+index dae2e5d70756c5b61163d57099b65f7e415b288c..21712a6691e00ffaf523f084da6ce5659fc98be9 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
-@@ -232,6 +232,7 @@ public class TimingsExport extends Thread {
-             pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
-             pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
-             , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Purpur - add config to timings report
-+            , pair("yatopia", mapAsJSON(Bukkit.spigot().getYatopiaConfig(), null)) // Yatopia - add config to timings report
+@@ -234,6 +234,7 @@ public class TimingsExport extends Thread {
+                 pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)),
+                 pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)), // Tuinity - add config to timings report
+                 pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null))
++                , pair("yatopia", mapAsJSON(Bukkit.spigot().getYatopiaConfig(), null)) // Yatopia - add config to timings report
+                 // Purpur end
          ));
  
-         new TimingsExport(listeners, parent, history).start();
+@@ -324,7 +325,7 @@ public class TimingsExport extends Thread {
+         String response = null;
+         String timingsURL = null;
+         try {
+-            HttpURLConnection con = (HttpURLConnection) new URL(net.pl3x.purpur.PurpurConfig.timingsUrl + "/post").openConnection(); // Purpur
++            HttpURLConnection con = (HttpURLConnection) new URL("http://timings.aikar.co/post").openConnection(); // Purpur // Yatopia
+             con.setDoOutput(true);
+             String hostName = "BrokenHost";
+             try {
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
 index 050e0d7ec29755590dde2f35090b96f6f2457952..dde91498e773cc6744612f780ce82bd35ad79637 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
@@ -56,6 +65,19 @@ index 7083b379568fd101bec19469b60daf062bc4d137..0a7f88de5c5c307ed01c2f4a43336571
  
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index c944b407df03fca1153978d0763313d44d6461c8..66d0cf7d4b0bbffbd5eff64bfc46806c6f834c21 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -189,7 +189,7 @@ public abstract class PlayerList {
+         // Spigot - view distance
+         playerconnection.sendPacket(new PacketPlayOutLogin(entityplayer.getId(), entityplayer.playerInteractManager.getGameMode(), entityplayer.playerInteractManager.c(), BiomeManager.a(worldserver1.getSeed()), worlddata.isHardcore(), this.server.F(), this.s, worldserver1.getDimensionManager(), worldserver1.getDimensionKey(), this.getMaxPlayers(), worldserver1.getChunkProvider().playerChunkMap.getLoadViewDistance(), flag1, !flag, worldserver1.isDebugWorld(), worldserver1.isFlatWorld())); // Paper - no-tick view distance
+         entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
+-        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(this.getServer().getServerModName())));
++        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(net.yatopia.server.YatopiaConfig.brandName))); // Yatopia
+         playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
+         playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
+         playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
 diff --git a/src/main/java/net/yatopia/server/YatopiaCommand.java b/src/main/java/net/yatopia/server/YatopiaCommand.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..3a3cda53b253e42556268506e2c32b65be84bedb
@@ -205,7 +227,7 @@ index 0000000000000000000000000000000000000000..3a3cda53b253e42556268506e2c32b65
 +}
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bf91f41cee803734bbee82d783705bf7aa1cbace
+index 0000000000000000000000000000000000000000..f69be0c7eef07727028c14e5ad9c859363aa19c0
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -0,0 +1,213 @@
@@ -270,22 +292,18 @@ index 0000000000000000000000000000000000000000..bf91f41cee803734bbee82d783705bf7
 +    private static void removeLeftovers() {
 +        // this method is only to remove non-used values in the config
 +
-+        // leftover from akarin / rainforest
++        // leftover from rainforest
 +        if (config.get("world-settings") != null) {
 +            set("world-settings", null);
 +        }
-+        // unused settings getting removed
-+        if (config.get("settings.disablePlayerOutOfWorldBorderCheck") != null) {
-+            set("settings.disablePlayerOutOfWorldBorderCheck", null);
++        if (config.get("allow-player-item-duplication") != null) {
++            set("allow-player-item-duplication", null);
 +        }
-+        if (config.get("settings.disableEntityCollisions") != null) {
-+            set("settings.disableEntityCollisions", null);
++        if (config.get("allow-ridable-chestable-duping") != null) {
++            set("allow-ridable-chestable-duping", null);
 +        }
-+        if (config.get("settings.onlyPlayerCollisions") != null) {
-+            set("settings.onlyPlayerCollisions", null);
-+        }
-+        if (config.get("settings.disableEntityCollisionboxes") != null) {
-+            set("settings.disableEntityCollisionboxes", null);
++        if (config.get("allow-sand-duping") != null) {
++            set("allow-sand-duping", null);
 +        }
 +    }
 +
@@ -421,20 +439,24 @@ index 0000000000000000000000000000000000000000..bf91f41cee803734bbee82d783705bf7
 +        disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
 +    }
 +
++    public static String brandName = "Yatopia";
++    private static void brandName() {
++        brandName = getString("brand-name", brandName);
++    }
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 521e2e4923775aa5a198fd370818a9873019c102..c212d6069f1b9791805520a632dda2ad8770022d 100644
+index 5c221dd6b6e318eaa876f6f3016c9d4d8ded13fb..3f02309c1ede76ed69c6a95ec5e9807715949146 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -844,6 +844,7 @@ public final class CraftServer implements Server {
+@@ -843,6 +843,7 @@ public final class CraftServer implements Server {
+         com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
-         com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
          de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
 +        net.yatopia.server.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -2271,6 +2272,13 @@ public final class CraftServer implements Server {
+@@ -2263,6 +2264,13 @@ public final class CraftServer implements Server {
          }
          // Origami end
  
@@ -449,10 +471,10 @@ index 521e2e4923775aa5a198fd370818a9873019c102..c212d6069f1b9791805520a632dda2ad
          public void restart() {
              org.spigotmc.RestartCommand.restart();
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 1acfbf3a63ee0e8d4bd4773f06b4be1e4961f527..4032f71f1eb916b9a004502eab9babfb0bcf0be2 100644
+index 62012d2b780d3399bd641ca3ca4a4ac127e3bcb5..dddba89eee0181c066ad979bc2b75e8de36e7458 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -169,6 +169,14 @@ public class Main {
+@@ -162,6 +162,14 @@ public class Main {
                          .describedAs("Yml file");
                  // Origami end
  

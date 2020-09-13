@@ -4,33 +4,6 @@ Date: Wed, 5 Aug 2020 08:17:46 -0500
 Subject: [PATCH] Redirect Configs
 
 
-diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-index f6623032e5d4034c104aa1fc6ff4265169e462ba..4bc94e4598cff801d08e457ebbf184fbaadb3b19 100644
---- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-+++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-@@ -37,6 +37,8 @@ public final class RainforestConfig {
-   private static boolean fatalError;
- 
-   public static void init(File configFile) {
-+    // Yatopia start
-+    /*
-     CONFIG_FILE = configFile;
-     config = new YamlConfiguration();
-     try {
-@@ -56,7 +58,13 @@ public final class RainforestConfig {
- 
-     version = getInt("config-version", 1);
-     set("config-version", 1);
-+     */
-+    config = net.yatopia.server.YatopiaConfig.config;
-+    CONFIG_FILE = net.yatopia.server.YatopiaConfig.CONFIG_FILE;
-+    verbose = net.yatopia.server.YatopiaConfig.verbose;
-+    version = net.yatopia.server.YatopiaConfig.version;
-     readConfig(RainforestConfig.class, null);
-+    // Yatopia end
-   }
- 
-   protected static void logError(String s) {
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
 index bbf09800b7b72bdfb75c91e4c6c77fe00e3ad436..1d98bfdee95fb1052fcd9f141a2ab82ba9dcf2f9 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
@@ -73,23 +46,22 @@ index bbf09800b7b72bdfb75c91e4c6c77fe00e3ad436..1d98bfdee95fb1052fcd9f141a2ab82b
          for (final Method method : clazz.getDeclaredMethods()) {
              if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index dde91498e773cc6744612f780ce82bd35ad79637..70d22f03162df1855fa8632127ef1a3e6703c4be 100644
+index dde91498e773cc6744612f780ce82bd35ad79637..15ccdad0f46297c30ed603879db467608c410df4 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -185,6 +185,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -185,6 +185,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
              return false;
          }
          net.yatopia.server.YatopiaConfig.registerCommands();
 +        de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
-+        com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings"));
          // Yatopia end
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 4032f71f1eb916b9a004502eab9babfb0bcf0be2..dcbe92898db5297c9c74b482eefbcdb9aca2c1a5 100644
+index dddba89eee0181c066ad979bc2b75e8de36e7458..2b7bfeb79200458912aef6b20ee53c4c276b3451 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -310,7 +310,7 @@ public class Main {
+@@ -303,7 +303,7 @@ public class Main {
                  }
                  // Paper end
                  System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows

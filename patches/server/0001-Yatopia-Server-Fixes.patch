@@ -4,33 +4,6 @@ Date: Thu, 6 Aug 2020 19:47:50 -0500
 Subject: [PATCH] Yatopia-Server-Fixes
 
 
-diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 5dfa0658838c4801cdf260eae8b98163f729e5af..b67f05f290db653cf75a89e85bd3decb5044a1e0 100644
---- a/src/main/java/co/aikar/timings/TimingsExport.java
-+++ b/src/main/java/co/aikar/timings/TimingsExport.java
-@@ -231,6 +231,7 @@ public class TimingsExport extends Thread {
-             pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
-             pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null)), // Tuinity - add config to timings report
-             pair("tuinity", mapAsJSON(Bukkit.spigot().getTuinityConfig(), null)) // Tuinity - add config to timings report
-+            , pair("purpur", mapAsJSON(Bukkit.spigot().getPurpurConfig(), null)) // Purpur - add config to timings report
-         ));
- 
-         new TimingsExport(listeners, parent, history).start();
-diff --git a/src/main/java/co/aikar/timings/TimingsExport.java.rej b/src/main/java/co/aikar/timings/TimingsExport.java.rej
-deleted file mode 100644
-index 572780ca665c0fb254cc7431af3dd7759a94f26c..0000000000000000000000000000000000000000
---- a/src/main/java/co/aikar/timings/TimingsExport.java.rej
-+++ /dev/null
-@@ -1,9 +0,0 @@
--diff a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java	(rejected hunks)
--@@ -230,6 +230,7 @@ public class TimingsExport extends Thread {
--             pair("spigot", mapAsJSON(Bukkit.spigot().getSpigotConfig(), null)),
--             pair("bukkit", mapAsJSON(Bukkit.spigot().getBukkitConfig(), null)),
--             pair("paper", mapAsJSON(Bukkit.spigot().getPaperConfig(), null))
--+            , pair("rainforest", mapAsJSON(Bukkit.spigot().getRainforestConfig(), null)) // Rainforest
--         ));
-- 
--         new TimingsExport(listeners, parent, history).start();
 diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej b/src/main/java/com/destroystokyo/paper/PaperCommand.java.rej
 deleted file mode 100644
 index 8f31dba6a29514aad6e74e265bf000014cd1e3c3..0000000000000000000000000000000000000000
@@ -92,19 +65,6 @@ index c9fa39c5b4b013b56720e339463ffcb5fd3c13f9..00000000000000000000000000000000
 -         this.timingTicking.startTiming();
 - 
 -         for (final NextTickListEntry<T> toTick : this.toTickThisTick) {
-diff --git a/src/main/java/com/proximyst/rainforest/RainforestConfig.java b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-index e0af5eb280dfd2ef6c9a80385e1705f7231a5338..f6623032e5d4034c104aa1fc6ff4265169e462ba 100644
---- a/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-+++ b/src/main/java/com/proximyst/rainforest/RainforestConfig.java
-@@ -195,7 +195,7 @@ public final class RainforestConfig {
-     allowSandDuping = getBoolean("allow-sand-duping", allowSandDuping);
-   }
- 
--  public static String brandName = "Rainforest";
-+  public static String brandName = "Yatopia"; // Yatopia
-   private static void brandName() {
-     brandName = getString("brand-name", brandName);
-   }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
 index fe7330fabe386966c2d203a190a00a785ea21be0..9480b7ce6ae769f5dfec258ba2c7efbf165b5ce6 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
@@ -703,21 +663,6 @@ index adeca862cc3a3d1001c9d515fa2083acef0520e2..00000000000000000000000000000000
 -     }
 - 
 -     public Stream<MinecraftKey> d() {
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java.rej b/src/main/java/net/minecraft/server/DedicatedServer.java.rej
-deleted file mode 100644
-index 4c2d5b3e080c925d687733ec40d4fb4b22552c96..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/DedicatedServer.java.rej
-+++ /dev/null
-@@ -1,9 +0,0 @@
--diff a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java	(rejected hunks)
--@@ -170,6 +170,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
--         com.destroystokyo.paper.PaperConfig.registerCommands();
--         com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
--         // Paper end
--+        com.proximyst.rainforest.RainforestConfig.init((java.io.File) options.valueOf("rainforest-settings")); // Rainforest
-- 
--         this.setPVP(dedicatedserverproperties.pvp);
--         this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/net/minecraft/server/DispenserRegistry.java.rej b/src/main/java/net/minecraft/server/DispenserRegistry.java.rej
 deleted file mode 100644
 index 8347faf8a7ee62d27cf5eb9f285695fddadfa624..0000000000000000000000000000000000000000
@@ -738,10 +683,10 @@ index 8347faf8a7ee62d27cf5eb9f285695fddadfa624..00000000000000000000000000000000
 - 
 -             AttributeDefaults.a();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9abe53fe4 100644
+index e8da5e4f6d7668fa2dc0361f7246b21933669206..26306687857100173e762578eb2c509370279207 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -439,7 +439,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -438,7 +438,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
      public void setPosition(double d0, double d1, double d2) {
          this.setPositionRaw(d0, d1, d2);
          //this.a(this.size.a(d0, d1, d2)); // Paper - move into setPositionRaw
@@ -750,7 +695,7 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
      }
  
      protected void ae() {
-@@ -522,7 +522,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -521,7 +521,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          }
  
          this.justCreated = false;
@@ -759,7 +704,7 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
      }
  
      public void resetPortalCooldown() {
-@@ -2375,7 +2375,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2373,7 +2373,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                  WorldServer worldserver1 = minecraftserver.getWorldServer(resourcekey);
  
                  if (true && !this.isPassenger() && this.portalTicks++ >= i) { // CraftBukkit
@@ -768,7 +713,7 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
                      this.portalTicks = i;
                      this.resetPortalCooldown();
                      // CraftBukkit start
-@@ -2385,7 +2385,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2383,7 +2383,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                          this.b(worldserver1);
                      }
                      // CraftBukkit end
@@ -777,7 +722,7 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
                  }
  
                  this.inPortal = false;
-@@ -2768,14 +2768,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2766,14 +2766,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          }
          // Paper end
          if (this.world instanceof WorldServer && !this.dead) {
@@ -794,7 +739,7 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
              ShapeDetectorShape shapedetectorshape = (location == null) ? this.a(worldserver) : new ShapeDetectorShape(new Vec3D(location.getX(), location.getY(), location.getZ()), Vec3D.ORIGIN, this.yaw, this.pitch, worldserver, null); // CraftBukkit
  
              if (shapedetectorshape == null) {
-@@ -2808,10 +2808,10 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2806,10 +2806,10 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                  }
  
                  this.bM();
@@ -807,7 +752,7 @@ index 8755e32b44165b997739ac213820cf6715b0a757..d413574045360c4724d2c84f1bbbf4d9
                  return entity;
              }
          } else {
-@@ -3046,7 +3046,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -3044,7 +3044,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                      entity.a(entity1, Entity::teleportAndSync);
                  }
  
@@ -1601,10 +1546,10 @@ index d1016d22fbb2dd15042fd6ccdf2ee7848351e518..00000000000000000000000000000000
 - 
 -         entitypigzombie.addEffect(new MobEffect(MobEffects.CONFUSION, 200, 0));
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index d1953b40c6684f8ebf7fbcd6c240b66b92167794..364485a28f6273fa55c777024fac58ef1e0fd201 100644
+index 75f53d1a1c45c2313ebe0e9b7a84932cee67d284..d7a28b139c5962e7be2c9402f7011edfb67ed31d 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -765,11 +765,11 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -764,11 +764,11 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
      private void eV() {
          AxisAlignedBB axisalignedbb = (new AxisAlignedBB(this.getChunkCoordinates())).grow(32.0D, 10.0D, 32.0D);
  
@@ -1621,7 +1566,7 @@ index d1953b40c6684f8ebf7fbcd6c240b66b92167794..364485a28f6273fa55c777024fac58ef
      }
  
      @Override
-@@ -920,7 +920,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -919,7 +919,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              ShapeDetectorShape shapedetectorshape = this.a(worldserver);
  
              if (shapedetectorshape != null) {
@@ -1630,7 +1575,7 @@ index d1953b40c6684f8ebf7fbcd6c240b66b92167794..364485a28f6273fa55c777024fac58ef
                  worldserver = shapedetectorshape.world; // CraftBukkit
                  if (worldserver == null) { } else // CraftBukkit - empty to fall through to null to event
                  if (resourcekey == DimensionManager.OVERWORLD && worldserver.getTypeKey() == DimensionManager.THE_NETHER) { // CraftBukkit
-@@ -943,8 +943,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -942,8 +942,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              worldserver = ((CraftWorld) exit.getWorld()).getHandle();
              // CraftBukkit end
  
@@ -1641,7 +1586,7 @@ index d1953b40c6684f8ebf7fbcd6c240b66b92167794..364485a28f6273fa55c777024fac58ef
              if (true) { // CraftBukkit
                  this.worldChangeInvuln = true; // CraftBukkit - Set teleport invulnerability only if player changing worlds
  
-@@ -961,7 +961,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -960,7 +960,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
                  worldserver.addPlayerPortal(this);
                  this.playerConnection.teleport(exit); // CraftBukkit - use internal teleport without event
                  this.playerConnection.syncPosition(); // CraftBukkit - sync position after changing it (from PortalTravelAgent#findAndteleport)
@@ -2404,28 +2349,26 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 6ff36345b0fbb7e67d3b7ad29823a135ea5bb3a3..2a8db362f007c25472b2114fd7a757a40a418e82 100644
+index 00ef418aa0825dd147fedd91a552aa2437c7348f..702588cbab8aa2ced1a8f4b75d65552dd616efda 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -97,6 +97,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
      public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
 +    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World config
-+    public final RainforestWorldConfig rainforestConfig; // Rainforest
  
      public final co.aikar.timings.WorldTimingsHandler timings; // Paper
      public static BlockPosition lastPhysicsProblem; // Spigot
-@@ -130,6 +132,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -129,6 +130,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.spigotConfig); // Paper
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
          this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
 +        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami
-+        this.rainforestConfig = new RainforestWorldConfig(((WorldDataServer)worlddatamutable).getName(), paperConfig); // Rainforest
          this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
          this.generator = gen;
          this.world = new CraftWorld((WorldServer) this, gen, env);
-@@ -422,9 +426,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -421,9 +423,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
                  IBlockData iblockdata2 = this.getType(blockposition);
  
                  if ((i & 128) == 0 && iblockdata2 != iblockdata1 && (iblockdata2.b((IBlockAccess) this, blockposition) != iblockdata1.b((IBlockAccess) this, blockposition) || iblockdata2.f() != iblockdata1.f() || iblockdata2.e() || iblockdata1.e())) {
@@ -2439,28 +2382,28 @@ index 6ff36345b0fbb7e67d3b7ad29823a135ea5bb3a3..2a8db362f007c25472b2114fd7a757a4
                  /*
 diff --git a/src/main/java/net/minecraft/server/World.java.rej b/src/main/java/net/minecraft/server/World.java.rej
 deleted file mode 100644
-index 055f1e52a39a9a4c8406adc6f313f4ef67ee3d39..0000000000000000000000000000000000000000
+index 313aa8f7d47c53a6a0130994c9d61d7c073c95c6..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/World.java.rej
 +++ /dev/null
 @@ -1,18 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java	(rejected hunks)
--@@ -94,6 +95,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+-@@ -94,6 +94,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
 -     public final com.destroystokyo.paper.PaperWorldConfig paperConfig; // Paper
 -     public final ChunkPacketBlockController chunkPacketBlockController; // Paper - Anti-Xray
 - 
--+    public final RainforestWorldConfig rainforestConfig; // Rainforest
+-+    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World Config
 -+
 -     public final co.aikar.timings.WorldTimingsHandler timings; // Paper
 -     public static BlockPosition lastPhysicsProblem; // Spigot
 -     private org.spigotmc.TickLimiter entityLimiter;
--@@ -125,6 +128,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+-@@ -124,6 +126,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+-     protected World(WorldDataMutable worlddatamutable, ResourceKey<World> resourcekey, final DimensionManager dimensionmanager, Supplier<GameProfilerFiller> supplier, boolean flag, boolean flag1, long i, org.bukkit.generator.ChunkGenerator gen, org.bukkit.World.Environment env, java.util.concurrent.Executor executor) { // Paper
 -         this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((WorldDataServer) worlddatamutable).getName()); // Spigot
 -         this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.spigotConfig); // Paper
+-+        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami - World Config
 -         this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
--+        this.rainforestConfig = new RainforestWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.paperConfig); // Rainforest
 -         this.generator = gen;
 -         this.world = new CraftWorld((WorldServer) this, gen, env);
--         this.ticksPerAnimalSpawns = this.getServer().getTicksPerAnimalSpawns(); // CraftBukkit
 diff --git a/src/main/java/net/minecraft/server/WorldDataServer.java b/src/main/java/net/minecraft/server/WorldDataServer.java
 index a7e623044aece1f46e2d039cd2dcf710120ac267..dbcee8f22389e8a1ce58539cd8839bcc4fc3c720 100644
 --- a/src/main/java/net/minecraft/server/WorldDataServer.java
@@ -3042,37 +2985,29 @@ index 12ee96c0bb54227dbfab7240d8b114577e0b78f3..00000000000000000000000000000000
 - 
 -     public int villagerBrainTicks = 1;
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index bae899f354afe1819c7850f30d827a33696b00fa..74aa903d3c362351f688979daa0c4f4145e582e4 100644
+index bae899f354afe1819c7850f30d827a33696b00fa..324b3c8f85801670d501e9c58585baa395232226 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -842,6 +842,8 @@ public final class CraftServer implements Server {
+@@ -842,6 +842,7 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
-+        com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
 +        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -878,6 +880,8 @@ public final class CraftServer implements Server {
+@@ -878,6 +879,7 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
              world.purpurConfig.init(); // Purpur
-+            world.rainforestConfig.init(); // Rainforest
 +            world.origamiConfig.init(); // Origami
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2254,6 +2258,19 @@ public final class CraftServer implements Server {
+@@ -2254,6 +2256,13 @@ public final class CraftServer implements Server {
          }
          // Purpur end
  
-+        // Rainforest start
-+        @Override
-+        public YamlConfiguration getRainforestConfig() {
-+            return com.proximyst.rainforest.RainforestConfig.config;
-+        }
-+        // Rainforest end
 +        // Origami start
 +        @Override
 +        public YamlConfiguration getOrigamiConfig() {
@@ -3083,7 +3018,7 @@ index bae899f354afe1819c7850f30d827a33696b00fa..74aa903d3c362351f688979daa0c4f41
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2393,4 +2410,11 @@ public final class CraftServer implements Server {
+@@ -2393,4 +2402,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -3097,56 +3032,30 @@ index bae899f354afe1819c7850f30d827a33696b00fa..74aa903d3c362351f688979daa0c4f41
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej b/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
 deleted file mode 100644
-index bd0dcb52322f39c6f82864b480c2fece8bd6be3a..0000000000000000000000000000000000000000
+index 9e8af19858ff226ec9a7a82c118d592f23de281f..0000000000000000000000000000000000000000
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
 +++ /dev/null
-@@ -1,31 +0,0 @@
+@@ -1,12 +0,0 @@
 -diff a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java	(rejected hunks)
--@@ -854,6 +854,7 @@ public final class CraftServer implements Server {
-- 
--         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
--         com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
--+        com.proximyst.rainforest.RainforestConfig.init((File) console.options.valueOf("rainforest-settings")); // Rainforest
--         for (WorldServer world : console.getWorlds()) {
--             world.worldDataServer.setDifficulty(config.difficulty);
--             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
--@@ -888,6 +889,7 @@ public final class CraftServer implements Server {
--             }
--             world.spigotConfig.init(); // Spigot
--             world.paperConfig.init(); // Paper
--+            world.rainforestConfig.init(); // Rainforest
--         }
-- 
--         Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
--@@ -2239,6 +2241,13 @@ public final class CraftServer implements Server {
--             return com.destroystokyo.paper.PaperConfig.config;
--         }
-- 
--+        // Rainforest start
--+        @Override
--+        public YamlConfiguration getRainforestConfig() {
--+            return com.proximyst.rainforest.RainforestConfig.config;
--+        }
--+        // Rainforest end
+-@@ -2410,5 +2410,10 @@ public final class CraftServer implements Server {
+-     public String getServerName() {
+-         return getProperties().serverName;
+-     }
 -+
--         @Override
--         public void restart() {
--             org.spigotmc.RestartCommand.restart();
+-+    @Override
+-+    public boolean isLagging() {
+-+        return getServer().lagging;
+-+    }
+-     // Purpur end
+- }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 210cb10ea75b99d3b5d7b5bce5cea44e3cc0fc20..1acfbf3a63ee0e8d4bd4773f06b4be1e4961f527 100644
+index 210cb10ea75b99d3b5d7b5bce5cea44e3cc0fc20..62012d2b780d3399bd641ca3ca4a4ac127e3bcb5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -154,6 +154,21 @@ public class Main {
+@@ -154,6 +154,14 @@ public class Main {
                          .describedAs("Yml file");
                  // Purpur end
  
-+                // Rainforest start
-+                acceptsAll(asList("rainforest", "rainforest-settings"), "File for rainforest settings")
-+                        .withRequiredArg()
-+                        .ofType(File.class)
-+                        .defaultsTo(new File("rainforest.yml"))
-+                        .describedAs("Yml file");
-+                // Rainforest end
 +                // Origami start
 +                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
 +                        .withRequiredArg()
@@ -3160,7 +3069,7 @@ index 210cb10ea75b99d3b5d7b5bce5cea44e3cc0fc20..1acfbf3a63ee0e8d4bd4773f06b4be1e
                          .withRequiredArg()
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java.rej b/src/main/java/org/bukkit/craftbukkit/Main.java.rej
 deleted file mode 100644
-index 916603085d652444027e4513b77293ece84a6c4f..0000000000000000000000000000000000000000
+index 27a6c3279b77f24edcea24f3a01559145d2f4da1..0000000000000000000000000000000000000000
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java.rej
 +++ /dev/null
 @@ -1,16 +0,0 @@
@@ -3169,13 +3078,13 @@ index 916603085d652444027e4513b77293ece84a6c4f..00000000000000000000000000000000
 -                         .describedAs("Yml file");
 -                 // Paper end
 - 
--+                // Rainforest start
--+                acceptsAll(asList("rainforest", "rainforest-settings"), "File for rainforest settings")
+-+                // Origami Start - Server Config
+-+                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
 -+                        .withRequiredArg()
 -+                        .ofType(File.class)
--+                        .defaultsTo(new File("rainforest.yml"))
+-+                        .defaultsTo(new File("origami.yml"))
 -+                        .describedAs("Yml file");
--+                // Rainforest end
+-+                // Origami end - Server Config
 -+
 -                 // Paper start
 -                 acceptsAll(asList("server-name"), "Name of the server")

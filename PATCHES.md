@@ -14,11 +14,9 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| server |  Add Rainforest config      | Mariell Hoversholm |  |
 | server |  Add config Yatopia command and basic settings      | tr7zw |  |
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
-| server |  Add more dupe options      | Mariell Hoversholm |  |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
@@ -42,7 +40,6 @@ This is an overview over all patches that are currently used.
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
-| server |  Custom brand name      | Mariell Hoversholm |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
@@ -112,6 +109,7 @@ This is an overview over all patches that are currently used.
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Use arrow despawn rate for all projectiles      | William Blake Galbreath |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
