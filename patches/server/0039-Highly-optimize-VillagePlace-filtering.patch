@@ -106,7 +106,7 @@ index d861368550a8811eb442c30c508023f6029daa4a..e337b62eafafba3dcb5d0bddf16237c7
          if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
              list.removeIf(villagePlaceRecord -> {
 diff --git a/src/main/java/net/minecraft/server/SectionPosition.java b/src/main/java/net/minecraft/server/SectionPosition.java
-index cf5b25d9375724ea2afcf5cd59e0ccd302cdf45e..65efa530125e883b8dec3aab5edb1eeac585cb92 100644
+index f95925f1c5d091f1a129d0437bb6e175c6ac080f..6796b1a832779b65d337c63d6b600e2a3b5e9559 100644
 --- a/src/main/java/net/minecraft/server/SectionPosition.java
 +++ b/src/main/java/net/minecraft/server/SectionPosition.java
 @@ -159,6 +159,7 @@ public class SectionPosition extends BaseBlockPosition {
@@ -117,7 +117,12 @@ index cf5b25d9375724ea2afcf5cd59e0ccd302cdf45e..65efa530125e883b8dec3aab5edb1eea
      public ChunkCoordIntPair r() {
          return new ChunkCoordIntPair(this.a(), this.c());
      }
-@@ -178,6 +179,7 @@ public class SectionPosition extends BaseBlockPosition {
+@@ -173,10 +174,12 @@ public class SectionPosition extends BaseBlockPosition {
+         return (((long) i & 4194303L) << 42) | (((long) j & 1048575L)) | (((long) k & 4194303L) << 20); // Paper - Simplify to reduce instruction count
+     }
+ 
++    public final long asLong() { return s(); } // Yatopia - OBFHELPER
+     public long s() {
          return (((long) getX() & 4194303L) << 42) | (((long) getY() & 1048575L)) | (((long) getZ() & 4194303L) << 20); // Paper - Simplify to reduce instruction count
      }
  
@@ -125,7 +130,7 @@ index cf5b25d9375724ea2afcf5cd59e0ccd302cdf45e..65efa530125e883b8dec3aab5edb1eea
      public Stream<BlockPosition> t() {
          return BlockPosition.a(this.d(), this.e(), this.f(), this.g(), this.h(), this.i());
      }
-@@ -190,6 +192,18 @@ public class SectionPosition extends BaseBlockPosition {
+@@ -189,6 +192,18 @@ public class SectionPosition extends BaseBlockPosition {
          return a(chunkcoordintpair.x - i, 0, chunkcoordintpair.z - i, chunkcoordintpair.x + i, 15, chunkcoordintpair.z + i); // Paper - simplify/inline
      }
  
@@ -305,9 +310,18 @@ index 6ab80cf7908437309a7346d71e42cf128a6f13d9..07a36d1955037524715181461cc2aa5d
  
      final class a extends LightEngineGraphSection {
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index d4018b9b615dae2b9e30517be51322656601b171..0ab4999a829c0125753171fd85c2d2eb6f7ef2bf 100644
+index 77c66bc9952542d2444b402896a3d9f622ca2ff9..b47abdabb592cfff6a4bf9ee638dd72f8a825499 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
+@@ -28,7 +28,7 @@ public class VillagePlaceSection {
+     private boolean e;
+ 
+     public static Codec<VillagePlaceSection> a(Runnable runnable) {
+-        Codec codec = RecordCodecBuilder.create((instance) -> {
++        Codec<VillagePlaceSection> codec = RecordCodecBuilder.create((instance) -> { // Yatopia - decompile fix
+             return instance.group(RecordCodecBuilder.point(runnable), Codec.BOOL.optionalFieldOf("Valid", false).forGetter((villageplacesection) -> {
+                 return villageplacesection.e;
+             }), VillagePlaceRecord.a(runnable).listOf().fieldOf("Records").forGetter((villageplacesection) -> {
 @@ -55,6 +55,17 @@ public class VillagePlaceSection {
          list.forEach(this::a);
      }
