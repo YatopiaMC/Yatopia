@@ -73,10 +73,10 @@ index 0a7f88de5c5c307ed01c2f4a43336571f118736d..7e37d53a427563e319c00202bc7a0769
  
 diff --git a/src/main/java/net/yatopia/server/EntityFilter.java b/src/main/java/net/yatopia/server/EntityFilter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..83361a74380620a664ecf15100905f54bc81b4fa
+index 0000000000000000000000000000000000000000..a76e8f9aa6eefd0afeeeae1d2de90037a2cb0e80
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/EntityFilter.java
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,145 @@
 +package net.yatopia.server;
 +
 +import de.minebench.origami.OrigamiConfig;
@@ -163,39 +163,51 @@ index 0000000000000000000000000000000000000000..83361a74380620a664ecf15100905f54
 +            }
 +            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.MISC) {
 +                if (config.miscCollisions) {
-+                    if (!config.villagerCollisions) {
-+                        if (!config.ironGolemCollisions) {
-+                            if (!config.itemCollisions) {
-+                                return tested.getEntityType() != EntityTypes.VILLAGER
-+                                        && tested.getEntityType() != EntityTypes.IRON_GOLEM
-+                                        && tested.getEntityType() != EntityTypes.ITEM;
-+                            } else {
-+                                return tested.getEntityType() != EntityTypes.VILLAGER
-+                                        && tested.getEntityType() != EntityTypes.IRON_GOLEM;
-+                            }
-+                        } else {
-+                            return tested.getEntityType() != EntityTypes.VILLAGER;
-+                        }
-+                    } else {
++                    if (config.villagerCollisions && config.ironGolemCollisions && config.itemCollisions) {
 +                        return true;
 +                    }
-+                } else {
-+                    if (config.villagerCollisions) {
-+                        if (config.ironGolemCollisions) {
-+                            if (config.itemCollisions) {
-+                                return tested.getEntityType() == EntityTypes.VILLAGER
-+                                        || tested.getEntityType() == EntityTypes.IRON_GOLEM
-+                                        || tested.getEntityType() == EntityTypes.ITEM;
-+                            } else {
-+                                return tested.getEntityType() == EntityTypes.VILLAGER
-+                                        || tested.getEntityType() == EntityTypes.IRON_GOLEM;
-+                            }
-+                        } else {
-+                            return tested.getEntityType() == EntityTypes.VILLAGER;
++                    if (!config.villagerCollisions) {
++                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
++                            return false;
 +                        }
-+                    } else {
-+                        return false;
 +                    }
++                    if (!config.ironGolemCollisions) {
++                        if (tested.getEntityType() == EntityTypes.IRON_GOLEM) {
++                            return false;
++                        }
++                    }
++                    if (!config.itemCollisions) {
++                        if (tested.getEntityType() == EntityTypes.ITEM) {
++                            return false;
++                        }
++                    }
++                    return true;
++                } else {
++                    if (config.villagerCollisions && config.ironGolemCollisions && config.itemCollisions) {
++                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
++                            return true;
++                        }
++                        if (tested.getEntityType() == EntityTypes.IRON_GOLEM) {
++                            return true;
++                        }
++                        if (tested.getEntityType() == EntityTypes.ITEM) {
++                            return true;
++                        }
++                    }
++                    if (config.villagerCollisions && config.ironGolemCollisions) {
++                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
++                            return true;
++                        }
++                        if (tested.getEntityType() == EntityTypes.IRON_GOLEM) {
++                            return true;
++                        }
++                    }
++                    if (config.villagerCollisions) {
++                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
++                            return true;
++                        }
++                    }
++                    return false;
 +                }
 +            }
 +            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_CREATURE && config.waterCreatureCollisions) {
