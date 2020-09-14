@@ -24,10 +24,10 @@ A blazing fast fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), featur
 
 Available at the following options:
 
-* **[CodeMC](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.3/)** - 1.16.3
-* **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.2)** - 1.16.2
-* **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.1)** - 1.16.1
-* **[GitHub Actions](https://github.com/YatopiaMC/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2
+* **[CodeMC](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.3/)** - 1.16.3 (Fully supported)
+* **[CodeMC](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.2/)** - 1.16.2 (Security updates only)
+* **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.1)** - 1.16.1 (Unsupported)
+* **[GitHub Actions](https://github.com/YatopiaMC/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2 (Unsupported)
 
 ## Documentation
 
