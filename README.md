@@ -4,7 +4,7 @@
   <h3>The Most Powerful Minecraft Server Software</h3>
 
 [![Github-CI](https://github.com/YatopiaMC/Yatopia/workflows/CI/badge.svg)](https://github.com/YatopiaMC/Yatopia/actions?query=workflow%3ACI)
-[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.2)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.2/)
+[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.3)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.3/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.io/YatopiaMC)
 ![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopia.net%2F)
 </div>
@@ -24,6 +24,7 @@ A blazing fast fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), featur
 
 Available at the following options:
 
+* **[CodeMC](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.3/)** - 1.16.3
 * **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.2)** - 1.16.2
 * **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.1)** - 1.16.1
 * **[GitHub Actions](https://github.com/YatopiaMC/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2
