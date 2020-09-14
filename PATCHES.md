@@ -55,6 +55,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
+| server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Give them items motion      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |
