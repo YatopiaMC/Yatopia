@@ -5,7 +5,7 @@ Subject: [PATCH] Fix villager dupe
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index da2bd7c597a3f691ec13ff37dd2ef87d44271a97..3789d8f516113e84437e3d420cdb694d1c70d853 100644
+index da2bd7c597a3f691ec13ff37dd2ef87d44271a97..a78f48739850ca8f0a21d63bda81c60020179079 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -204,7 +204,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
@@ -32,7 +32,7 @@ index da2bd7c597a3f691ec13ff37dd2ef87d44271a97..3789d8f516113e84437e3d420cdb694d
 +
 +    // Yatopia start
 +    private void checkWorkstationBreakOpenInventory() {
-+        if (!getBehaviorController().hasMemory(MemoryModuleType.JOB_SITE) && getTrader() != null) { getTrader().closeInventory(); setTradingPlayer(null); }
++        if ((!getBehaviorController().hasMemory(MemoryModuleType.JOB_SITE) || isSleeping()) && getTrader() != null) { getTrader().closeInventory(); setTradingPlayer(null); }
 +    }
 +    // Yatopia end
  }
