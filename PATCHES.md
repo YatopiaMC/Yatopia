@@ -14,7 +14,6 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| server |  Add config Yatopia command and basic settings      | tr7zw |  |
 | api |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add getLastTickMs api      | tr7zw |  |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
@@ -116,6 +115,7 @@ This is an overview over all patches that are currently used.
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
+| server |  Yatopia configuration      | tr7zw |  |
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  dont load chunks for physics      | Aikar |  |
