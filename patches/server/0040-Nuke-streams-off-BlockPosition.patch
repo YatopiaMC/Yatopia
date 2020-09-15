@@ -119,28 +119,28 @@ index 388be69fb55c6b1cfd5ccc7635b54aa648728768..71210cfb2079e92392323e9df945975f
              if (this.aF() && this.isBurning()) {
                  this.playSound(SoundEffects.ENTITY_GENERIC_EXTINGUISH_FIRE, 0.7F, 1.6F + (this.random.nextFloat() - this.random.nextFloat()) * 0.4F);
 diff --git a/src/main/java/net/minecraft/server/EntityFishingHook.java b/src/main/java/net/minecraft/server/EntityFishingHook.java
-index 24842902383820f3ec8dcd2ee57b3d4f2d2e952f..a2a9b6504831182c737143f43e8580919c2124c8 100644
+index 24842902383820f3ec8dcd2ee57b3d4f2d2e952f..2481bfac2cc1224c32ca96519ceb38f0ea0f1b4a 100644
 --- a/src/main/java/net/minecraft/server/EntityFishingHook.java
 +++ b/src/main/java/net/minecraft/server/EntityFishingHook.java
-@@ -377,9 +377,24 @@ public class EntityFishingHook extends IProjectile {
+@@ -377,9 +377,23 @@ public class EntityFishingHook extends IProjectile {
      }
  
      private EntityFishingHook.WaterPosition a(BlockPosition blockposition, BlockPosition blockposition1) {
 -        return (EntityFishingHook.WaterPosition) BlockPosition.b(blockposition, blockposition1).map(this::c).reduce((entityfishinghook_waterposition, entityfishinghook_waterposition1) -> {
-+        // Yatopia start - replace stream
-+        java.util.function.BinaryOperator<EntityFishingHook.WaterPosition> operation = ((entityfishinghook_waterposition, entityfishinghook_waterposition1) -> {
-             return entityfishinghook_waterposition == entityfishinghook_waterposition1 ? entityfishinghook_waterposition : EntityFishingHook.WaterPosition.INVALID;
+-            return entityfishinghook_waterposition == entityfishinghook_waterposition1 ? entityfishinghook_waterposition : EntityFishingHook.WaterPosition.INVALID;
 -        }).orElse(EntityFishingHook.WaterPosition.INVALID);
-+        });
++        // Yatopia start - replace stream
 +        boolean foundAny = false;
 +        EntityFishingHook.WaterPosition result = null;
 +        for (BlockPosition pos : BlockPosition.bList(blockposition, blockposition1)) {
 +            EntityFishingHook.WaterPosition waterPos = this.c(pos);
-+            if (!foundAny) {
-+                foundAny = true;
-+                result = waterPos;
-+            } else {
-+                result = operation.apply(result, waterPos);
++            if (waterPos != WaterPosition.INVALID) {
++                if (!foundAny) {
++                    foundAny = true;
++                    result = waterPos;
++                } else {
++                    result = result == waterPos ? waterPos : WaterPosition.INVALID;
++                }
 +            }
 +        }
 +        if (!foundAny || result == null) result = EntityFishingHook.WaterPosition.INVALID;
