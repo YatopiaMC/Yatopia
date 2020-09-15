@@ -1784,7 +1784,7 @@ index 98a910fa6bfc9542b1d1cb56b6621809acd6b279..00000000000000000000000000000000
 -                         TileEntity tileentity = block.isTileEntity() ? this.world.getTileEntity(blockposition) : null;
 -                         LootTableInfo.Builder loottableinfo_builder = (new LootTableInfo.Builder((WorldServer) this.world)).a(this.world.random).set(LootContextParameters.POSITION, blockposition).set(LootContextParameters.TOOL, ItemStack.b).setOptional(LootContextParameters.BLOCK_ENTITY, tileentity).setOptional(LootContextParameters.THIS_ENTITY, this.source);
 diff --git a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java
-index 0bac6b0506dc35c5117f13db0e9c67b1a0d3154e..4a62043f9b2b9a3bf4ab9a18070a61124cb98348 100644
+index 0bac6b0506dc35c5117f13db0e9c67b1a0d3154e..8ebc3b133a37538d82af92046c3ab40473afcf3f 100644
 --- a/src/main/java/net/minecraft/server/IProjectile.java
 +++ b/src/main/java/net/minecraft/server/IProjectile.java
 @@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
@@ -1795,7 +1795,7 @@ index 0bac6b0506dc35c5117f13db0e9c67b1a0d3154e..4a62043f9b2b9a3bf4ab9a18070a6112
  
      IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
          super(entitytypes, world);
-@@ -79,7 +80,22 @@ public abstract class IProjectile extends Entity {
+@@ -79,8 +80,29 @@ public abstract class IProjectile extends Entity {
          }
  
          super.tick();
@@ -1807,23 +1807,30 @@ index 0bac6b0506dc35c5117f13db0e9c67b1a0d3154e..4a62043f9b2b9a3bf4ab9a18070a6112
 +        // Purpur end
 +    }
 +
-+    // Purpur start - copied from EntityArrow
-+    protected void tickDespawnCounter() {
-+        ++this.despawnCounter;
-+        if (this.despawnCounter >= world.spigotConfig.arrowDespawnRate) {
-+            this.die();
++    // Purpur start
++    protected void tickDespawnCounter() { // Purpur - modified from EntityArrow
++        if (getPurpurDespawnRate() != -1) {
++            ++this.despawnCounter;
++            if (this.despawnCounter >= getPurpurDespawnRate()) {
++                this.die();
++            }
 +        }
      }
-+    // Purpur end
  
++    protected int getPurpurDespawnRate() {
++        return -1;
++    }
++    // Purpur end
++
      private boolean h() {
          Entity entity = this.getShooter();
+ 
 diff --git a/src/main/java/net/minecraft/server/IProjectile.java.rej b/src/main/java/net/minecraft/server/IProjectile.java.rej
 deleted file mode 100644
-index 33186fa6911f0396adfc5e650034daba5b950143..0000000000000000000000000000000000000000
+index c535c0f1c4c13b0ac0de806992778f602ea02675..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/IProjectile.java.rej
 +++ /dev/null
-@@ -1,32 +0,0 @@
+@@ -1,39 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java	(rejected hunks)
 -@@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
 -     private UUID shooter;
@@ -1833,7 +1840,7 @@ index 33186fa6911f0396adfc5e650034daba5b950143..00000000000000000000000000000000
 - 
 -     IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
 -         super(entitytypes, world);
--@@ -79,7 +80,22 @@ public abstract class IProjectile extends Entity {
+-@@ -79,8 +80,29 @@ public abstract class IProjectile extends Entity {
 -         }
 - 
 -         super.tick();
@@ -1845,17 +1852,24 @@ index 33186fa6911f0396adfc5e650034daba5b950143..00000000000000000000000000000000
 -+        // Purpur end
 -+    }
 -+
--+    // Purpur start - copied from EntityArrow
--+    protected void tickDespawnCounter() {
--+        ++this.despawnCounter;
--+        if (this.despawnCounter >= world.spigotConfig.arrowDespawnRate) {
--+            this.die();
+-+    // Purpur start
+-+    protected void tickDespawnCounter() { // Purpur - modified from EntityArrow
+-+        if (this.getPurpurDespawnRate() != -1) {
+-+            ++this.despawnCounter;
+-+            if (this.despawnCounter >= this.getPurpurDespawnRate()) {
+-+                this.die();
+-+            }
 -+        }
 -     }
--+    // Purpur end
 - 
+-+    protected int getPurpurDespawnRate() {
+-+        return -1;
+-+    }
+-+    // Purpur end
+-+
 -     public boolean checkIfLeftOwner() { return this.h(); } // Purpur - OBFHELPER
 -     private boolean h() {
+-         Entity entity = this.getShooter();
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java.rej b/src/main/java/net/minecraft/server/LightEngineThreaded.java.rej
 deleted file mode 100644
 index 74d10212e547adf96762155adb03c0158df00a16..0000000000000000000000000000000000000000
@@ -2754,7 +2768,7 @@ index ff05ff6aef1e0f61eb4437253020632745ee2bd2..00000000000000000000000000000000
 -+    }
 - }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-index 361f7857e461578e90cb71e15027dadaf794cb69..ba6969a1ac8506d230e468cb39586d199978871a 100644
+index 361f7857e461578e90cb71e15027dadaf794cb69..b3c31431afc34b249f88e5b3117b203c0e29a959 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 @@ -1,7 +1,18 @@
@@ -2776,7 +2790,7 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..ba6969a1ac8506d230e468cb39586d19
  import static net.pl3x.purpur.PurpurConfig.log;
  
  public class PurpurWorldConfig {
-@@ -56,4 +67,189 @@ public class PurpurWorldConfig {
+@@ -56,4 +67,214 @@ public class PurpurWorldConfig {
          PurpurConfig.config.addDefault("world-settings.default." + path, def);
          return PurpurConfig.config.getString("world-settings." + worldName + "." + path, PurpurConfig.config.getString("world-settings.default." + path));
      }
@@ -2965,30 +2979,76 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..ba6969a1ac8506d230e468cb39586d19
 +        turtleEggsBreakFromItems = getBoolean("blocks.turtle_egg.break-from-items", turtleEggsBreakFromItems);
 +        turtleEggsBreakFromMinecarts = getBoolean("blocks.turtle_egg.break-from-minecarts", turtleEggsBreakFromMinecarts);
 +    }
++
++    public int witherSkullDespawnRate = -1;
++    public int dragonFireballDespawnRate = -1;
++    public int largeFireballDespawnRate = -1;
++    public int smallFireballDespawnRate = -1;
++    public int eggDespawnRate = -1;
++    public int enderPearlDespawnRate = -1;
++    public int fireworksDespawnRate = -1;
++    public int fishingHookDespawnRate = -1;
++    public int potionDespawnRate = -1;
++    public int shulkerBulletDespawnRate = -1;
++    public int expBottleDespawnRate = -1;
++    private void projectileDespawnRateSettings() {
++        witherSkullDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.wither_skull", witherSkullDespawnRate);
++        dragonFireballDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.dragon_fireball", dragonFireballDespawnRate);
++        largeFireballDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.fireball", largeFireballDespawnRate);
++        smallFireballDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.small_fireball", smallFireballDespawnRate);
++        eggDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.egg", eggDespawnRate);
++        enderPearlDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.ender_pearl", enderPearlDespawnRate);
++        fireworksDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.fireworks_rocket", fireworksDespawnRate);
++        fishingHookDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.fishing_bobber", fishingHookDespawnRate);
++        potionDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.potion", potionDespawnRate);
++        shulkerBulletDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.shulker_bullet", shulkerBulletDespawnRate);
++        expBottleDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.experience_bottle", expBottleDespawnRate);
++    }
  }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 deleted file mode 100644
-index 12ee96c0bb54227dbfab7240d8b114577e0b78f3..0000000000000000000000000000000000000000
+index a3f632f03a8a32d4975e0c8179f17baa27c28766..0000000000000000000000000000000000000000
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 +++ /dev/null
-@@ -1,12 +0,0 @@
+@@ -1,33 +0,0 @@
 -diff a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java	(rejected hunks)
--@@ -483,8 +483,10 @@ public class PurpurWorldConfig {
+-@@ -145,6 +145,31 @@ public class PurpurWorldConfig {
+-         idleTimeoutUpdateTabList = getBoolean("gameplay-mechanics.player.idle-timeout.update-tab-list", idleTimeoutUpdateTabList);
 -     }
 - 
--     public boolean squidImmuneToEAR = true;
--+    public double squidOffsetWaterCheck = 0.0D;
--     private void squidSettings() {
--         squidImmuneToEAR = getBoolean("mobs.squid.immune-to-EAR", squidImmuneToEAR);
--+        squidOffsetWaterCheck = getDouble("mobs.squid.water-offset-check", squidOffsetWaterCheck);
--     }
-- 
--     public int villagerBrainTicks = 1;
+-+    public int witherSkullDespawnRate = -1;
+-+    public int dragonFireballDespawnRate = -1;
+-+    public int largeFireballDespawnRate = -1;
+-+    public int smallFireballDespawnRate = -1;
+-+    public int eggDespawnRate = -1;
+-+    public int enderPearlDespawnRate = -1;
+-+    public int fireworksDespawnRate = -1;
+-+    public int fishingHookDespawnRate = -1;
+-+    public int potionDespawnRate = -1;
+-+    public int shulkerBulletDespawnRate = -1;
+-+    public int expBottleDespawnRate = -1;
+-+    private void projectileDespawnRateSettings() {
+-+        witherSkullDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.wither_skull", witherSkullDespawnRate);
+-+        dragonFireballDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.dragon_fireball", dragonFireballDespawnRate);
+-+        largeFireballDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.fireball", largeFireballDespawnRate);
+-+        smallFireballDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.small_fireball", smallFireballDespawnRate);
+-+        eggDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.egg", eggDespawnRate);
+-+        enderPearlDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.ender_pearl", enderPearlDespawnRate);
+-+        fireworksDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.fireworks_rocket", fireworksDespawnRate);
+-+        fishingHookDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.fishing_bobber", fishingHookDespawnRate);
+-+        potionDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.potion", potionDespawnRate);
+-+        shulkerBulletDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.shulker_bullet", shulkerBulletDespawnRate);
+-+        expBottleDespawnRate = getInt("gameplay-mechanics.projectile-despawn-rates.experience_bottle", expBottleDespawnRate);
+-+    }
+-+
+-     public boolean useBetterMending = false;
+-     public boolean boatEjectPlayersOnLand = false;
+-     public boolean disableDropsOnCrammingDeath = false;
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index bae899f354afe1819c7850f30d827a33696b00fa..324b3c8f85801670d501e9c58585baa395232226 100644
+index 7d6e9e3b284b062db5ecf9fb9b1de31d2c0ba769..b07659d2df48f3d131c8ddf94ff2a1e12afc3d08 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -842,6 +842,7 @@ public final class CraftServer implements Server {
+@@ -844,6 +844,7 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
          net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
@@ -2996,7 +3056,7 @@ index bae899f354afe1819c7850f30d827a33696b00fa..324b3c8f85801670d501e9c58585baa3
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -878,6 +879,7 @@ public final class CraftServer implements Server {
+@@ -880,6 +881,7 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
              world.purpurConfig.init(); // Purpur
@@ -3004,7 +3064,7 @@ index bae899f354afe1819c7850f30d827a33696b00fa..324b3c8f85801670d501e9c58585baa3
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2254,6 +2256,13 @@ public final class CraftServer implements Server {
+@@ -2265,6 +2267,13 @@ public final class CraftServer implements Server {
          }
          // Purpur end
  
@@ -3018,7 +3078,7 @@ index bae899f354afe1819c7850f30d827a33696b00fa..324b3c8f85801670d501e9c58585baa3
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2393,4 +2402,11 @@ public final class CraftServer implements Server {
+@@ -2404,4 +2413,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -3032,12 +3092,12 @@ index bae899f354afe1819c7850f30d827a33696b00fa..324b3c8f85801670d501e9c58585baa3
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej b/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
 deleted file mode 100644
-index 9e8af19858ff226ec9a7a82c118d592f23de281f..0000000000000000000000000000000000000000
+index 44b67715e6c1b113b4651a965e8006e9a10a05bf..0000000000000000000000000000000000000000
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
 +++ /dev/null
 @@ -1,12 +0,0 @@
 -diff a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java	(rejected hunks)
--@@ -2410,5 +2410,10 @@ public final class CraftServer implements Server {
+-@@ -2421,5 +2421,10 @@ public final class CraftServer implements Server {
 -     public String getServerName() {
 -         return getProperties().serverName;
 -     }

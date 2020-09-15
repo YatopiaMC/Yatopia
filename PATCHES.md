@@ -41,6 +41,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | api |  Default permissions      | William Blake Galbreath |  |
+| server |  Despawn rate config options per projectile type      | jmp |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
@@ -102,7 +103,6 @@ This is an overview over all patches that are currently used.
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
-| server |  Respect permissions when constructing InventoryEnderChest      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
@@ -112,7 +112,6 @@ This is an overview over all patches that are currently used.
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
-| server |  Use arrow despawn rate for all projectiles      | William Blake Galbreath |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
