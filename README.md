@@ -52,8 +52,8 @@ This is a lot of politics that we don't have time in our lives to deal with.
 
 ## LICENSE
 
-License information can be found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.2/Licensing/LICENSE.md).
+License information can be found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.3/Licensing/LICENSE.md).
 
 ## SECURITY
 
-Security information can be found found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.2/SECURITY.md).
+Security information can be found found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.3/SECURITY.md).
