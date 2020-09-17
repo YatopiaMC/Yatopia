@@ -107,7 +107,7 @@ And then add the Yatopia-API dependency:
     <dependency>
         <groupId>net.yatopia</groupId>
         <artifactId>yatopia-api</artifactId>
-        <version>1.16.2-R0.1-SNAPSHOT</version>
+        <version>1.16.3-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
