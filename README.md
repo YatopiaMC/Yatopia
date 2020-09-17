@@ -68,6 +68,10 @@ Available at the following places:
 [![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/6)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/6)
 [![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/7)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/7)
 
+## (b)Stats ##
+
+[![bStats Graph Data](https://bstats.org/signatures/server-implementation/Yatopia.svg)](https://bstats.org/plugin/server-implementation/Yatopia)
+
 ## Documentation ##
 
 You can find a full explanation of the Yatopia configuration file on the [Wiki](https://github.com/YatopiaMC/Yatopia/wiki).
