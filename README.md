@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/YatopiaMC/Yatopia/ver/1.16.3/images/yatopia.gif" alt="Yatopia" align="right">
+<img src="https://raw.githubusercontent.com/YatopiaMC/Yatopia/ver/1.16.3/images/yatopia.gif" alt="Yatopia" align="right" width="512" height="512">
 <div align="center">
   <h1>Yatopia</h1>
   <h3>The Most Powerful and Feature Rich Minecraft Server Software</h3>
@@ -22,7 +22,7 @@ A blazing fast fork of [Tuinity](https://github.com/Spottedleaf/Tuinity), featur
 
 ## Give it a try ##
 
-Available at the following options:
+Available at the following places:
 
 ### Latest Build
 
@@ -49,9 +49,11 @@ Available at the following options:
 
 ## Documentation
 
-You can find a full explanation of the Yatopia configuration file on the [Wiki](https://github.com/YatopiaMC/Yatopia/wiki)
+You can find a full explanation of the Yatopia configuration file on the [Wiki](https://github.com/YatopiaMC/Yatopia/wiki).
 
 Also check out the list of patches included in this Project and who created them [here](PATCHES.md)!
+
+You can also find our recommended config base [here](https://github.com/YatopiaMC/Yatopia/wiki/Configurations-Parameters-recommended)!
 
 ## Building and setting up
 
@@ -81,3 +83,7 @@ License information can be found [here](https://github.com/YatopiaMC/Yatopia/blo
 ## SECURITY
 
 Security information can be found found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.3/SECURITY.md).
+
+
+<link rel="stylesheet" type="text/css" href="//code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" />
+Made with <i class="icon ion-heart"></i> on Earth.
