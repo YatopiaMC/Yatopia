@@ -24,21 +24,22 @@ Along with our own additions.
 
 ## Comparison with other forks ##
 
- |**Yatopia**|**Purpur**|**Akarin**|**Tuinity**|**Paper**|**Spigot**|**Bukkit**|**Vanillia**
-:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:
-Actively Updated|✔️|✔️|❌|✔️|✔️|✔️|✔️|❌
-Basic API|✔️|✔️|✔️|✔️|✔️|✔️|✔️|❌
-Advanced API|✔️|✔️|✔️|✔️|✔️|❌|❌|❌
-Fast|✔️|✔️|✔️|✔️|✔️|❌|❌|❌
-Very Fast|✔️|✔️|✔️|✔️|❌|❌|❌|❌
-Extremely Fast|✔️|❌|✔️|❌|❌|❌|❌|❌
-Blazing Fast|✔️|❌|❌|❌|❌|❌|❌|❌
-Basic Configuration|✔️|✔️|✔️|✔️|✔️|✔️|✔️|❌
-Advanced Configuration|✔️|✔️|✔️|✔️|✔️|❌|❌|❌
-Feature Rich Configuration|✔️|✔️|❌|❌|❌|❌|❌|❌
-Designed with Large Player Counts in Mind|✔️|✔️|✔️|✔️|❌|❌|❌|❌
-Reasonable PR System|✔️|✔️|✔️|✔️|✔️|❌|❌|❌
-Advanced Patching Logic|✔️|❌|❌|❌|❌|❌|❌|❌
+|                                           | Yatopia | Purpur | Akarin | Tuinity | Paper | Spigot | Bukkit | Vanillia | 
+|-------------------------------------------|---------|--------|--------|---------|-------|--------|--------|----------| 
+| Actively Updated                          | ✔️      | ✔️     | ❌      | ✔️      | ✔️    | ✔️     | ✔️     | ❌        | 
+| Basic API                                 | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ✔️     | ✔️     | ❌        | 
+| Advanced API                              | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
+| Fast                                      | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
+| Very Fast                                 | ✔️      | ✔️     | ✔️     | ✔️      | ❌     | ❌      | ❌      | ❌        | 
+| Extremely Fast                            | ✔️      | ❌      | ✔️     | ❌       | ❌     | ❌      | ❌      | ❌        | 
+| Blazing Fast                              | ✔️      | ❌      | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
+| Basic Configuration                       | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ✔️     | ✔️     | ❌        | 
+| Advanced Configuration                    | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
+| Feature Rich Configuration                | ✔️      | ✔️     | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
+| Designed with Large Player Counts in Mind | ✔️      | ✔️     | ✔️     | ✔️      | ❌     | ❌      | ❌      | ❌        | 
+| Resonable PR System                       | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
+| Advanced Patching Logic                   | ✔️      | ❌      | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
+
 
 ## Give it a try ##
 
