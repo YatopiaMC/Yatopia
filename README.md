@@ -36,9 +36,16 @@ Available at the following options:
 * **[GitHub Releases](https://github.com/YatopiaMC/Yatopia/releases/tag/1.16.1)** - 1.16.1 (Unsupported)
 * **[GitHub Actions](https://github.com/YatopiaMC/Yatopia/actions?query=branch%3Aver%2F1.15.2+is%3Asuccess+event%3Apush)** - 1.15.2 (Unsupported)
 
-## Hall Of Fame ##
+## Contributors ##
 
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/0)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/0)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/1)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/1)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/2)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/2)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/3)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/3)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/4)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/4)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/5)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/5)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/6)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/6)[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/7)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/7)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/0)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/0)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/1)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/1)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/2)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/2)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/3)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/3)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/4)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/4)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/5)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/5)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/6)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/6)
+[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/7)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/7)
 
 ## Documentation
 
