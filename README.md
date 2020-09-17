@@ -87,6 +87,32 @@ Run the following commands in the root directory:
 
 If you are repatching you need to delete `Yatopa-API` and `Yatopia-Server` folders.
 
+## Using Yatopia-API ##
+
+To build your plugin against the Yatopia-API,
+First add the CodeMC maven repository:
+```xml
+<repositories>
+    <!-- CodeMC -->
+    <repository>
+        <id>codemc-repo</id>
+        <url>https://repo.codemc.io/repository/maven-public/</url>
+    </repository>
+</repositories>
+```
+
+And then add the Yatopia-API dependency:
+```xml
+<dependencies>
+    <dependency>
+        <groupId>net.yatopia</groupId>
+        <artifactId>yatopia-api</artifactId>
+        <version>1.16.2-R0.1-SNAPSHOT</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
 ## Why are there not many API additions ##
 
 (Modified from [starlis/empirecraft](https://github.com/starlis/empirecraft/))
