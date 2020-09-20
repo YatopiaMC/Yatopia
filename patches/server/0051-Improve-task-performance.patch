@@ -7,7 +7,7 @@ Replace ConcurrentLinkedQueue + LockSupport hack to reduce time
 consumption of addTask(R)V
 
 diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
-index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..c9f0c1decc3a71a570f28dcbb5e3de784161fabe 100644
+index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..7910d95bdd42ed97a5cab75c0da5bdacf030b92f 100644
 --- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 +++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 @@ -1,11 +1,12 @@
@@ -47,14 +47,12 @@ index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..c9f0c1decc3a71a570f28dcbb5e3de78
      }
  
      public void execute(Runnable runnable) {
-@@ -91,22 +94,28 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
- 
+@@ -92,21 +95,27 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
      }
  
--    public void executeAll() { // Paper - protected -> public
+     public void executeAll() { // Paper - protected -> public
 -        while (this.executeNext()) {
 -            ;
-+    public void executeAll() {// Paper - protected -> public
 +        // Yatopia start - replaced logic
 +        while (!d.isEmpty()) {
 +            if(next == null) bl();
