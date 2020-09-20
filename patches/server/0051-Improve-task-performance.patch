@@ -3,9 +3,11 @@ From: ishland <ishlandmc@yeah.net>
 Date: Sun, 20 Sep 2020 00:05:44 +0800
 Subject: [PATCH] Improve task performance
 
+Replace ConcurrentLinkedQueue + LockSupport hack to reduce time
+consumption of addTask(R)V
 
 diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
-index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..4e31cf233993663221faff3286434f47d7852521 100644
+index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..c9f0c1decc3a71a570f28dcbb5e3de784161fabe 100644
 --- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 +++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 @@ -1,11 +1,12 @@
@@ -28,40 +30,45 @@ index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..4e31cf233993663221faff3286434f47
      private final String b;
      private static final Logger LOGGER = LogManager.getLogger();
 -    private final Queue<R> d = Queues.newConcurrentLinkedQueue();
-+    private final LinkedBlockingDeque<R> d = new LinkedBlockingDeque<>();
++    private final LinkedBlockingDeque<R> d = new LinkedBlockingDeque<>(); // Yatopia - improve task performance
      private int e;
  
-+    private R next = null;
++    private R next = null; // Yatopia - improve task performance - temp storage for next object
 +
      protected IAsyncTaskHandler(String s) {
          this.b = s;
      }
-@@ -79,7 +82,6 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+@@ -79,7 +82,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
      public final void addTask(R r0) { a(r0); }; // Paper - OBFHELPER
      public void a(R r0) {
          this.d.add(r0);
 -        LockSupport.unpark(this.getThread());
++        // LockSupport.unpark(this.getThread()); // Yatopia - improve task performance - replaced by LinkedBlockingQueue
      }
  
      public void execute(Runnable runnable) {
-@@ -92,21 +94,25 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+@@ -91,22 +94,28 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+ 
      }
  
-     public void executeAll() { // Paper - protected -> public
+-    public void executeAll() { // Paper - protected -> public
 -        while (this.executeNext()) {
 -            ;
++    public void executeAll() {// Paper - protected -> public
++        // Yatopia start - replaced logic
 +        while (!d.isEmpty()) {
 +            if(next == null) bl();
 +            if(!executeNext()) break;
          }
++        // Yatopia end
  
      }
  
      protected boolean executeNext() {
 -        R r0 = this.d.peek(); // Paper - decompile fix
-+        R r0 = next; // Paper - decompile fix
++        R r0 = next; // Paper - decompile fix // Yatopia - replaced with temp storage
 +
-+        if(next == null && !d.isEmpty()) bl();
++        if(next == null && !d.isEmpty()) bl(); // Yatopia - attempt to get from queue
  
          if (r0 == null) {
              return false;
@@ -69,22 +76,24 @@ index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..4e31cf233993663221faff3286434f47
              return false;
          } else {
 -            this.executeTask(this.d.remove()); // Paper - decompile fix
-+            this.executeTask(r0); // Paper - decompile fix
-+            next = null;
++            this.executeTask(r0); // Paper - decompile fix // Yatopia - replaced with current r0
++            next = null; // Yatopia - clear storage for next task
              return true;
          }
      }
-@@ -127,8 +133,11 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+@@ -127,8 +136,13 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
      }
  
      protected void bl() {
 -        Thread.yield();
 -        LockSupport.parkNanos("waiting for tasks", 100000L);
++        // Yatopia start - replaced logic
 +        next = null;
 +        try {
 +            next = d.poll(100, TimeUnit.MICROSECONDS);
 +        } catch (InterruptedException ignored) {
 +        }
++        // Yatopia end
      }
  
      protected void executeTask(R r0) {
