@@ -57,7 +57,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
-| server |  Give them items motion      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
@@ -65,6 +64,7 @@ This is an overview over all patches that are currently used.
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
 | server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
 | server |  Improve Hopper Performance      | Aikar |  |
+| server |  Improve task performance      | ishland |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
@@ -75,7 +75,6 @@ This is an overview over all patches that are currently used.
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
-| server |  Nuke Bootstrap thread pool      | foss-mc | Ivan Pekov |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
@@ -103,6 +102,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
+| server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
