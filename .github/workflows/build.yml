@@ -23,7 +23,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [14, 11, 8]
+        java: [15, 11, 8]
 
     steps:
     - name: Cancel Previous Runs
@@ -52,12 +52,19 @@ jobs:
          git config --global user.name "Github CI"
          sudo chmod -R -f 777 scripts
          ./yatopia init
-#    - name: Build Maven Depends
-#      if: steps.maven-cache.outputs.cache-hit != 'true'
-#      run: |
-#         cd Tuinity
-#         ./tuinity jar
-#         cd ..//
+    - name: Build Maven Depends
+      if: steps.maven-cache.outputs.cache-hit != 'true'
+      run: |
+         cd Tuinity
+         ./tuinity jar
+         cd ..//
     - name: Build Yatopia
       run: |
         ./yatopia full
+    - name: Upload Artifact
+      if: github.ref != 'refs/heads/ver/1.16.3'
+      uses: actions/upload-artifact@v2
+      with:
+        name: Yatopia-${{ matrix.java }}
+        path: yatopia-1.16.3-paperclip.jar
+      
