@@ -65,6 +65,7 @@ This is an overview over all patches that are currently used.
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
 | server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
 | server |  Improve Hopper Performance      | Aikar |  |
+| server |  Improve async task handler      | ishland |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
