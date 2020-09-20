@@ -1,0 +1,97 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sun, 20 Sep 2020 00:05:44 +0800
+Subject: [PATCH] Improve task performance
+
+Replace ConcurrentLinkedQueue + LockSupport hack to reduce time
+consumption of addTask(R)V
+
+diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..7910d95bdd42ed97a5cab75c0da5bdacf030b92f 100644
+--- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
++++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+@@ -1,11 +1,12 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.Queues;
++
+ import java.util.Queue;
+-import java.util.concurrent.CompletableFuture;
+-import java.util.concurrent.Executor;
++import java.util.concurrent.*;
+ import java.util.concurrent.locks.LockSupport;
+ import java.util.function.BooleanSupplier;
++
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -13,9 +14,11 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+ 
+     private final String b;
+     private static final Logger LOGGER = LogManager.getLogger();
+-    private final Queue<R> d = Queues.newConcurrentLinkedQueue();
++    private final LinkedBlockingDeque<R> d = new LinkedBlockingDeque<>(); // Yatopia - improve task performance
+     private int e;
+ 
++    private R next = null; // Yatopia - improve task performance - temp storage for next object
++
+     protected IAsyncTaskHandler(String s) {
+         this.b = s;
+     }
+@@ -79,7 +82,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     public final void addTask(R r0) { a(r0); }; // Paper - OBFHELPER
+     public void a(R r0) {
+         this.d.add(r0);
+-        LockSupport.unpark(this.getThread());
++        // LockSupport.unpark(this.getThread()); // Yatopia - improve task performance - replaced by LinkedBlockingQueue
+     }
+ 
+     public void execute(Runnable runnable) {
+@@ -92,21 +95,27 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     }
+ 
+     public void executeAll() { // Paper - protected -> public
+-        while (this.executeNext()) {
+-            ;
++        // Yatopia start - replaced logic
++        while (!d.isEmpty()) {
++            if(next == null) bl();
++            if(!executeNext()) break;
+         }
++        // Yatopia end
+ 
+     }
+ 
+     protected boolean executeNext() {
+-        R r0 = this.d.peek(); // Paper - decompile fix
++        R r0 = next; // Paper - decompile fix // Yatopia - replaced with temp storage
++
++        if(next == null && !d.isEmpty()) bl(); // Yatopia - attempt to get from queue
+ 
+         if (r0 == null) {
+             return false;
+         } else if (this.e == 0 && !this.canExecute(r0)) {
+             return false;
+         } else {
+-            this.executeTask(this.d.remove()); // Paper - decompile fix
++            this.executeTask(r0); // Paper - decompile fix // Yatopia - replaced with current r0
++            next = null; // Yatopia - clear storage for next task
+             return true;
+         }
+     }
+@@ -127,8 +136,13 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     }
+ 
+     protected void bl() {
+-        Thread.yield();
+-        LockSupport.parkNanos("waiting for tasks", 100000L);
++        // Yatopia start - replaced logic
++        next = null;
++        try {
++            next = d.poll(100, TimeUnit.MICROSECONDS);
++        } catch (InterruptedException ignored) {
++        }
++        // Yatopia end
+     }
+ 
+     protected void executeTask(R r0) {
