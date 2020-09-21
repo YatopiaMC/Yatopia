@@ -2212,7 +2212,7 @@ index 21d74b79c4f5be946024cd382e1164ecd5fd69c3..00000000000000000000000000000000
 -                 }
 - 
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index 9273fc22df2c9618efb09a8f95fd7e7f08652f88..67018d2abcca8f9dd71fc3a6bfff19c85e8bcef0 100644
+index 9273fc22df2c9618efb09a8f95fd7e7f08652f88..97fadc4a1fa7859a07dc5d6c122beb66ca01c97f 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
 @@ -23,15 +23,17 @@ public class PortalTravelAgent {
@@ -2234,11 +2234,24 @@ index 9273fc22df2c9618efb09a8f95fd7e7f08652f88..67018d2abcca8f9dd71fc3a6bfff19c8
 +        Optional<VillagePlaceRecord> optional = Optional.empty();
 +        if (!list.isEmpty()) {
 +            list.sort(comparator);
-+            optional = Optional.of(list.get(0));
++            optional = Optional.ofNullable(retrieveRecord(list));
 +        }
  
          return optional.map((villageplacerecord) -> {
              BlockPosition blockposition1 = villageplacerecord.f();
+@@ -45,6 +47,12 @@ public class PortalTravelAgent {
+         });
+     }
+ 
++    // Yatopia start
++    private VillagePlaceRecord retrieveRecord(java.util.List<VillagePlaceRecord> records) {
++        for (VillagePlaceRecord record : records) { if (world.getType(record.getPosition()).contains(BlockProperties.E)) { return record; } } return null;
++    }
++    // Yatopia end
++
+     public Optional<BlockUtil.Rectangle> createPortal(BlockPosition blockposition, EnumDirection.EnumAxis enumdirection_enumaxis) {
+         // CraftBukkit start
+         return this.createPortal(blockposition, enumdirection_enumaxis, null, 16);
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java.rej b/src/main/java/net/minecraft/server/PortalTravelAgent.java.rej
 deleted file mode 100644
 index e8002e718bce73e4cfedcab7636a85a773dfb099..0000000000000000000000000000000000000000
