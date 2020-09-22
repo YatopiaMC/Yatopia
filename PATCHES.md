@@ -80,6 +80,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
+| server |  Optimize async task handler      | Ivan Pekov | ishland |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |

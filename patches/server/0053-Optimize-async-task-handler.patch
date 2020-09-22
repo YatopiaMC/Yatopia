@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 22 Sep 2020 21:50:57 +0300
+Subject: [PATCH] Optimize async task handler
+
+Co-authored-by: ishland <ishlandmc@yeah.net>
+
+diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..31ea39e3b12f67541f950654377ce4c862562dd1 100644
+--- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
++++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
+@@ -13,7 +13,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+ 
+     private final String b;
+     private static final Logger LOGGER = LogManager.getLogger();
+-    private final Queue<R> d = Queues.newConcurrentLinkedQueue();
++    private final java.util.concurrent.BlockingQueue<R> d = new java.util.concurrent.LinkedBlockingQueue<>(); // Yatopia
+     private int e;
+ 
+     protected IAsyncTaskHandler(String s) {
+@@ -79,7 +79,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     public final void addTask(R r0) { a(r0); }; // Paper - OBFHELPER
+     public void a(R r0) {
+         this.d.add(r0);
+-        LockSupport.unpark(this.getThread());
++        //LockSupport.unpark(this.getThread()); // Yatopia - remove this
+     }
+ 
+     public void execute(Runnable runnable) {
+@@ -99,14 +99,14 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     }
+ 
+     protected boolean executeNext() {
+-        R r0 = this.d.peek(); // Paper - decompile fix
++        R r0 = d.poll(); // Paper - decompile fix // Yatopia
+ 
+         if (r0 == null) {
+             return false;
+         } else if (this.e == 0 && !this.canExecute(r0)) {
+             return false;
+         } else {
+-            this.executeTask(this.d.remove()); // Paper - decompile fix
++            this.executeTask(r0); // Paper - decompile fix // Yatopia
+             return true;
+         }
+     }
+@@ -127,8 +127,10 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+     }
+ 
+     protected void bl() {
++        /* // Yatopia - nuke this
+         Thread.yield();
+         LockSupport.parkNanos("waiting for tasks", 100000L);
++         */ // Yatopia
+     }
+ 
+     protected void executeTask(R r0) {
