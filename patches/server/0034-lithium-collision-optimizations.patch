@@ -625,12 +625,13 @@ index 0000000000000000000000000000000000000000..508fe7cf5281cff7528b90e584c17e73
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e6660fe1a552635e563103aa6fa078d422e6c0c7
+index 0000000000000000000000000000000000000000..1ec2b7a9e0062ed4d45786167bd6c71b588da4d7
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,66 @@
 +package me.jellysquid.mods.lithium.common.util;
 +
++import java.util.Comparator;
 +import java.util.List;
 +import java.util.Spliterator;
 +import java.util.Spliterators;
@@ -668,7 +669,23 @@ index 0000000000000000000000000000000000000000..e6660fe1a552635e563103aa6fa078d4
 +
 +    static <T> void fillList(Producer<T> producer, List<T> list) {
 +        HoldingConsumer<T> consumer = new HoldingConsumer<>();
-+        while (producer.computeNext(consumer)) list.add(consumer.getValue());
++        while (producer.computeNext(consumer)) {
++            T value = consumer.getValue();
++            if (value == null || list.contains(value)) { continue; }
++            list.add(value);
++        }
++        if (!list.isEmpty()) {
++            boolean allComparable = true;
++            for (T value : list) {
++                if (!(value instanceof Comparable)) {
++                    allComparable = false;
++                    break;
++                }
++            }
++            if (allComparable) {
++                list.sort((o1, o2) -> ((Comparable<T>)o1).compareTo(o2));
++            }
++        }
 +    }
 +
 +    Producer<?> EMPTY_PRODUCER = consumer -> false;
