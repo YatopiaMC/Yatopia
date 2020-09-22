@@ -5,7 +5,7 @@ Subject: [PATCH] Fix watchdog termination hanging indefinitely
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 8e4cdad1b76c24f4e459077c5a2b4b08e0a7134f..6f0c4f5c42ca687bae0efa131087a393b8f06685 100644
+index 8e4cdad1b76c24f4e459077c5a2b4b08e0a7134f..ac159f71acc1a0fa612399b4fb77c2d1612b16b2 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -820,6 +820,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -14,7 +14,7 @@ index 8e4cdad1b76c24f4e459077c5a2b4b08e0a7134f..6f0c4f5c42ca687bae0efa131087a393
          } catch (java.lang.InterruptedException ignored) {} // Paper
 +        // Yatopia start - fix watchdog hanging indefinitely 
 +        MCUtil.cleanerExecutor.shutdown();
-+        try { MCUtil.asyncExecutor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
++        try { MCUtil.cleanerExecutor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
 +        } catch (InterruptedException ignored) {}
 +        // Yatopia end
          if (org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) {
