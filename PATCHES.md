@@ -56,6 +56,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix villager dupe      | Ivan Pekov |  |
+| server |  Fix watchdog termination hanging indefinitely      | Ivan Pekov |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
