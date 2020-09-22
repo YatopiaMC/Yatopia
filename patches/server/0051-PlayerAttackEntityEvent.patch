@@ -1,0 +1,106 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 22 Sep 2020 12:52:34 +0300
+Subject: [PATCH] PlayerAttackEntityEvent
+
+Added per request
+
+diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
+index a64683d1d21c282b249e2dd07cbb497721f1052d..1b5a38a235eb99e1a3c8ded15a1d841463ec3543 100644
+--- a/src/main/java/net/minecraft/server/EntityHuman.java
++++ b/src/main/java/net/minecraft/server/EntityHuman.java
+@@ -1058,6 +1058,7 @@ public abstract class EntityHuman extends EntityLiving {
+ 
+                     flag2 = flag2 && !world.paperConfig.disablePlayerCrits; // Paper
+                     flag2 = flag2 && !this.isSprinting();
++                    /* // Yatopia start - moved down
+                     if (flag2) {
+                         f *= 1.5F;
+                     }
+@@ -1073,6 +1074,7 @@ public abstract class EntityHuman extends EntityLiving {
+                             flag3 = true;
+                         }
+                     }
++                     */ // Yatopia end
+ 
+                     float f3 = 0.0F;
+                     boolean flag4 = false;
+@@ -1093,6 +1095,55 @@ public abstract class EntityHuman extends EntityLiving {
+                         }
+                     }
+ 
++                    // Yatopia start - PlayerAttackEntityEvent
++                    net.yatopia.api.event.PlayerAttackEntityEvent playerAttackEntityEvent =
++                            new net.yatopia.api.event.PlayerAttackEntityEvent(
++                                    this.getBukkitEntity(),
++                                    entity.getBukkitEntity(),
++                                    org.bukkit.craftbukkit.inventory.CraftItemStack
++                                            .asBukkitCopy(this.getItemInHand(EnumHand.MAIN_HAND)),
++                                    flag2, f + f1
++                            );
++                    float totalDamage = f + f1;
++                    org.bukkit.Bukkit.getPluginManager().callEvent(playerAttackEntityEvent);
++                    if (playerAttackEntityEvent.isCancelled()) {
++                        return;
++                    }
++                    if (playerAttackEntityEvent.getDamage() == totalDamage) {
++                        if (playerAttackEntityEvent.isCritical() && !world.paperConfig.disablePlayerCrits) {
++                            f *= 1.5F;
++                        }
++                        f += f1;
++                    } else {
++                        if (playerAttackEntityEvent.getDamage() < 0) {
++                            return;
++                        }
++                        float damage = playerAttackEntityEvent.getDamage() - f1;
++                        if (damage < 0) {
++                            return;
++                        }
++                        if (playerAttackEntityEvent.isCritical() && !world.paperConfig.disablePlayerCrits) {
++                            damage *= 1.5F;
++                        }
++                        damage += f1;
++                        f = damage;
++                    }
++
++                    boolean flag3 = false;
++                    double d0 = this.A - this.z;
++                    //if (flag && !flag2 && !flag1 && this.onGround && d0 < (double) this.dM()) {
++                    //if (itemstack.getItem() instanceof ItemSword) {
++                    if (
++                            flag &&
++                            (!playerAttackEntityEvent.isCritical() || world.paperConfig.disablePlayerCrits) &&
++                            !flag1 &&
++                            this.onGround &&
++                            d0 < this.getMovementSpeed() &&
++                            this.getItemInHand(EnumHand.MAIN_HAND).getItem() instanceof ItemSword
++                    ) {
++                        flag3 = true;
++                    }
++                    // Yatopia end
+                     Vec3D vec3d = entity.getMot();
+                     boolean flag5 = entity.damageEntity(DamageSource.playerAttack(this), f);
+ 
+@@ -1156,12 +1207,12 @@ public abstract class EntityHuman extends EntityLiving {
+                             // CraftBukkit end
+                         }
+ 
+-                        if (flag2) {
++                        if (playerAttackEntityEvent.isCritical() && !world.paperConfig.disablePlayerCrits) { // Yatopia
+                             sendSoundEffect(this, this.locX(), this.locY(), this.locZ(), SoundEffects.ENTITY_PLAYER_ATTACK_CRIT, this.getSoundCategory(), 1.0F, 1.0F); // Paper - send while respecting visibility
+                             this.a(entity);
+                         }
+ 
+-                        if (!flag2 && !flag3) {
++                        if ((!playerAttackEntityEvent.isCritical() || world.paperConfig.disablePlayerCrits) && !flag3) { // Yatopia
+                             if (flag) {
+                                 sendSoundEffect(this, this.locX(), this.locY(), this.locZ(), SoundEffects.ENTITY_PLAYER_ATTACK_STRONG, this.getSoundCategory(), 1.0F, 1.0F); // Paper - send while respecting visibility
+                             } else {
+@@ -1455,6 +1506,7 @@ public abstract class EntityHuman extends EntityLiving {
+         return !this.world.getType(blockposition).o(this.world, blockposition);
+     }
+ 
++    public final float getMovementSpeed() { return dM(); } // Yatopia - OBFHELPER
+     @Override
+     public float dM() {
+         return (float) this.b(GenericAttributes.MOVEMENT_SPEED);

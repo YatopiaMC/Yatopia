@@ -88,6 +88,8 @@ This is an overview over all patches that are currently used.
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | server |  Player-saving-async-FileIO      | tr7zw |  |
+| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
+| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
