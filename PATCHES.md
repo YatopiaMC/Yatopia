@@ -81,6 +81,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
+| server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
