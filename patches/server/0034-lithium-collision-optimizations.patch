@@ -775,7 +775,7 @@ index 0000000000000000000000000000000000000000..493103d755c222f2c6031ffb8f5c0b7a
 +    Collection<T> getAllOfGroupType(EntityClassGroup type);
 +}
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index f1a382c3d3f918419a2d72bdb41914b95b7aeaa8..458b232285ca65ca5e0c686688f1c5f32211b592 100644
+index ac6e5e3309affc830d4db07fd9b8d809c3085033..37a3b26cdeb02acb8051f0a99313de7923ebae3b 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -36,7 +36,7 @@ public class Chunk implements IChunkAccess {
@@ -816,7 +816,7 @@ index f1a382c3d3f918419a2d72bdb41914b95b7aeaa8..458b232285ca65ca5e0c686688f1c5f3
          if (nextSlice == currentSlice) {
              if (World.DEBUG_ENTITIES) MinecraftServer.LOGGER.warn("Entity was already in this chunk!" + entity, new Throwable());
              return; // ??? silly plugins
-@@ -938,12 +938,12 @@ public class Chunk implements IChunkAccess {
+@@ -930,12 +930,12 @@ public class Chunk implements IChunkAccess {
          j = MathHelper.clamp(j, 0, this.entitySlices.length - 1);
  
          for (int k = i; k <= j; ++k) {
@@ -833,7 +833,7 @@ index f1a382c3d3f918419a2d72bdb41914b95b7aeaa8..458b232285ca65ca5e0c686688f1c5f3
                  if (entity1.shouldBeRemoved) continue; // Paper
  
                  if (entity1.getBoundingBox().c(axisalignedbb) && entity1 != entity) {
-@@ -1074,7 +1074,7 @@ public class Chunk implements IChunkAccess {
+@@ -1066,7 +1066,7 @@ public class Chunk implements IChunkAccess {
          return this.tileEntities;
      }
  
@@ -1013,10 +1013,10 @@ index 882b82d8952d34f6e3c639404d1a1521dedf1bb0..ccf1416000354b78ccef78b072062ce0
  
      default EntityHuman findNearbyPlayer(Entity entity, double d0, @Nullable Predicate<Entity> predicate) { return this.findNearbyPlayer(entity.locX(), entity.locY(), entity.locZ(), d0, predicate); } // Paper
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 0e5614773d9d89996a9dfbc1a379cb24725f51af..0525fc5772abfc142106470ce6a8cee5cf898207 100644
+index fbb36229ce936e323619457b618627254cc2ade8..727aecff6987b9194617bcb4e5e59d923a8dd858 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1370,11 +1370,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1351,11 +1351,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                      chunk.setLoaded(true);
                      this.world.a(chunk.getTileEntities().values());
                      List<Entity> list = null;
@@ -1030,7 +1030,7 @@ index 0e5614773d9d89996a9dfbc1a379cb24725f51af..0525fc5772abfc142106470ce6a8cee5
                          Iterator iterator = entityslice.iterator();
  
                          while (iterator.hasNext()) {
-@@ -1669,7 +1669,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1648,7 +1648,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              // CraftBukkit - decompile error
              csvwriter.a(chunkcoordintpair.x, chunkcoordintpair.z, playerchunk.getTicketLevel(), optional.isPresent(), optional.map(IChunkAccess::getChunkStatus).orElse(null), optional1.map(Chunk::getState).orElse(null), a(playerchunk.c()), a(playerchunk.a()), a(playerchunk.b()), this.chunkDistanceManager.c(entry.getLongKey()), !this.isOutsideOfRange(chunkcoordintpair), optional1.map((chunk) -> {
                  int sum = 0;
@@ -1040,7 +1040,7 @@ index 0e5614773d9d89996a9dfbc1a379cb24725f51af..0525fc5772abfc142106470ce6a8cee5
                      sum += size;
                  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 0dd86a72b538ff140d8a7268cf1fe4e18ede33b5..87fbc28847a3a6232861d36f3fa2f038c4664239 100644
+index 6610d2f0f852a2af93ab9a61d69a6862d11f1b19..17760dce57dd2e85f98c6fc63e2b49d838f7190e 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -649,8 +649,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
