@@ -6,19 +6,21 @@ Subject: [PATCH] Optimize async task handler
 Co-authored-by: ishland <ishlandmc@yeah.net>
 
 diff --git a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
-index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..31ea39e3b12f67541f950654377ce4c862562dd1 100644
+index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..1868a8e4bdab8e1fccb04b703908b38d95fadea5 100644
 --- a/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
 +++ b/src/main/java/net/minecraft/server/IAsyncTaskHandler.java
-@@ -13,7 +13,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+@@ -13,8 +13,9 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
  
      private final String b;
      private static final Logger LOGGER = LogManager.getLogger();
 -    private final Queue<R> d = Queues.newConcurrentLinkedQueue();
 +    private final java.util.concurrent.BlockingQueue<R> d = new java.util.concurrent.LinkedBlockingQueue<>(); // Yatopia
      private int e;
++    private final java.util.concurrent.locks.Lock executeLock = new java.util.concurrent.locks.ReentrantLock(); // Yatopia
  
      protected IAsyncTaskHandler(String s) {
-@@ -79,7 +79,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+         this.b = s;
+@@ -79,7 +80,7 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
      public final void addTask(R r0) { a(r0); }; // Paper - OBFHELPER
      public void a(R r0) {
          this.d.add(r0);
@@ -27,7 +29,7 @@ index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..31ea39e3b12f67541f950654377ce4c8
      }
  
      public void execute(Runnable runnable) {
-@@ -99,14 +99,14 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+@@ -99,14 +100,14 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
      }
  
      protected boolean executeNext() {
@@ -44,7 +46,7 @@ index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..31ea39e3b12f67541f950654377ce4c8
              return true;
          }
      }
-@@ -127,8 +127,10 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
+@@ -127,16 +128,21 @@ public abstract class IAsyncTaskHandler<R extends Runnable> implements Mailbox<R
      }
  
      protected void bl() {
@@ -55,3 +57,14 @@ index 5df6be7e8d9b1295ed0700b3be90c3778fc7d77c..31ea39e3b12f67541f950654377ce4c8
      }
  
      protected void executeTask(R r0) {
++        executeLock.lock(); // Yatopia
+         try {
+             r0.run();
+         } catch (Exception exception) {
+             if (exception.getCause() instanceof ThreadDeath) throw exception; // Paper
+             IAsyncTaskHandler.LOGGER.fatal("Error executing task on {}", this.bi(), exception);
++        } finally { // Yatopia
++            executeLock.unlock(); // Yatopia
+         }
+ 
+     }
