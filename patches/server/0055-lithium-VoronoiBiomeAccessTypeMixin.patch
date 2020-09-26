@@ -7,7 +7,7 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java b/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
-index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..bdd6ab1c2dd33ff05a7e886078f0e91ebc8b2833 100644
+index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..dc84778225196708075fe00efbe28249c0d5a253 100644
 --- a/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
 +++ b/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
 @@ -6,54 +6,78 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
@@ -95,9 +95,7 @@ index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..bdd6ab1c2dd33ff05a7e886078f0e91e
 +                bY = y2 + 1;
 +                sY = y3 - 1.0D;
 +            }
- 
--        k2 = 0;
--        double d6 = adouble[0];
++
 +            if ((i & 0b001) == 0) {
 +                bZ = z2;
 +                sZ = z3;
@@ -105,8 +103,10 @@ index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..bdd6ab1c2dd33ff05a7e886078f0e91e
 +                bZ = z2 + 1;
 +                sZ = z3 - 1.0D;
 +            }
-+
-+            double dist = calcSquaredDistance(seed, bX, bY, bZ, sX, sY, sZ);
+ 
+-        k2 = 0;
+-        double d6 = adouble[0];
++            double dist = a(seed, bX, bY, bZ, sX, sY, sZ);
  
 -        int k3;
 +            if (minDist > dist) {
@@ -130,7 +130,7 @@ index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..bdd6ab1c2dd33ff05a7e886078f0e91e
      }
  
      private static double a(long i, int j, int k, int l, double d0, double d1, double d2) {
-@@ -75,13 +99,15 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+@@ -75,10 +99,8 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
          return a(d2 + d5) + a(d1 + d4) + a(d0 + d3);
      }
  
@@ -143,10 +143,3 @@ index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..bdd6ab1c2dd33ff05a7e886078f0e91e
      }
  
      private static double a(double d0) {
-         return d0 * d0;
-     }
-+
-+    private static double calcSquaredDistance(long seed, int x, int y, int z, double xFraction, double yFraction, double zFraction) {
-+        throw new UnsupportedOperationException();
-+    }
- }
