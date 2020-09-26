@@ -1,5 +1,5 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: JellySquid <jellysquid+atwork@protonmail.com>
+From: Bud Gidiere <sgidiere@gmail.com>
 Date: Sat, 26 Sep 2020 11:37:25 -0500
 Subject: [PATCH] lithium PerlinNoiseSamplerMixin
 
@@ -7,27 +7,66 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
-index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..72997accb587b8a3d17418599862dce9c6064742 100644
+index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..f6ec19f37d8b416ec01802c01932fc1bde3f9928 100644
 --- a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
 +++ b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
-@@ -8,6 +8,14 @@ public final class NoiseGeneratorPerlin {
-     public final double a;
-     public final double b;
-     public final double c;
+@@ -5,58 +5,53 @@ import java.util.Random;
+ public final class NoiseGeneratorPerlin {
+ 
+     private final byte[] d;
+-    public final double a;
+-    public final double b;
+-    public final double c;
 +    //Yatopia Faster Perlin
 +    private static final int GRADIENT_STRIDE = 4;
 +    private static final int GRADIENT_STRIDE_SH = 2;
 +
 +    private byte[] permutations;
++    public double originX;
++    public double originY;
++    public double originZ;
 +
 +    private final byte[] gradientTable = new byte[256 * GRADIENT_STRIDE];
 +    //Yatopia End
  
      public NoiseGeneratorPerlin(Random random) {
-         this.a = random.nextDouble() * 256.0D;
-@@ -31,32 +39,30 @@ public final class NoiseGeneratorPerlin {
+-        this.a = random.nextDouble() * 256.0D;
+-        this.b = random.nextDouble() * 256.0D;
+-        this.c = random.nextDouble() * 256.0D;
+         this.d = new byte[256];
++        for (int i = 0; i < 256; i++) {
++            int hash = this.permutations[i & 255] & 15;
  
-     }
+-        int i;
+-
+-        for (i = 0; i < 256; ++i) {
+-            this.d[i] = (byte) i;
++            for (int j = 0; j < 3; j++) {
++                this.gradientTable[(i * GRADIENT_STRIDE) + j] = (byte) NoiseGenerator3Handler.a[hash][j];
++            }
+         }
++    }
+ 
+-        for (i = 0; i < 256; ++i) {
+-            int j = random.nextInt(256 - i);
+-            byte b0 = this.d[i];
++    public final double sample(double x, double y, double z, double d, double e) { return a(x, y, z, d, e); } // Yatopia - OBFHELPER
++    public double a(double x, double y, double z, double d, double e) {
++        final double ox = x + this.originX;
++        final double oy = y + this.originY;
++        final double oz = z + this.originZ;
+ 
+-            this.d[i] = this.d[i + j];
+-            this.d[i + j] = b0;
+-        }
++        final double fox = Math.floor(ox);
++        final double foy = Math.floor(oy);
++        final double foz = Math.floor(oz);
+ 
+-    }
++        double oox = ox - fox;
++        double ooy = oy - foy;
++        double ooz = oz - foz;
  
 -    public double a(double d0, double d1, double d2, double d3, double d4) {
 -        double d5 = d0 + this.a;
@@ -50,20 +89,6 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..72997accb587b8a3d17418599862dce9
 -            d14 = (double) MathHelper.floor(d15 / d3) * d3;
 -        } else {
 -            d14 = 0.0D;
-+    public final double sample(double x, double y, double z, double d, double e) { return a(x, y, z, d, e); } // Yatopia - OBFHELPER
-+    public double a(double x, double y, double z, double d, double e) {
-+        final double ox = x + this.a;
-+        final double oy = y + this.b;
-+        final double oz = z + this.c;
-+
-+        final double fox = Math.floor(ox);
-+        final double foy = Math.floor(oy);
-+        final double foz = Math.floor(oz);
-+
-+        double oox = ox - fox;
-+        double ooy = oy - foy;
-+        double ooz = oz - foz;
-+
 +        final double fx = MathHelper.j(oox);
 +        final double fy = MathHelper.j(ooy);
 +        final double fz = MathHelper.j(ooz);
@@ -79,7 +104,7 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..72997accb587b8a3d17418599862dce9
      private static double a(int i, double d0, double d1, double d2) {
          int j = i & 15;
  
-@@ -67,22 +73,100 @@ public final class NoiseGeneratorPerlin {
+@@ -67,22 +62,100 @@ public final class NoiseGeneratorPerlin {
          return this.d[i & 255] & 255;
      }
  
