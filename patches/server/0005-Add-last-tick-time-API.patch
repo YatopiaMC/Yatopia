@@ -3,6 +3,8 @@ From: Ivan Pekov <ivan@mrivanplays.com>
 Date: Sun, 27 Sep 2020 18:30:10 +0300
 Subject: [PATCH] Add last tick time API
 
+Original patch by:
+Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
 index 323d489b1e690500986bc0cbb4c2c93cc193bf70..54e54cf4ed710923cc93d4ba77c378547761c8a1 100644
@@ -72,7 +74,7 @@ index 42628d6dbf54977d34442f46c89b771af3af5b11..4bae0e82bc25b576a23b5f05af7c3ad9
 +    @Override public java.time.Duration getLastTickTime() { return net.minecraft.server.MinecraftServer.lastTickTime; } // Yatopia
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..ad0e9112d8cfffea8ed7034e74ccb11a690a03a3 100644
+index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..cb9470da1dcab43b11ec369719d0d518da90cfa8 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 @@ -34,6 +34,11 @@ public class TicksPerSecondCommand extends Command
@@ -87,7 +89,7 @@ index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..ad0e9112d8cfffea8ed7034e74ccb11a
          if (args.length > 0 && args[0].equals("mem") && sender.hasPermission("bukkit.command.tpsmemory")) {
              sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
              if (!hasShownMemoryWarning) {
-@@ -52,4 +57,14 @@ public class TicksPerSecondCommand extends Command
+@@ -52,4 +57,16 @@ public class TicksPerSecondCommand extends Command
          return ( ( tps > 18.0 ) ? ChatColor.GREEN : ( tps > 16.0 ) ? ChatColor.YELLOW : ChatColor.RED ).toString()
                  + ( ( tps > 21.0 ) ? "*" : "" ) + Math.min( Math.round( tps * 100.0 ) / 100.0, 20.0 ); // Paper - only print * at 21, we commonly peak to 20.02 as the tick sleep is not accurate enough, stop the noise
      }
@@ -95,8 +97,10 @@ index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..ad0e9112d8cfffea8ed7034e74ccb11a
 +    // Yatopia start
 +    public static String formatTo(java.time.Duration duration, java.util.concurrent.TimeUnit unit)
 +    {
-+        long toAskedUnit = unit.convert( duration.toNanos(), java.util.concurrent.TimeUnit.NANOSECONDS );
-+        long ms = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis( toAskedUnit );
++        java.util.concurrent.TimeUnit nanosUnit = java.util.concurrent.TimeUnit.NANOSECONDS;
++        long nanos = duration.toNanos();
++        long toAskedUnit = unit.convert( nanos, nanosUnit );
++        long ms = nanosUnit.toMillis( nanos );
 +        ChatColor startingColor = ms < 40 ? ChatColor.GREEN : ( ms < 50 ) ? ChatColor.YELLOW : ChatColor.RED;
 +        return startingColor.toString() + toAskedUnit + ChatColor.GOLD + net.yatopia.server.TimeUtils.getFriendlyName( unit );
 +    }
