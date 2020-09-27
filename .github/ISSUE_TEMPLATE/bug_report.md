@@ -20,5 +20,8 @@ about: Report a bug
 **Version**
 <!-- This can be seen by the output of /version . Just screenshot that and give it to us -->
 
+**Timings**
+<!-- (Optional) Please run a timings report and paste the link here. This helps us track down the problem easier and much quicker -->
+
 **Additional context**
 <!-- Anything other you want us to know -->
