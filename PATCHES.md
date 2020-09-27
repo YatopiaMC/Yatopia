@@ -14,8 +14,8 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| api |  Add getLastTickMs api      | tr7zw |  |
-| server |  Add getLastTickMs api      | tr7zw |  |
+| api |  Add last tick time API      | Ivan Pekov |  |
+| server |  Add last tick time API      | Ivan Pekov |  |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
@@ -128,7 +128,7 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
-| server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
+| server |  lithium NoiseChunkGeneratorMixin      | SuperCoder79 |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid |  |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |

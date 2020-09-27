@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Sun, 27 Sep 2020 18:01:50 +0300
+Subject: [PATCH] Add last tick time API
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index 8d172d58b7c935f608ac49d3376d5b90bdf0abdd..0db3be3d2909c429ad37aa732ec6c0420b384376 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -1798,4 +1798,14 @@ public final class Bukkit {
+         return server.isLagging();
+     }
+     // Purpur end
++
++    // Yatopia start
++    @Deprecated
++    public static long getLastTickMs() {
++        return server.getLastTickMs();
++    }
++    public static java.time.Duration getLastTickTime() {
++        return server.getLastTickTime();
++    }
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index d92d19a689c5dd928095c082a7c96680e97c6e6a..f51125bde1d315569c974ddd52a83447f97fc695 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -1625,4 +1625,23 @@ public interface Server extends PluginMessageRecipient {
+      */
+     boolean isLagging();
+     // Purpur end
++
++    // Yatopia start
++    /**
++     * Returns the time the last tick took in milliseconds.
++     *
++     * @return long time value
++     * @deprecated newer method with java's Duration and a possibility to convert it from millis to something else
++     */
++    @Deprecated
++    default long getLastTickMs() {
++        return getLastTickTime().toMillis();
++    }
++    /**
++     * Returns the time in {@link java.time.Duration} the last tick took.
++     *
++     * @return duration
++     */
++    java.time.Duration getLastTickTime();
++    // Yatopia end
+ }

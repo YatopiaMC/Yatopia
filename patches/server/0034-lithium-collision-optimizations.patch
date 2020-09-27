@@ -697,7 +697,7 @@ index 0000000000000000000000000000000000000000..1ec2b7a9e0062ed4d45786167bd6c71b
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..700d391675286cf736be8bc42366118147c5fd60
+index 0000000000000000000000000000000000000000..f858e5dcda60391fe869264f0c4a20bb14159e82
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
 @@ -0,0 +1,59 @@
@@ -744,7 +744,7 @@ index 0000000000000000000000000000000000000000..700d391675286cf736be8bc423661181
 +     * [VanillaCopy] but custom combination of: get class filtered entities together with excluding one entity
 +     */
 +    public static void getEntitiesOfClassGroup(Chunk worldChunk, Entity excluded, EntityClassGroup type, AxisAlignedBB box_1, List<Entity> list_1) {
-+        EntitySlice<Entity>[] entitySections = worldChunk.getEntitySlices();
++        EntitySlice<Entity>[] entitySections = worldChunk.getAsSlices();
 +        int int_1 = MathHelper.floor((box_1.minY - 2.0D) / 16.0D);
 +        int int_2 = MathHelper.floor((box_1.maxY + 2.0D) / 16.0D);
 +        int_1 = MathHelper.clamp(int_1, 0, entitySections.length - 1);
@@ -775,7 +775,7 @@ index 0000000000000000000000000000000000000000..493103d755c222f2c6031ffb8f5c0b7a
 +    Collection<T> getAllOfGroupType(EntityClassGroup type);
 +}
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index ac6e5e3309affc830d4db07fd9b8d809c3085033..37a3b26cdeb02acb8051f0a99313de7923ebae3b 100644
+index ac6e5e3309affc830d4db07fd9b8d809c3085033..b7fcbef8d38c9406a891d64f8016bc16572f00d9 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -36,7 +36,7 @@ public class Chunk implements IChunkAccess {
@@ -833,15 +833,24 @@ index ac6e5e3309affc830d4db07fd9b8d809c3085033..37a3b26cdeb02acb8051f0a99313de79
                  if (entity1.shouldBeRemoved) continue; // Paper
  
                  if (entity1.getBoundingBox().c(axisalignedbb) && entity1 != entity) {
-@@ -1066,7 +1066,7 @@ public class Chunk implements IChunkAccess {
-         return this.tileEntities;
+@@ -1067,8 +1067,16 @@ public class Chunk implements IChunkAccess {
      }
  
--    public List<Entity>[] getEntitySlices() { // Spigot
-+    public EntitySlice<Entity>[] getEntitySlices() { // Spigot // Yatopia - md_5 is stupid
-         return this.entitySlices;
+     public List<Entity>[] getEntitySlices() { // Spigot
+-        return this.entitySlices;
++        // Yatopia start
++        List<Entity>[] ret = new List[entitySlices.length];
++        for (int i = 0, len = entitySlices.length; i < len; i++) {
++            EntitySlice<Entity> slice = entitySlices[i];
++            ret[i] = slice.toList();
++        }
++        return ret;
      }
++    public EntitySlice<Entity>[] getAsSlices() { return entitySlices; }
++    // Yatopia end
  
+     @Override
+     public NBTTagCompound i(BlockPosition blockposition) {
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
 index decad96e5affe07078624c2ef95dd1f5e79601b2..228c17966e51b726768ef7bb6d15e00aa1599b3f 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
@@ -856,7 +865,7 @@ index decad96e5affe07078624c2ef95dd1f5e79601b2..228c17966e51b726768ef7bb6d15e00a
      // Paper end
  
 diff --git a/src/main/java/net/minecraft/server/EntitySlice.java b/src/main/java/net/minecraft/server/EntitySlice.java
-index 1250c3cbe915815939627701c153ba6254fc05f0..5b5f45a987b58bf639292ac8398ae08b3cb9a1bf 100644
+index 1250c3cbe915815939627701c153ba6254fc05f0..e0cbcc0a15f8089c29957badc20b0a786831c64b 100644
 --- a/src/main/java/net/minecraft/server/EntitySlice.java
 +++ b/src/main/java/net/minecraft/server/EntitySlice.java
 @@ -14,18 +14,35 @@ import java.util.Map.Entry;
@@ -930,7 +939,7 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..5b5f45a987b58bf639292ac8398ae08b
              });
  
              return Collections.unmodifiableCollection(list);
-@@ -87,4 +114,29 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+@@ -87,4 +114,38 @@ public class EntitySlice<T> extends AbstractCollection<T> {
      public int size() {
          return this.c.size();
      }
@@ -947,7 +956,7 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..5b5f45a987b58bf639292ac8398ae08b
 +        return Collections.unmodifiableCollection(collection);
 +    }
 +
-+    private <S> Collection<T> createAllOfGroupType(EntityClassGroup type) {
++    private Collection<T> createAllOfGroupType(EntityClassGroup type) {
 +        ReferenceLinkedOpenHashSet<T> allOfType = new ReferenceLinkedOpenHashSet<>();
 +
 +        for (T entity : this.c) {
@@ -957,6 +966,15 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..5b5f45a987b58bf639292ac8398ae08b
 +        }
 +        this.entitiesByGroup.put(type, allOfType);
 +        return allOfType;
++    }
++
++    /**
++     * A workaround about md_5's dumb changes
++     *
++     * @return list representation of EntitySlice
++     */
++    public List<T> toList() {
++        return c;
 +    }
 +    // Yatopia end
  }
@@ -1013,7 +1031,7 @@ index 882b82d8952d34f6e3c639404d1a1521dedf1bb0..ccf1416000354b78ccef78b072062ce0
  
      default EntityHuman findNearbyPlayer(Entity entity, double d0, @Nullable Predicate<Entity> predicate) { return this.findNearbyPlayer(entity.locX(), entity.locY(), entity.locZ(), d0, predicate); } // Paper
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index fbb36229ce936e323619457b618627254cc2ade8..727aecff6987b9194617bcb4e5e59d923a8dd858 100644
+index fbb36229ce936e323619457b618627254cc2ade8..9b7e6d747b366f5967754f1a37ee362aa92e4947 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -1351,11 +1351,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -1021,7 +1039,7 @@ index fbb36229ce936e323619457b618627254cc2ade8..727aecff6987b9194617bcb4e5e59d92
                      this.world.a(chunk.getTileEntities().values());
                      List<Entity> list = null;
 -                    List<Entity>[] aentityslice = chunk.getEntitySlices(); // Spigot
-+                    EntitySlice<Entity>[] aentityslice = chunk.getEntitySlices(); // Spigot // Yatopia - md_5 is stupid
++                    EntitySlice<Entity>[] aentityslice = chunk.getAsSlices(); // Spigot // Yatopia - md_5 is stupid
                      int i = aentityslice.length;
  
                      for (int j = 0; j < i; ++j) {
@@ -1035,12 +1053,12 @@ index fbb36229ce936e323619457b618627254cc2ade8..727aecff6987b9194617bcb4e5e59d92
              csvwriter.a(chunkcoordintpair.x, chunkcoordintpair.z, playerchunk.getTicketLevel(), optional.isPresent(), optional.map(IChunkAccess::getChunkStatus).orElse(null), optional1.map(Chunk::getState).orElse(null), a(playerchunk.c()), a(playerchunk.a()), a(playerchunk.b()), this.chunkDistanceManager.c(entry.getLongKey()), !this.isOutsideOfRange(chunkcoordintpair), optional1.map((chunk) -> {
                  int sum = 0;
 -                for (List<Entity> entities : chunk.getEntitySlices()) {
-+                for (EntitySlice<Entity> entities : chunk.getEntitySlices()) { // Yatopia - this was caused due to md_5 being stupid
++                for (EntitySlice<Entity> entities : chunk.getAsSlices()) { // Yatopia - this was caused due to md_5 being stupid
                      int size = entities.size();
                      sum += size;
                  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 6610d2f0f852a2af93ab9a61d69a6862d11f1b19..17760dce57dd2e85f98c6fc63e2b49d838f7190e 100644
+index 6610d2f0f852a2af93ab9a61d69a6862d11f1b19..619509cdb60c6236640fa9b85e9902235fa5aa27 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -649,8 +649,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -1063,7 +1081,7 @@ index 6610d2f0f852a2af93ab9a61d69a6862d11f1b19..17760dce57dd2e85f98c6fc63e2b49d8
          // Spigot End
          this.tileEntityListUnload.addAll(chunk.getTileEntities().values());
 -        List[] aentityslice = chunk.getEntitySlices(); // Spigot
-+        EntitySlice<Entity>[] aentityslice = chunk.getEntitySlices(); // Spigot // Yatopia - md_5 is stupid
++        EntitySlice<Entity>[] aentityslice = chunk.getAsSlices(); // Spigot // Yatopia - md_5 is stupid
          int i = aentityslice.length;
  
          java.util.List<Entity> toMoveChunks = new java.util.ArrayList<>(); // Paper
