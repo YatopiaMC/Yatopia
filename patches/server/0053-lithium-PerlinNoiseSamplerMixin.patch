@@ -7,7 +7,7 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
-index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..36d19ff6070d79f9b1bcf3ec2be54a54e19680c8 100644
+index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..7de67eb2ee790f538be3ca1aa5ea87959fdde413 100644
 --- a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
 +++ b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
 @@ -8,6 +8,12 @@ public final class NoiseGeneratorPerlin {
@@ -23,7 +23,7 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..36d19ff6070d79f9b1bcf3ec2be54a54
  
      public NoiseGeneratorPerlin(Random random) {
          this.a = random.nextDouble() * 256.0D;
-@@ -29,34 +35,41 @@ public final class NoiseGeneratorPerlin {
+@@ -29,8 +35,42 @@ public final class NoiseGeneratorPerlin {
              this.d[i + j] = b0;
          }
  
@@ -36,27 +36,6 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..36d19ff6070d79f9b1bcf3ec2be54a54
 +        }
      }
  
--    public double a(double d0, double d1, double d2, double d3, double d4) {
--        double d5 = d0 + this.a;
--        double d6 = d1 + this.b;
--        double d7 = d2 + this.c;
--        int i = MathHelper.floor(d5);
--        int j = MathHelper.floor(d6);
--        int k = MathHelper.floor(d7);
--        double d8 = d5 - (double) i;
--        double d9 = d6 - (double) j;
--        double d10 = d7 - (double) k;
--        double d11 = MathHelper.j(d8);
--        double d12 = MathHelper.j(d9);
--        double d13 = MathHelper.j(d10);
--        double d14;
--
--        if (d3 != 0.0D) {
--            double d15 = Math.min(d4, d9);
--
--            d14 = (double) MathHelper.floor(d15 / d3) * d3;
--        } else {
--            d14 = 0.0D;
 +
 +
 +    public final double sample(double x, double y, double z, double d, double e) { return a(x, y, z, d, e); } // Yatopia - OBFHELPER
@@ -79,36 +58,29 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..36d19ff6070d79f9b1bcf3ec2be54a54
 +
 +        if (d != 0.0D) {
 +            ooy = ooy - (Math.floor(Math.min(e, ooy) / d) * d);
++        }
++
++        return this.sample((int) fox, (int) foy, (int) foz, oox, ooy, ooz, fx, fy, fz);
++    }
++    /* //Yatopa Start - Replace Logic
+     public double a(double d0, double d1, double d2, double d3, double d4) {
+         double d5 = d0 + this.a;
+         double d6 = d1 + this.b;
+@@ -55,8 +95,8 @@ public final class NoiseGeneratorPerlin {
          }
  
--        return this.a(i, j, k, d8, d9 - d14, d10, d11, d12, d13);
-+        return this.sample((int) fox, (int) foy, (int) foz, oox, ooy, ooz, fx, fy, fz);
-     }
+         return this.a(i, j, k, d8, d9 - d14, d10, d11, d12, d13);
+-    }
 -
++    } */ //Yatopia End
++    
      private static double a(int i, double d0, double d1, double d2) {
          int j = i & 15;
  
-@@ -67,22 +80,100 @@ public final class NoiseGeneratorPerlin {
+@@ -67,6 +107,103 @@ public final class NoiseGeneratorPerlin {
          return this.d[i & 255] & 255;
      }
  
--    public double a(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) {
--        int l = this.a(i) + j;
--        int i1 = this.a(l) + k;
--        int j1 = this.a(l + 1) + k;
--        int k1 = this.a(i + 1) + j;
--        int l1 = this.a(k1) + k;
--        int i2 = this.a(k1 + 1) + k;
--        double d6 = a(this.a(i1), d0, d1, d2);
--        double d7 = a(this.a(l1), d0 - 1.0D, d1, d2);
--        double d8 = a(this.a(j1), d0, d1 - 1.0D, d2);
--        double d9 = a(this.a(i2), d0 - 1.0D, d1 - 1.0D, d2);
--        double d10 = a(this.a(i1 + 1), d0, d1, d2 - 1.0D);
--        double d11 = a(this.a(l1 + 1), d0 - 1.0D, d1, d2 - 1.0D);
--        double d12 = a(this.a(j1 + 1), d0, d1 - 1.0D, d2 - 1.0D);
--        double d13 = a(this.a(i2 + 1), d0 - 1.0D, d1 - 1.0D, d2 - 1.0D);
--
--        return MathHelper.a(d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13);
 +    public final double sample(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) { return a(i, j, k, d0, d1, d2, d3, d4, d5); } // Yatopia - OBFHELPER
 +    public double a(int sectionX, int sectionY, int sectionZ, double localX1, double localY1, double localZ1, double fadeLocalX, double fadeLocalY, double fadeLocalZ) {
 +        final byte[] perm = this.d;
@@ -204,5 +176,15 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..36d19ff6070d79f9b1bcf3ec2be54a54
 +        final double aa3 = dd1 + y31;
 +
 +        return dd0 + y20 + (fadeLocalZ * (aa3 - aa2));
-     }
++    }
++    /* //Yatopa Start - Replace Logic
+     public double a(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) {
+         int l = this.a(i) + j;
+         int i1 = this.a(l) + k;
+@@ -84,5 +221,5 @@ public final class NoiseGeneratorPerlin {
+         double d13 = a(this.a(i2 + 1), d0 - 1.0D, d1 - 1.0D, d2 - 1.0D);
+ 
+         return MathHelper.a(d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13);
+-    }
++    } */ //Yatopia End
  }

@@ -7,37 +7,17 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-index 119804e5c12aca3f4fbfeaf424f46152f43b3941..1970bb29362710e04ff06990939772899bf5cab4 100644
+index 119804e5c12aca3f4fbfeaf424f46152f43b3941..3ba2844ac7e9d8e49fa42a9da6f0af021b12dd8a 100644
 --- a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 +++ b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-@@ -65,6 +65,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
-     private final int x;
-     private ThreadLocal<me.jellysquid.mods.lithium.common.world.noise.SimplexNoiseCache> tlCache; // Yatopia
- 
-+
-     public ChunkGeneratorAbstract(WorldChunkManager worldchunkmanager, long i, Supplier<GeneratorSettingBase> supplier) {
-         this(worldchunkmanager, worldchunkmanager, i, supplier);
-     }
-@@ -112,42 +113,95 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -112,6 +112,97 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          return this.w == i && ((GeneratorSettingBase) this.h.get()).a(resourcekey);
      }
  
--    private double a(int i, int j, int k, double d0, double d1, double d2, double d3) {
--        double d4 = 0.0D;
--        double d5 = 0.0D;
--        double d6 = 0.0D;
--        boolean flag = true;
--        double d7 = 1.0D;
 +    private static double sampleOctave(NoiseGeneratorPerlin sampler, double x, double y, double z, double scaledVerticalScale, double scaledY, double frequency) {
 +        return sampler.sample(x, y, z, scaledVerticalScale, scaledY) / frequency;
 +    }
- 
--        for (int l = 0; l < 16; ++l) {
--            double d8 = NoiseGeneratorOctaves.a((double) i * d0 * d7);
--            double d9 = NoiseGeneratorOctaves.a((double) j * d1 * d7);
--            double d10 = NoiseGeneratorOctaves.a((double) k * d0 * d7);
--            double d11 = d1 * d7;
--            NoiseGeneratorPerlin noisegeneratorperlin = this.q.a(l);
++
 +    private double sampleNoise(int x, int y, int z, double horizontalScale, double verticalScale, double horizontalStretch, double verticalStretch) { return a(x, y, z, horizontalScale, verticalScale, horizontalStretch, verticalStretch); } // Yatopia - OBFHELPER
 +    private double a(int x, int y, int z, double horizontalScale, double verticalScale, double horizontalStretch, double verticalStretch) {
 +        // To generate it's terrain, Minecraft uses two different perlin noises.
@@ -62,10 +42,7 @@ index 119804e5c12aca3f4fbfeaf424f46152f43b3941..1970bb29362710e04ff0699093977289
 +
 +            frequency /= 2.0;
 +        }
- 
--            if (noisegeneratorperlin != null) {
--                d4 += noisegeneratorperlin.a(d8, d9, d10, d11, (double) j * d11) / d7;
--            }
++
 +        double clampedInterpolation = (interpolationValue / 10.0 + 1.0) / 2.0;
 +
 +        if (clampedInterpolation >= 1) {
@@ -80,13 +57,10 @@ index 119804e5c12aca3f4fbfeaf424f46152f43b3941..1970bb29362710e04ff0699093977289
 +                        NoiseGeneratorOctaves.a(x * horizontalScale * frequency),
 +                        NoiseGeneratorOctaves.a(scaledY),
 +                        NoiseGeneratorOctaves.a(z * horizontalScale * frequency), scaledVerticalScale, scaledY, frequency);
- 
--            NoiseGeneratorPerlin noisegeneratorperlin1 = this.r.a(l);
++
 +                frequency /= 2.0;
 +            }
- 
--            if (noisegeneratorperlin1 != null) {
--                d5 += noisegeneratorperlin1.a(d8, d9, d10, d11, (double) j * d11) / d7;
++
 +            return noise / 512.0;
 +        } else if (clampedInterpolation <= 0) {
 +            // Sample only lower noise, as the upper noise will be interpolated out.
@@ -101,10 +75,8 @@ index 119804e5c12aca3f4fbfeaf424f46152f43b3941..1970bb29362710e04ff0699093977289
 +                        NoiseGeneratorOctaves.a(z * horizontalScale * frequency), scaledVerticalScale, scaledY, frequency);
 +
 +                frequency /= 2.0;
-             }
- 
--            if (l < 8) {
--                NoiseGeneratorPerlin noisegeneratorperlin2 = this.s.a(l);
++            }
++
 +            return noise / 512.0;
 +        } else {
 +            // [VanillaCopy] SurfaceChunkGenerator#sampleNoise
@@ -113,10 +85,7 @@ index 119804e5c12aca3f4fbfeaf424f46152f43b3941..1970bb29362710e04ff0699093977289
 +            frequency = 1.0;
 +            double lowerNoise = 0.0;
 +            double upperNoise = 0.0;
- 
--                if (noisegeneratorperlin2 != null) {
--                    d6 += noisegeneratorperlin2.a(NoiseGeneratorOctaves.a((double) i * d2 * d7), NoiseGeneratorOctaves.a((double) j * d3 * d7), NoiseGeneratorOctaves.a((double) k * d2 * d7), d3 * d7, (double) j * d3 * d7) / d7;
--                }
++
 +            for (int octave = 0; octave < 16; octave++) {
 +                // Pre calculate these values to share them
 +                double scaledVerticalScale = verticalScale * frequency;
@@ -129,14 +98,22 @@ index 119804e5c12aca3f4fbfeaf424f46152f43b3941..1970bb29362710e04ff0699093977289
 +                lowerNoise += sampleOctave(this.q.a(octave), xVal, yVal, zVal, scaledVerticalScale, scaledY, frequency);
 +
 +                frequency /= 2.0;
-             }
- 
--            d7 /= 2.0D;
++            }
++
 +            // Vanilla behavior, return interpolated noise
 +            return MathHelper.b(clampedInterpolation, lowerNoise / 512.0, upperNoise / 512.0);
++        }
++    }
++    /* //Yatopa Start - Replace Logic
+     private double a(int i, int j, int k, double d0, double d1, double d2, double d3) {
+         double d4 = 0.0D;
+         double d5 = 0.0D;
+@@ -148,7 +239,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          }
--
--        return MathHelper.b(d4 / 512.0D, d5 / 512.0D, (d6 / 10.0D + 1.0D) / 2.0D);
-     }
+ 
+         return MathHelper.b(d4 / 512.0D, d5 / 512.0D, (d6 / 10.0D + 1.0D) / 2.0D);
+-    }
++    }*/ //Yatopia End
  
      private double[] b(int i, int j) {
+         double[] adouble = new double[this.o + 1];
