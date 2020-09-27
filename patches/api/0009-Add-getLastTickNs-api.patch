@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Sun, 27 Sep 2020 09:28:45 -0500
+Subject: [PATCH] Add getLastTickNs api
+
+
+diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
+index 808574e7d40346fd0b923b14b534730cbfd10aae..1052470b1c69203da7146edba50e30404816c43c 100644
+--- a/src/main/java/org/bukkit/Bukkit.java
++++ b/src/main/java/org/bukkit/Bukkit.java
+@@ -1800,6 +1800,10 @@ public final class Bukkit {
+     // Purpur end
+ 
+     // Yatopia start
++    public static long getLastTickNs() {
++        return server.getLastTickNs();
++    }
++
+     public static long getLastTickMs() {
+         return server.getLastTickMs();
+     }
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index 6783cb1650dae96b61de2a0e9b90854d0b05ad0a..6129c8e3bfa35fc2b4bdb7a93d011de974049aef 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -1633,5 +1633,12 @@ public interface Server extends PluginMessageRecipient {
+      * @return Last ticks ms
+      */
+      long getLastTickMs();
++
++    /**
++     * Get the ns the last servertick took
++     *
++     * @return Last ticks ns
++     */
++    long getLastTickNs();
+     // Yatopia end
+ }
