@@ -14,6 +14,8 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
+| api |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add StructureLocateEvent      | dfsek |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |

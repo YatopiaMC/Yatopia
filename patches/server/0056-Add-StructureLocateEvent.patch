@@ -1,0 +1,61 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: dfsek <dfsek@protonmail.com>
+Date: Wed, 16 Sep 2020 01:12:29 -0700
+Subject: [PATCH] Add StructureLocateEvent
+
+
+diff --git a/src/main/java/net/minecraft/server/ChunkGenerator.java b/src/main/java/net/minecraft/server/ChunkGenerator.java
+index 9a6fef215052f9c513b23024968995c97863a453..16a477f2a99a5c8d68f0d1468d4cd79650a5a05d 100644
+--- a/src/main/java/net/minecraft/server/ChunkGenerator.java
++++ b/src/main/java/net/minecraft/server/ChunkGenerator.java
+@@ -124,9 +124,27 @@ public abstract class ChunkGenerator {
+ 
+     @Nullable
+     public BlockPosition findNearestMapFeature(WorldServer worldserver, StructureGenerator<?> structuregenerator, BlockPosition blockposition, int i, boolean flag) {
+-        if (!this.b.a(structuregenerator)) {
++        // Paper start
++        org.bukkit.World world = worldserver.getWorld();
++        org.bukkit.Location originLocation = new org.bukkit.Location(world, blockposition.getX(), blockposition.getY(), blockposition.getZ());
++        org.bukkit.event.world.StructureLocateEvent event = new org.bukkit.event.world.StructureLocateEvent(world, originLocation, org.bukkit.StructureType.getStructureTypes().get(structuregenerator.i()), i, flag);
++        if(!event.callEvent()) return null;
++        // If event call set a final location, skip structure finding and just return set result.
++        org.bukkit.Location finalLocation = event.getResult();
++        if(finalLocation != null) {
++            return new BlockPosition(finalLocation.getBlockX(), finalLocation.getBlockY(), finalLocation.getBlockZ());
++        }
++        // Get origin location (re)defined by event call.
++        org.bukkit.Location newOriginLocation = event.getOrigin();
++        BlockPosition newOriginPosition = new BlockPosition(newOriginLocation.getBlockX(), newOriginLocation.getBlockY(), newOriginLocation.getBlockZ());
++        // Get radius and whether to find unexplored structures (re)defined by event call.
++        int radius = event.getRadius();
++        boolean findUnexplored = event.shouldFindUnexplored();
++        StructureGenerator<?> newGenerator = StructureGenerator.a.get(event.getType().getName());
++        // Paper end
++        if(! this.b.a(newGenerator)) { // Paper
+             return null;
+-        } else if (structuregenerator == StructureGenerator.STRONGHOLD) {
++        } else if (newGenerator == StructureGenerator.STRONGHOLD) { // Paper
+             this.g();
+             BlockPosition blockposition1 = null;
+             double d0 = Double.MAX_VALUE;
+@@ -137,7 +155,7 @@ public abstract class ChunkGenerator {
+                 ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair) iterator.next();
+ 
+                 blockposition_mutableblockposition.d((chunkcoordintpair.x << 4) + 8, 32, (chunkcoordintpair.z << 4) + 8);
+-                double d1 = blockposition_mutableblockposition.j(blockposition);
++                double d1 = blockposition_mutableblockposition.j(newOriginPosition); // Paper
+ 
+                 if (blockposition1 == null) {
+                     blockposition1 = new BlockPosition(blockposition_mutableblockposition);
+@@ -151,9 +169,9 @@ public abstract class ChunkGenerator {
+             return blockposition1;
+         } else {
+             updateStructureSettings(worldserver, structureSettings); // Spigot
+-            StructureSettingsFeature structuresettingsfeature = this.structureSettings.a(structuregenerator);
++            StructureSettingsFeature structuresettingsfeature = this.structureSettings.a(newGenerator); // Paper
+ 
+-            return structuresettingsfeature == null ? null : structuregenerator.getNearestGeneratedFeature(worldserver, worldserver.getStructureManager(), blockposition, i, flag, worldserver.getSeed(), structuresettingsfeature);
++            return structuresettingsfeature == null ? null : newGenerator.getNearestGeneratedFeature(worldserver, worldserver.getStructureManager(), newOriginPosition, radius, findUnexplored, worldserver.getSeed(), structuresettingsfeature); // Paper
+         }
+     }
+ 
