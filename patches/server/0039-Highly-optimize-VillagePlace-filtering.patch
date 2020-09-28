@@ -7,6 +7,39 @@ Replaced all streams I could. I expect this to be dropped in the next
 major release and reimplemented again if mojang changes stuff with
 villagers again.
 
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+index e563e35089f26a7d76858f99b32440cd2eceabf1..343cb58abb3deaf8766ea9bc4e425d40249c5acc 100644
+--- a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+@@ -58,6 +58,28 @@ public interface Producer<T> {
+         }
+     }
+ 
++    // also checks contains and is thus only 1 generic
++    static <T> void fillList(Producer<T> producer, List<T> list) {
++        HoldingConsumer<T> consumer = new HoldingConsumer<>();
++        while (producer.computeNext(consumer)) {
++            T value = consumer.getValue();
++            if (value == null || list.contains(value)) { continue; }
++            list.add(value);
++        }
++        if (!list.isEmpty()) {
++            boolean allComparable = true;
++            for (T value : list) {
++                if (!(value instanceof Comparable)) {
++                    allComparable = false;
++                    break;
++                }
++            }
++            if (allComparable) {
++                list.sort((o1, o2) -> ((Comparable<T>)o1).compareTo(o2));
++            }
++        }
++    }
++
+     Producer<?> EMPTY_PRODUCER = consumer -> false;
+ 
+     @SuppressWarnings("unchecked")
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
 index 6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f..e6b5a21c523c598f53207d024322301fbae74825 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java

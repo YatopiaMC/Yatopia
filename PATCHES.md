@@ -56,6 +56,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
+| server |  Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix villager dupe      | Ivan Pekov |  |
@@ -107,6 +108,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
+| server |  Respect rotation when respawning      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |

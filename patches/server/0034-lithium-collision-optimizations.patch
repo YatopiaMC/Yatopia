@@ -155,7 +155,7 @@ index 0000000000000000000000000000000000000000..20f80ae80de91615ea02f0771f7c020c
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ef9c294c986df8f1b19df79bdb3f88ab314c561b
+index 0000000000000000000000000000000000000000..786cbf11f9699d8e2124a8c6196bc5cf202eb69b
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 @@ -0,0 +1,188 @@
@@ -200,7 +200,7 @@ index 0000000000000000000000000000000000000000..ef9c294c986df8f1b19df79bdb3f88ab
 +            return;
 +        }
 +
-+        Producer.fillList2(
++        Producer.fillList(
 +                getBlockCollisionProducer(world, entity, box),
 +                filled,
 +                (voxelShape, axisAlignedBBS) -> VoxelShapes.addBoxesToIfIntersects(voxelShape, box, axisAlignedBBS)
@@ -265,7 +265,7 @@ index 0000000000000000000000000000000000000000..ef9c294c986df8f1b19df79bdb3f88ab
 +            return;
 +        }
 +
-+        Producer.fillList2(
++        Producer.fillList(
 +                getEntityCollisionProducer(view, entity, box.grow(EPSILON), EntityFilter.getFilter(entity), loadChunks),
 +                filled,
 +                (voxelShape, axisAlignedBBS) -> axisAlignedBBS.add(voxelShape.getBoundingBox())
@@ -633,10 +633,10 @@ index 0000000000000000000000000000000000000000..7ed343cfb3130446c85dab2ca04d60f9
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e1bd0d9282533b0236eb18c7287e9c0de40a7a6f
+index 0000000000000000000000000000000000000000..e563e35089f26a7d76858f99b32440cd2eceabf1
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,67 @@
 +package me.jellysquid.mods.lithium.common.util;
 +
 +import java.util.List;
@@ -675,29 +675,8 @@ index 0000000000000000000000000000000000000000..e1bd0d9282533b0236eb18c7287e9c0d
 +        }, false);
 +    }
 +
-+    static <T> void fillList(Producer<T> producer, List<T> list) {
-+        HoldingConsumer<T> consumer = new HoldingConsumer<>();
-+        while (producer.computeNext(consumer)) {
-+            T value = consumer.getValue();
-+            if (value == null || list.contains(value)) { continue; }
-+            list.add(value);
-+        }
-+        if (!list.isEmpty()) {
-+            boolean allComparable = true;
-+            for (T value : list) {
-+                if (!(value instanceof Comparable)) {
-+                    allComparable = false;
-+                    break;
-+                }
-+            }
-+            if (allComparable) {
-+                list.sort((o1, o2) -> ((Comparable<T>)o1).compareTo(o2));
-+            }
-+        }
-+    }
-+
 +    // WARNING: does not check contains, you have to do that in the add function
-+    static <T, R> void fillList2(Producer<T> producer, List<R> list, BiConsumer<T, List<R>> addFunction) {
++    static <T, R> void fillList(Producer<T> producer, List<R> list, BiConsumer<T, List<R>> addFunction) {
 +        HoldingConsumer<T> consumer = new HoldingConsumer<>();
 +        while (producer.computeNext(consumer)) {
 +            T value = consumer.getValue();
