@@ -36,10 +36,8 @@ Along with our own additions.
 | Basic Configuration                       | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ✔️     | ✔️     | ❌        | 
 | Advanced Configuration                    | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
 | Feature Rich Configuration                | ✔️      | ✔️     | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
-| Designed with Large Player Counts in Mind | ✔️      | ✔️     | ✔️     | ✔️      | ❌     | ❌      | ❌      | ❌        | 
-| Resonable PR System                       | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
-| Advanced Patching Logic                   | ✔️      | ❌      | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
-
+| Designed with Large Player Counts in Mind | ✔️      | ✔️     | ✔️     | ✔️      | ❌     | ❌      | ❌      | ❌        |
+| Reasonable PR System                       | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
 
 ## Give it a try ##
 
