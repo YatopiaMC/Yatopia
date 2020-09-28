@@ -1,20 +1,19 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Bud Gidiere <sgidiere@gmail.com>
+From: gegy1000 <gegy1000@gmail.com>
 Date: Mon, 28 Sep 2020 14:20:17 -0500
 Subject: [PATCH] Tic-Tacs Threading Fix
 
 
 diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
-index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..19110e877e59188fb4151c295ab1795c18363a0c 100644
+index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..b9c0037cdfe54fcd5ed6c887f9902be3a2deadba 100644
 --- a/src/main/java/net/minecraft/server/WeightedList.java
 +++ b/src/main/java/net/minecraft/server/WeightedList.java
-@@ -64,9 +64,29 @@ public class WeightedList<U> {
+@@ -64,9 +64,30 @@ public class WeightedList<U> {
          return this.list.stream().map(WeightedList.a::a); // Paper - decompile conflict
      }
  
 +    // Yatopia Start - Tic Tacs threading fix
-     public U b(Random random) {
--        return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
++    public U b(Random random) {
 +        WeightedList.a<U> selectedEntry = null;
 +        double selectedValue = 0.0;
 +
@@ -31,11 +30,12 @@ index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..19110e877e59188fb4151c295ab1795c
 +        }
 +
 +        return selectedEntry.a();
-     }
++    }
 +    /*
-+    public U b(Random random) {
-+        return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
-+    } */ //Yatopia End
+     public U b(Random random) {
+         return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
+     }
++    */ //Yatopia End
  
      public String toString() {
          return "WeightedList[" + this.list + "]"; // Paper - decompile conflict
