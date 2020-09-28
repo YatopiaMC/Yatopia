@@ -37,9 +37,7 @@ Along with our own additions.
 | Advanced Configuration                    | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
 | Feature Rich Configuration                | ✔️      | ✔️     | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
 | Designed with Large Player Counts in Mind | ✔️      | ✔️     | ✔️     | ✔️      | ❌     | ❌      | ❌      | ❌        | 
-| Reasonable PR System                      | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
 | Advanced Patching Logic                   | ✔️      | ❌      | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
-
 
 ## Give it a try ##
 
