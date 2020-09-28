@@ -37,7 +37,7 @@ Along with our own additions.
 | Advanced Configuration                    | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
 | Feature Rich Configuration                | ✔️      | ✔️     | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
 | Designed with Large Player Counts in Mind | ✔️      | ✔️     | ✔️     | ✔️      | ❌     | ❌      | ❌      | ❌        | 
-| Resonable PR System                       | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
+| Reasonable PR System                      | ✔️      | ✔️     | ✔️     | ✔️      | ✔️    | ❌      | ❌      | ❌        | 
 | Advanced Patching Logic                   | ✔️      | ❌      | ❌      | ❌       | ❌     | ❌      | ❌      | ❌        | 
 
 
