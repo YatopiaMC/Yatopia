@@ -155,14 +155,15 @@ index 0000000000000000000000000000000000000000..20f80ae80de91615ea02f0771f7c020c
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e461d4cc03
+index 0000000000000000000000000000000000000000..ef9c294c986df8f1b19df79bdb3f88ab314c561b
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
-@@ -0,0 +1,179 @@
+@@ -0,0 +1,188 @@
 +package me.jellysquid.mods.lithium.common.entity;
 +
 +import java.util.Iterator;
 +import java.util.List;
++import java.util.function.BiConsumer;
 +import java.util.function.Consumer;
 +import java.util.function.Predicate;
 +import java.util.stream.Stream;
@@ -191,7 +192,7 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +            return Stream.empty();
 +        }
 +
-+        return Producer.asStream(getBlockCollisionProducerAABB(world, entity, box).map(VoxelShapes::of));
++        return Producer.asStream(getBlockCollisionProducer(world, entity, box));
 +    }
 +
 +    public static void fillBlockCollisionsList(ICollisionAccess world, List<AxisAlignedBB> filled, Entity entity, AxisAlignedBB box) {
@@ -199,16 +200,20 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +            return;
 +        }
 +
-+        Producer.fillList(getBlockCollisionProducerAABB(world, entity, box), filled);
++        Producer.fillList2(
++                getBlockCollisionProducer(world, entity, box),
++                filled,
++                (voxelShape, axisAlignedBBS) -> VoxelShapes.addBoxesToIfIntersects(voxelShape, box, axisAlignedBBS)
++        );
 +    }
 +
-+    public static Producer<AxisAlignedBB> getBlockCollisionProducerAABB(ICollisionAccess world, Entity entity, AxisAlignedBB box) {
++    public static Producer<VoxelShape> getBlockCollisionProducer(ICollisionAccess world, Entity entity, AxisAlignedBB box) {
 +        final ChunkAwareBlockCollisionSweeper sweeper = new ChunkAwareBlockCollisionSweeper(world, entity, box);
 +
 +        return consumer -> {
 +            VoxelShape shape = sweeper.getNextCollidedShape();
 +            if (shape != null) {
-+                consumer.accept(shape.getBoundingBox());
++                consumer.accept(shape);
 +                return true;
 +            }
 +            return false;
@@ -252,7 +257,7 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +            return Stream.empty();
 +        }
 +
-+        return Producer.asStream(getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate, false).map(VoxelShapes::of));
++        return Producer.asStream(getEntityCollisionProducer(view, entity, box.grow(EPSILON), predicate, false));
 +    }
 +
 +    public static void fillEntityCollisionsList(IEntityAccess view, Entity entity, List<AxisAlignedBB> filled, AxisAlignedBB box, boolean loadChunks) {
@@ -260,7 +265,11 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +            return;
 +        }
 +
-+        Producer.fillList(getEntityCollisionProducer(view, entity, box.grow(EPSILON), EntityFilter.getFilter(entity), loadChunks), filled);
++        Producer.fillList2(
++                getEntityCollisionProducer(view, entity, box.grow(EPSILON), EntityFilter.getFilter(entity), loadChunks),
++                filled,
++                (voxelShape, axisAlignedBBS) -> axisAlignedBBS.add(voxelShape.getBoundingBox())
++        );
 +    }
 +
 +    /**
@@ -268,12 +277,12 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +     * Re-implements the function named above without stream code or unnecessary allocations. This can provide a small
 +     * boost in some situations (such as heavy entity crowding) and reduces the allocation rate significantly.
 +     */
-+    public static Producer<AxisAlignedBB> getEntityCollisionProducer(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate, boolean loadChunks) {
-+        return new Producer<AxisAlignedBB>() {
++    public static Producer<VoxelShape> getEntityCollisionProducer(IEntityAccess view, Entity entity, AxisAlignedBB box, Predicate<Entity> predicate, boolean loadChunks) {
++        return new Producer<VoxelShape>() {
 +            private Iterator<Entity> it;
 +
 +            @Override
-+            public boolean computeNext(Consumer<? super AxisAlignedBB> consumer) {
++            public boolean computeNext(Consumer<? super VoxelShape> consumer) {
 +                if (it == null) {
 +                    /*
 +                     * In case entity's class is overriding method_30949, all types of entities may be (=> are assumed to be) required.
@@ -298,7 +307,7 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +                    }
 +
 +                    if (consumer != null) {
-+                        consumer.accept(otherEntity.getBoundingBox());
++                        consumer.accept(VoxelShapes.of(otherEntity.getBoundingBox()));
 +                    }
 +                    return true;
 +                }
@@ -340,10 +349,10 @@ index 0000000000000000000000000000000000000000..a0b4ed7aa0e5227649758b093d3177e4
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..508fe7cf5281cff7528b90e584c17e73fc5a2388
+index 0000000000000000000000000000000000000000..7ed343cfb3130446c85dab2ca04d60f91e2c94fb
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
-@@ -0,0 +1,279 @@
+@@ -0,0 +1,278 @@
 +package me.jellysquid.mods.lithium.common.entity.movement;
 +
 +import me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions;
@@ -408,7 +417,6 @@ index 0000000000000000000000000000000000000000..508fe7cf5281cff7528b90e584c17e73
 +    public ChunkAwareBlockCollisionSweeper(ICollisionAccess view, Entity entity, AxisAlignedBB box) {
 +        this.box = box;
 +        this.shape = VoxelShapes.of(box);
-+        // todo: ivan, make obfhelpers
 +        this.context = entity == null ? VoxelShapeCollision.a() : VoxelShapeCollision.a(entity);
 +        this.view = view;
 +        this.entity = entity;
@@ -625,16 +633,16 @@ index 0000000000000000000000000000000000000000..508fe7cf5281cff7528b90e584c17e73
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1ec2b7a9e0062ed4d45786167bd6c71b588da4d7
+index 0000000000000000000000000000000000000000..e1bd0d9282533b0236eb18c7287e9c0de40a7a6f
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,88 @@
 +package me.jellysquid.mods.lithium.common.util;
 +
-+import java.util.Comparator;
 +import java.util.List;
 +import java.util.Spliterator;
 +import java.util.Spliterators;
++import java.util.function.BiConsumer;
 +import java.util.function.Consumer;
 +import java.util.function.Function;
 +import java.util.stream.Stream;
@@ -684,6 +692,28 @@ index 0000000000000000000000000000000000000000..1ec2b7a9e0062ed4d45786167bd6c71b
 +            }
 +            if (allComparable) {
 +                list.sort((o1, o2) -> ((Comparable<T>)o1).compareTo(o2));
++            }
++        }
++    }
++
++    // WARNING: does not check contains, you have to do that in the add function
++    static <T, R> void fillList2(Producer<T> producer, List<R> list, BiConsumer<T, List<R>> addFunction) {
++        HoldingConsumer<T> consumer = new HoldingConsumer<>();
++        while (producer.computeNext(consumer)) {
++            T value = consumer.getValue();
++            if (value == null) { continue; }
++            addFunction.accept(value, list);
++        }
++        if (!list.isEmpty()) {
++            boolean allComparable = true;
++            for (R value : list) {
++                if (!(value instanceof Comparable)) {
++                    allComparable = false;
++                    break;
++                }
++            }
++            if (allComparable) {
++                list.sort((o1, o2) -> ((Comparable<R>)o1).compareTo(o2));
 +            }
 +        }
 +    }
@@ -1057,6 +1087,20 @@ index fbb36229ce936e323619457b618627254cc2ade8..9b7e6d747b366f5967754f1a37ee362a
                      int size = entities.size();
                      sum += size;
                  }
+diff --git a/src/main/java/net/minecraft/server/VoxelShapes.java b/src/main/java/net/minecraft/server/VoxelShapes.java
+index f9a1f5e92a7559a50dfb72d7455a8fc03dbad25f..3094ce00b3fa5b266f5d0ad0875f160e80c62e18 100644
+--- a/src/main/java/net/minecraft/server/VoxelShapes.java
++++ b/src/main/java/net/minecraft/server/VoxelShapes.java
+@@ -40,7 +40,9 @@ public final class VoxelShapes {
+         if (shape instanceof com.tuinity.tuinity.voxel.AABBVoxelShape) {
+             com.tuinity.tuinity.voxel.AABBVoxelShape shapeCasted = (com.tuinity.tuinity.voxel.AABBVoxelShape)shape;
+             if (shapeCasted.aabb.voxelShapeIntersect(aabb)) {
++                if (!list.contains(shapeCasted.aabb)) { // Yatopia start - make sure it doesn't contain already
+                 list.add(shapeCasted.aabb);
++                } // Yatopia end
+             }
+         } else if (shape instanceof VoxelShapeArray) {
+             VoxelShapeArray shapeCasted = (VoxelShapeArray)shape;
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
 index 6610d2f0f852a2af93ab9a61d69a6862d11f1b19..619509cdb60c6236640fa9b85e9902235fa5aa27 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
