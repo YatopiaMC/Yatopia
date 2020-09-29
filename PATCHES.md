@@ -53,6 +53,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix &quot;Unable to save chunk&quot; error      | Ivan Pekov |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
+| server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
@@ -117,6 +118,7 @@ This is an overview over all patches that are currently used.
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Tic-Tacs Threading Fix      | gegy1000 |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
