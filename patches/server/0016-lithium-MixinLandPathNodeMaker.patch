@@ -6,87 +6,419 @@ Subject: [PATCH] lithium MixinLandPathNodeMaker
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
-diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..56da391b4d415630b881cccbaa50507eb2c23cc0 100644
---- a/src/main/java/net/minecraft/server/PathfinderNormal.java
-+++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
-@@ -7,9 +7,15 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
- import java.util.EnumSet;
- import java.util.Iterator;
- import javax.annotation.Nullable;
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap; // Yatopia
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap; // Yatopia
- 
- public class PathfinderNormal extends PathfinderAbstract {
- 
-+    // Yatopia start - this is not thread safe!
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/ai/LandPathNodeCache.java b/src/main/java/me/jellysquid/mods/lithium/common/ai/LandPathNodeCache.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f990086f41a31b8f1439b927ae5bf58b16ec0a8d
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/ai/LandPathNodeCache.java
+@@ -0,0 +1,214 @@
++package me.jellysquid.mods.lithium.common.ai;
++
++import it.unimi.dsi.fastutil.objects.Reference2BooleanMap;
++import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceMap;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
++import net.minecraft.server.Block;
++import net.minecraft.server.BlockCampfire;
++import net.minecraft.server.BlockDoor;
++import net.minecraft.server.BlockFenceGate;
++import net.minecraft.server.BlockLeaves;
++import net.minecraft.server.BlockMinecartTrackAbstract;
++import net.minecraft.server.Blocks;
++import net.minecraft.server.ChunkSection;
++import net.minecraft.server.Fluid;
++import net.minecraft.server.IBlockData;
++import net.minecraft.server.Material;
++import net.minecraft.server.PathType;
++import net.minecraft.server.TagsBlock;
++import net.minecraft.server.TagsFluid;
++
++public class LandPathNodeCache {
 +    private static final Reference2ReferenceMap<IBlockData, PathType> commonTypes = new Reference2ReferenceOpenHashMap<>();
-+    // Yatopia end
++    private static final Reference2ReferenceMap<IBlockData, PathType> neighborTypes = new Reference2ReferenceOpenHashMap<>();
 +
-     protected float j;
-     private final Long2ObjectMap<PathType> k = new Long2ObjectOpenHashMap();
-     private final Object2BooleanMap<AxisAlignedBB> l = new Object2BooleanOpenHashMap();
-@@ -490,9 +496,22 @@ public class PathfinderNormal extends PathfinderAbstract {
-     protected static PathType b(IBlockAccess iblockaccess, BlockPosition blockposition) {
-         IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition); // Paper
-         if (iblockdata == null) return PathType.BLOCKED; // Paper
--        Block block = iblockdata.getBlock();
--        Material material = iblockdata.getMaterial();
-+        // Yatopia start - replaced logic
-+        //Block block = iblockdata.getBlock();
-+        //Material material = iblockdata.getMaterial();
-+        if (iblockdata.isAir()) return PathType.OPEN;
-+        PathType type = commonTypes.get(iblockdata);
-+        if (type == null) {
-+            commonTypes.put(iblockdata, type = getPathType(iblockdata));
-+        }
- 
-+        if (type == PathType.OPEN) {
-+            if (!iblockdata.a(iblockaccess, blockposition, PathMode.LAND)) {
-+                return PathType.BLOCKED;
-+            }
-+        }
++    /**
++     * A transient hash table of chunk sections and whether or not they contain dangerous block types. Used as a cache
++     * to avoid scanning for many neighbors when we know the chunk is free of dangers. This is only safe to use when
++     * we know the world is not going to be modified while it is active.
++     */
++    private static final Reference2BooleanMap<ChunkSection> chunkNeighborDangerCache = new Reference2BooleanOpenHashMap<>();
 +
-+        /*
-         if (iblockdata.isAir()) {
-             return PathType.OPEN;
-         } else if (!iblockdata.a((Tag) TagsBlock.TRAPDOORS) && !iblockdata.a(Blocks.LILY_PAD)) {
-@@ -512,7 +531,38 @@ public class PathfinderNormal extends PathfinderAbstract {
-         } else {
-             return PathType.TRAPDOOR;
-         }
-+         */
-+        return type;
-+        // Yatopia end
++    /**
++     * True if the chunk danger cache is enabled and can be used.
++     */
++    private static boolean dangerCacheEnabled = false;
++
++    /**
++     * The previous chunk section that was queried for neighboring dangers.
++     */
++    private static ChunkSection prevQueriedNeighborSectionKey;
++
++    /**
++     * The result of the previous query belonging to {@link LandPathNodeCache#prevQueriedNeighborSectionKey}.
++     */
++    private static boolean prevQueriedNeighborSectionResult;
++
++    /**
++     * Enables the chunk danger cache. This should be called immediately before a controlled path-finding code path
++     * begins so that we can accelerate nearby danger checks.
++     */
++    public static void enableChunkCache() {
++        dangerCacheEnabled = true;
 +    }
 +
-+    // Yatopia start
-+    private static PathType getPathType(IBlockData iblockdata) {
-+        Block block = iblockdata.getBlock();
-+        if (!block.a(TagsBlock.TRAPDOORS) && block != Blocks.LILY_PAD) {
-+            if (block == Blocks.FIRE) {
-+                return PathType.DAMAGE_FIRE;
-+            } else if (block == Blocks.CACTUS) {
-+                return PathType.DAMAGE_CACTUS;
-+            } else if (iblockdata.a(Blocks.SWEET_BERRY_BUSH)) {
-+                return PathType.DAMAGE_OTHER;
-+            } else if (iblockdata.a(Blocks.HONEY_BLOCK)) {
-+                return PathType.STICKY_HONEY;
-+            } else if (iblockdata.a(Blocks.COCOA)) {
-+                return PathType.COCOA;
-+            } else {
-+                Fluid fluid = iblockdata.getFluid(); // Tuinity - remove another get type call
++    /**
++     * Disables and clears the chunk danger cache. This should be called immediately before path-finding ends so that
++     * block updates are reflected for future path-finding tasks.
++     */
++    public static void disableChunkCache() {
++        dangerCacheEnabled = false;
++        chunkNeighborDangerCache.clear();
 +
-+                if (fluid.a(TagsFluid.WATER)) return PathType.WATER;
-+                if (fluid.a(TagsFluid.LAVA)) return PathType.LAVA;
++        prevQueriedNeighborSectionKey = null;
++        prevQueriedNeighborSectionResult = false;
++    }
 +
-+                return PathType.OPEN;
-+            }
-+        } else {
++    // [VanillaCopy] LandPathNodeMaker#getCommonNodeType
++    // The checks which access other world state are hoisted from this method
++    private static PathType getTaggedBlockType(IBlockData blockData) {
++        Block block = blockData.getBlock();
++        Material material = blockData.getMaterial();
++
++        if (blockData.hasTag(TagsBlock.TRAPDOORS) || blockData.isBlock(Blocks.LILY_PAD)) {
 +            return PathType.TRAPDOOR;
 +        }
++
++        if (blockData.isBlock(Blocks.CACTUS)) {
++            return PathType.DAMAGE_CACTUS;
++        }
++
++        if (blockData.isBlock(Blocks.SWEET_BERRY_BUSH)) {
++            return PathType.DAMAGE_OTHER;
++        }
++
++        if (blockData.isBlock(Blocks.HONEY_BLOCK)) {
++            return PathType.STICKY_HONEY;
++        }
++
++        if (blockData.isBlock(Blocks.COCOA)) {
++            return PathType.COCOA;
++        }
++
++        if (isFireDangerSource(blockData)) {
++            return PathType.DAMAGE_FIRE;
++        }
++
++        if (BlockDoor.l(blockData) && !blockData.contains(BlockDoor.OPEN)) {
++            return PathType.DOOR_WOOD_CLOSED;
++        }
++
++        if ((block instanceof BlockDoor) && (material == Material.ORE) && !blockData.contains(BlockDoor.OPEN)) {
++            return PathType.DOOR_IRON_CLOSED;
++        }
++
++        if ((block instanceof BlockDoor) && blockData.contains(BlockDoor.OPEN)) {
++            return PathType.DOOR_OPEN;
++        }
++
++        if (block instanceof BlockMinecartTrackAbstract) {
++            return PathType.RAIL;
++        }
++
++        if (block instanceof BlockLeaves) {
++            return PathType.LEAVES;
++        }
++
++        if (block.isIn(TagsBlock.FENCES) || block.isIn(TagsBlock.WALLS) || ((block instanceof BlockFenceGate) && !blockData.contains(BlockFenceGate.OPEN))) {
++            return PathType.FENCE;
++        }
++
++        // Retrieve the fluid state from the block state to avoid a second lookup
++        Fluid fluid = blockData.getFluid();
++
++        if (fluid.isIn(TagsFluid.WATER)) {
++            return PathType.WATER;
++        } else if (fluid.isIn(TagsFluid.LAVA)) {
++            return PathType.LAVA;
++        }
++
++        return PathType.OPEN;
++    }
++
++    public static PathType getNodeTypeForNeighbor(IBlockData state) {
++        PathType type = neighborTypes.get(state);
++
++        // We already cached a type for this block state, so return it
++        if (type != null) {
++            return type;
++        }
++
++        // [VanillaCopy] LandPathNodeMaker#getNodeTypeFromNeighbors
++        // Determine what kind of obstacle type this neighbor is
++        if (state.isBlock(Blocks.CACTUS)) {
++            type = PathType.DANGER_CACTUS;
++        } else if (state.isBlock(Blocks.SWEET_BERRY_BUSH)) {
++            type = PathType.DANGER_OTHER;
++        } else if (isFireDangerSource(state)) {
++            type = PathType.DANGER_FIRE;
++        } else if (state.getFluid().isIn(TagsFluid.WATER)) {
++            return PathType.WATER_BORDER;
++        } else {
++            type = PathType.OPEN;
++        }
++
++        // If no obstacle is provided by this block, then use a special value to signal it
++        neighborTypes.put(state, type);
++
++        return type;
++    }
++
++    private static boolean isFireDangerSource(IBlockData blockData) {
++        return blockData.hasTag(TagsBlock.FIRE) || blockData.isBlock(Blocks.LAVA) || blockData.isBlock(Blocks.MAGMA_BLOCK) || BlockCampfire.isLitCampfire(blockData);
++    }
++
++    private static boolean isChunkSectionDangerousNeighbor(ChunkSection section) {
++        return section.getBlocks().contains(LandPathNodeCache::isNeighborDangerous);
++    }
++
++    private static boolean isNeighborDangerous(IBlockData state) {
++        return getNodeTypeForNeighbor(state) != PathType.OPEN;
++    }
++
++    public static PathType getCachedNodeType(IBlockData IBlockData) {
++        // Get the cached type for this block state
++        PathType type = commonTypes.get(IBlockData);
++
++        // No result has been cached for this block state yet, so calculate and cache it
++        if (type == null) {
++            commonTypes.put(IBlockData, type = LandPathNodeCache.getTaggedBlockType(IBlockData));
++        }
++
++        return type;
++    }
++
++    /**
++     * Returns whether or not a chunk section is free of dangers. This makes use of a caching layer to greatly
++     * accelerate neighbor danger checks when path-finding.
++     *
++     * @param section The chunk section to test for dangers
++     * @return True if this neighboring section is free of any dangers, otherwise false if it could
++     * potentially contain dangers
++     */
++    public static boolean isSectionSafeAsNeighbor(ChunkSection section) {
++        // Empty sections can never contribute a danger
++        if (ChunkSection.isEmpty(section)) {
++            return true;
++        }
++
++        // If the caching code path is disabled, the section must be assumed to potentially contain dangers
++        if (!dangerCacheEnabled) {
++            return false;
++        }
++
++        if (prevQueriedNeighborSectionKey != section) {
++            prevQueriedNeighborSectionKey = section;
++            prevQueriedNeighborSectionResult = !chunkNeighborDangerCache.computeBooleanIfAbsent(section,
++                    LandPathNodeCache::isChunkSectionDangerousNeighbor);
++        }
++
++        return prevQueriedNeighborSectionResult;
++    }
++
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e5dcfb47e80f79f3a34a214f1b158b711e385c54
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
+@@ -0,0 +1,14 @@
++package me.jellysquid.mods.lithium.common.world;
++
++import net.minecraft.server.BlockPosition;
++
++public class WorldHelper {
++
++    public static boolean areNeighborsWithinSameChunk(BlockPosition pos) {
++        int localX = pos.getX() & 15;
++        int localY = pos.getY() & 15;
++        int localZ = pos.getZ() & 15;
++
++        return localX > 0 && localY > 0 && localZ > 0 && localX < 15 && localY < 15 && localZ < 15;
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/Block.java b/src/main/java/net/minecraft/server/Block.java
+index 4b4f14711d483089a5d5478b57539911a9c7a2fc..5c3d44ea7f0739e81cd1a70fcc7cbfc6a93c36af 100644
+--- a/src/main/java/net/minecraft/server/Block.java
++++ b/src/main/java/net/minecraft/server/Block.java
+@@ -96,6 +96,7 @@ public class Block extends BlockBase implements IMaterial {
+         return VoxelShapes.create(d0 / 16.0D, d1 / 16.0D, d2 / 16.0D, d3 / 16.0D, d4 / 16.0D, d5 / 16.0D);
      }
-+    // Yatopia end
  
-     private static boolean a(IBlockData iblockdata) {
-         return iblockdata.a((Tag) TagsBlock.FIRE) || iblockdata.a(Blocks.LAVA) || iblockdata.a(Blocks.MAGMA_BLOCK) || BlockCampfire.g(iblockdata);
++    public final boolean isIn(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
+     public boolean a(Tag<Block> tag) {
+         return tag.isTagged(this);
+     }
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index 5541531223456d9890dee154fec058314d56f256..5ef207bded5ceb25fe190d81a911ef074d404549 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -610,6 +610,7 @@ public abstract class BlockBase {
+             return this.getBlock().updateState(this.p(), enumdirection, iblockdata, generatoraccess, blockposition, blockposition1);
+         }
+ 
++        public final boolean canPathfindThrough(IBlockAccess blockAccess, BlockPosition pos, PathMode navigationType) { return a(blockAccess, pos, navigationType); } // Yatopia - OBFHELPER
+         public boolean a(IBlockAccess iblockaccess, BlockPosition blockposition, PathMode pathmode) {
+             return this.getBlock().a(this.p(), iblockaccess, blockposition, pathmode);
+         }
+@@ -635,6 +636,7 @@ public abstract class BlockBase {
+             return this.getBlock().getInventory(this.p(), world, blockposition);
+         }
+ 
++        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
+         public boolean a(Tag<Block> tag) {
+             return this.getBlock().a(tag);
+         }
+@@ -643,6 +645,7 @@ public abstract class BlockBase {
+             return this.getBlock().a(tag) && predicate.test(this);
+         }
+ 
++        public final boolean isBlock(Block block) { return a(block); } // Yatopia - OBFHELPER
+         public boolean a(Block block) {
+             return this.getBlock().a(block);
+         }
+diff --git a/src/main/java/net/minecraft/server/BlockCampfire.java b/src/main/java/net/minecraft/server/BlockCampfire.java
+index 7b37bb1a3f9d274acfb49f6708927e9b2ea6bdeb..f7003fbf285812cb5a44d86b62aa1db3b1a25b5a 100644
+--- a/src/main/java/net/minecraft/server/BlockCampfire.java
++++ b/src/main/java/net/minecraft/server/BlockCampfire.java
+@@ -187,6 +187,7 @@ public class BlockCampfire extends BlockTileEntity implements IBlockWaterlogged
+         return false;
+     }
+ 
++    public static boolean isLitCampfire(IBlockData blockData) { return g(blockData); } // Yatopia - OBFHELPER
+     public static boolean g(IBlockData iblockdata) {
+         return iblockdata.b(BlockCampfire.b) && iblockdata.a((Tag) TagsBlock.CAMPFIRES) && (Boolean) iblockdata.get(BlockCampfire.b);
+     }
+diff --git a/src/main/java/net/minecraft/server/BlockDoor.java b/src/main/java/net/minecraft/server/BlockDoor.java
+index 62ff320e349fd77d4020419cb036cf936ae66af9..0c7afa65c05d64fb643db604c251890e32ad28d8 100644
+--- a/src/main/java/net/minecraft/server/BlockDoor.java
++++ b/src/main/java/net/minecraft/server/BlockDoor.java
+@@ -222,6 +222,7 @@ public class BlockDoor extends Block {
+         return l(world.getType(blockposition));
+     }
+ 
++    public static boolean isWoodenDoor(IBlockData data) { return l(data); } // Yatopia - OBFHELPER
+     public static boolean l(IBlockData iblockdata) {
+         return iblockdata.getBlock() instanceof BlockDoor && (iblockdata.getMaterial() == Material.WOOD || iblockdata.getMaterial() == Material.NETHER_WOOD);
+     }
+diff --git a/src/main/java/net/minecraft/server/ChunkCache.java b/src/main/java/net/minecraft/server/ChunkCache.java
+index 8eecdcde510661ec3a13a25a04ba394f6b6dc012..f0d6cc88c0c4f5e57a2b17a657002417de6f48ad 100644
+--- a/src/main/java/net/minecraft/server/ChunkCache.java
++++ b/src/main/java/net/minecraft/server/ChunkCache.java
+@@ -74,7 +74,7 @@ public class ChunkCache implements IBlockAccess, ICollisionAccess {
+     }
+ 
+     // Paper start - if loaded util
+-    private IChunkAccess getChunkIfLoaded(int x, int z) {
++    public IChunkAccess getChunkIfLoaded(int x, int z) { // Yatopia - PAIL private -> public
+         int k = x - this.a;
+         int l = z - this.b;
+ 
+diff --git a/src/main/java/net/minecraft/server/Fluid.java b/src/main/java/net/minecraft/server/Fluid.java
+index 8ffc5db509867c585e90ea12d8509dcd0b1435e0..957b36fa1decb9b1b6eaf3aee486fb72c680f876 100644
+--- a/src/main/java/net/minecraft/server/Fluid.java
++++ b/src/main/java/net/minecraft/server/Fluid.java
+@@ -61,6 +61,7 @@ public final class Fluid extends IBlockDataHolder<FluidType, Fluid> {
+         return this.getType().b(this);
+     }
+ 
++    public final boolean isIn(Tag<FluidType> tag) { return a(tag); } // Yatopia - OBFHELPER
+     public boolean a(Tag<FluidType> tag) {
+         return this.getType().a(tag);
+     }
+diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
+index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..bf679bd353a08d51a51da4f4df9f0f42f3abd33c 100644
+--- a/src/main/java/net/minecraft/server/PathfinderNormal.java
++++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
+@@ -413,6 +413,8 @@ public class PathfinderNormal extends PathfinderAbstract {
+     }
+ 
+     public static PathType a(IBlockAccess iblockaccess, BlockPosition.MutableBlockPosition blockposition_mutableblockposition) {
++        // Yatopia start - replace this
++        /*
+         int i = blockposition_mutableblockposition.getX();
+         int j = blockposition_mutableblockposition.getY();
+         int k = blockposition_mutableblockposition.getZ();
+@@ -444,13 +446,32 @@ public class PathfinderNormal extends PathfinderAbstract {
+         }
+ 
+         return pathtype;
++         */
++        IBlockData blockState = iblockaccess.getType(blockposition_mutableblockposition);
++        if (blockState.isAir()) return PathType.OPEN;
++
++        PathType type = me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.getCachedNodeType(blockState);
++
++        if (type == PathType.OPEN) {
++            if (!blockState.canPathfindThrough(iblockaccess, blockposition_mutableblockposition, PathMode.LAND)) {
++                return PathType.BLOCKED;
++            }
++
++            return PathType.OPEN;
++        }
++
++        return type;
++        // Yatopia end
+     }
+ 
++    // todo - get node type from neighbors
+     public static PathType a(IBlockAccess iblockaccess, BlockPosition.MutableBlockPosition blockposition_mutableblockposition, PathType pathtype) {
+         int i = blockposition_mutableblockposition.getX();
+         int j = blockposition_mutableblockposition.getY();
+         int k = blockposition_mutableblockposition.getZ();
+ 
++        // Yatopia start - replace this
++        /*
+         for (int l = -1; l <= 1; ++l) {
+             for (int i1 = -1; i1 <= 1; ++i1) {
+                 for (int j1 = -1; j1 <= 1; ++j1) {
+@@ -483,6 +504,40 @@ public class PathfinderNormal extends PathfinderAbstract {
+                 }
+             }
+         }
++         */
++        ChunkSection section = null;
++        if (me.jellysquid.mods.lithium.common.world.WorldHelper.areNeighborsWithinSameChunk(blockposition_mutableblockposition) && iblockaccess instanceof ChunkCache) {
++            IBlockAccess chunk = ((ChunkCache) iblockaccess).getChunkIfLoaded(i >> 4, k >> 4);
++            if (chunk != null) {
++                section = ((Chunk) chunk).getSections()[j >> 4];
++                if (me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.isSectionSafeAsNeighbor(section)) {
++                    return pathtype;
++                }
++            }
++        }
++        for (int y2 = -1; y2 <= 1; ++y2) {
++            for (int z2 = -1; z2 <= 1; ++z2) {
++                for (int x2 = -1; x2 <= 1; ++x2) {
++                    if (x2 == 0 || z2 == 0) {
++                        continue;
++                    }
++                    blockposition_mutableblockposition.setValues(x2 + i, y2 + j, z2 + k);
++                    IBlockData state;
++                    if (section != null) {
++                        state = section.getType(blockposition_mutableblockposition.getX() & 15, blockposition_mutableblockposition.getY() & 15, blockposition_mutableblockposition.getZ() & 15);
++                    } else {
++                        state = iblockaccess.getTypeIfLoaded(blockposition_mutableblockposition);
++                    }
++                    if (state == null || state.isAir()) continue;
++
++                    PathType neighborType = me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.getNodeTypeForNeighbor(state);
++                    if (neighborType != PathType.OPEN) {
++                        return neighborType;
++                    }
++                }
++            }
++        }
++        // Yatopia end
+ 
+         return pathtype;
+     }

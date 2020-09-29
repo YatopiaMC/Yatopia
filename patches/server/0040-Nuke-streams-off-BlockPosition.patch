@@ -4,26 +4,6 @@ Date: Tue, 1 Sep 2020 19:11:50 +0300
 Subject: [PATCH] Nuke streams off BlockPosition
 
 
-diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index c1f992b2ebac9819085bec74bc40ca3b5384c741..462d3431367f97f9d8506fd1a1adf8dc418b4414 100644
---- a/src/main/java/net/minecraft/server/BlockBase.java
-+++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -637,6 +637,7 @@ public abstract class BlockBase {
-             return this.getBlock().getInventory(this.p(), world, blockposition);
-         }
- 
-+        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
-         public boolean a(Tag<Block> tag) {
-             return this.getBlock().a(tag);
-         }
-@@ -645,6 +646,7 @@ public abstract class BlockBase {
-             return this.getBlock().a(tag) && predicate.test(this);
-         }
- 
-+        public final boolean isBlock(Block block) { return a(block); } // Yatopia - OBFHELPER
-         public boolean a(Block block) {
-             return this.getBlock().a(block);
-         }
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
 index e6b5a21c523c598f53207d024322301fbae74825..5e0aa6e35b1d4e23fdf42add15420665045ef3ff 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java

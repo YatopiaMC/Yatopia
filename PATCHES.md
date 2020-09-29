@@ -117,6 +117,7 @@ This is an overview over all patches that are currently used.
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Tic-Tacs Threading Fix      | gegy1000 |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
