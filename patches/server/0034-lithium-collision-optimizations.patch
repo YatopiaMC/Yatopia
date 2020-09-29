@@ -155,7 +155,7 @@ index 0000000000000000000000000000000000000000..20f80ae80de91615ea02f0771f7c020c
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..786cbf11f9699d8e2124a8c6196bc5cf202eb69b
+index 0000000000000000000000000000000000000000..f2e08aafd31b3adbbbcc96df6aea7a647fb8bdf8
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/LithiumEntityCollisions.java
 @@ -0,0 +1,188 @@
@@ -268,7 +268,7 @@ index 0000000000000000000000000000000000000000..786cbf11f9699d8e2124a8c6196bc5cf
 +        Producer.fillList(
 +                getEntityCollisionProducer(view, entity, box.grow(EPSILON), EntityFilter.getFilter(entity), loadChunks),
 +                filled,
-+                (voxelShape, axisAlignedBBS) -> axisAlignedBBS.add(voxelShape.getBoundingBox())
++                (voxelShape, axisAlignedBBS) -> VoxelShapes.addBoxesToIfIntersects(voxelShape, box, axisAlignedBBS)
 +        );
 +    }
 +
@@ -633,10 +633,10 @@ index 0000000000000000000000000000000000000000..7ed343cfb3130446c85dab2ca04d60f9
 +}
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e563e35089f26a7d76858f99b32440cd2eceabf1
+index 0000000000000000000000000000000000000000..f3224ea636fef95d368b934ed4b3e9060c4b10a2
 --- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,55 @@
 +package me.jellysquid.mods.lithium.common.util;
 +
 +import java.util.List;
@@ -682,18 +682,6 @@ index 0000000000000000000000000000000000000000..e563e35089f26a7d76858f99b32440cd
 +            T value = consumer.getValue();
 +            if (value == null) { continue; }
 +            addFunction.accept(value, list);
-+        }
-+        if (!list.isEmpty()) {
-+            boolean allComparable = true;
-+            for (R value : list) {
-+                if (!(value instanceof Comparable)) {
-+                    allComparable = false;
-+                    break;
-+                }
-+            }
-+            if (allComparable) {
-+                list.sort((o1, o2) -> ((Comparable<R>)o1).compareTo(o2));
-+            }
 +        }
 +    }
 +

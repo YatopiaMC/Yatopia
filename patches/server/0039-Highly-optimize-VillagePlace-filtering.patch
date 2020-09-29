@@ -8,10 +8,10 @@ major release and reimplemented again if mojang changes stuff with
 villagers again.
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-index e563e35089f26a7d76858f99b32440cd2eceabf1..343cb58abb3deaf8766ea9bc4e425d40249c5acc 100644
+index f3224ea636fef95d368b934ed4b3e9060c4b10a2..f2d5878d235fdbfc11c74f87b95f029330c70309 100644
 --- a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -58,6 +58,28 @@ public interface Producer<T> {
+@@ -46,6 +46,16 @@ public interface Producer<T> {
          }
      }
  
@@ -22,18 +22,6 @@ index e563e35089f26a7d76858f99b32440cd2eceabf1..343cb58abb3deaf8766ea9bc4e425d40
 +            T value = consumer.getValue();
 +            if (value == null || list.contains(value)) { continue; }
 +            list.add(value);
-+        }
-+        if (!list.isEmpty()) {
-+            boolean allComparable = true;
-+            for (T value : list) {
-+                if (!(value instanceof Comparable)) {
-+                    allComparable = false;
-+                    break;
-+                }
-+            }
-+            if (allComparable) {
-+                list.sort((o1, o2) -> ((Comparable<T>)o1).compareTo(o2));
-+            }
 +        }
 +    }
 +
