@@ -335,8 +335,28 @@ index 8ffc5db509867c585e90ea12d8509dcd0b1435e0..957b36fa1decb9b1b6eaf3aee486fb72
      public boolean a(Tag<FluidType> tag) {
          return this.getType().a(tag);
      }
+diff --git a/src/main/java/net/minecraft/server/Pathfinder.java b/src/main/java/net/minecraft/server/Pathfinder.java
+index 997982136cdd2a0d922e501473e0d4d1aabf567a..ae7568e0ca5b5ff0ac527aa971ce087917d4f706 100644
+--- a/src/main/java/net/minecraft/server/Pathfinder.java
++++ b/src/main/java/net/minecraft/server/Pathfinder.java
+@@ -45,6 +45,7 @@ public class Pathfinder {
+     @Nullable
+     private PathEntity a(PathPoint pathpoint, List<Map.Entry<PathDestination, BlockPosition>> list, float f, int i, float f1) { // Paper - optimize collection
+         //Set<PathDestination> set = map.keySet(); // Paper
++        me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.enableChunkCache(); // Yatopia
+ 
+         pathpoint.e = 0.0F;
+         pathpoint.f = this.a(pathpoint, list); // Paper - optimize collection
+@@ -116,6 +117,7 @@ public class Pathfinder {
+             if (best == null || comparator.compare(pathEntity, best) < 0)
+                 best = pathEntity;
+         }
++        me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.disableChunkCache(); // Yatopia
+         return best;
+         // Paper end
+     }
 diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..bf679bd353a08d51a51da4f4df9f0f42f3abd33c 100644
+index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..ad7b75222efa93cd12c421c13c04ffc5cac1cbb3 100644
 --- a/src/main/java/net/minecraft/server/PathfinderNormal.java
 +++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
 @@ -413,6 +413,8 @@ public class PathfinderNormal extends PathfinderAbstract {
@@ -348,7 +368,7 @@ index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..bf679bd353a08d51a51da4f4df9f0f42
          int i = blockposition_mutableblockposition.getX();
          int j = blockposition_mutableblockposition.getY();
          int k = blockposition_mutableblockposition.getZ();
-@@ -444,13 +446,32 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -444,6 +446,22 @@ public class PathfinderNormal extends PathfinderAbstract {
          }
  
          return pathtype;
@@ -370,9 +390,8 @@ index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..bf679bd353a08d51a51da4f4df9f0f42
 +        // Yatopia end
      }
  
-+    // todo - get node type from neighbors
      public static PathType a(IBlockAccess iblockaccess, BlockPosition.MutableBlockPosition blockposition_mutableblockposition, PathType pathtype) {
-         int i = blockposition_mutableblockposition.getX();
+@@ -451,6 +469,8 @@ public class PathfinderNormal extends PathfinderAbstract {
          int j = blockposition_mutableblockposition.getY();
          int k = blockposition_mutableblockposition.getZ();
  
@@ -381,7 +400,7 @@ index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..bf679bd353a08d51a51da4f4df9f0f42
          for (int l = -1; l <= 1; ++l) {
              for (int i1 = -1; i1 <= 1; ++i1) {
                  for (int j1 = -1; j1 <= 1; ++j1) {
-@@ -483,6 +504,40 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -483,6 +503,42 @@ public class PathfinderNormal extends PathfinderAbstract {
                  }
              }
          }
@@ -409,11 +428,13 @@ index 9caf6598f8a267ce057e863a32ee29fa5fdb0641..bf679bd353a08d51a51da4f4df9f0f42
 +                    } else {
 +                        state = iblockaccess.getTypeIfLoaded(blockposition_mutableblockposition);
 +                    }
-+                    if (state == null || state.isAir()) continue;
-+
-+                    PathType neighborType = me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.getNodeTypeForNeighbor(state);
-+                    if (neighborType != PathType.OPEN) {
-+                        return neighborType;
++                    if (state == null || state.isAir()) {
++                        pathtype = PathType.BLOCKED;
++                    } else {
++                        PathType neighborType = me.jellysquid.mods.lithium.common.ai.LandPathNodeCache.getNodeTypeForNeighbor(state);
++                        if (neighborType != PathType.OPEN) {
++                            return neighborType;
++                        }
 +                    }
 +                }
 +            }
