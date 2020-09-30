@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/YatopiaMC/Yatopia/ver/1.16.3/images/yatopia-shadow.png" alt="Yatopia" align="right">
+<img width="300" src="https://raw.githubusercontent.com/YatopiaMC/Yatopia/ver/1.16.3/images/yatopia-shadow.png" alt="Yatopia" align="right">
 <div align="center">
   <h1>Yatopia</h1>
   <h3>The Most Powerful and Feature Rich Minecraft Server Software</h3>
