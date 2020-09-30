@@ -19,6 +19,7 @@ A blazing fast feature rich fork of [Tuinity](https://github.com/Spottedleaf/Tui
 * [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 * [Lithium](https://github.com/jellysquid3/lithium-fabric)
+* [Tic-TACS](https://github.com/gegy1000/tic-tacs/)
 
 Along with our own additions.
 
