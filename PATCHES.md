@@ -20,6 +20,7 @@ This is an overview over all patches that are currently used.
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
+| server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
 | server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
@@ -40,6 +41,7 @@ This is an overview over all patches that are currently used.
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
 | server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
+| server |  Configurable flight checks      | Ivan Pekov |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | api |  Default permissions      | William Blake Galbreath |  |

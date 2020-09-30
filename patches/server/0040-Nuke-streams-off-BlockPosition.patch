@@ -25,10 +25,10 @@ index c1f992b2ebac9819085bec74bc40ca3b5384c741..462d3431367f97f9d8506fd1a1adf8dc
              return this.getBlock().a(block);
          }
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
-index e6b5a21c523c598f53207d024322301fbae74825..294ef31838b750b45187dcf76b43d06729cce00c 100644
+index e6b5a21c523c598f53207d024322301fbae74825..160783a6660048b660e49382cd874ef89b47fb5c 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
 +++ b/src/main/java/net/minecraft/server/BlockPosition.java
-@@ -318,9 +318,29 @@ public class BlockPosition extends BaseBlockPosition {
+@@ -318,7 +318,17 @@ public class BlockPosition extends BaseBlockPosition {
      }
  
      public static Optional<BlockPosition> a(BlockPosition blockposition, int i, int j, Predicate<BlockPosition> predicate) {
@@ -46,20 +46,8 @@ index e6b5a21c523c598f53207d024322301fbae74825..294ef31838b750b45187dcf76b43d067
 +        // Yatopia end
      }
  
-+    // Yatopia start
-+    public static java.util.List<BlockPosition> bList(BlockPosition pos, int i, int j, int k) {
-+        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
-+        Iterable<BlockPosition> iterable = a(pos, i, j, k);
-+        net.yatopia.server.HoldingConsumer<BlockPosition> consumer = new net.yatopia.server.HoldingConsumer<>();
-+        java.util.Spliterator<BlockPosition> spliterator = iterable.spliterator();
-+        while (spliterator.tryAdvance(consumer)) ret.add(consumer.getValue());
-+        return ret;
-+    }
-+    // Yatopia end
      public static Stream<BlockPosition> b(BlockPosition blockposition, int i, int j, int k) {
-         return StreamSupport.stream(a(blockposition, i, j, k).spliterator(), false);
-     }
-@@ -329,6 +349,16 @@ public class BlockPosition extends BaseBlockPosition {
+@@ -329,6 +339,16 @@ public class BlockPosition extends BaseBlockPosition {
          return b(Math.min(blockposition.getX(), blockposition1.getX()), Math.min(blockposition.getY(), blockposition1.getY()), Math.min(blockposition.getZ(), blockposition1.getZ()), Math.max(blockposition.getX(), blockposition1.getX()), Math.max(blockposition.getY(), blockposition1.getY()), Math.max(blockposition.getZ(), blockposition1.getZ()));
      }
  
@@ -76,7 +64,7 @@ index e6b5a21c523c598f53207d024322301fbae74825..294ef31838b750b45187dcf76b43d067
      public static Stream<BlockPosition> b(BlockPosition blockposition, BlockPosition blockposition1) {
          return StreamSupport.stream(a(blockposition, blockposition1).spliterator(), false);
      }
-@@ -337,6 +367,11 @@ public class BlockPosition extends BaseBlockPosition {
+@@ -337,6 +357,11 @@ public class BlockPosition extends BaseBlockPosition {
          return a(Math.min(structureboundingbox.a, structureboundingbox.d), Math.min(structureboundingbox.b, structureboundingbox.e), Math.min(structureboundingbox.c, structureboundingbox.f), Math.max(structureboundingbox.a, structureboundingbox.d), Math.max(structureboundingbox.b, structureboundingbox.e), Math.max(structureboundingbox.c, structureboundingbox.f));
      }
  
