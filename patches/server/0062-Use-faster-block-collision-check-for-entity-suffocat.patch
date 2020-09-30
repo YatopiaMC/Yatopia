@@ -6,7 +6,7 @@ Subject: [PATCH] Use faster block collision check for entity suffocation check
 Improves the speed of checks by ~3,000ns per entity on average.
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
-index 7ed343cfb3130446c85dab2ca04d60f91e2c94fb..be4c925b733aabeb76557bfdc52b5fccbc35ad6e 100644
+index 7ed343cfb3130446c85dab2ca04d60f91e2c94fb..194d2f177b05c594c7a27b6191860a3f89394f06 100644
 --- a/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/movement/ChunkAwareBlockCollisionSweeper.java
 @@ -16,6 +16,7 @@ import net.minecraft.server.VoxelShape;
@@ -17,28 +17,34 @@ index 7ed343cfb3130446c85dab2ca04d60f91e2c94fb..be4c925b733aabeb76557bfdc52b5fcc
  import static me.jellysquid.mods.lithium.common.entity.LithiumEntityCollisions.EPSILON;
  
  /**
-@@ -59,6 +60,15 @@ public class ChunkAwareBlockCollisionSweeper {
+@@ -59,6 +60,21 @@ public class ChunkAwareBlockCollisionSweeper {
      private ChunkSection cachedChunkSection;
      private boolean needEntityCollisionCheck;
  
 +    // Yatopia start
++    private boolean checkSuffocation;
 +    private final BiPredicate<IBlockData, BlockPosition> suffocationPredicate = new BiPredicate<IBlockData, BlockPosition>() {
 +        @Override
 +        public boolean test(IBlockData iBlockData, BlockPosition blockPosition) {
 +            return iBlockData.o(view, blockPosition);
 +        }
 +    };
++
++    public ChunkAwareBlockCollisionSweeper(ICollisionAccess view, Entity entity, AxisAlignedBB box, boolean checkSuffocation) {
++        this(view, entity, box);
++        this.checkSuffocation = checkSuffocation;
++    }
 +    // Yatopia end
 +
      public ChunkAwareBlockCollisionSweeper(ICollisionAccess view, Entity entity, AxisAlignedBB box) {
          this.box = box;
          this.shape = VoxelShapes.of(box);
-@@ -206,6 +216,11 @@ public class ChunkAwareBlockCollisionSweeper {
+@@ -206,6 +222,11 @@ public class ChunkAwareBlockCollisionSweeper {
  
              if (canInteractWithBlock(state, edgesHit)) {
                  this.pos.setValues(x, y, z);
 +                // Yatopia start
-+                if (!suffocationPredicate.test(state, this.pos)) {
++                if (checkSuffocation && !suffocationPredicate.test(state, this.pos)) {
 +                    continue;
 +                }
 +                // Yatopia end
@@ -46,7 +52,7 @@ index 7ed343cfb3130446c85dab2ca04d60f91e2c94fb..be4c925b733aabeb76557bfdc52b5fcc
  
                  if (collisionShape != VoxelShapes.empty()) {
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 9dfc5649b552a8cb16092fe6b20aa1c181b59d5e..8899e91674dcd7f8a586afe4be07799634585a69 100644
+index 9dfc5649b552a8cb16092fe6b20aa1c181b59d5e..d4c5d805cc9c8fb92b373536a3f07da50c19524a 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -2171,9 +2171,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -56,7 +62,7 @@ index 9dfc5649b552a8cb16092fe6b20aa1c181b59d5e..8899e91674dcd7f8a586afe4be077996
 -            return this.world.b(this, axisalignedbb, (iblockdata, blockposition) -> {
 -                return iblockdata.o(this.world, blockposition);
 -            }).findAny().isPresent();
-+            return new me.jellysquid.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper(this.world, this, axisalignedbb).getNextCollidedShape() != null; // Yatopia - fast suffocation check
++            return new me.jellysquid.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper(this.world, this, axisalignedbb, true).getNextCollidedShape() != null; // Yatopia - fast suffocation check
          }
      }
  
