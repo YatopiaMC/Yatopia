@@ -41,7 +41,7 @@ This is an overview over all patches that are currently used.
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
 | server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
-| server |  Configurable flight checks      | Ivan Pekov |  |
+| server |  Configurable flight checks      | epserv |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | api |  Default permissions      | William Blake Galbreath |  |
