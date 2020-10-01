@@ -17,20 +17,9 @@ index f43193c1090238f2241b878120247d1b3d0d4e57..a7783944e8e4ee2a164aa19b3cc34225
          long i = 0L;
          int j = 0;
 diff --git a/src/main/java/net/minecraft/server/PacketPlayOutMultiBlockChange.java b/src/main/java/net/minecraft/server/PacketPlayOutMultiBlockChange.java
-index f260459d70053ffd17952aebf3e0410666f9bcd0..cae074a9a29fe5ddab74ec983a07c05d1439283d 100644
+index f260459d70053ffd17952aebf3e0410666f9bcd0..e99385bce0967c9bc3917986c5bb8b3829f45366 100644
 --- a/src/main/java/net/minecraft/server/PacketPlayOutMultiBlockChange.java
 +++ b/src/main/java/net/minecraft/server/PacketPlayOutMultiBlockChange.java
-@@ -8,8 +8,8 @@ import java.util.function.BiConsumer;
- public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayOut> {
- 
-     private SectionPosition a;
--    private short[] b;
--    private IBlockData[] c;
-+    private java.util.List<Short> b; // Yatopia - change to list
-+    private java.util.List<IBlockData> c; // Yatopia - change to list
-     private boolean d;
- 
-     public PacketPlayOutMultiBlockChange() {}
 @@ -17,6 +17,8 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
      public PacketPlayOutMultiBlockChange(SectionPosition sectionposition, ShortSet shortset, ChunkSection chunksection, boolean flag) {
          this.a = sectionposition;
@@ -40,19 +29,21 @@ index f260459d70053ffd17952aebf3e0410666f9bcd0..cae074a9a29fe5ddab74ec983a07c05d
          this.a(shortset.size());
          int i = 0;
  
-@@ -26,12 +28,27 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
+@@ -26,12 +28,29 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
              this.b[i] = short0;
              this.c[i] = (chunksection != null) ? chunksection.getType(SectionPosition.a(short0), SectionPosition.b(short0), SectionPosition.c(short0)) : Blocks.AIR.getBlockData(); // CraftBukkit - SPIGOT-6076, Mojang bug when empty chunk section notified
          }
 +         */
-+        b = new java.util.ArrayList<>();
-+        c = new java.util.ArrayList<>();
-+        for (short s : shortset) {
-+            b.add(s);
++        short[] shortArray = shortset.toShortArray();
++        b = new short[shortset.size()];
++        c = new IBlockData[shortset.size()];
++        for (int i = 0; i < shortArray.length; i++) {
++            short s = shortArray[i];
++            b[i] = s;
 +            if (chunksection != null) {
-+                c.add(chunksection.getType(SectionPosition.a(s), SectionPosition.b(s), SectionPosition.c(s)));
++                c[i] = chunksection.getType(SectionPosition.a(s), SectionPosition.b(s), SectionPosition.c(s));
 +            } else {
-+                c.add(Blocks.AIR.getBlockData());
++                c[i] = Blocks.AIR.getBlockData();
 +            }
 +        }
 +        // Yatopia end
@@ -68,7 +59,7 @@ index f260459d70053ffd17952aebf3e0410666f9bcd0..cae074a9a29fe5ddab74ec983a07c05d
      }
  
      @Override
-@@ -40,6 +57,8 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
+@@ -40,6 +59,8 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
          this.d = packetdataserializer.readBoolean();
          int i = packetdataserializer.i();
  
@@ -77,48 +68,19 @@ index f260459d70053ffd17952aebf3e0410666f9bcd0..cae074a9a29fe5ddab74ec983a07c05d
          this.a(i);
  
          for (int j = 0; j < this.b.length; ++j) {
-@@ -48,6 +67,15 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
+@@ -48,6 +69,15 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
              this.b[j] = (short) ((int) (k & 4095L));
              this.c[j] = (IBlockData) Block.REGISTRY_ID.fromId((int) (k >>> 12));
          }
 +         */
-+        b = new java.util.ArrayList<>();
-+        c = new java.util.ArrayList<>();
++        b = new short[i];
++        c = new IBlockData[i];
 +        for (int j = 0; j < i; j++) {
 +            long k = packetdataserializer.readVarLong();
-+            b.add((short) ((int) (k & 4095L)));
-+            c.add(Block.REGISTRY_ID.fromId((int) (k >>> 12)));
++            b[j] = (short) ((int) (k & 4095L));
++            c[j] = Block.REGISTRY_ID.fromId((int) (k >>> 12));
 +        }
 +        // Yatopia end
  
      }
  
-@@ -55,10 +83,10 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
-     public void b(PacketDataSerializer packetdataserializer) throws IOException {
-         packetdataserializer.writeLong(this.a.s());
-         packetdataserializer.writeBoolean(this.d);
--        packetdataserializer.d(this.b.length);
-+        packetdataserializer.d(this.b.size()); // Yatopia
- 
--        for (int i = 0; i < this.b.length; ++i) {
--            packetdataserializer.b((long) (Block.getCombinedId(this.c[i]) << 12 | this.b[i]));
-+        for (int i = 0; i < this.b.size(); ++i) { // Yatopia
-+            packetdataserializer.b((long) (Block.getCombinedId(this.c.get(i)) << 12 | this.b.get(i))); // Yatopia
-         }
- 
-     }
-@@ -70,11 +98,11 @@ public class PacketPlayOutMultiBlockChange implements Packet<PacketListenerPlayO
-     public void a(BiConsumer<BlockPosition, IBlockData> biconsumer) {
-         BlockPosition.MutableBlockPosition blockposition_mutableblockposition = new BlockPosition.MutableBlockPosition();
- 
--        for (int i = 0; i < this.b.length; ++i) {
--            short short0 = this.b[i];
-+        for (int i = 0; i < this.b.size(); ++i) { // Yatopia
-+            short short0 = this.b.get(i); // Yatopia
- 
-             blockposition_mutableblockposition.d(this.a.d(short0), this.a.e(short0), this.a.f(short0));
--            biconsumer.accept(blockposition_mutableblockposition, this.c[i]);
-+            biconsumer.accept(blockposition_mutableblockposition, this.c.get(i)); // Yatopia
-         }
- 
-     }
