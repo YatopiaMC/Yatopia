@@ -5,7 +5,7 @@ Subject: [PATCH] Use GlueList as delegate for NonNullList
 
 
 diff --git a/src/main/java/net/minecraft/server/NonNullList.java b/src/main/java/net/minecraft/server/NonNullList.java
-index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..f8fe6d5133de9fd10f18813027a36fc232eb6caf 100644
+index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..52b263fc257e5e8889aa8285331581b7d8142c44 100644
 --- a/src/main/java/net/minecraft/server/NonNullList.java
 +++ b/src/main/java/net/minecraft/server/NonNullList.java
 @@ -10,7 +10,7 @@ import org.apache.commons.lang3.Validate;
@@ -26,17 +26,24 @@ index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..f8fe6d5133de9fd10f18813027a36fc2
      }
  
      @SafeVarargs
-@@ -31,11 +31,11 @@ public class NonNullList<E> extends AbstractList<E> {
+@@ -31,11 +31,18 @@ public class NonNullList<E> extends AbstractList<E> {
      }
  
      protected NonNullList() {
 -        this(Lists.newArrayList(), (Object) null);
-+        this(Lists.newArrayList(), null); // Yatopia - decompile fix
++        this(new net.yatopia.server.list.GlueList<>(), null); // Yatopia - decompile fix & GlueList
      }
  
      protected NonNullList(List<E> list, @Nullable E e0) {
 -        this.a = list;
-+        this.a = new net.yatopia.server.list.GlueList<>(list); // Yatopia
++        // Yatopia start
++        if (!(list instanceof net.yatopia.server.list.GlueList)) {
++            this.a = new net.yatopia.server.list.GlueList<>(list);
++        } else {
++            this.a = (net.yatopia.server.list.GlueList<E>) list;
++        }
++        //this.a = list;
++        // Yatopia end
          this.b = e0;
      }
  

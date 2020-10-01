@@ -6,7 +6,7 @@ Subject: [PATCH] Fix recipe crash
 Caused due to slow streams, was kabooming tps when you were crafting F A S T
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..1a2b4e45fc75b1851afcd06e98335315b28ac9a3 100644
+index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..a707c85f2f6b0177781755decc8bc2e0d1eacd4a 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -78,9 +78,15 @@ public class CraftingManager extends ResourceDataJson {
@@ -14,8 +14,8 @@ index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..1a2b4e45fc75b1851afcd06e98335315
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
          // CraftBukkit start
 +        // Yatopia start - replace stream
-+        Collection<IRecipe<C>> collection = this.b(recipes).values(); // Yatopia
-+        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.iterator().next(), world, c0); // Yatopia
++        Collection<IRecipe<C>> collection = this.b(recipes).values();
++        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.iterator().next(), world, c0);
 +        /*
          Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
              return SystemUtils.a(recipes.a(irecipe, world, c0));
