@@ -12,6 +12,7 @@ This is an overview over all patches that are currently used.
 | api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
+| server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
@@ -67,6 +68,7 @@ This is an overview over all patches that are currently used.
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
+| server |  Heavily optimize recipe lookups      | Mykyta Komarn |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
@@ -137,7 +139,7 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
-| server |  lithium NoiseChunkGeneratorMixin      | SuperCoder79 |  |
+| server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid |  |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |

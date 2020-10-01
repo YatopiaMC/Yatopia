@@ -10,7 +10,7 @@ NonNullList now uses GlueList internally as its delegate list, which should brin
 These changes knock off ~40ms of tick duration with a sample of ~7,700 running furnaces on a server.
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index de7d5ed8d6260ce5ee4164df29cdaf69f561045c..80b2df0d59925fe378476178c2aa39dfc0c88be9 100644
+index de7d5ed8d6260ce5ee4164df29cdaf69f561045c..22b8166ebb8e407d49bb73cf09163a11d31d1666 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -25,6 +25,10 @@ public class CraftingManager extends ResourceDataJson {
@@ -30,24 +30,27 @@ index de7d5ed8d6260ce5ee4164df29cdaf69f561045c..80b2df0d59925fe378476178c2aa39df
          // Yatopia start - replace stream
 -        List<IRecipe<C>> collection = new java.util.ArrayList<>(this.b(recipes).values());
 -        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.get(0), world, c0);
-+        Collection<IRecipe<C>> collection = this.b(recipes).values();
-+        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.iterator().next(), world, c0);
++        Collection<IRecipe<C>> collection = this.b(recipes).values(); // Yatopia
++        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.iterator().next(), world, c0); // Yatopia
          /*
          Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
              return SystemUtils.a(recipes.a(irecipe, world, c0));
-@@ -108,19 +112,16 @@ public class CraftingManager extends ResourceDataJson {
+@@ -108,19 +112,25 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
--        List<IRecipe<C>> list = new ArrayList<>();
--        for (IRecipe<C> irecipe : this.b(recipes).values()) {
--            IRecipe<C> ciRecipe = irecipe;
--            list.add(ciRecipe);
--        }
--        return (List) list;
++        // Yatopia Start - Replaced Logic
 +        return CACHE.computeIfAbsent(recipes, recipes1 -> {
 +            return new net.yatopia.server.list.GlueList<>(this.b(recipes).values());
 +        }); // Yatopia
++        /* 
+         List<IRecipe<C>> list = new ArrayList<>();
+         for (IRecipe<C> irecipe : this.b(recipes).values()) {
+             IRecipe<C> ciRecipe = irecipe;
+             list.add(ciRecipe);
+         }
+         return (List) list;
++        */ // Yatopia End
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
@@ -55,100 +58,77 @@ index de7d5ed8d6260ce5ee4164df29cdaf69f561045c..80b2df0d59925fe378476178c2aa39df
          Collection<IRecipe<C>> recipeCollection = this.b(recipes).values();
          if (recipeCollection.isEmpty()) return java.util.Collections.emptyList();
 -        List<T> ret = new java.util.ArrayList<>();
-+        List<T> ret = new net.yatopia.server.list.GlueList<>();
++        List<T> ret = new net.yatopia.server.list.GlueList<>(); // Yatopia
          for (IRecipe<C> iRecipe : recipeCollection) recipes.a(iRecipe, world, c0).ifPresent(ret::add);
          ret.sort(Comparator.comparing((iRecipe) -> iRecipe.getResult().getTranslationKey()));
          return ret;
-@@ -134,7 +135,7 @@ public class CraftingManager extends ResourceDataJson {
+@@ -134,7 +144,7 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
 -        return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
-+        return (Map) this.recipes.getOrDefault(recipes, EMPTY_MAP); // CraftBukkit
++        return (Map) this.recipes.getOrDefault(recipes, EMPTY_MAP); // CraftBukkit // Yatopia
      }
  
      public <C extends IInventory, T extends IRecipe<C>> NonNullList<ItemStack> c(Recipes<T> recipes, C c0, World world) {
 diff --git a/src/main/java/net/minecraft/server/NonNullList.java b/src/main/java/net/minecraft/server/NonNullList.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..25ff24a34a012f132d937726581ed2fb2cd0fde3
---- /dev/null
+index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..e3226a69b871d583e3aac0494c9bb4421bc6a4e8 100644
+--- a/src/main/java/net/minecraft/server/NonNullList.java
 +++ b/src/main/java/net/minecraft/server/NonNullList.java
-@@ -0,0 +1,75 @@
-+package net.minecraft.server;
-+
-+import com.google.common.collect.Lists;
-+import java.util.AbstractList;
-+import java.util.Arrays;
-+import java.util.List;
-+import javax.annotation.Nonnull;
-+import javax.annotation.Nullable;
-+import org.apache.commons.lang3.Validate;
-+
-+public class NonNullList<E> extends AbstractList<E> {
-+
-+    private final net.yatopia.server.list.GlueList<E> a;
-+    private final E b;
-+
-+    public static <E> NonNullList<E> a() {
-+        return new NonNullList<>();
-+    }
-+
-+    public static <E> NonNullList<E> a(int i, E e0) {
-+        Validate.notNull(e0);
-+        Object[] aobject = new Object[i];
-+
-+        Arrays.fill(aobject, e0);
-+        return new NonNullList<>((List<E>) Arrays.asList(aobject), e0); // Yatopia - decompile fix
-+    }
-+
-+    @SafeVarargs
-+    public static <E> NonNullList<E> a(E e0, E... ae) {
-+        return new NonNullList<>(Arrays.asList(ae), e0);
-+    }
-+
-+    protected NonNullList() {
-+        this(Lists.newArrayList(), null); // Yatopia - decompile fix
-+    }
-+
-+    protected NonNullList(List<E> list, @Nullable E e0) {
-+        this.a = new net.yatopia.server.list.GlueList<>(list);
-+        this.b = e0;
-+    }
-+
-+    @Nonnull
-+    public E get(int i) {
-+        return this.a.get(i);
-+    }
-+
-+    public E set(int i, E e0) {
-+        Validate.notNull(e0);
-+        return this.a.set(i, e0);
-+    }
-+
-+    public void add(int i, E e0) {
-+        Validate.notNull(e0);
-+        this.a.add(i, e0);
-+    }
-+
-+    public E remove(int i) {
-+        return this.a.remove(i);
-+    }
-+
-+    public int size() {
-+        return this.a.size();
-+    }
-+
-+    public void clear() {
-+        if (this.b == null) {
-+            super.clear();
-+        } else {
-+            for (int i = 0; i < this.size(); ++i) {
-+                this.set(i, this.b);
+@@ -1,5 +1,5 @@
+ package net.minecraft.server;
+-
++        
+ import com.google.common.collect.Lists;
+ import java.util.AbstractList;
+ import java.util.Arrays;
+@@ -10,19 +10,19 @@ import org.apache.commons.lang3.Validate;
+ 
+ public class NonNullList<E> extends AbstractList<E> {
+ 
+-    private final List<E> a;
++    private final net.yatopia.server.list.GlueList<E> a; // Yatopia
+     private final E b;
+ 
+     public static <E> NonNullList<E> a() {
+-        return new NonNullList<>();
+-    }
++                return new NonNullList<>();
 +            }
-+        }
-+
-+    }
-+}
+ 
+     public static <E> NonNullList<E> a(int i, E e0) {
+         Validate.notNull(e0);
+         Object[] aobject = new Object[i];
+-
++        
+         Arrays.fill(aobject, e0);
+-        return new NonNullList<>(Arrays.asList(aobject), e0);
++        return new NonNullList<>((List<E>) Arrays.asList(aobject), e0); // Yatopia - decompile fix
+     }
+ 
+     @SafeVarargs
+@@ -31,11 +31,11 @@ public class NonNullList<E> extends AbstractList<E> {
+     }
+ 
+     protected NonNullList() {
+-        this(Lists.newArrayList(), (Object) null);
++        this(Lists.newArrayList(), null); // Yatopia - decompile fix
+     }
+ 
+     protected NonNullList(List<E> list, @Nullable E e0) {
+-        this.a = list;
++        this.a = new net.yatopia.server.list.GlueList<>(list); // Yatopia
+         this.b = e0;
+     }
+ 
+@@ -70,6 +70,6 @@ public class NonNullList<E> extends AbstractList<E> {
+                 this.set(i, this.b);
+             }
+         }
+-
++        
+     }
+ }
 diff --git a/src/main/java/net/minecraft/server/RecipeItemStack.java b/src/main/java/net/minecraft/server/RecipeItemStack.java
 index 30da7471c3ecc66a61cb9fe1dd58d6d65438c505..27978f7b52c8db02f69fdcb092ffcce4550904d3 100644
 --- a/src/main/java/net/minecraft/server/RecipeItemStack.java
