@@ -5,7 +5,7 @@ Subject: [PATCH] tic-tacs Threading Fix
 
 
 diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
-index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..bc2b9b0f13d6b87e76518c39c4cf3b171600a7ec 100644
+index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..a7575ec7c1324c30f6865b78386b880df5de2fe8 100644
 --- a/src/main/java/net/minecraft/server/WeightedList.java
 +++ b/src/main/java/net/minecraft/server/WeightedList.java
 @@ -21,7 +21,7 @@ public class WeightedList<U> {
@@ -24,7 +24,7 @@ index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..bc2b9b0f13d6b87e76518c39c4cf3b17
 -        this.list = Lists.newArrayList(list); // Paper - decompile conflict
 +        // Yatopia start
 +        if (!(list instanceof net.yatopia.server.list.GlueList)) {
-+            this.list = new net.yatopia.server.list.GlueList<>();
++            this.list = new net.yatopia.server.list.GlueList<>(list);
 +        } else {
 +            this.list = list;
 +        }
