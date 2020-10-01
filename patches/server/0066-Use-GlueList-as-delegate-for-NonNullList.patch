@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarn <nkomarn@hotmail.com>
+Date: Thu, 1 Oct 2020 06:52:35 -0700
+Subject: [PATCH] Use GlueList as delegate for NonNullList
+
+
+diff --git a/src/main/java/net/minecraft/server/NonNullList.java b/src/main/java/net/minecraft/server/NonNullList.java
+index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..f8fe6d5133de9fd10f18813027a36fc232eb6caf 100644
+--- a/src/main/java/net/minecraft/server/NonNullList.java
++++ b/src/main/java/net/minecraft/server/NonNullList.java
+@@ -10,7 +10,7 @@ import org.apache.commons.lang3.Validate;
+ 
+ public class NonNullList<E> extends AbstractList<E> {
+ 
+-    private final List<E> a;
++    private final net.yatopia.server.list.GlueList<E> a; // Yatopia
+     private final E b;
+ 
+     public static <E> NonNullList<E> a() {
+@@ -22,7 +22,7 @@ public class NonNullList<E> extends AbstractList<E> {
+         Object[] aobject = new Object[i];
+ 
+         Arrays.fill(aobject, e0);
+-        return new NonNullList<>(Arrays.asList(aobject), e0);
++        return new NonNullList<>((List<E>) Arrays.asList(aobject), e0); // Yatopia - decompile fix
+     }
+ 
+     @SafeVarargs
+@@ -31,11 +31,11 @@ public class NonNullList<E> extends AbstractList<E> {
+     }
+ 
+     protected NonNullList() {
+-        this(Lists.newArrayList(), (Object) null);
++        this(Lists.newArrayList(), null); // Yatopia - decompile fix
+     }
+ 
+     protected NonNullList(List<E> list, @Nullable E e0) {
+-        this.a = list;
++        this.a = new net.yatopia.server.list.GlueList<>(list); // Yatopia
+         this.b = e0;
+     }
+ 
