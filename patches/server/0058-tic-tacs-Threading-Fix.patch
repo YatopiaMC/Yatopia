@@ -1,0 +1,79 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: gegy1000 <gegy1000@gmail.com>
+Date: Mon, 28 Sep 2020 14:20:17 -0500
+Subject: [PATCH] tic-tacs Threading Fix
+
+
+diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
+index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..bc2b9b0f13d6b87e76518c39c4cf3b171600a7ec 100644
+--- a/src/main/java/net/minecraft/server/WeightedList.java
++++ b/src/main/java/net/minecraft/server/WeightedList.java
+@@ -21,7 +21,7 @@ public class WeightedList<U> {
+     // Paper start - add useClone option
+     public WeightedList() { this(true); }
+     public WeightedList(boolean isUnsafe) {
+-        this(Lists.newArrayList(), isUnsafe);
++        this(new net.yatopia.server.list.GlueList<>(), isUnsafe);
+     }
+ 
+     private WeightedList(List<WeightedList.a<U>> list) { this(list, true); }
+@@ -29,7 +29,14 @@ public class WeightedList<U> {
+         this.isUnsafe = isUnsafe;
+         // Paper end
+         this.b = new Random();
+-        this.list = Lists.newArrayList(list); // Paper - decompile conflict
++        // Yatopia start
++        if (!(list instanceof net.yatopia.server.list.GlueList)) {
++            this.list = new net.yatopia.server.list.GlueList<>();
++        } else {
++            this.list = list;
++        }
++        //this.list = Lists.newArrayList(list); // Paper - decompile conflict
++        // Yatopia end
+     }
+ 
+     public static <U> Codec<WeightedList<U>> a(Codec<U> codec) {
+@@ -49,7 +56,7 @@ public class WeightedList<U> {
+ 
+     public WeightedList<U> a(Random random) {
+         // Paper start - make concurrent safe, work off a clone of the list
+-        List<WeightedList.a<U>> list = isUnsafe ? new java.util.ArrayList<WeightedList.a<U>>(this.list) : this.list;
++        List<WeightedList.a<U>> list = isUnsafe ? new net.yatopia.server.list.GlueList<>(this.list) : this.list; // Yatopia
+         list.forEach((weightedlist_a) -> weightedlist_a.a(random.nextFloat()));
+         list.sort(Comparator.comparingDouble(a::c));
+         return isUnsafe ? new WeightedList<>(list, isUnsafe) : this;
+@@ -65,7 +72,25 @@ public class WeightedList<U> {
+     }
+ 
+     public U b(Random random) {
+-        return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
++        // Yatopia start - replace this
++        //return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
++        WeightedList.a<U> selectedEntry = null;
++        double selectedValue = 0.0;
++
++        for (WeightedList.a<U> entry : this.list) {
++            double value = Math.pow(random.nextFloat(), 1.0F / entry.b);
++            if (value > selectedValue) {
++                selectedEntry = entry;
++                selectedValue = value;
++            }
++        }
++
++        if (selectedEntry == null) {
++            throw new IllegalStateException("no entries in WeightedList");
++        }
++
++        return selectedEntry.getElement();
++        // Yatopia end
+     }
+ 
+     public String toString() {
+@@ -91,6 +116,7 @@ public class WeightedList<U> {
+             this.c = -Math.pow((double) f, (double) (1.0F / (float) this.b));
+         }
+ 
++        public final T getElement() { return a; } // Yatopia - OBFHELPER
+         public T a() {
+             return this.a;
+         }

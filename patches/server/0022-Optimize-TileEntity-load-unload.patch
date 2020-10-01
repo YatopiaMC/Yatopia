@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize TileEntity load/unload
 
 
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index bbbbeaafe8d699d59b04fe44a09b6b5fd9f1fac5..9cbd38663c5e1e8d096f3e4a5383ed9ddbf691fe 100644
+index bbbbeaafe8d699d59b04fe44a09b6b5fd9f1fac5..47dcc1b9242cb6d035d554ab0ed235b11238f469 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -42,9 +42,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -15,9 +15,9 @@ index bbbbeaafe8d699d59b04fe44a09b6b5fd9f1fac5..9cbd38663c5e1e8d096f3e4a5383ed9d
 -    public final List<TileEntity> tileEntityListTick = Lists.newArrayList();
 -    protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
 -    protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
-+    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
-+    protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
-+    protected final List<TileEntity> tileEntityListUnload = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
++    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new net.yatopia.server.list.GlueList<>()); // Yatopia
++    protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new net.yatopia.server.list.GlueList<>()); // Yatopia
++    protected final List<TileEntity> tileEntityListUnload = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new net.yatopia.server.list.GlueList<>()); // Yatopia
      public final Thread serverThread;
      private final boolean debugWorld;
      private int d;

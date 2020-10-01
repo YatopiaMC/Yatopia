@@ -25,7 +25,7 @@ index c1f992b2ebac9819085bec74bc40ca3b5384c741..462d3431367f97f9d8506fd1a1adf8dc
              return this.getBlock().a(block);
          }
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
-index e6b5a21c523c598f53207d024322301fbae74825..160783a6660048b660e49382cd874ef89b47fb5c 100644
+index dbe6f7d555e8c851faba5cafee8831c516256c09..6374f013137fe2b244c68706f58e23ffeb2ea18b 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
 +++ b/src/main/java/net/minecraft/server/BlockPosition.java
 @@ -318,7 +318,17 @@ public class BlockPosition extends BaseBlockPosition {
@@ -53,7 +53,7 @@ index e6b5a21c523c598f53207d024322301fbae74825..160783a6660048b660e49382cd874ef8
  
 +    // Yatopia start
 +    public static java.util.List<BlockPosition> bList(BlockPosition pos, BlockPosition pos1) {
-+        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        java.util.List<BlockPosition> ret = new net.yatopia.server.list.GlueList<>();
 +        Iterable<BlockPosition> iterable = a(pos, pos1);
 +        net.yatopia.server.HoldingConsumer<BlockPosition> consumer = new net.yatopia.server.HoldingConsumer<>();
 +        java.util.Spliterator<BlockPosition> spliterator = iterable.spliterator();
@@ -138,7 +138,7 @@ index 24842902383820f3ec8dcd2ee57b3d4f2d2e952f..2481bfac2cc1224c32ca96519ceb38f0
  
      private EntityFishingHook.WaterPosition c(BlockPosition blockposition) {
 diff --git a/src/main/java/net/minecraft/server/IBlockAccess.java b/src/main/java/net/minecraft/server/IBlockAccess.java
-index b90c9990668f7956e8ef67413bcfc5d7d9616db1..cd4d53719cc179abb302a3bdd6ceae03fb62acc7 100644
+index b90c9990668f7956e8ef67413bcfc5d7d9616db1..3c6997ef5992c4cec48e57720b34ea6ce678476b 100644
 --- a/src/main/java/net/minecraft/server/IBlockAccess.java
 +++ b/src/main/java/net/minecraft/server/IBlockAccess.java
 @@ -40,6 +40,15 @@ public interface IBlockAccess {
@@ -149,7 +149,7 @@ index b90c9990668f7956e8ef67413bcfc5d7d9616db1..cd4d53719cc179abb302a3bdd6ceae03
 +    default java.util.List<IBlockData> aList(AxisAlignedBB box) {
 +        java.util.List<BlockPosition> posList = BlockPosition.aList(box);
 +        if (posList.isEmpty()) return java.util.Collections.emptyList();
-+        java.util.List<IBlockData> ret = new java.util.ArrayList<>();
++        java.util.List<IBlockData> ret = new net.yatopia.server.list.GlueList<>();
 +        for (BlockPosition pos : posList) ret.add(getType(pos));
 +        return ret;
 +    }
