@@ -72,16 +72,9 @@ index de7d5ed8d6260ce5ee4164df29cdaf69f561045c..22b8166ebb8e407d49bb73cf09163a11
  
      public <C extends IInventory, T extends IRecipe<C>> NonNullList<ItemStack> c(Recipes<T> recipes, C c0, World world) {
 diff --git a/src/main/java/net/minecraft/server/NonNullList.java b/src/main/java/net/minecraft/server/NonNullList.java
-index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..1ea0497c706f36e547cda8fa86d08f92136a5737 100644
+index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..f8fe6d5133de9fd10f18813027a36fc232eb6caf 100644
 --- a/src/main/java/net/minecraft/server/NonNullList.java
 +++ b/src/main/java/net/minecraft/server/NonNullList.java
-@@ -1,5 +1,5 @@
- package net.minecraft.server;
--
-+        
- import com.google.common.collect.Lists;
- import java.util.AbstractList;
- import java.util.Arrays;
 @@ -10,7 +10,7 @@ import org.apache.commons.lang3.Validate;
  
  public class NonNullList<E> extends AbstractList<E> {
@@ -91,12 +84,9 @@ index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..1ea0497c706f36e547cda8fa86d08f92
      private final E b;
  
      public static <E> NonNullList<E> a() {
-@@ -20,9 +20,9 @@ public class NonNullList<E> extends AbstractList<E> {
-     public static <E> NonNullList<E> a(int i, E e0) {
-         Validate.notNull(e0);
+@@ -22,7 +22,7 @@ public class NonNullList<E> extends AbstractList<E> {
          Object[] aobject = new Object[i];
--
-+        
+ 
          Arrays.fill(aobject, e0);
 -        return new NonNullList<>(Arrays.asList(aobject), e0);
 +        return new NonNullList<>((List<E>) Arrays.asList(aobject), e0); // Yatopia - decompile fix
@@ -117,14 +107,6 @@ index 2d3c406a05b9710d40471aa61c3540dbc971c1e3..1ea0497c706f36e547cda8fa86d08f92
          this.b = e0;
      }
  
-@@ -70,6 +70,6 @@ public class NonNullList<E> extends AbstractList<E> {
-                 this.set(i, this.b);
-             }
-         }
--
-+        
-     }
- }
 diff --git a/src/main/java/net/minecraft/server/RecipeItemStack.java b/src/main/java/net/minecraft/server/RecipeItemStack.java
 index 30da7471c3ecc66a61cb9fe1dd58d6d65438c505..27978f7b52c8db02f69fdcb092ffcce4550904d3 100644
 --- a/src/main/java/net/minecraft/server/RecipeItemStack.java
