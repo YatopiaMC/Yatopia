@@ -68,6 +68,7 @@ This is an overview over all patches that are currently used.
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
+| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
@@ -123,6 +124,7 @@ This is an overview over all patches that are currently used.
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
+| server |  Use GlueList as delegate for NonNullList      | Mykyta Komarn |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
