@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sat, 26 Sep 2020 14:25:07 -0500
+Subject: [PATCH] lithium NoiseChunkGeneratorMixin
+
+Original code by SuperCoder79, licensed under LGPLv3
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
+index 119804e5c12aca3f4fbfeaf424f46152f43b3941..100b53e95eeb9582a629fccf5022a527c07a5f86 100644
+--- a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
++++ b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
+@@ -112,7 +112,15 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+         return this.w == i && ((GeneratorSettingBase) this.h.get()).a(resourcekey);
+     }
+ 
++    // Yatopia start
++    private static double sampleOctave(NoiseGeneratorPerlin sampler, double x, double y, double z, double scaledVerticalSize, double scaledY, double frequency) {
++        return sampler.sample(x, y, z, scaledVerticalSize, scaledY) / frequency;
++    }
++    // Yatopia end
++
+     private double a(int i, int j, int k, double d0, double d1, double d2, double d3) {
++        // Yatopia start - replaced logic
++        /*
+         double d4 = 0.0D;
+         double d5 = 0.0D;
+         double d6 = 0.0D;
+@@ -148,6 +156,83 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+         }
+ 
+         return MathHelper.b(d4 / 512.0D, d5 / 512.0D, (d6 / 10.0D + 1.0D) / 2.0D);
++         */
++        double frequency = 1.0;
++        double interpolationValue = 0.0;
++
++        for (int octave = 0; octave < 8; octave++) {
++            double scaledVerticalScale = d3 * frequency;
++            double scaledY = j * scaledVerticalScale;
++
++            interpolationValue += sampleOctave(this.s.a(octave),
++                    NoiseGeneratorOctaves.a(i * d2 * frequency),
++                    NoiseGeneratorOctaves.a(scaledY),
++                    NoiseGeneratorOctaves.a(k * d2 * frequency), scaledVerticalScale, scaledY, frequency);
++
++            frequency /= 2.0;
++        }
++
++        double clampedInterpolation = (interpolationValue / 10.0 + 1.0) / 2.0;
++
++        if (clampedInterpolation >= 1) {
++            // Sample only upper noise, as the lower noise will be interpolated out.
++            frequency = 1.0;
++            double noise = 0.0;
++            for (int octave = 0; octave < 16; octave++) {
++                double scaledVerticalScale = d1 * frequency;
++                double scaledY = j * scaledVerticalScale;
++
++                noise += sampleOctave(this.r.a(octave),
++                        NoiseGeneratorOctaves.a(i * d0 * frequency),
++                        NoiseGeneratorOctaves.a(scaledY),
++                        NoiseGeneratorOctaves.a(k * d0 * frequency), scaledVerticalScale, scaledY, frequency);
++
++                frequency /= 2.0;
++            }
++
++            return noise / 512.0;
++        } else if (clampedInterpolation <= 0) {
++            // Sample only lower noise, as the upper noise will be interpolated out.
++            frequency = 1.0;
++            double noise = 0.0;
++            for (int octave = 0; octave < 16; octave++) {
++                double scaledVerticalScale = d1 * frequency;
++                double scaledY = j * scaledVerticalScale;
++                noise += sampleOctave(this.q.a(octave),
++                        NoiseGeneratorOctaves.a(i * d0 * frequency),
++                        NoiseGeneratorOctaves.a(scaledY),
++                        NoiseGeneratorOctaves.a(k * d0 * frequency), scaledVerticalScale, scaledY, frequency);
++
++                frequency /= 2.0;
++            }
++
++            return noise / 512.0;
++        } else {
++            // [VanillaCopy] SurfaceChunkGenerator#sampleNoise
++            // Sample both and interpolate, as in vanilla.
++
++            frequency = 1.0;
++            double lowerNoise = 0.0;
++            double upperNoise = 0.0;
++
++            for (int octave = 0; octave < 16; octave++) {
++                // Pre calculate these values to share them
++                double scaledVerticalScale = d1 * frequency;
++                double scaledY = j * scaledVerticalScale;
++                double xVal = NoiseGeneratorOctaves.a(i * d0 * frequency);
++                double yVal = NoiseGeneratorOctaves.a(scaledY);
++                double zVal = NoiseGeneratorOctaves.a(k * d0 * frequency);
++
++                upperNoise += sampleOctave(this.r.a(octave), xVal, yVal, zVal, scaledVerticalScale, scaledY, frequency);
++                lowerNoise += sampleOctave(this.q.a(octave), xVal, yVal, zVal, scaledVerticalScale, scaledY, frequency);
++
++                frequency /= 2.0;
++            }
++
++            // Vanilla behavior, return interpolated noise
++            return MathHelper.b(clampedInterpolation, lowerNoise / 512.0, upperNoise / 512.0);
++        }
++        // Yatopia end
+     }
+ 
+     private double[] b(int i, int j) {
