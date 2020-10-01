@@ -33,14 +33,14 @@ index 2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393..64adf87f2fe9921e49bf7a76170bb990
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 99bd8626b28a837f0da2268d89fddb6d28b2a944..cee623e5711565703fb16e7ad057e3950fb49e79 100644
+index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ef008d7e1527bde01c4a66f86ecc16492026871f 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
 @@ -83,7 +83,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          this.c = recipes;
      }
  
-+    private static Map<Item, Integer> cachedFuelMap = null; // Yatopia
++    private static Object2IntOpenHashMap<Item> cachedFuelMap = null; // Yatopia
 +
      public static Map<Item, Integer> f() {
 +        // Yatopia start
@@ -55,7 +55,7 @@ index 99bd8626b28a837f0da2268d89fddb6d28b2a944..cee623e5711565703fb16e7ad057e395
          a(map, (IMaterial) Blocks.FLETCHING_TABLE, 300);
          a(map, (IMaterial) Blocks.SMITHING_TABLE, 300);
          a(map, (IMaterial) Blocks.COMPOSTER, 300);
-+        cachedFuelMap = map; // Yatopia
++        cachedFuelMap = new Object2IntOpenHashMap<>(map); // Yatopia
          return map;
      }
  
