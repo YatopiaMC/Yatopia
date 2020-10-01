@@ -140,9 +140,6 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
-| server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
-| server |  lithium PerlinNoiseSamplerMixin      | JellySquid |  |
-| server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
 | server |  lithium collision optimizations      | JellySquid | Ivan Pekov |
 | server |  lithium enum_values      | JellySquid |  |
