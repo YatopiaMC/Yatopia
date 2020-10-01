@@ -862,7 +862,7 @@ index 798ce0029c980d340d74dff53d702ef3cd00e33e..eec6dbda1b5a34122a75f11dfa82506f
      // Paper end
  
 diff --git a/src/main/java/net/minecraft/server/EntitySlice.java b/src/main/java/net/minecraft/server/EntitySlice.java
-index 1250c3cbe915815939627701c153ba6254fc05f0..e0cbcc0a15f8089c29957badc20b0a786831c64b 100644
+index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b533b184c36 100644
 --- a/src/main/java/net/minecraft/server/EntitySlice.java
 +++ b/src/main/java/net/minecraft/server/EntitySlice.java
 @@ -14,18 +14,35 @@ import java.util.Map.Entry;
@@ -880,10 +880,11 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..e0cbcc0a15f8089c29957badc20b0a78
  
      private final Map<Class<?>, List<T>> a = Maps.newHashMap();
      private final Class<T> b;
-     private final List<T> c = Lists.newArrayList();
- 
-+    private Reference2ReferenceOpenHashMap<EntityClassGroup, ReferenceLinkedOpenHashSet<T>> entitiesByGroup; // Yatopia
+-    private final List<T> c = Lists.newArrayList();
++    private final List<T> c = new net.yatopia.server.list.GlueList<>(); // Yatopia
 +
++    private Reference2ReferenceOpenHashMap<EntityClassGroup, ReferenceLinkedOpenHashSet<T>> entitiesByGroup; // Yatopia
+ 
      public EntitySlice(Class<T> oclass) {
          this.b = oclass;
          this.a.put(oclass, this.c);
@@ -925,7 +926,7 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..e0cbcc0a15f8089c29957badc20b0a78
 -                return (List) stream.filter(oclass1::isInstance).collect(Collectors.toList());
 +            List<S> list = (List<S>) this.a.computeIfAbsent(oclass, (oclass1) -> { // Yatopia - decompile fix
 +                // Yatopia start - how about we nuke stream?
-+                List<T> ret = Lists.newArrayList();
++                List<T> ret = new net.yatopia.server.list.GlueList<>();
 +                for (T t : c) {
 +                    if (oclass1.isInstance(t)) {
 +                        ret.add(t);
