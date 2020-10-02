@@ -6,7 +6,7 @@ Subject: [PATCH] Fix recipe crash
 Caused due to slow streams, was kabooming tps when you were crafting F A S T
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..a707c85f2f6b0177781755decc8bc2e0d1eacd4a 100644
+index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..09b8065156a66a72ad5d09c6e8be0551970ffb56 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -78,9 +78,15 @@ public class CraftingManager extends ResourceDataJson {
@@ -32,7 +32,7 @@ index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..a707c85f2f6b0177781755decc8bc2e0
 +        // Yatopia start - WHY?! WHO DID THIS TO YOU!?!
 +        Collection<IRecipe<C>> recipeCollection = this.b(recipes).values();
 +        if (recipeCollection.isEmpty()) return java.util.Collections.emptyList();
-+        List<T> ret = new java.util.ArrayList<>();
++        List<T> ret = new net.yatopia.server.list.GlueList<>();
 +        for (IRecipe<C> iRecipe : recipeCollection) recipes.a(iRecipe, world, c0).ifPresent(ret::add);
 +        ret.sort(Comparator.comparing((iRecipe) -> iRecipe.getResult().getTranslationKey()));
 +        return ret;

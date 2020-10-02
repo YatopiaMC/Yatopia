@@ -10,7 +10,7 @@ GlueList was also used as a replacement for ArrayList as it is substantially fas
 These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 running furnaces on a server.
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index a707c85f2f6b0177781755decc8bc2e0d1eacd4a..bd4bc17245d32772aef60e53eae4a572ffc6d1c2 100644
+index 09b8065156a66a72ad5d09c6e8be0551970ffb56..bd4bc17245d32772aef60e53eae4a572ffc6d1c2 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -25,6 +25,10 @@ public class CraftingManager extends ResourceDataJson {
@@ -24,7 +24,7 @@ index a707c85f2f6b0177781755decc8bc2e0d1eacd4a..bd4bc17245d32772aef60e53eae4a572
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -108,19 +112,25 @@ public class CraftingManager extends ResourceDataJson {
+@@ -108,12 +112,18 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
@@ -43,14 +43,6 @@ index a707c85f2f6b0177781755decc8bc2e0d1eacd4a..bd4bc17245d32772aef60e53eae4a572
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
-         // Yatopia start - WHY?! WHO DID THIS TO YOU!?!
-         Collection<IRecipe<C>> recipeCollection = this.b(recipes).values();
-         if (recipeCollection.isEmpty()) return java.util.Collections.emptyList();
--        List<T> ret = new java.util.ArrayList<>();
-+        List<T> ret = new net.yatopia.server.list.GlueList<>();
-         for (IRecipe<C> iRecipe : recipeCollection) recipes.a(iRecipe, world, c0).ifPresent(ret::add);
-         ret.sort(Comparator.comparing((iRecipe) -> iRecipe.getResult().getTranslationKey()));
-         return ret;
 @@ -134,7 +144,7 @@ public class CraftingManager extends ResourceDataJson {
      }
  

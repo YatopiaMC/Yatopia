@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize BehaviorController
 
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
-index ae2905b403a63396d9cdc61444586ea5548f2974..4ad7f42158bb945088a4d1c574c63dd6c15fa53c 100644
+index ae2905b403a63396d9cdc61444586ea5548f2974..6b8da8303a19bbd65a4b38c664c49a6a8ac646a4 100644
 --- a/src/main/java/net/minecraft/server/BehaviorController.java
 +++ b/src/main/java/net/minecraft/server/BehaviorController.java
 @@ -53,13 +53,16 @@ public class BehaviorController<E extends EntityLiving> {
@@ -21,7 +21,7 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..4ad7f42158bb945088a4d1c574c63dd6
 -                });
 +                // Yatopia start
 +                // about previous impl: WHY ? WHO DID THIS TO YOU?
-+                Collection<T> candidates = new java.util.ArrayList<>();
++                Collection<T> candidates = new net.yatopia.server.list.GlueList<>();
 +                for (MemoryModuleType<?> moduleType : collection) {
 +                    moduleType.getSerializer()
 +                            .map(c -> IRegistry.MEMORY_MODULE_TYPE.getKey(moduleType))
@@ -79,7 +79,7 @@ index ae2905b403a63396d9cdc61444586ea5548f2974..4ad7f42158bb945088a4d1c574c63dd6
  
 +    // Yatopia start
 +    private List<BehaviorController.a<?>> memoriesList() {
-+        List<BehaviorController.a<?>> ret = new java.util.ArrayList<>();
++        List<BehaviorController.a<?>> ret = new net.yatopia.server.list.GlueList<>();
 +        for (Map.Entry<MemoryModuleType<?>, Optional<? extends ExpirableMemory<?>>> entry : memories.entrySet()) {
 +            ret.add(BehaviorController.a.b(entry.getKey(), (Optional) entry.getValue()));
 +        }
