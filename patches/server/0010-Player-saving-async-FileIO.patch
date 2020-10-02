@@ -4,43 +4,6 @@ Date: Fri, 31 Jul 2020 22:39:45 -0500
 Subject: [PATCH] Player-saving-async-FileIO
 
 
-diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index cf539c98073b475eb5b769c8cc11d48a7e6d58f1..20b97d1e68132a9f1b62dece5c26da80e67347b7 100644
---- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-+++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-@@ -50,6 +50,7 @@ public class AdvancementDataPlayer {
-     @Nullable
-     private Advancement l;
-     private boolean m = true;
-+    public static java.util.concurrent.ExecutorService saveThread = java.util.concurrent.Executors.newSingleThreadExecutor(); // Yatopia
- 
-     // Paper start - fix advancement data player leakage
-     final Map<CriterionTriggerAbstract, Set<CriterionTrigger.a>> criterionData = Maps.newIdentityHashMap();
-@@ -228,6 +229,15 @@ public class AdvancementDataPlayer {
- 
-         jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getGameVersion().getWorldVersion());
- 
-+        // Yatopia start - replace whole logic
-+        saveThread.execute(() -> {
-+            try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(f), Charsets.UTF_8.newEncoder())) {
-+                AdvancementDataPlayer.b.toJson(jsonelement, writer);
-+            } catch (Throwable e) {
-+                AdvancementDataPlayer.LOGGER.error("Couldn't save player advancements to {}", this.f, e);
-+            }
-+        });
-+        /*
-         try {
-             FileOutputStream fileoutputstream = new FileOutputStream(this.f);
-             Throwable throwable = null;
-@@ -275,7 +285,7 @@ public class AdvancementDataPlayer {
-         } catch (IOException ioexception) {
-             AdvancementDataPlayer.LOGGER.error("Couldn't save player advancements to {}", this.f, ioexception);
-         }
--
-+         */ // Yatopia end
-     }
- 
-     public boolean grantCriteria(Advancement advancement, String s) {
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
 index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..a52c0391b171c8a57de75f87c534ce1e0e78c44a 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
@@ -77,10 +40,10 @@ index ce4ebc96c01f3dacf4e4d0569d86f52140440d43..a52c0391b171c8a57de75f87c534ce1e
              nbttagcompound.set("ShoulderEntityLeft", this.getShoulderEntityLeft());
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 5760b40bdbee417f5bb5210f1271241ff8f36350..090692feb9d3606786b52590d4da1c55962aa719 100644
+index 5760b40bdbee417f5bb5210f1271241ff8f36350..437698cf4fee266c87eebb8b5f05509b587913e7 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -1286,6 +1286,28 @@ public abstract class PlayerList {
+@@ -1286,6 +1286,18 @@ public abstract class PlayerList {
              if (team != null) scoreboard.removeTeam(team);
          }
          // Paper end
@@ -92,16 +55,6 @@ index 5760b40bdbee417f5bb5210f1271241ff8f36350..090692feb9d3606786b52590d4da1c55
 +            if (!done) {
 +                LOGGER.error("Players did not save completely!");
 +            }
-+            ServerStatisticManager.saveThread.shutdown();
-+            done = ServerStatisticManager.saveThread.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
-+            if (!done) {
-+                LOGGER.error("Stats did not save completely!");
-+            }
-+            AdvancementDataPlayer.saveThread.shutdown();
-+            done = AdvancementDataPlayer.saveThread.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
-+            if (!done) {
-+                LOGGER.error("Advancements did not save completely!");
-+            }
 +        } catch (InterruptedException e) {
 +            e.printStackTrace();
 +        }
@@ -109,7 +62,7 @@ index 5760b40bdbee417f5bb5210f1271241ff8f36350..090692feb9d3606786b52590d4da1c55
      }
      // Paper end
  
-@@ -1323,13 +1345,13 @@ public abstract class PlayerList {
+@@ -1323,13 +1335,13 @@ public abstract class PlayerList {
              File file = this.server.a(SavedFile.STATS).toFile();
              File file1 = new File(file, uuid + ".json");
  
@@ -125,59 +78,6 @@ index 5760b40bdbee417f5bb5210f1271241ff8f36350..090692feb9d3606786b52590d4da1c55
  
              serverstatisticmanager = new ServerStatisticManager(this.server, file1);
              // this.o.put(uuid, serverstatisticmanager); // CraftBukkit
-diff --git a/src/main/java/net/minecraft/server/ServerStatisticManager.java b/src/main/java/net/minecraft/server/ServerStatisticManager.java
-index 3c3b87e37cbf69c223da007e8b7eb646ec83691e..ef20b3e43eb9598e79ee3ded40f50ae0cc100872 100644
---- a/src/main/java/net/minecraft/server/ServerStatisticManager.java
-+++ b/src/main/java/net/minecraft/server/ServerStatisticManager.java
-@@ -30,6 +30,7 @@ public class ServerStatisticManager extends StatisticManager {
-     private final File d;
-     private final Set<Statistic<?>> e = Sets.newHashSet();
-     private int f = -300;
-+    public static java.util.concurrent.ExecutorService saveThread = java.util.concurrent.Executors.newSingleThreadExecutor(); // Yatopia
- 
-     public ServerStatisticManager(MinecraftServer minecraftserver, File file) {
-         this.c = minecraftserver;
-@@ -41,6 +42,7 @@ public class ServerStatisticManager extends StatisticManager {
-             this.a.put( wrapper, entry.getValue().intValue() );
-         }
-         // Spigot end
-+        saveThread.execute(() -> { // Yatopia
-         if (file.isFile()) {
-             try {
-                 this.a(minecraftserver.getDataFixer(), org.apache.commons.io.FileUtils.readFileToString(file));
-@@ -50,17 +52,20 @@ public class ServerStatisticManager extends StatisticManager {
-                 ServerStatisticManager.LOGGER.error("Couldn't parse statistics file {}", file, jsonparseexception);
-             }
-         }
--
-+        }); // Yatopia
-     }
- 
-     public void save() {
-         if ( org.spigotmc.SpigotConfig.disableStatSaving ) return; // Spigot
-+        // Yatopia start
-+        String str = this.b();
-+        saveThread.execute(() -> {
-         try {
--            org.apache.commons.io.FileUtils.writeStringToFile(this.d, this.b());
-+            org.apache.commons.io.FileUtils.writeStringToFile(this.d, str);
-         } catch (IOException ioexception) {
-             ServerStatisticManager.LOGGER.error("Couldn't save stats", ioexception);
-         }
--
-+        }); // Yatopia end
-     }
- 
-     @Override
-@@ -111,7 +116,7 @@ public class ServerStatisticManager extends StatisticManager {
- 
-                                         if (nbttagcompound2.hasKeyOfType(s2, 99)) {
-                                             SystemUtils.a(this.a(statisticwrapper, s2), (statistic) -> {
--                                                this.a.put(statistic, nbttagcompound2.getInt(s2));
-+                                                this.a.put(statistic, nbttagcompound2.getInt(s2) + this.a.getOrDefault(statistic, 0)); // Yatopia
-                                             }, () -> {
-                                                 ServerStatisticManager.LOGGER.warn("Invalid statistic in {}: Don't know what {} is", this.d, s2);
-                                             });
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 index a959672f5857b987001252c3fd7ace9e83e07c9b..d8969f7f5244548452e5d12325e6fa735ecd3a00 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
