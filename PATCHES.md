@@ -14,6 +14,7 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
+| server |  Add JsonList save timings      | Ivan Pekov |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
@@ -28,7 +29,6 @@ This is an overview over all patches that are currently used.
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
-| server |  Akarin Updated Save json list async      | tsao chi |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
 | server |  Allow leashing villagers      | William Blake Galbreath |  |
@@ -73,7 +73,6 @@ This is an overview over all patches that are currently used.
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
 | server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
-| server |  Improve Hopper Performance      | Aikar |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
@@ -97,7 +96,6 @@ This is an overview over all patches that are currently used.
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
-| server |  Player-saving-async-FileIO      | tr7zw |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
