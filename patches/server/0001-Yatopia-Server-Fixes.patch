@@ -119,6 +119,43 @@ index 02f5ccf54210776770d3215afb7c8e82f750d57e..00000000000000000000000000000000
 -         public int pigmenPortalSpawn = 2000;
 -         public double pigmenPortalBoost = 0.0;
 -         public boolean pigmenFarmsWaterAi = false;
+diff --git a/src/main/java/net/minecraft/server/AdvancementDataWorld.java b/src/main/java/net/minecraft/server/AdvancementDataWorld.java
+index cc0aedf584095f59b4015acc45752d4d6009e154..7b6afeaab4486f90b954f2cd3b044e7bbe31f249 100644
+--- a/src/main/java/net/minecraft/server/AdvancementDataWorld.java
++++ b/src/main/java/net/minecraft/server/AdvancementDataWorld.java
+@@ -45,7 +45,7 @@ public class AdvancementDataWorld extends ResourceDataJson {
+                 AdvancementDataWorld.LOGGER.error("Parsing error loading custom advancement {}: {}", minecraftkey, jsonparseexception.getMessage());
+             }
+ 
+-        }
++        }); // Yatopia - fix akarin's shit
+         Advancements advancements = new Advancements();
+ 
+         advancements.a((Map) map1);
+diff --git a/src/main/java/net/minecraft/server/AdvancementDataWorld.java.rej b/src/main/java/net/minecraft/server/AdvancementDataWorld.java.rej
+deleted file mode 100644
+index e050fe9d3c77054d643570ef380a747c9d4812d4..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/AdvancementDataWorld.java.rej
++++ /dev/null
+@@ -1,18 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/AdvancementDataWorld.java b/src/main/java/net/minecraft/server/AdvancementDataWorld.java	(rejected hunks)
+-@@ -28,10 +29,12 @@ public class AdvancementDataWorld extends ResourceDataJson {
+-     protected void a(Map<MinecraftKey, JsonElement> map, IResourceManager iresourcemanager, GameProfilerFiller gameprofilerfiller) {
+-         Map<MinecraftKey, Advancement.SerializedAdvancement> map1 = Maps.newHashMap();
+- 
+--        map.forEach((minecraftkey, jsonelement) -> {
+--            // Spigot start
+--            if (org.spigotmc.SpigotConfig.disabledAdvancements != null && (org.spigotmc.SpigotConfig.disabledAdvancements.contains("*") || org.spigotmc.SpigotConfig.disabledAdvancements.contains(minecraftkey.toString()))) {
+--                return;
+-+        for (Map.Entry<MinecraftKey, JsonElement> entry : map.entrySet()) {
+-+            MinecraftKey minecraftkey = entry.getKey();
+-+            JsonElement jsonelement = entry.getValue();
+-+// Spigot start
+-+            if (SpigotConfig.disabledAdvancements != null && (SpigotConfig.disabledAdvancements.contains("*") || SpigotConfig.disabledAdvancements.contains(minecraftkey.toString()))) {
+-+                continue;
+-             }
+-             // Spigot end
+- 
 diff --git a/src/main/java/net/minecraft/server/BaseBlockPosition.java b/src/main/java/net/minecraft/server/BaseBlockPosition.java
 index e811295b4d6afcd920f60e0ce5440e43300d9085..d1064bd1c76eb23ce12e4a0703ce9f2622952897 100644
 --- a/src/main/java/net/minecraft/server/BaseBlockPosition.java
@@ -2380,7 +2417,7 @@ index bada470cba41cce9beb9eb04227b42c1d489d731..00000000000000000000000000000000
 -     private int c;
 -     private TileEntityShulkerBox.AnimationPhase i;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 06348f26fa4f0a5f64ca1b651665a9062e38c7de..bbbbeaafe8d699d59b04fe44a09b6b5fd9f1fac5 100644
+index c0815269be89c2b9d316ccaf8ccfa15beec98cc4..b06264b2315d7fed50946050445117c8aa930b3c 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

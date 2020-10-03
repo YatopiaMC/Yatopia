@@ -15,7 +15,7 @@ function update {
 
 function updateAll {
   update Akarin 1.16.2
-  update Empirecraft ver/1.16.2
+  update Empirecraft master
   update Origami 1.16
   update Purpur ver/1.16.3
   update Rainforest ver/1.16
