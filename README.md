@@ -22,7 +22,7 @@ Yatopia combines the best patches from many Paper forks and optimization mods, a
 
 
 ## Try it out 
-The latest stable builds of Yatopia are always avaiable over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?1.16.3=:1.16.3).
+The latest stable builds of Yatopia are always avaiable over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.3).
 
 ## Documentation
 
@@ -90,15 +90,15 @@ This is a lot of politics that we don't have time in our lives to deal with.
 That being said we make light API additions when requested.
 </p>
 
-## LICENSE ##
+## License
 
 License information can be found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.3/Licensing/LICENSE.md).
 
-## SECURITY ##
+## Security
 
 Security information can be found found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.3/SECURITY.md).
 
-
+## Statistics
 [![bStats Graph Data](https://bstats.org/signatures/server-implementation/Yatopia.svg)](https://bstats.org/plugin/server-implementation/Yatopia)
 
 Made with <span style="color: #e25555;">&#9829;</span> on Earth.
