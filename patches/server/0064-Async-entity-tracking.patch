@@ -1,0 +1,92 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarn <nkomarn@hotmail.com>
+Date: Sat, 3 Oct 2020 15:28:59 -0700
+Subject: [PATCH] Async entity tracking
+
+Handle entity tracking on a separate thread.
+
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index aea72b0db10eed151db18490c02f291c3cded92a..4f53eb68ac60f7c57cc888c943c76012e51f55a8 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -74,7 +74,7 @@ public class EntityTrackerEntry {
+ 
+     public final void tick() { this.a(); } // Paper - OBFHELPER
+     public void a() {
+-        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Tracker update"); // Tuinity
++        // com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Tracker update"); // Tuinity // Yatopia
+         List<Entity> list = this.tracker.getPassengers();
+ 
+         if (!list.equals(this.p)) {
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..75db9df2b4ae373e900ba537d575bbe1cc3ccbe8 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -103,11 +103,12 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     public final DefinedStructureManager definedStructureManager; // Paper - private -> public
+     private final File w;
+     private final PlayerMap playerMap;
+-    public final Int2ObjectMap<PlayerChunkMap.EntityTracker> trackedEntities;
++    public final Map<Integer, PlayerChunkMap.EntityTracker> trackedEntities; // Yatopia
+     private final Long2ByteMap z;
+     private final Queue<Runnable> A; private final Queue<Runnable> getUnloadQueueTasks() { return this.A; } // Paper - OBFHELPER
+     int viewDistance; // Paper - private -> package private
+     public final com.destroystokyo.paper.util.PlayerMobDistanceMap playerMobDistanceMap; // Paper
++    private static final java.util.concurrent.ExecutorService trackerExecutor = java.util.concurrent.Executors.newSingleThreadExecutor(new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Entity Tracker - %d").build()); // Yatopia
+ 
+     // CraftBukkit start - recursion-safe executor for Chunk loadCallback() and unloadCallback()
+     public final CallbackExecutor callbackExecutor = new CallbackExecutor();
+@@ -292,7 +293,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         this.unloadQueue = new LongOpenHashSet();
+         this.u = new AtomicInteger();
+         this.playerMap = new PlayerMap();
+-        this.trackedEntities = new Int2ObjectOpenHashMap();
++        this.trackedEntities = new java.util.concurrent.ConcurrentHashMap<>(); // Yatopia
+         this.z = new Long2ByteOpenHashMap();
+         this.A = new com.destroystokyo.paper.utils.CachedSizeConcurrentLinkedQueue<>(); // Paper - need constant-time size()
+         this.definedStructureManager = definedstructuremanager;
+@@ -2059,7 +2060,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                     EntityPlayer entityplayer = (EntityPlayer) entity;
+ 
+                     this.a(entityplayer, true);
+-                    ObjectIterator objectiterator = this.trackedEntities.values().iterator();
++                    Iterator objectiterator = this.trackedEntities.values().iterator(); // Yatopia
+ 
+                     while (objectiterator.hasNext()) {
+                         PlayerChunkMap.EntityTracker playerchunkmap_entitytracker1 = (PlayerChunkMap.EntityTracker) objectiterator.next();
+@@ -2080,7 +2081,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+             EntityPlayer entityplayer = (EntityPlayer) entity;
+ 
+             this.a(entityplayer, false);
+-            ObjectIterator objectiterator = this.trackedEntities.values().iterator();
++            Iterator objectiterator = this.trackedEntities.values().iterator(); // Yatopia
+ 
+             while (objectiterator.hasNext()) {
+                 PlayerChunkMap.EntityTracker playerchunkmap_entitytracker = (PlayerChunkMap.EntityTracker) objectiterator.next();
+@@ -2127,7 +2128,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     protected void g() {
+         // Paper start - optimized tracker
+         if (true) {
+-            this.processTrackQueue();
++            trackerExecutor.execute(this::processTrackQueue); // Yatopia
+             return;
+         }
+         // Paper end - optimized tracker
+@@ -2135,7 +2136,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         List<EntityPlayer> list1 = this.world.getPlayers();
+ 
+         PlayerChunkMap.EntityTracker playerchunkmap_entitytracker;
+-        ObjectIterator objectiterator;
++        Iterator objectiterator; // Yatopia
+         world.timings.tracker1.startTiming(); // Paper
+ 
+         for (objectiterator = this.trackedEntities.values().iterator(); objectiterator.hasNext(); playerchunkmap_entitytracker.trackerEntry.a()) {
+@@ -2461,7 +2462,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         }
+ 
+         public void updatePlayer(EntityPlayer entityplayer) {
+-            org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot
++            // org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot // Yatopia
+             if (entityplayer != this.tracker) {
+                 // Paper start - remove allocation of Vec3D here
+                 //Vec3D vec3d = entityplayer.getPositionVector().d(this.tracker.getPositionVector()); // MC-155077, SPIGOT-5113
