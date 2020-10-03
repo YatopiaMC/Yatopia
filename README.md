@@ -22,11 +22,11 @@ Yatopia combines the best patches from many Paper forks and optimization mods, a
 
 
 ## Try it out 
-The latest stable builds of Yatopia are always avaiable over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.3).
+The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.3).
 
 ## Documentation
 
-You can find a full explanation of the Yatopia configuration file on the [Wiki](https://github.com/YatopiaMC/Yatopia/wiki). Also check out the list of patches included in this project and who created them [here](PATCHES.md)! You can also find our recommended config base [here](https://github.com/YatopiaMC/Yatopia/wiki/Configurations-Parameters-recommended)!
+You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md). You can also find our recommended config base [here](https://github.com/YatopiaMC/Yatopia/wiki/Configurations-Parameters-recommended)!
 
 ## Contributors
 
@@ -53,8 +53,7 @@ If you are repatching you need to delete `Yatopa-API` and `Yatopia-Server` folde
 
 ## Using Yatopia-API
 
-To build your plugin against the Yatopia-API,
-First add the CodeMC maven repository:
+To build your plugin against the Yatopia-API, first add the CodeMC maven repository:
 ```xml
 <repositories>
     <!-- CodeMC -->
