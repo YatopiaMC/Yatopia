@@ -60,7 +60,7 @@ index 2c058a9eb4ce77f6090f3516ea048483173e7511..7678ee6f8fbe5d40739f842672444726
          // Paper end
      }
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
-index aea72b0db10eed151db18490c02f291c3cded92a..eb8fd0793c2c8252ee67f5263155befc2713b3f6 100644
+index aea72b0db10eed151db18490c02f291c3cded92a..f379d591ed7083840e15ba94f514b4bf06e52010 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 @@ -39,6 +39,7 @@ public class EntityTrackerEntry {
@@ -106,37 +106,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb8fd0793c2c8252ee67f5263155befc
              }
  
              this.c();
-@@ -116,7 +124,8 @@ public class EntityTrackerEntry {
-                 boolean flag = Math.abs(i - this.yRot) >= 1 || Math.abs(j - this.xRot) >= 1;
- 
-                 if (flag) {
--                    this.f.accept(new PacketPlayOutEntity.PacketPlayOutEntityLook(this.tracker.getId(), (byte) i, (byte) j, this.tracker.isOnGround()));
-+                    byte i1 = (byte) i;
-+                    this.f.accept(new PacketPlayOutEntity.PacketPlayOutEntityLook(this.tracker.getId(), i1, (byte) j, this.tracker.isOnGround()));
-                     this.yRot = i;
-                     this.xRot = j;
-                 }
-@@ -194,7 +203,8 @@ public class EntityTrackerEntry {
-                 if (packet1 != null) {
-                     // paper start
-                     if (trackedPlayerMap == null || packet1 instanceof PacketPlayOutEntityTeleport) {
--                        this.f.accept((packet1));
-+                        Packet<?> packet2 = packet1;
-+                        this.f.accept(packet2);
-                     } else {
-                         PacketPlayOutEntityTeleport teleportPacket = null;
- 
-@@ -230,7 +240,8 @@ public class EntityTrackerEntry {
- 
-             i = MathHelper.d(this.tracker.getHeadRotation() * 256.0F / 360.0F);
-             if (Math.abs(i - this.headYaw) >= 1) {
--                this.f.accept(new PacketPlayOutEntityHeadRotation(this.tracker, (byte) i));
-+                byte i1 = (byte) i;
-+                this.f.accept(new PacketPlayOutEntityHeadRotation(this.tracker, i1));
-                 this.headYaw = i;
-             }
- 
-@@ -240,6 +251,7 @@ public class EntityTrackerEntry {
+@@ -240,6 +248,7 @@ public class EntityTrackerEntry {
          ++this.tickCounter;
          if (this.tracker.velocityChanged) {
              // CraftBukkit start - Create PlayerVelocity event
@@ -144,7 +114,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb8fd0793c2c8252ee67f5263155befc
              boolean cancelled = false;
  
              if (this.tracker instanceof EntityPlayer) {
-@@ -259,6 +271,7 @@ public class EntityTrackerEntry {
+@@ -259,6 +268,7 @@ public class EntityTrackerEntry {
              if (!cancelled) {
                  this.broadcastIncludingSelf(new PacketPlayOutEntityVelocity(this.tracker));
              }
