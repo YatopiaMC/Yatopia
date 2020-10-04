@@ -74,7 +74,7 @@ index 42628d6dbf54977d34442f46c89b771af3af5b11..4bae0e82bc25b576a23b5f05af7c3ad9
 +    @Override public java.time.Duration getLastTickTime() { return net.minecraft.server.MinecraftServer.lastTickTime; } // Yatopia
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..cb9470da1dcab43b11ec369719d0d518da90cfa8 100644
+index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..8e930bdd6a88806b8857bc73f93ec296f47bd4c3 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 @@ -34,6 +34,11 @@ public class TicksPerSecondCommand extends Command
@@ -83,8 +83,8 @@ index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..cb9470da1dcab43b11ec369719d0d518
          sender.sendMessage(ChatColor.GOLD + "TPS from last 5s, 1m, 5m, 15m: " + org.apache.commons.lang.StringUtils.join(tpsAvg, ", ")); // Purpur
 +        // Yatopia start
 +        java.time.Duration lastTickTime = org.bukkit.Bukkit.getLastTickTime();
-+        sender.sendMessage( ChatColor.GOLD + "Last tick ms: " + formatTo( lastTickTime, java.util.concurrent.TimeUnit.MILLISECONDS ) );
-+        sender.sendMessage( ChatColor.GOLD + "Last tick ns: " + formatTo( lastTickTime, java.util.concurrent.TimeUnit.NANOSECONDS ) );
++        sender.sendMessage(ChatColor.GOLD + "Last tick: " + formatTo( lastTickTime, java.util.concurrent.TimeUnit.MILLISECONDS ) + " (" + formatTo( lastTickTime, java.util.concurrent.TimeUnit.NANOSECONDS ) + ")");
++        sender.sendMessage( ChatColor.GOLD + "Lagging: " + ( org.bukkit.Bukkit.isLagging() ? ChatColor.RED + "Yes" : ChatColor.GREEN + "No" ));
 +        // Yatopia end
          if (args.length > 0 && args[0].equals("mem") && sender.hasPermission("bukkit.command.tpsmemory")) {
              sender.sendMessage(ChatColor.GOLD + "Current Memory Usage: " + ChatColor.GREEN + ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024)) + "/" + (Runtime.getRuntime().totalMemory() / (1024 * 1024)) + " mb (Max: " + (Runtime.getRuntime().maxMemory() / (1024 * 1024)) + " mb)");
