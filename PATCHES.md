@@ -36,6 +36,7 @@ This is an overview over all patches that are currently used.
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Apply advancements async      | Mariell Hoversholm |  |
+| server |  Async entity tracking      | Mykyta Komarn | Ivan Pekov |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | tr7zw |  |
