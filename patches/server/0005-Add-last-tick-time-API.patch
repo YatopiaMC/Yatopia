@@ -7,7 +7,7 @@ Original patch by:
 Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 042a1278774a1533cb8614c82350c664f58442a1..c1194a7b4dff6d01da10a6099f208a559b06e3e7 100644
+index a610187193cc0b19a34e93939fa2a96105157810..680c139e249fce8dedf5a63ac5034b930b8e8540 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -928,6 +928,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -28,7 +28,7 @@ index 042a1278774a1533cb8614c82350c664f58442a1..c1194a7b4dff6d01da10a6099f208a55
 +                    lastTickTime = java.time.Duration.ofNanos(System.nanoTime() - tickStart); // Yatopia
                      //this.methodProfiler.exitEnter("nextTickWait"); // Akarin - remove caller
                      this.X = true;
-                     this.sleepForTick();
+                     this.W = Math.max(SystemUtils.getMonotonicMillis() + 50L, this.nextTick);
 diff --git a/src/main/java/net/yatopia/server/TimeUtils.java b/src/main/java/net/yatopia/server/TimeUtils.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..b506aaeab4ad997b83d3aa6daaab6eea52a08568
