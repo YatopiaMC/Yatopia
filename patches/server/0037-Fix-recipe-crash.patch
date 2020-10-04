@@ -6,7 +6,7 @@ Subject: [PATCH] Fix recipe crash
 Caused due to slow streams, was kabooming tps when you were crafting F A S T
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..de7d5ed8d6260ce5ee4164df29cdaf69f561045c 100644
+index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..09b8065156a66a72ad5d09c6e8be0551970ffb56 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -78,9 +78,15 @@ public class CraftingManager extends ResourceDataJson {
@@ -14,8 +14,8 @@ index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..de7d5ed8d6260ce5ee4164df29cdaf69
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
          // CraftBukkit start
 +        // Yatopia start - replace stream
-+        List<IRecipe<C>> collection = new java.util.ArrayList<>(this.b(recipes).values());
-+        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.get(0), world, c0);
++        Collection<IRecipe<C>> collection = this.b(recipes).values();
++        Optional<T> recipe = collection.isEmpty() ? Optional.empty() : recipes.a(collection.iterator().next(), world, c0);
 +        /*
          Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
              return SystemUtils.a(recipes.a(irecipe, world, c0));
@@ -32,7 +32,7 @@ index 64adf87f2fe9921e49bf7a76170bb9908dfdaf19..de7d5ed8d6260ce5ee4164df29cdaf69
 +        // Yatopia start - WHY?! WHO DID THIS TO YOU!?!
 +        Collection<IRecipe<C>> recipeCollection = this.b(recipes).values();
 +        if (recipeCollection.isEmpty()) return java.util.Collections.emptyList();
-+        List<T> ret = new java.util.ArrayList<>();
++        List<T> ret = new net.yatopia.server.list.GlueList<>();
 +        for (IRecipe<C> iRecipe : recipeCollection) recipes.a(iRecipe, world, c0).ifPresent(ret::add);
 +        ret.sort(Comparator.comparing((iRecipe) -> iRecipe.getResult().getTranslationKey()));
 +        return ret;

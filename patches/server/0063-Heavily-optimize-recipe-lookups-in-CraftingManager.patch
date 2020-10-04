@@ -1,0 +1,67 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarn <nkomarn@hotmail.com>
+Date: Thu, 1 Oct 2020 06:57:43 -0700
+Subject: [PATCH] Heavily optimize recipe lookups in CraftingManager
+
+Recipe lookups are now cached in CraftingManager, which prevent unnecessary ArrayLists being created for every lookup. Additionally, an EMPTY_MAP variable was added to prevent bottlenecks during map creation, since that map is only ever iterated.
+
+GlueList was also used as a replacement for ArrayList as it is substantially faster.
+
+These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 running furnaces on a server.
+
+diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
+index 09b8065156a66a72ad5d09c6e8be0551970ffb56..bd4bc17245d32772aef60e53eae4a572ffc6d1c2 100644
+--- a/src/main/java/net/minecraft/server/CraftingManager.java
++++ b/src/main/java/net/minecraft/server/CraftingManager.java
+@@ -25,6 +25,10 @@ public class CraftingManager extends ResourceDataJson {
+     private static final Logger LOGGER = LogManager.getLogger();
+     public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
+     private boolean d;
++    // Yatopia start
++    public static final Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> EMPTY_MAP = new Object2ObjectLinkedOpenHashMap<>();
++    public static final Map<Recipes<?>, List<IRecipe<?>>> CACHE = new Object2ObjectLinkedOpenHashMap<>();
++    // Yatopia end
+ 
+     public CraftingManager() {
+         super(CraftingManager.a, "recipes");
+@@ -108,12 +112,18 @@ public class CraftingManager extends ResourceDataJson {
+     }
+ 
+     public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
++        // Yatopia start - replaced Logic
++        return (List) CACHE.computeIfAbsent(recipes, recipes1 -> {
++            return new net.yatopia.server.list.GlueList<>(this.b(recipes).values());
++        });
++        /*
+         List<IRecipe<C>> list = new ArrayList<>();
+         for (IRecipe<C> irecipe : this.b(recipes).values()) {
+             IRecipe<C> ciRecipe = irecipe;
+             list.add(ciRecipe);
+         }
+         return (List) list;
++        */ // Yatopia end
+     }
+ 
+     public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
+@@ -134,7 +144,7 @@ public class CraftingManager extends ResourceDataJson {
+     }
+ 
+     private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
+-        return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
++        return (Map) this.recipes.getOrDefault(recipes, EMPTY_MAP); // CraftBukkit // Yatopia
+     }
+ 
+     public <C extends IInventory, T extends IRecipe<C>> NonNullList<ItemStack> c(Recipes<T> recipes, C c0, World world) {
+diff --git a/src/main/java/net/minecraft/server/RecipeItemStack.java b/src/main/java/net/minecraft/server/RecipeItemStack.java
+index 30da7471c3ecc66a61cb9fe1dd58d6d65438c505..27978f7b52c8db02f69fdcb092ffcce4550904d3 100644
+--- a/src/main/java/net/minecraft/server/RecipeItemStack.java
++++ b/src/main/java/net/minecraft/server/RecipeItemStack.java
+@@ -32,7 +32,7 @@ public final class RecipeItemStack implements Predicate<ItemStack> {
+ 
+     public void buildChoices() {
+         if (this.choices == null) {
+-            List<ItemStack> list = new ArrayList<>();
++            List<ItemStack> list = new net.yatopia.server.list.GlueList<>(); // Yatopia
+             Set<ItemStack> uniqueValues = new HashSet<>();
+             for (Provider recipeitemstack_provider : this.b) {
+                 for (ItemStack itemStack : recipeitemstack_provider.a()) {

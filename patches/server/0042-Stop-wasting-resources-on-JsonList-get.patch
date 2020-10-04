@@ -14,10 +14,10 @@ Our changes are the following:
    triggers removing of all stale entries.
 
 diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
-index 3fb72d6ee587d66a9b7e1dec27fc4f64b82ab4df..596815d70e69fd645bec5b6e8c1ebc7b2fa5345a 100644
+index 4094ef76b7b05de1bfcc28aa0ef13033abadeb7e..0224a6d0e47e836fa485b39e7b4ce5b83ea554bf 100644
 --- a/src/main/java/net/minecraft/server/JsonList.java
 +++ b/src/main/java/net/minecraft/server/JsonList.java
-@@ -69,9 +69,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -71,9 +71,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          // Paper start
          // this.g();
          // return (V) this.d.get(this.a(k0)); // CraftBukkit - fix decompile error
@@ -31,12 +31,11 @@ index 3fb72d6ee587d66a9b7e1dec27fc4f64b82ab4df..596815d70e69fd645bec5b6e8c1ebc7b
          // Paper end
      }
  
-@@ -150,12 +154,23 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -154,12 +158,22 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          this.removeStaleEntries(); // Paper - remove expired values before saving
          JsonArray jsonarray = new JsonArray();
  
 +        // Yatopia start - we're nuking streams wherever possible
-+        // this is async due to akarin's changes, yet we still need it F A S T E R
 +        /*
          this.d.values().stream().map((jsonlistentry) -> {
              JsonObject jsonobject = new JsonObject();
@@ -52,14 +51,14 @@ index 3fb72d6ee587d66a9b7e1dec27fc4f64b82ab4df..596815d70e69fd645bec5b6e8c1ebc7b
 +            jsonarray.add(obj);
 +        }
 +        // Yatopia end
-         BufferedWriter bufferedwriter = null;
+         BufferedWriter bufferedwriter = Files.newWriter(this.c, StandardCharsets.UTF_8);
          Throwable throwable = null;
  
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index c3c3ddf7e65aaa63b8e7c65d5d513ae664526896..c571ca533153e6d554d6da2a71b380224bdc6cd4 100644
+index 5760b40bdbee417f5bb5210f1271241ff8f36350..f84bec53b9ed7f8ae4cbb391530dc675f42e2a7a 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -634,6 +634,7 @@ public abstract class PlayerList {
+@@ -637,6 +637,7 @@ public abstract class PlayerList {
          GameProfileBanEntry gameprofilebanentry;
          if (getProfileBans().isBanned(gameprofile) && (gameprofilebanentry = getProfileBans().get(gameprofile)) != null) {
              // Paper end
@@ -67,7 +66,7 @@ index c3c3ddf7e65aaa63b8e7c65d5d513ae664526896..c571ca533153e6d554d6da2a71b38022
  
              chatmessage = new ChatMessage("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
              if (gameprofilebanentry.getExpires() != null) {
-@@ -641,7 +642,11 @@ public abstract class PlayerList {
+@@ -644,7 +645,11 @@ public abstract class PlayerList {
              }
  
              // return chatmessage;
