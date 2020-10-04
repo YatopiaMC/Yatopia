@@ -86,6 +86,7 @@ This is an overview over all patches that are currently used.
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
+| server |  Optimize IAsyncTaskHandler      | ishland | Mykyta Komarn |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
