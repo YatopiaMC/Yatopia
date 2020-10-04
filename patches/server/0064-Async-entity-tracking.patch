@@ -60,7 +60,7 @@ index 2c058a9eb4ce77f6090f3516ea048483173e7511..7678ee6f8fbe5d40739f842672444726
          // Paper end
      }
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
-index aea72b0db10eed151db18490c02f291c3cded92a..eb48fe7aea2ef7179929a1143d2bd7e8e00ddd43 100644
+index aea72b0db10eed151db18490c02f291c3cded92a..eb8fd0793c2c8252ee67f5263155befc2713b3f6 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 @@ -39,6 +39,7 @@ public class EntityTrackerEntry {
@@ -71,28 +71,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb48fe7aea2ef7179929a1143d2bd7e8
      // Paper start
      private java.util.Map<EntityPlayer, Boolean> trackedPlayerMap = null;
  
-@@ -46,12 +47,20 @@ public class EntityTrackerEntry {
-      * Requested in https://github.com/PaperMC/Paper/issues/1537 to allow intercepting packets
-      */
-     public void sendPlayerPacket(EntityPlayer player, Packet packet) {
-+        MCUtil.ensureMain(() -> { // Yatopia - ensure main
-         player.playerConnection.sendPacket(packet);
-+        }); // Yatopia
-     }
- 
-     public EntityTrackerEntry(WorldServer worldserver, Entity entity, int i, boolean flag, Consumer<Packet<?>> consumer, java.util.Map<EntityPlayer, Boolean> trackedPlayers) {
-         this(worldserver, entity, i, flag, consumer, trackedPlayers.keySet());
-+        // Yatopia start - ensure this is concurrent
-+        if (!(trackedPlayers instanceof java.util.concurrent.ConcurrentHashMap)) {
-+            trackedPlayerMap = new java.util.concurrent.ConcurrentHashMap<>(trackedPlayers);
-+        } else {
-         trackedPlayerMap = trackedPlayers;
-+        }
-+        // Yatopia end
-     }
- 
-     public EntityTrackerEntry(WorldServer worldserver, Entity entity, int i, boolean flag, Consumer<Packet<?>> consumer, Set<EntityPlayer> trackedPlayers) {
-@@ -74,7 +83,7 @@ public class EntityTrackerEntry {
+@@ -74,7 +75,7 @@ public class EntityTrackerEntry {
  
      public final void tick() { this.a(); } // Paper - OBFHELPER
      public void a() {
@@ -101,7 +80,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb48fe7aea2ef7179929a1143d2bd7e8
          List<Entity> list = this.tracker.getPassengers();
  
          if (!list.equals(this.p)) {
-@@ -89,18 +98,25 @@ public class EntityTrackerEntry {
+@@ -89,18 +90,25 @@ public class EntityTrackerEntry {
  
              if (this.tickCounter % 10 == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks
                  WorldMap worldmap = ItemWorldMap.getSavedMap(itemstack, this.b);
@@ -127,69 +106,37 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb48fe7aea2ef7179929a1143d2bd7e8
              }
  
              this.c();
-@@ -116,7 +132,11 @@ public class EntityTrackerEntry {
+@@ -116,7 +124,8 @@ public class EntityTrackerEntry {
                  boolean flag = Math.abs(i - this.yRot) >= 1 || Math.abs(j - this.xRot) >= 1;
  
                  if (flag) {
 -                    this.f.accept(new PacketPlayOutEntity.PacketPlayOutEntityLook(this.tracker.getId(), (byte) i, (byte) j, this.tracker.isOnGround()));
-+                    // Yatopia start - ensure main
 +                    byte i1 = (byte) i;
-+                    MCUtil.ensureMain(() -> {
 +                    this.f.accept(new PacketPlayOutEntity.PacketPlayOutEntityLook(this.tracker.getId(), i1, (byte) j, this.tracker.isOnGround()));
-+                    }); // Yatopia
                      this.yRot = i;
                      this.xRot = j;
                  }
-@@ -137,7 +157,9 @@ public class EntityTrackerEntry {
-                 // Purpur start - fix MC-4
-                 if (net.pl3x.purpur.PurpurConfig.fixItemPositionDesync && this.tracker instanceof EntityItem) {
-                     Vec3D loc = PacketPlayOutEntity.decrypt(PacketPlayOutEntity.encrypt(tracker.locX()), PacketPlayOutEntity.encrypt(tracker.locY()), PacketPlayOutEntity.encrypt(tracker.locZ()));
-+                    MCUtil.ensureMain(() -> { // Yatopia - ensure main
-                     tracker.setPosition(loc.getX(), loc.getY(), loc.getZ());
-+                    }); // Yatopia
-                 }
-                 // Purpur end - fix MC-4
-                 Packet<?> packet1 = null;
-@@ -187,14 +209,20 @@ public class EntityTrackerEntry {
- 
-                     if (d0 > 1.0E-7D || d0 > 0.0D && vec3d1.g() == 0.0D) {
-                         this.m = vec3d1;
-+                        MCUtil.ensureMain(() -> { // Yatopia - ensure main
-                         this.f.accept(new PacketPlayOutEntityVelocity(this.tracker.getId(), this.m));
-+                        }); // Yatopia
-                     }
-                 }
- 
+@@ -194,7 +203,8 @@ public class EntityTrackerEntry {
                  if (packet1 != null) {
                      // paper start
                      if (trackedPlayerMap == null || packet1 instanceof PacketPlayOutEntityTeleport) {
 -                        this.f.accept((packet1));
-+                        // Yatopia start - ensure main
 +                        Packet<?> packet2 = packet1;
-+                        MCUtil.ensureMain(() -> {
 +                        this.f.accept(packet2);
-+                        }); // Yatopia end
                      } else {
                          PacketPlayOutEntityTeleport teleportPacket = null;
  
-@@ -230,16 +258,23 @@ public class EntityTrackerEntry {
+@@ -230,7 +240,8 @@ public class EntityTrackerEntry {
  
              i = MathHelper.d(this.tracker.getHeadRotation() * 256.0F / 360.0F);
              if (Math.abs(i - this.headYaw) >= 1) {
 -                this.f.accept(new PacketPlayOutEntityHeadRotation(this.tracker, (byte) i));
-+                // Yatopia start - ensure main
 +                byte i1 = (byte) i;
-+                MCUtil.ensureMain(() -> {
 +                this.f.accept(new PacketPlayOutEntityHeadRotation(this.tracker, i1));
-+                }); // Yatopia end
                  this.headYaw = i;
              }
  
-+            MCUtil.ensureMain(() -> { // Yatopia - ensure main
-             this.tracker.impulse = false;
-+            }); // Yatopia
-         }
- 
+@@ -240,6 +251,7 @@ public class EntityTrackerEntry {
          ++this.tickCounter;
          if (this.tracker.velocityChanged) {
              // CraftBukkit start - Create PlayerVelocity event
@@ -197,7 +144,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb48fe7aea2ef7179929a1143d2bd7e8
              boolean cancelled = false;
  
              if (this.tracker instanceof EntityPlayer) {
-@@ -259,6 +294,7 @@ public class EntityTrackerEntry {
+@@ -259,6 +271,7 @@ public class EntityTrackerEntry {
              if (!cancelled) {
                  this.broadcastIncludingSelf(new PacketPlayOutEntityVelocity(this.tracker));
              }
@@ -205,59 +152,8 @@ index aea72b0db10eed151db18490c02f291c3cded92a..eb48fe7aea2ef7179929a1143d2bd7e8
              // CraftBukkit end
              this.tracker.velocityChanged = false;
          }
-@@ -282,17 +318,21 @@ public class EntityTrackerEntry {
-     // Purpur end
- 
-     public void a(EntityPlayer entityplayer) {
-+        MCUtil.ensureMain(() -> { // Yatopia - ensure main
-         this.tracker.c(entityplayer);
-         entityplayer.c(this.tracker);
-+        }); // Yatopia
-     }
- 
-     public void b(EntityPlayer entityplayer) {
-+        MCUtil.ensureMain(() -> { // Yatopia - ensure main
-         PlayerConnection playerconnection = entityplayer.playerConnection;
- 
-         entityplayer.playerConnection.getClass();
-         this.a(playerconnection::sendPacket, entityplayer); // CraftBukkit - add player
-         this.tracker.b(entityplayer);
-         entityplayer.d(this.tracker);
-+        }); // Yatopia
-     }
- 
-     public void a(Consumer<Packet<?>> consumer, EntityPlayer entityplayer) { // CraftBukkit - add player
-@@ -390,6 +430,7 @@ public class EntityTrackerEntry {
-     }
- 
-     private void c() {
-+        MCUtil.ensureMain(() -> { // Yatopia - ensure main
-         DataWatcher datawatcher = this.tracker.getDataWatcher();
- 
-         if (datawatcher.a()) {
-@@ -410,6 +451,7 @@ public class EntityTrackerEntry {
- 
-             set.clear();
-         }
-+        }); // Yatopia
- 
-     }
- 
-@@ -430,10 +472,12 @@ public class EntityTrackerEntry {
-     // Paper end
- 
-     private void broadcastIncludingSelf(Packet<?> packet) {
-+        MCUtil.ensureMain(() -> { // Yatopia - ensure main
-         this.f.accept(packet);
-         if (this.tracker instanceof EntityPlayer) {
-             ((EntityPlayer) this.tracker).playerConnection.sendPacket(packet);
-         }
-+        }); // Yatopia
- 
-     }
- }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7ec3e7665b 100644
+index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579dac13bd8d 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
@@ -325,7 +221,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
          entity.tracker = null; // Paper - We're no longer tracked
      }
  
-@@ -2102,6 +2115,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2102,12 +2115,14 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.world.timings.tracker1.startTiming();
          try {
              com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet.Iterator<Chunk> iterator = this.world.getChunkProvider().entityTickingChunks.iterator();
@@ -333,7 +229,14 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
              try {
              while (iterator.hasNext()) {
                  Chunk chunk = iterator.next();
-@@ -2117,6 +2131,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                 Entity[] entities = chunk.entities.getRawData();
+                 for (int i = 0, len = chunk.entities.size(); i < len; ++i) {
+                     Entity entity = entities[i];
++                    if (entity == null) continue; // Yatopia
+                     EntityTracker tracker = this.trackedEntities.get(entity.getId());
+                     if (tracker != null) {
+                         tracker.updatePlayers(tracker.tracker.getPlayersInTrackRange());
+@@ -2117,6 +2132,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              }
              } finally {
                  iterator.finishedIterating();
@@ -341,7 +244,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
              }
          } finally {
              this.world.timings.tracker1.stopTiming();
-@@ -2124,10 +2139,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2124,10 +2140,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      }
      // Paper end - optimised tracker
  
@@ -354,7 +257,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
              return;
          }
          // Paper end - optimized tracker
-@@ -2171,20 +2186,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2171,20 +2187,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      }
  
      protected void broadcast(Entity entity, Packet<?> packet) {
@@ -385,7 +288,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
  
      }
  
-@@ -2297,11 +2322,13 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2297,11 +2323,13 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
  
          entityplayer.a(chunk.getPos(), apacket[0], apacket[1]);
          PacketDebug.a(this.world, chunk.getPos());
@@ -401,7 +304,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
          for (int i = 0, size = chunk.entities.size(); i < size; ++i) {
              Entity entity = entities[i];
              if (entity == entityplayer) {
-@@ -2323,6 +2350,9 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2323,6 +2351,9 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
                  list1.add(entity);
              }
          }
@@ -411,7 +314,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..ffa05f698336cd45ffdcc0ea832f4c7e
          // Paper end - optimise entity tracker
  
          Iterator iterator;
-@@ -2461,7 +2491,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2461,7 +2492,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
          }
  
          public void updatePlayer(EntityPlayer entityplayer) {
