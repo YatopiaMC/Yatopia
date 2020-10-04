@@ -36,6 +36,37 @@ index 8f31dba6a29514aad6e74e265bf000014cd1e3c3..00000000000000000000000000000000
 - 
 -                 if (names.size() == 1) {
 -                     MinecraftKey name = names.iterator().next();
+diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+index e14d71d60c3433c39dcf217d48bd667b2c2b49e1..46ce13100b583d48642c6f3413d2b42507c98036 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+@@ -462,4 +462,9 @@ public class PaperConfig {
+     private static void trackPluginScoreboards() {
+         trackPluginScoreboards = getBoolean("settings.track-plugin-scoreboards", false);
+     }
++
++    public static boolean asyncAdvancements;
++    private static void asyncAdvancements() {
++        asyncAdvancements = getBoolean("settings.async-advancements", asyncAdvancements);
++    }
+ }
+diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej b/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej
+deleted file mode 100644
+index 0f5cfb7c794fbf5f03e79d7f458d679a648fc1ec..0000000000000000000000000000000000000000
+--- a/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej
++++ /dev/null
+@@ -1,11 +0,0 @@
+-diff a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java	(rejected hunks)
+-@@ -457,4 +457,9 @@ public class PaperConfig {
+-     private static void maxJoinsPerTick() {
+-         maxJoinsPerTick = getInt("settings.max-joins-per-tick", 3);
+-     }
+-+
+-+    public static boolean asyncAdvancements;
+-+    private static void asyncAdvancements() {
+-+        asyncAdvancements = getBoolean("settings.async-advancements", asyncAdvancements);
+-+    }
+- }
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 index dee9655b89d061ec8218ea2c54660c6003e8548f..253b73cfc597d4c7106d969be7b18c68166128ae 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
@@ -758,7 +789,7 @@ index 8347faf8a7ee62d27cf5eb9f285695fddadfa624..00000000000000000000000000000000
 - 
 -             AttributeDefaults.a();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index fccac739adfd31c6a4c6a821c377268394b8666f..2058627ae1322b439c0b8513708145112f791d49 100644
+index 3595aa86a5fa51041fc3fca3f12bd1f0c16e5ed4..753d47a51f2e3e73d074324e2c1df681cdb41616 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -440,7 +440,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
