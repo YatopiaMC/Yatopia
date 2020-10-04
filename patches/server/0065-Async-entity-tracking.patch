@@ -3,7 +3,20 @@ From: Mykyta Komarn <nkomarn@hotmail.com>
 Date: Sat, 3 Oct 2020 22:40:00 -0700
 Subject: [PATCH] Async entity tracking
 
-Handle entity tracking on a separate thread.
+Entity tracking is done the same way, but asynchronously.
+Lowers the MSPT and NSPT by a lot.
+
+The changes made:
+Synchronised the trackedEntities map in PlayerChunkMap, also added additional lock to it.
+Created a tracker executor which is processing the track queue asynchronously.
+
+A minor change was to replace 2 array lists with our GlueList implementation.
+
+Certain stuff had to be ensured to be called on the main thread when the tracker entry was ticked due to how
+the game's code works and due to how bukkit's event system works.
+
+Entity tracking is some of the heavy stuff the server does. Making this async is trivial for making the performance
+go up.
 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
