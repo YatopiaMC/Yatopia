@@ -1,0 +1,831 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sun, 4 Oct 2020 20:07:06 +0800
+Subject: [PATCH] Multi-thread lighting
+
+
+diff --git a/pom.xml b/pom.xml
+index 4e9dfd79751fbf5c926c9683a2c8bb2800c60f0c..b0e86b6438bbfe78e946e9da68617d60b6e8015f 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -310,6 +310,7 @@
+                                     <pattern>org.objectweb.asm</pattern>
+                                     <shadedPattern>org.bukkit.craftbukkit.libs.org.objectweb.asm</shadedPattern>
+                                 </relocation>
++                                <!--
+                                 <relocation>
+                                     <pattern>org.bukkit.craftbukkit</pattern>
+                                     <shadedPattern>org.bukkit.craftbukkit.v${minecraft_version}</shadedPattern>
+@@ -321,6 +322,7 @@
+                                     <pattern>net.minecraft.server</pattern>
+                                     <shadedPattern>net.minecraft.server.v${minecraft_version}</shadedPattern>
+                                 </relocation>
++                                -->
+ 		                        <relocation>
+ 		                            <pattern>de.tr7zw.changeme.nbtapi</pattern>
+ 		                            <shadedPattern>de.tr7zw.nbtapi</shadedPattern>
+diff --git a/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Int.java b/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Int.java
+index 59868f37d14bbc0ece0836095cdad148778995e6..560aea8a3da39de8c2d6a695546681db7790f6bd 100644
+--- a/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Int.java
++++ b/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Int.java
+@@ -2,9 +2,12 @@ package com.destroystokyo.paper.util.map;
+ 
+ import com.destroystokyo.paper.util.concurrent.WeakSeqLock;
+ import it.unimi.dsi.fastutil.longs.Long2IntMap;
++import it.unimi.dsi.fastutil.longs.Long2IntMaps;
+ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.LongIterator;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
++import it.unimi.dsi.fastutil.longs.LongSet;
++import it.unimi.dsi.fastutil.longs.LongSets;
+ import it.unimi.dsi.fastutil.objects.ObjectIterator;
+ 
+ /**
+@@ -12,10 +15,10 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
+  */
+ public class QueuedChangesMapLong2Int {
+ 
+-    protected final Long2IntOpenHashMap updatingMap;
+-    protected final Long2IntOpenHashMap visibleMap;
+-    protected final Long2IntOpenHashMap queuedPuts;
+-    protected final LongOpenHashSet queuedRemove;
++    protected final Long2IntMap updatingMap;
++    protected final Long2IntMap visibleMap;
++    protected final Long2IntMap queuedPuts;
++    protected final LongSet queuedRemove;
+ 
+     protected int queuedDefaultReturnValue;
+ 
+@@ -27,10 +30,10 @@ public class QueuedChangesMapLong2Int {
+     }
+ 
+     public QueuedChangesMapLong2Int(final int capacity, final float loadFactor) {
+-        this.updatingMap = new Long2IntOpenHashMap(capacity, loadFactor);
+-        this.visibleMap = new Long2IntOpenHashMap(capacity, loadFactor);
+-        this.queuedPuts = new Long2IntOpenHashMap();
+-        this.queuedRemove = new LongOpenHashSet();
++        this.updatingMap = Long2IntMaps.synchronize(new Long2IntOpenHashMap(capacity, loadFactor));
++        this.visibleMap = Long2IntMaps.synchronize(new Long2IntOpenHashMap(capacity, loadFactor));
++        this.queuedPuts = Long2IntMaps.synchronize(new Long2IntOpenHashMap());
++        this.queuedRemove = LongSets.synchronize(new LongOpenHashSet());
+     }
+ 
+     public void queueDefaultReturnValue(final int dfl) {
+@@ -91,7 +94,7 @@ public class QueuedChangesMapLong2Int {
+         }
+ 
+         // update puts
+-        final ObjectIterator<Long2IntMap.Entry> iterator0 = this.queuedPuts.long2IntEntrySet().fastIterator();
++        final ObjectIterator<Long2IntMap.Entry> iterator0 = this.queuedPuts.long2IntEntrySet().iterator();
+         while (iterator0.hasNext()) {
+             final Long2IntMap.Entry entry = iterator0.next();
+             final long key = entry.getLongKey();
+@@ -134,7 +137,7 @@ public class QueuedChangesMapLong2Int {
+             }
+ 
+             // update puts
+-            final ObjectIterator<Long2IntMap.Entry> iterator0 = this.queuedPuts.long2IntEntrySet().fastIterator();
++            final ObjectIterator<Long2IntMap.Entry> iterator0 = this.queuedPuts.long2IntEntrySet().iterator();
+             while (iterator0.hasNext()) {
+                 final Long2IntMap.Entry entry = iterator0.next();
+                 final long key = entry.getLongKey();
+diff --git a/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Object.java b/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Object.java
+index 7bab31a312463cc963d9621cdc543a281459bd32..cdd4fb9e3a1f9dc2b9f2e4127fe7209013d32e4e 100644
+--- a/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Object.java
++++ b/src/main/java/com/destroystokyo/paper/util/map/QueuedChangesMapLong2Object.java
+@@ -3,7 +3,10 @@ package com.destroystokyo.paper.util.map;
+ import com.destroystokyo.paper.util.concurrent.WeakSeqLock;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
++import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+ import it.unimi.dsi.fastutil.objects.ObjectBidirectionalIterator;
++import it.unimi.dsi.fastutil.objects.ObjectIterator;
++
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
+@@ -15,9 +18,9 @@ public class QueuedChangesMapLong2Object<V> {
+ 
+     protected static final Object REMOVED = new Object();
+ 
+-    protected final Long2ObjectLinkedOpenHashMap<V> updatingMap;
+-    protected final Long2ObjectLinkedOpenHashMap<V> visibleMap;
+-    protected final Long2ObjectLinkedOpenHashMap<Object> queuedChanges;
++    protected final Long2ObjectMap<V> updatingMap;
++    protected final Long2ObjectMap<V> visibleMap;
++    protected final Long2ObjectMap<Object> queuedChanges;
+ 
+     // we use a seqlock as writes are not common.
+     protected final WeakSeqLock updatingMapSeqLock = new WeakSeqLock();
+@@ -27,9 +30,9 @@ public class QueuedChangesMapLong2Object<V> {
+     }
+ 
+     public QueuedChangesMapLong2Object(final int capacity, final float loadFactor) {
+-        this.updatingMap = new Long2ObjectLinkedOpenHashMap<>(capacity, loadFactor);
+-        this.visibleMap = new Long2ObjectLinkedOpenHashMap<>(capacity, loadFactor);
+-        this.queuedChanges = new Long2ObjectLinkedOpenHashMap<>();
++        this.updatingMap = Long2ObjectMaps.synchronize(new Long2ObjectLinkedOpenHashMap<>(capacity, loadFactor));
++        this.visibleMap = Long2ObjectMaps.synchronize(new Long2ObjectLinkedOpenHashMap<>(capacity, loadFactor));
++        this.queuedChanges = Long2ObjectMaps.synchronize(new Long2ObjectLinkedOpenHashMap<>(capacity, loadFactor));
+     }
+ 
+     public V queueUpdate(final long k, final V value) {
+@@ -102,11 +105,11 @@ public class QueuedChangesMapLong2Object<V> {
+         return ret;
+     }
+ 
+-    public Long2ObjectLinkedOpenHashMap<V> getVisibleMap() {
++    public Long2ObjectMap<V> getVisibleMap() {
+         return this.visibleMap;
+     }
+ 
+-    public Long2ObjectLinkedOpenHashMap<V> getUpdatingMap() {
++    public Long2ObjectMap<V> getUpdatingMap() {
+         return this.updatingMap;
+     }
+ 
+@@ -149,7 +152,7 @@ public class QueuedChangesMapLong2Object<V> {
+             return false;
+         }
+ 
+-        final ObjectBidirectionalIterator<Long2ObjectMap.Entry<Object>> iterator = this.queuedChanges.long2ObjectEntrySet().fastIterator();
++        final ObjectIterator<Long2ObjectMap.Entry<Object>> iterator = this.queuedChanges.long2ObjectEntrySet().iterator();
+         while (iterator.hasNext()) {
+             final Long2ObjectMap.Entry<Object> entry = iterator.next();
+             final long key = entry.getLongKey();
+@@ -176,7 +179,7 @@ public class QueuedChangesMapLong2Object<V> {
+             return false;
+         }
+ 
+-        final ObjectBidirectionalIterator<Long2ObjectMap.Entry<Object>> iterator = this.queuedChanges.long2ObjectEntrySet().fastIterator();
++        final ObjectIterator<Long2ObjectMap.Entry<Object>> iterator = this.queuedChanges.long2ObjectEntrySet().iterator();
+ 
+         try {
+             this.updatingMapSeqLock.acquireWrite();
+diff --git a/src/main/java/net/minecraft/server/BaseBlockPosition.java b/src/main/java/net/minecraft/server/BaseBlockPosition.java
+index d1064bd1c76eb23ce12e4a0703ce9f2622952897..15bd4fa358e9fb6ab3013960960e44e5d0ee893c 100644
+--- a/src/main/java/net/minecraft/server/BaseBlockPosition.java
++++ b/src/main/java/net/minecraft/server/BaseBlockPosition.java
+@@ -16,9 +16,9 @@ public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
+         return IntStream.of(new int[]{baseblockposition.getX(), baseblockposition.getY(), baseblockposition.getZ()});
+     });
+     public static final BaseBlockPosition ZERO = new BaseBlockPosition(0, 0, 0);
+-    protected int a; // Paper - OBFHELPER // Tuinity - private->protected - diff on change, this is the x coordinate - Also revert the decision to expose set on an immutable type
+-    protected int b; // Paper - OBFHELPER // Tuinity - private->protected - diff on change, this is the y coordinate - Also revert the decision to expose set on an immutable type
+-    protected int e; // Paper - OBFHELPER // Tuinity - private->protected - diff on change, this is the z coordinate - Also revert the decision to expose set on an immutable type
++    protected volatile int a; // Paper - OBFHELPER // Tuinity - private->protected - diff on change, this is the x coordinate - Also revert the decision to expose set on an immutable type
++    protected volatile int b; // Paper - OBFHELPER // Tuinity - private->protected - diff on change, this is the y coordinate - Also revert the decision to expose set on an immutable type
++    protected volatile int e; // Paper - OBFHELPER // Tuinity - private->protected - diff on change, this is the z coordinate - Also revert the decision to expose set on an immutable type
+ 
+     // Paper start
+     public boolean isValidLocation() {
+diff --git a/src/main/java/net/minecraft/server/LightEngineBlock.java b/src/main/java/net/minecraft/server/LightEngineBlock.java
+index 636ed196d53971a3d0dc67d3e83032a9114b603b..8737b5d03b4e37514044e705f096ce283b5169a8 100644
+--- a/src/main/java/net/minecraft/server/LightEngineBlock.java
++++ b/src/main/java/net/minecraft/server/LightEngineBlock.java
+@@ -2,11 +2,12 @@ package net.minecraft.server;
+ 
+ import org.apache.commons.lang3.mutable.MutableInt;
+ 
++import java.util.concurrent.atomic.AtomicInteger;
++
+ public final class LightEngineBlock extends LightEngineLayer<LightEngineStorageBlock.a, LightEngineStorageBlock> {
+ 
+     private static final EnumDirection[] e = EnumDirection.values();
+     private final BlockPosition.MutableBlockPosition f = new BlockPosition.MutableBlockPosition();
+-    private final MutableInt mutableint = new MutableInt(); // Paper
+ 
+     public LightEngineBlock(ILightAccess ilightaccess) {
+         super(ilightaccess, EnumSkyBlock.BLOCK, new LightEngineStorageBlock(ilightaccess));
+@@ -48,9 +49,9 @@ public final class LightEngineBlock extends LightEngineLayer<LightEngineStorageB
+             if (enumdirection == null) {
+                 return 15;
+             } else {
+-                //MutableInt mutableint = new MutableInt(); // Paper - share mutableint, single threaded
++                AtomicInteger mutableint = new AtomicInteger(); // Paper - share mutableint, single threaded
+                 IBlockData iblockdata = this.getBlockOptimized(jx, jy, jz, mutableint); // Paper
+-                int blockedLight = mutableint.getValue(); // Paper
++                int blockedLight = mutableint.get(); // Paper
+                 if (blockedLight >= 15) { // Paper
+                     return 15;
+                 } else {
+diff --git a/src/main/java/net/minecraft/server/LightEngineGraph.java b/src/main/java/net/minecraft/server/LightEngineGraph.java
+index fed00cc6a4f63170e1ea275d151e2a96356c44d5..bc5ee00cec7237a46086d8a62acf6e937fab67c3 100644
+--- a/src/main/java/net/minecraft/server/LightEngineGraph.java
++++ b/src/main/java/net/minecraft/server/LightEngineGraph.java
+@@ -1,9 +1,13 @@
+ package net.minecraft.server;
+ 
+ import it.unimi.dsi.fastutil.longs.Long2ByteMap;
++import it.unimi.dsi.fastutil.longs.Long2ByteMaps;
+ import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.LongArrayList;
+ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
++
++import java.util.NoSuchElementException;
++import java.util.function.LongConsumer;
+ import java.util.function.LongPredicate;
+ 
+ public abstract class LightEngineGraph {
+@@ -11,7 +15,7 @@ public abstract class LightEngineGraph {
+     private final int a;
+     private final LongLinkedOpenHashSet[] b;
+     private final Long2ByteMap c;
+-    private int d;
++    private volatile int d;
+     private volatile boolean e;
+ 
+     protected LightEngineGraph(int i, final int j, final int k) {
+@@ -32,14 +36,14 @@ public abstract class LightEngineGraph {
+                 };
+             }
+ 
+-            this.c = new Long2ByteOpenHashMap(k, 0.5F) {
++            this.c = Long2ByteMaps.synchronize(new Long2ByteOpenHashMap(k, 0.5F) {
+                 protected void rehash(int i1) {
+                     if (i1 > k) {
+                         super.rehash(i1);
+                     }
+ 
+                 }
+-            };
++            });
+             this.c.defaultReturnValue((byte) -1);
+             this.d = i;
+         }
+@@ -86,15 +90,11 @@ public abstract class LightEngineGraph {
+     }
+ 
+     public void a(LongPredicate longpredicate) {
+-        LongArrayList longarraylist = new LongArrayList();
+-
+-        this.c.keySet().forEach((i) -> {
+-            if (longpredicate.test(i)) {
+-                longarraylist.add(i);
+-            }
++        long[] longs = this.c.keySet().toLongArray();
+ 
+-        });
+-        longarraylist.forEach(this::e);
++        for(long l : longs)
++            if(longpredicate.test(l))
++                this.e(l);
+     }
+ 
+     private void a(long i, int j, int k, boolean flag) {
+@@ -102,7 +102,9 @@ public abstract class LightEngineGraph {
+             this.c.remove(i);
+         }
+ 
+-        this.b[j].remove(i);
++        synchronized (this.b[j]) {
++            this.b[j].remove(i);
++        }
+         if (this.b[j].isEmpty() && this.d == j) {
+             this.a(k);
+         }
+@@ -111,7 +113,9 @@ public abstract class LightEngineGraph {
+ 
+     private void a(long i, int j, int k) {
+         this.c.put(i, (byte) j);
+-        this.b[k].add(i);
++        synchronized (this.b[k]) {
++            this.b[k].add(i);
++        }
+         if (this.d > k) {
+             this.d = k;
+         }
+@@ -200,8 +204,20 @@ public abstract class LightEngineGraph {
+         } else {
+             while (this.d < this.a && i > 0) {
+                 --i;
+-                LongLinkedOpenHashSet longlinkedopenhashset = this.b[this.d];
+-                long j = longlinkedopenhashset.removeFirstLong();
++                LongLinkedOpenHashSet longlinkedopenhashset;
++                try {
++                    longlinkedopenhashset = this.b[this.d];
++                } catch (ArrayIndexOutOfBoundsException e) {
++                    return ++i;
++                }
++                long j;
++                synchronized (longlinkedopenhashset) {
++                    try {
++                        j = longlinkedopenhashset.removeFirstLong();
++                    } catch (NoSuchElementException e) {
++                        return ++i;
++                    }
++                }
+                 int k = MathHelper.clamp(this.c(j), 0, this.a - 1);
+ 
+                 if (longlinkedopenhashset.isEmpty()) {
+diff --git a/src/main/java/net/minecraft/server/LightEngineLayer.java b/src/main/java/net/minecraft/server/LightEngineLayer.java
+index b5d5dd1075fd6aabbfbbd60f219b76593fc54a76..c8f7a57a1bd4f362152b8c1aa2bacb57d951eb6c 100644
+--- a/src/main/java/net/minecraft/server/LightEngineLayer.java
++++ b/src/main/java/net/minecraft/server/LightEngineLayer.java
+@@ -1,6 +1,7 @@
+ package net.minecraft.server;
+ 
+ import java.util.Arrays;
++import java.util.concurrent.atomic.AtomicInteger;
+ import javax.annotation.Nullable;
+ import org.apache.commons.lang3.mutable.MutableInt;
+ 
+@@ -10,7 +11,7 @@ public abstract class LightEngineLayer<M extends LightEngineStorageArray<M>, S e
+     protected final ILightAccess a;
+     protected final EnumSkyBlock b;
+     protected final S c;
+-    private boolean f;
++    private volatile boolean f;
+     protected final BlockPosition.MutableBlockPosition d = new BlockPosition.MutableBlockPosition(); protected final BlockPosition.MutableBlockPosition pos = d; // Paper
+     private final long[] g = new long[2];
+     private final IChunkAccess[] h = new IChunkAccess[2]; // Paper
+@@ -18,16 +19,16 @@ public abstract class LightEngineLayer<M extends LightEngineStorageArray<M>, S e
+     // Paper start - see fully commented out method below (look for Bedrock)
+     // optimized method with less branching for when scenarios arent needed.
+     // avoid using mutable version if can
+-    protected final IBlockData getBlockOptimized(int x, int y, int z, MutableInt mutableint) {
++    protected final IBlockData getBlockOptimized(int x, int y, int z, AtomicInteger mutableint) {
+         IChunkAccess iblockaccess = this.a(x >> 4, z >> 4);
+ 
+         if (iblockaccess == null) {
+-            mutableint.setValue(16);
++            mutableint.set(16);
+             return Blocks.BEDROCK.getBlockData();
+         } else {
+             this.pos.setValues(x, y, z);
+             IBlockData iblockdata = iblockaccess.getType(x, y, z);
+-            mutableint.setValue(iblockdata.b(this.a.getWorld(), this.pos));
++            mutableint.set(iblockdata.b(this.a.getWorld(), this.pos));
+             return iblockdata.l() && iblockdata.e() ? iblockdata : Blocks.AIR.getBlockData();
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/LightEngineSky.java b/src/main/java/net/minecraft/server/LightEngineSky.java
+index 32b52ca2462fa206b1184025cb3837d6c326db2d..221b6809710dfefe8b8cc014ee486436d24c8398 100644
+--- a/src/main/java/net/minecraft/server/LightEngineSky.java
++++ b/src/main/java/net/minecraft/server/LightEngineSky.java
+@@ -2,11 +2,13 @@ package net.minecraft.server;
+ 
+ import org.apache.commons.lang3.mutable.MutableInt;
+ 
++import java.util.concurrent.atomic.AtomicInteger;
++
+ public final class LightEngineSky extends LightEngineLayer<LightEngineStorageSky.a, LightEngineStorageSky> {
+ 
+     private static final EnumDirection[] e = EnumDirection.values();
+     private static final EnumDirection[] f = new EnumDirection[]{EnumDirection.NORTH, EnumDirection.SOUTH, EnumDirection.WEST, EnumDirection.EAST};
+-    private final MutableInt mutableint = new MutableInt(); // Paper
++    private final AtomicInteger mutableint = new AtomicInteger(); // Paper
+ 
+     public LightEngineSky(ILightAccess ilightaccess) {
+         super(ilightaccess, EnumSkyBlock.SKY, new LightEngineStorageSky(ilightaccess));
+@@ -34,7 +36,7 @@ public final class LightEngineSky extends LightEngineLayer<LightEngineStorageSky
+                 int jy = (int) ((j << 52) >> 52);
+                 int jz = (int) ((j << 26) >> 38);
+                 IBlockData iblockdata = this.getBlockOptimized(jx, jy, jz, mutableint);
+-                int blockedLight = mutableint.getValue();
++                int blockedLight = mutableint.get();
+                 if (blockedLight >= 15) {
+                     // Paper end
+                     return 15;
+diff --git a/src/main/java/net/minecraft/server/LightEngineStorage.java b/src/main/java/net/minecraft/server/LightEngineStorage.java
+index e0bbfe1422cbad811ecb43d7436380d86b0f8abc..0d1bdbf64097e96fa45119e6c2649f1830915069 100644
+--- a/src/main/java/net/minecraft/server/LightEngineStorage.java
++++ b/src/main/java/net/minecraft/server/LightEngineStorage.java
+@@ -7,8 +7,10 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.LongIterator;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ import it.unimi.dsi.fastutil.longs.LongSet;
++import it.unimi.dsi.fastutil.longs.LongSets;
+ import it.unimi.dsi.fastutil.objects.ObjectIterator;
+ import javax.annotation.Nullable;
++import java.util.function.Predicate;
+ 
+ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> extends LightEngineGraphSection {
+ 
+@@ -16,18 +18,17 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+     private static final EnumDirection[] k = EnumDirection.values();
+     private final EnumSkyBlock l;
+     private final ILightAccess m;
+-    protected final LongSet b = new LongOpenHashSet();
+-    protected final LongSet c = new LongOpenHashSet();
+-    protected final LongSet d = new LongOpenHashSet();
++    protected final LongSet b = LongSets.synchronize(new LongOpenHashSet());
++    protected final LongSet c = LongSets.synchronize(new LongOpenHashSet());
++    protected final LongSet d = LongSets.synchronize(new LongOpenHashSet());
+     protected volatile M e_visible; protected final Object visibleUpdateLock = new Object(); // Paper - diff on change, should be "visible" - force compile fail on usage change
+     protected final M f; protected final M updating; // Paper - diff on change, should be "updating"
+-    protected final LongSet g = new LongOpenHashSet();
+-    protected final LongSet h = new LongOpenHashSet(); LongSet dirty = h; // Paper - OBFHELPER
+-    protected final Long2ObjectOpenHashMap<NibbleArray> i_synchronized_map_real = new Long2ObjectOpenHashMap<>(); // Tuinity - store wrapped map, we need fastIterator
+-    protected final Long2ObjectMap<NibbleArray> i = Long2ObjectMaps.synchronize(this.i_synchronized_map_real); // Tuinity - store wrapped map, we need fastIterator
+-    private final LongSet n = new LongOpenHashSet();
+-    private final LongSet o = new LongOpenHashSet();
+-    private final LongSet p = new LongOpenHashSet();
++    protected final LongSet g = LongSets.synchronize(new LongOpenHashSet());
++    protected final LongSet h = LongSets.synchronize(new LongOpenHashSet()); LongSet dirty = h; // Paper - OBFHELPER
++    protected final Long2ObjectMap<NibbleArray> i = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
++    private final LongSet n = LongSets.synchronize(new LongOpenHashSet());
++    private final LongSet o = LongSets.synchronize(new LongOpenHashSet());
++    private final LongSet p = LongSets.synchronize(new LongOpenHashSet());
+     protected volatile boolean j;
+ 
+     protected LightEngineStorage(EnumSkyBlock enumskyblock, ILightAccess ilightaccess, M m0) {
+@@ -82,7 +83,6 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+             nibblearray = this.e_visible.lookup.apply(j);
+         }
+         if (nibblearray == null) {
+-            System.err.println("Null nibble, preventing crash " + BlockPosition.fromLong(i));
+             return 0;
+         }
+ 
+@@ -103,6 +103,7 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+         }
+ 
+         NibbleArray nibblearray = this.a(k, true);
++        if(nibblearray != null)
+         nibblearray.a(x & 15, y & 15, z & 15, j); // Paper - use already calculated x/y/z
+ 
+         // Paper start - credit to JellySquid for a major optimization here:
+@@ -218,13 +219,13 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+ 
+     protected void a(LightEngineLayer<M, ?> lightenginelayer, boolean flag, boolean flag1) {
+         if (this.a() || !this.i.isEmpty()) {
+-            LongIterator longiterator = this.p.iterator();
++            long[] longs = this.p.toLongArray();
+ 
+             long i;
+             NibbleArray nibblearray;
+ 
+-            while (longiterator.hasNext()) {
+-                i = longiterator.nextLong(); // Paper
++            for (long l : longs) {
++                i = l; // Paper
+                 this.a(lightenginelayer, i);
+                 NibbleArray nibblearray1 = (NibbleArray) this.i.remove(i);
+ 
+@@ -239,23 +240,20 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+             }
+ 
+             this.f.c();
+-            longiterator = this.p.iterator();
+ 
+-            while (longiterator.hasNext()) {
+-                i = longiterator.nextLong(); // Paper
++            for (long l : longs) {
++                i = l;
+                 this.l(i);
+             }
+ 
+             this.p.clear();
+             this.j = false;
+-            ObjectIterator objectiterator = this.i_synchronized_map_real.long2ObjectEntrySet().fastIterator(); // Tuinity - use fast iterator to reduce entry creation
++            Entry[] entries = this.i.long2ObjectEntrySet().toArray(new Entry[0]);// Tuinity - use fast iterator to reduce entry creation
+ 
+-            Entry entry;
+             long j;
+ 
+             NibbleArray test = null; // Paper
+-            while (objectiterator.hasNext()) {
+-                entry = (Entry) objectiterator.next();
++            for (Entry entry : entries) {
+                 j = entry.getLongKey();
+                 if ((test = this.updating.getUpdatingOptimized(j)) != null) { // Paper - dont look up nibble twice
+                     nibblearray = (NibbleArray) entry.getValue();
+@@ -269,30 +267,28 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+ 
+             this.f.c();
+             if (!flag1) {
+-                longiterator = this.i.keySet().iterator();
++                long[] longs1 = this.i.keySet().toLongArray();
+ 
+-                while (longiterator.hasNext()) {
+-                    i = longiterator.nextLong(); // Paper
++                for (long l : longs1) {
++                    i = l; // Paper
+                     this.b(lightenginelayer, i);
+                 }
+             } else {
+-                longiterator = this.n.iterator();
++                long[] longs1 = this.n.toLongArray();
+ 
+-                while (longiterator.hasNext()) {
+-                    i = longiterator.nextLong(); // Paper
++                for (long l : longs1) {
++                    i = l; // Paper
+                     this.b(lightenginelayer, i);
+                 }
+             }
+ 
+             this.n.clear();
+-            objectiterator = this.i_synchronized_map_real.long2ObjectEntrySet().fastIterator(); // Tuinity - use fast iterator to reduce entry creation;
+ 
+-            while (objectiterator.hasNext()) {
+-                entry = (Entry) objectiterator.next();
+-                j = entry.getLongKey();
+-                if (this.g(j)) {
+-                    objectiterator.remove();
+-                }
++            entries = this.i.long2ObjectEntrySet().toArray(new Entry[0]);
++            for(Entry entry: entries) {
++                long longKey = entry.getLongKey();
++                if(this.g(longKey))
++                    this.i.remove(longKey, entry.getValue());
+             }
+ 
+         }
+@@ -401,7 +397,7 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+ 
+     protected void d() {
+         if (this.b()) {
+-            this.b(Integer.MAX_VALUE);
++            this.b(2);
+         }
+ 
+     }
+@@ -418,11 +414,9 @@ public abstract class LightEngineStorage<M extends LightEngineStorageArray<M>> e
+         }
+ 
+         if (!this.h.isEmpty()) {
+-            LongIterator longiterator = this.h.iterator();
+-
+-            while (longiterator.hasNext()) {
+-                long i = longiterator.nextLong();
++            long[] longs = this.h.toLongArray();
+ 
++            for (long i : longs) {
+                 this.m.a(this.l, SectionPosition.a(i));
+             }
+ 
+diff --git a/src/main/java/net/minecraft/server/LightEngineStorageArray.java b/src/main/java/net/minecraft/server/LightEngineStorageArray.java
+index 549c2551c2b59730bf53a80f8706d388d96ad932..b4d2dd3b74d2d39c22054bc232825336be2f8f5b 100644
+--- a/src/main/java/net/minecraft/server/LightEngineStorageArray.java
++++ b/src/main/java/net/minecraft/server/LightEngineStorageArray.java
+@@ -41,6 +41,7 @@ public abstract class LightEngineStorageArray<M extends LightEngineStorageArray<
+     public void a(long i) {
+         if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+         NibbleArray updating = this.data.getUpdating(i); // Paper - pool nibbles
++        if(updating == null) return;
+         NibbleArray nibblearray = new NibbleArray().markPoolSafe(updating.getCloneIfSet()); // Paper
+         nibblearray.lightCacheKey = i; // Paper
+         this.data.queueUpdate(i, nibblearray); // Paper - avoid copying light data - pool safe clone
+diff --git a/src/main/java/net/minecraft/server/LightEngineStorageSky.java b/src/main/java/net/minecraft/server/LightEngineStorageSky.java
+index 944094e8e770cc8c0205ef2aa6c48fff55d74639..46dd804cceec483a08f968b2ea7b966aff6d5744 100644
+--- a/src/main/java/net/minecraft/server/LightEngineStorageSky.java
++++ b/src/main/java/net/minecraft/server/LightEngineStorageSky.java
+@@ -5,15 +5,17 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.LongIterator;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ import it.unimi.dsi.fastutil.longs.LongSet;
++import it.unimi.dsi.fastutil.longs.LongSets;
++
+ import java.util.Arrays;
+ 
+ public class LightEngineStorageSky extends LightEngineStorage<LightEngineStorageSky.a> {
+ 
+     private static final EnumDirection[] k = new EnumDirection[]{EnumDirection.NORTH, EnumDirection.SOUTH, EnumDirection.WEST, EnumDirection.EAST};
+-    private final LongSet l = new LongOpenHashSet();
+-    private final LongSet m = new LongOpenHashSet();
+-    private final LongSet n = new LongOpenHashSet();
+-    private final LongSet o = new LongOpenHashSet();
++    private final LongSet l = LongSets.synchronize(new LongOpenHashSet());
++    private final LongSet m = LongSets.synchronize(new LongOpenHashSet());
++    private final LongSet n = LongSets.synchronize(new LongOpenHashSet());
++    private final LongSet o = LongSets.synchronize(new LongOpenHashSet());
+     private volatile boolean p;
+ 
+     protected LightEngineStorageSky(ILightAccess ilightaccess) {
+@@ -167,8 +169,10 @@ public class LightEngineStorageSky extends LightEngineStorage<LightEngineStorage
+             if (k != ((LightEngineStorageSky.a) this.f).b && SectionPosition.c(j) < k) {
+                 NibbleArray nibblearray1;
+ 
+-                while ((nibblearray1 = this.updating.getUpdatingOptimized(j)) == null) { // Paper
++                int tries = 0;
++                while ((nibblearray1 = this.updating.getUpdatingOptimized(j)) == null && tries < Short.MAX_VALUE) { // Paper
+                     j = SectionPosition.a(j, EnumDirection.UP);
++                    tries ++;
+                 }
+ 
+                 return new NibbleArray().markPoolSafe(new NibbleArrayFlat(nibblearray1, 0).asBytes()); // Paper - mark pool use as safe (no auto cleaner)
+@@ -182,16 +186,15 @@ public class LightEngineStorageSky extends LightEngineStorage<LightEngineStorage
+     protected void a(LightEngineLayer<LightEngineStorageSky.a, ?> lightenginelayer, boolean flag, boolean flag1) {
+         super.a(lightenginelayer, flag, flag1);
+         if (flag) {
+-            LongIterator longiterator;
+             long i;
+             int j;
+             int k;
+ 
+             if (!this.m.isEmpty()) {
+-                longiterator = this.m.iterator();
++                long[] longArray = this.m.toLongArray();
+ 
+-                while (longiterator.hasNext()) {
+-                    i = longiterator.nextLong(); // Paper
++                for (long value : longArray) {
++                    i = value; // Paper
+                     int baseX = (int) (i >> 42) << 4; // Paper
+                     int baseY = (int) (i << 44 >> 44) << 4; // Paper
+                     int baseZ = (int) (i << 22 >> 42) << 4; // Paper
+@@ -271,10 +274,10 @@ public class LightEngineStorageSky extends LightEngineStorage<LightEngineStorage
+ 
+             this.m.clear();
+             if (!this.n.isEmpty()) {
+-                longiterator = this.n.iterator();
++                long[] longs = this.n.toLongArray();
+ 
+-                while (longiterator.hasNext()) {
+-                    i = longiterator.nextLong(); // Paper
++                for (long aLong : longs) {
++                    i = aLong; // Paper
+                     int baseX = (int) (i >> 42) << 4; // Paper
+                     int baseY = (int) (i << 44 >> 44) << 4; // Paper
+                     int baseZ = (int) (i << 22 >> 42) << 4; // Paper
+diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..371ab48d313ad9e800e311509df39c1f2d303341 100644
+--- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
++++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+@@ -5,10 +5,19 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap; // Paper
+ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ import it.unimi.dsi.fastutil.objects.ObjectList;
+ import it.unimi.dsi.fastutil.objects.ObjectListIterator;
++
++import java.util.ArrayList;
++import java.util.Iterator;
++import java.util.List;
+ import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import java.util.concurrent.Future;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.function.IntSupplier;
+ import javax.annotation.Nullable;
++
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -18,6 +27,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+     private final ThreadedMailbox<Runnable> b;
+     // Paper start
+     private static final int MAX_PRIORITIES = PlayerChunkMap.GOLDEN_TICKET + 2;
++    static final int LIGHT_LIMIT = 8;
+ 
+     private boolean isChunkLightStatus(long pair) {
+         PlayerChunk playerChunk = playerChunkMap.getVisibleChunk(pair);
+@@ -157,12 +167,21 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+     private final Mailbox<ChunkTaskQueueSorter.a<Runnable>> e;
+     private volatile int f = 5;
+     private final AtomicBoolean g = new AtomicBoolean();
++    final ExecutorService executor;
+ 
+     public LightEngineThreaded(ILightAccess ilightaccess, PlayerChunkMap playerchunkmap, boolean flag, ThreadedMailbox<Runnable> threadedmailbox, Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailbox) {
+         super(ilightaccess, true, flag);
+-        this.d = playerchunkmap; this.playerChunkMap = d; // Paper
++        this.d = playerchunkmap;
++        this.playerChunkMap = d; // Paper
+         this.e = mailbox;
+         this.b = threadedmailbox;
++        this.executor = Executors.newSingleThreadExecutor(r -> {
++            Thread thread = new Thread(r);
++            thread.setName(((WorldDataServer) playerChunkMap.world.getWorldData()).getName() + " - Light");
++            thread.setPriority(Thread.NORM_PRIORITY + 4);
++            return thread;
++        });
++        queueUpdate();
+     }
+ 
+     public void close() {}
+@@ -314,8 +333,12 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+ 
+     public void queueUpdate() {
+         if ((!this.queue.isEmpty() || super.a()) && this.g.compareAndSet(false, true)) { // Paper
+-            this.b.a((() -> { // Paper - decompile error
+-                this.b();
++            this.executor.execute((() -> { // Paper - decompile error // Yatopia
++                try {
++                    this.b();
++                } catch (Throwable t) {
++                    t.printStackTrace();
++                }
+                 this.g.set(false);
+                 queueUpdate(); // Paper - if we still have work to do, do it!
+             }));
+@@ -328,18 +351,50 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+     private final java.util.List<Runnable> post = new java.util.ArrayList<>();
+     private void b() {
+         if (queue.poll(pre, post)) {
+-            pre.forEach(Runnable::run);
+-            pre.clear();
+-            super.a(Integer.MAX_VALUE, true, true);
+-            post.forEach(Runnable::run);
+-            post.clear();
++            {
++                List<Future<?>> futures = new ArrayList<>(pre.size() + 4);
++                for (Iterator<Runnable> iterator = pre.iterator(); iterator.hasNext(); ) {
++                    Runnable runnable = iterator.next();
++                    futures.add(((ExecutorService) b.d).submit(runnable));
++                    iterator.remove();
++                }
++                for (Future<?> future : futures) {
++                    try {
++                        future.get();
++                    } catch (Exception e) {
++                        e.printStackTrace();
++                    }
++                }
++            }
++            try {
++                doUpdate();
++            } catch (Exception e) {
++                e.printStackTrace();
++            }
++            for (Iterator<Runnable> iterator = post.iterator(); iterator.hasNext(); ) {
++                Runnable runnable = iterator.next();
++                b.d.execute(runnable);
++                iterator.remove();
++            }
+         } else {
+-            // might have level updates to go still
+-            super.a(Integer.MAX_VALUE, true, true);
++            try {
++                // might have level updates to go still
++                doUpdate();
++            } catch (Exception e) {
++                e.printStackTrace();
++            }
+         }
+         // Paper end
+     }
+ 
++    private void doUpdate() throws InterruptedException, ExecutionException {
++        Future<?>[] futures = new Future[LIGHT_LIMIT / 2];
++        for(int i = 0; i < futures.length; i ++)
++            futures[i] = ((ExecutorService) b.d).submit(() -> super.a(2, true, true));
++        for (Future<?> future: futures)
++            future.get();
++    }
++
+     public void a(int i) {
+         this.f = i;
+     }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..0684eced27b1c3daeab65291c084505bb10aa154 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -316,13 +316,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+ 
+         this.worldLoadListener = worldloadlistener;
+         // Paper start - use light thread
+-        ThreadedMailbox<Runnable> lightthreaded; ThreadedMailbox<Runnable> threadedmailbox1 = lightthreaded = ThreadedMailbox.a(lightThread = java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+-            Thread thread = new Thread(r);
+-            thread.setName(((WorldDataServer)world.getWorldData()).getName() + " - Light");
+-            thread.setDaemon(true);
+-            thread.setPriority(Thread.NORM_PRIORITY+1);
+-            return thread;
+-        }), "light");
++        ThreadedMailbox<Runnable> lightthreaded; ThreadedMailbox<Runnable> threadedmailbox1 = lightthreaded = ThreadedMailbox.a(lightThread = SystemUtils.light, "light");
+         // Paper end
+ 
+         this.p = new ChunkTaskQueueSorter(ImmutableList.of(threadedmailbox, mailbox, threadedmailbox1), executor, Integer.MAX_VALUE);
+@@ -803,7 +797,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     @Override
+     public void close() throws IOException {
+         try {
+-            this.lightThread.shutdown(); // Paper
++            this.lightEngine.executor.shutdown(); // this.lightThread.shutdown(); // Paper // Yatopia
+             this.p.close();
+             this.world.asyncChunkTaskManager.close(true); // Paper - Required since we're closing regionfiles in the next line
+             this.m.close();
+diff --git a/src/main/java/net/minecraft/server/SystemUtils.java b/src/main/java/net/minecraft/server/SystemUtils.java
+index 94fadd3d7ea7cdea07cb3fdc9e9bb1f92da0afcd..2f689e68a300e53c7dc8b701eea18a60442396fd 100644
+--- a/src/main/java/net/minecraft/server/SystemUtils.java
++++ b/src/main/java/net/minecraft/server/SystemUtils.java
+@@ -54,6 +54,7 @@ public class SystemUtils {
+     public static LongSupplier a = System::nanoTime;
+     public static final UUID b = new UUID(0L, 0L); public static final UUID getNullUUID() {return b;} // Paper OBFHELPER
+     private static final Logger LOGGER = LogManager.getLogger();
++    public static final ExecutorService light = a("Light", -1); // Yatopia - light executor
+ 
+     public static <K, V> Collector<Entry<? extends K, ? extends V>, ?, Map<K, V>> a() {
+         return Collectors.toMap(Entry::getKey, Entry::getValue);
+@@ -127,6 +128,7 @@ public class SystemUtils {
+     public static void h() {
+         a(SystemUtils.e);
+         a(SystemUtils.f);
++        a(SystemUtils.light);
+     }
+ 
+     private static void a(ExecutorService executorservice) {
+diff --git a/src/main/java/net/minecraft/server/ThreadedMailbox.java b/src/main/java/net/minecraft/server/ThreadedMailbox.java
+index 27e01bca675e46e814d18959702bb2acb24f9b1e..82939e2df13d47bf7125ce837e0e45a8b73b4d4c 100644
+--- a/src/main/java/net/minecraft/server/ThreadedMailbox.java
++++ b/src/main/java/net/minecraft/server/ThreadedMailbox.java
+@@ -13,7 +13,7 @@ public class ThreadedMailbox<T> implements Mailbox<T>, AutoCloseable, Runnable {
+     private static final Logger LOGGER = LogManager.getLogger();
+     private final AtomicInteger c = new AtomicInteger(0);
+     public final PairedQueue<? super T, ? extends Runnable> a;
+-    private final Executor d;
++    final Executor d;
+     private final String e;
+ 
+     public static ThreadedMailbox<Runnable> a(Executor executor, String s) {
