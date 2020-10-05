@@ -39,9 +39,6 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | tr7zw |  |
-| server |  Breedable Polar Bears      | William Blake Galbreath |  |
-| server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
-| server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable flight checks      | epserv |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
@@ -65,14 +62,12 @@ This is an overview over all patches that are currently used.
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Fix watchdog termination hanging indefinitely      | Ivan Pekov |  |
-| server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
-| server |  Illusioners AI settings      | William Blake Galbreath |  |
-| server |  Implement bed explosion options      | William Blake Galbreath |  |
-| server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
+| server |  Hopper Optimizations      | Phoenix616 |  |
+| server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
@@ -94,16 +89,15 @@ This is an overview over all patches that are currently used.
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
+| server |  PaperPR - Add hex color code support for console logging      | William Blake Galbreath |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
-| server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
+| server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
-| server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
-| server |  Redstone deactivates spawners      | draycia |  |
 | api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove a few more streams      | Sotr |  |
@@ -121,16 +115,13 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
-| server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Use GlueList as delegate for NonNullList      | Mykyta Komarn |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
-| server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
 | server |  Yatopia configuration      | tr7zw |  |
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
-| server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium MixinBiome      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
