@@ -35,7 +35,6 @@ This is an overview over all patches that are currently used.
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
-| server |  Apply advancements async      | Mariell Hoversholm |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | tr7zw |  |
@@ -71,6 +70,7 @@ This is an overview over all patches that are currently used.
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
+| server |  Load advancements asynchronously      | Ivan Pekov |  |
 | server |  Load also the chunk that you&#39;re teleporting to      | Ivan Pekov |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-171420 - Fix deop kicking non-whitelisted player when      | William Blake Galbreath |  |
