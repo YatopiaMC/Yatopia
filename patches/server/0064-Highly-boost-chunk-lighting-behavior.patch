@@ -7,59 +7,42 @@ Do not run lighting task immediately to get better chunk
 loading/generation performance especially for world pregen
 
 diff --git a/src/main/java/net/minecraft/server/LightEngineGraph.java b/src/main/java/net/minecraft/server/LightEngineGraph.java
-index fed00cc6a4f63170e1ea275d151e2a96356c44d5..8e67595a9e2dc11f122816996bdab43c591a1762 100644
+index fed00cc6a4f63170e1ea275d151e2a96356c44d5..353c6c4d3ae0b7067fd29e247150fd0e082e139c 100644
 --- a/src/main/java/net/minecraft/server/LightEngineGraph.java
 +++ b/src/main/java/net/minecraft/server/LightEngineGraph.java
-@@ -4,6 +4,8 @@ import it.unimi.dsi.fastutil.longs.Long2ByteMap;
+@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ByteMap;
  import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
  import it.unimi.dsi.fastutil.longs.LongArrayList;
  import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
 +
-+import java.util.function.LongConsumer;
  import java.util.function.LongPredicate;
  
  public abstract class LightEngineGraph {
-@@ -86,15 +88,12 @@ public abstract class LightEngineGraph {
+@@ -86,15 +87,13 @@ public abstract class LightEngineGraph {
      }
  
      public void a(LongPredicate longpredicate) {
 -        LongArrayList longarraylist = new LongArrayList();
 -
 -        this.c.keySet().forEach((i) -> {
-+        this.c.keySet().forEach((LongConsumer) (i) -> {
++        // Yatopia start - don't create new list
++        this.c.keySet().forEach((java.util.function.LongConsumer) (i) -> {
              if (longpredicate.test(i)) {
 -                longarraylist.add(i);
 +                this.e(i);
              }
- 
+-
          });
 -        longarraylist.forEach(this::e);
++        // Yatopia end
      }
  
      private void a(long i, int j, int k, boolean flag) {
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 4d024a4849b7566c0faba131caab57b4ddf35e29..0b0bdd8b410ab019f4d40bdc9c71c89d0d56f1a5 100644
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..1f587f007074363c0f1e0bd9d6d83184eb039ab4 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -1,14 +1,13 @@
- package net.minecraft.server;
- 
--import com.mojang.datafixers.util.Pair;
- import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap; // Paper
--import it.unimi.dsi.fastutil.objects.ObjectArrayList;
--import it.unimi.dsi.fastutil.objects.ObjectList;
--import it.unimi.dsi.fastutil.objects.ObjectListIterator;
-+
- import java.util.concurrent.CompletableFuture;
- import java.util.concurrent.atomic.AtomicBoolean;
- import java.util.function.IntSupplier;
- import javax.annotation.Nullable;
-+
-+import net.yatopia.server.YatopiaConfig;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
- 
-@@ -264,6 +263,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -264,6 +264,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
      }
  
      public CompletableFuture<IChunkAccess> a(IChunkAccess ichunkaccess, boolean flag) {
@@ -67,30 +50,32 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..0b0bdd8b410ab019f4d40bdc9c71c89d
          ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
  
          // Paper start
-@@ -272,6 +272,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -272,6 +273,13 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
          CompletableFuture<IChunkAccess> future = new CompletableFuture<>();
          IntSupplier prioritySupplier = playerChunkMap.getPrioritySupplier(pair);
          boolean[] skippedPre = {false};
-+        boolean[] asyncPre = {YatopiaConfig.asyncLighting};
++        boolean[] asyncPre = {net.yatopia.server.YatopiaConfig.asyncLighting}; // Yatopia
++        // Yatopia start - unblock chunk loading
 +        if(asyncPre[0]) {
 +            future.complete(ichunkaccess);
 +            this.d.c(chunkcoordintpair);
 +        }
++        // Yatopia end
          this.queue.addChunk(pair, prioritySupplier, SystemUtils.a(() -> {
              if (!isChunkLightStatus(pair)) {
                  future.complete(ichunkaccess);
-@@ -301,12 +306,12 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -301,12 +309,12 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
              return "lightChunk " + chunkcoordintpair + " " + flag;
              // Paper start  - merge the 2 together
          }), () -> {
 -            this.d.c(chunkcoordintpair); // Paper - release light tickets as post task to ensure they stay loaded until fully done
-+            if(!asyncPre[0]) this.d.c(chunkcoordintpair); // Paper - release light tickets as post task to ensure they stay loaded until fully done
++            if(!asyncPre[0]) this.d.c(chunkcoordintpair); // Paper - release light tickets as post task to ensure they stay loaded until fully done // Yatopia - don't double release ticket
              if (skippedPre[0]) return; // Paper - future's already complete
              ichunkaccess.b(true);
              super.b(chunkcoordintpair, false);
              // Paper start
 -            future.complete(ichunkaccess);
-+            if(!asyncPre[0]) future.complete(ichunkaccess);
++            if(!asyncPre[0]) future.complete(ichunkaccess); // Yatopia - don't double complete future
          });
          return future;
          // Paper end
