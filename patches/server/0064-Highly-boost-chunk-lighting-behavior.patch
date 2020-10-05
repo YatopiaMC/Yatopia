@@ -1,0 +1,110 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Mon, 5 Oct 2020 18:01:52 +0800
+Subject: [PATCH] Highly boost chunk lighting behavior
+
+Do not run lighting task immediately to get better chunk
+loading/generation performance especially for world pregen
+
+diff --git a/src/main/java/net/minecraft/server/LightEngineGraph.java b/src/main/java/net/minecraft/server/LightEngineGraph.java
+index fed00cc6a4f63170e1ea275d151e2a96356c44d5..8e67595a9e2dc11f122816996bdab43c591a1762 100644
+--- a/src/main/java/net/minecraft/server/LightEngineGraph.java
++++ b/src/main/java/net/minecraft/server/LightEngineGraph.java
+@@ -4,6 +4,8 @@ import it.unimi.dsi.fastutil.longs.Long2ByteMap;
+ import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.LongArrayList;
+ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
++
++import java.util.function.LongConsumer;
+ import java.util.function.LongPredicate;
+ 
+ public abstract class LightEngineGraph {
+@@ -86,15 +88,12 @@ public abstract class LightEngineGraph {
+     }
+ 
+     public void a(LongPredicate longpredicate) {
+-        LongArrayList longarraylist = new LongArrayList();
+-
+-        this.c.keySet().forEach((i) -> {
++        this.c.keySet().forEach((LongConsumer) (i) -> {
+             if (longpredicate.test(i)) {
+-                longarraylist.add(i);
++                this.e(i);
+             }
+ 
+         });
+-        longarraylist.forEach(this::e);
+     }
+ 
+     private void a(long i, int j, int k, boolean flag) {
+diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..0b0bdd8b410ab019f4d40bdc9c71c89d0d56f1a5 100644
+--- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
++++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+@@ -1,14 +1,13 @@
+ package net.minecraft.server;
+ 
+-import com.mojang.datafixers.util.Pair;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap; // Paper
+-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-import it.unimi.dsi.fastutil.objects.ObjectList;
+-import it.unimi.dsi.fastutil.objects.ObjectListIterator;
++
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.function.IntSupplier;
+ import javax.annotation.Nullable;
++
++import net.yatopia.server.YatopiaConfig;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -264,6 +263,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+     }
+ 
+     public CompletableFuture<IChunkAccess> a(IChunkAccess ichunkaccess, boolean flag) {
++
+         ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
+ 
+         // Paper start
+@@ -272,6 +272,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+         CompletableFuture<IChunkAccess> future = new CompletableFuture<>();
+         IntSupplier prioritySupplier = playerChunkMap.getPrioritySupplier(pair);
+         boolean[] skippedPre = {false};
++        boolean[] asyncPre = {YatopiaConfig.asyncLighting};
++        if(asyncPre[0]) {
++            future.complete(ichunkaccess);
++            this.d.c(chunkcoordintpair);
++        }
+         this.queue.addChunk(pair, prioritySupplier, SystemUtils.a(() -> {
+             if (!isChunkLightStatus(pair)) {
+                 future.complete(ichunkaccess);
+@@ -301,12 +306,12 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             return "lightChunk " + chunkcoordintpair + " " + flag;
+             // Paper start  - merge the 2 together
+         }), () -> {
+-            this.d.c(chunkcoordintpair); // Paper - release light tickets as post task to ensure they stay loaded until fully done
++            if(!asyncPre[0]) this.d.c(chunkcoordintpair); // Paper - release light tickets as post task to ensure they stay loaded until fully done
+             if (skippedPre[0]) return; // Paper - future's already complete
+             ichunkaccess.b(true);
+             super.b(chunkcoordintpair, false);
+             // Paper start
+-            future.complete(ichunkaccess);
++            if(!asyncPre[0]) future.complete(ichunkaccess);
+         });
+         return future;
+         // Paper end
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index f0e7684304cab9cea05fa266a66a2ad8172c55b6..b63c880c54d97487ae183a27d761173b7af4f157 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -253,4 +253,9 @@ public class YatopiaConfig {
+         checkFlying = getBoolean("settings.checks.flight", checkFlying);
+         checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);
+     }
++
++    public static boolean asyncLighting = true;
++    private static void asyncLighting(){
++        asyncLighting = getBoolean("settings.async-lighting", asyncLighting);
++    }
+ }

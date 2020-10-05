@@ -126,6 +126,11 @@ done
 
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
+importToPaperWorkspace LightEngineGraph
+importToPaperWorkspace LightEngine
+importToPaperWorkspace IBlockLightAccess
+importToPaperWorkspace ILightAccess
+importToPaperWorkspace ILightEngine
 
 # Library import format (multiple files are supported):
 # NOTE: Imported libraries aren't a temporary change, YOU NEED TO LEAVE THEM AS IS!!!!
