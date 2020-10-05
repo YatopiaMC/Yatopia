@@ -18,7 +18,6 @@ function updateAll {
   update Empirecraft master
   update Origami 1.16
   update Purpur ver/1.16.3
-  update Rainforest ver/1.16
   update Tuinity ver/1.16.3
   git submodule update --recursive
 }
