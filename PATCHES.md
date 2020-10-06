@@ -71,7 +71,6 @@ This is an overview over all patches that are currently used.
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
-| server |  Load advancements asynchronously      | Ivan Pekov |  |
 | server |  Load also the chunk that you&#39;re teleporting to      | Ivan Pekov |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-171420 - Fix deop kicking non-whitelisted player when      | William Blake Galbreath |  |
@@ -84,6 +83,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
+| server |  Optimize advancement loading      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
