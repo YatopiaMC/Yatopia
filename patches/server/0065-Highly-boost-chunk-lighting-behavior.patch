@@ -125,7 +125,7 @@ index 549c2551c2b59730bf53a80f8706d388d96ad932..0782e89c4b98f6832cc1d589e0b94cb3
          this.data.queueUpdate(i, nibblearray); // Paper - avoid copying light data
      }
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 4d024a4849b7566c0faba131caab57b4ddf35e29..e5509d537af019d45685ff1ce86165eac2876cb0 100644
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..548270bd73c6a6985827a5c6f21d526132fd3374 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 @@ -6,11 +6,14 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -294,7 +294,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..e5509d537af019d45685ff1ce86165ea
              ChunkSection[] achunksection = ichunkaccess.getSections();
  
              for (int i = 0; i < 16; ++i) {
-@@ -290,23 +311,42 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -290,23 +311,48 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
              }
  
              super.a(chunkcoordintpair, true);
@@ -311,14 +311,20 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..e5509d537af019d45685ff1ce86165ea
 +            int cz = chunkcoordintpair.z << 4;
 +            if (super.b != null)
 +                for (int y = 64; y < 200; y++)
-+                    for (int x = 0; x < 16; x++)
++                    for (int x = 0; x < 16; x++) {
++                        boolean skipLayer = false;
 +                        for (int z = 0; z < 16; z++) {
 +                            BlockPosition var0 = new BlockPosition(cx + x, y, cz + z);
-+                            if (super.b.b(var0) >= 15) break;
++                            if (super.b.b(var0.up()) < 15) {
++                                skipLayer = true;
++                                break;
++                            }
 +                            Material cachedMaterial = ichunkaccess.getType(var0).getBukkitMaterial();
 +                            if (!cachedMaterial.isAir() || cachedMaterial.isSolid()) continue;
 +                            super.b.a(var0);
 +                        }
++                        if (skipLayer) break;
++                    }
 +
 +            playerChunkMap.addLightTask(updatingChunk, () -> {
 +                MinecraftServer.getServer().processQueue.add(() -> {
@@ -344,7 +350,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..e5509d537af019d45685ff1ce86165ea
          });
          return future;
          // Paper end
-@@ -315,7 +355,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -315,7 +361,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
      public void queueUpdate() {
          if ((!this.queue.isEmpty() || super.a()) && this.g.compareAndSet(false, true)) { // Paper
              this.b.a((() -> { // Paper - decompile error
@@ -357,7 +363,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..e5509d537af019d45685ff1ce86165ea
                  this.g.set(false);
                  queueUpdate(); // Paper - if we still have work to do, do it!
              }));
-@@ -323,16 +367,26 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -323,16 +373,26 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
  
      }
  
