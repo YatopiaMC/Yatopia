@@ -6,6 +6,18 @@ Subject: [PATCH] Highly boost chunk lighting behavior
 Do not run lighting task immediately to get better chunk
 loading/generation performance especially for world pregen
 
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..a9276b58ccc2270ce9e8947ed3fff9a71e6f52ad 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -1139,6 +1139,7 @@ public class ChunkProviderServer extends IChunkProvider {
+ 
+     public void movePlayer(EntityPlayer entityplayer) {
+         this.playerChunkMap.movePlayer(entityplayer);
++        this.lightEngine.movePlayer(entityplayer);
+     }
+ 
+     public void removeEntity(Entity entity) {
 diff --git a/src/main/java/net/minecraft/server/LightEngineGraph.java b/src/main/java/net/minecraft/server/LightEngineGraph.java
 index fed00cc6a4f63170e1ea275d151e2a96356c44d5..9a13baeec5bb123be22cc4dcb3d6fc7e0891bce4 100644
 --- a/src/main/java/net/minecraft/server/LightEngineGraph.java
@@ -62,10 +74,17 @@ index 549c2551c2b59730bf53a80f8706d388d96ad932..0782e89c4b98f6832cc1d589e0b94cb3
          this.data.queueUpdate(i, nibblearray); // Paper - avoid copying light data
      }
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 4d024a4849b7566c0faba131caab57b4ddf35e29..4bdf778ee57037d57f3383aa4cc773a9c3c6fb5d 100644
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591f72385e8 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -11,6 +11,7 @@ import java.util.function.IntSupplier;
+@@ -6,11 +6,14 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+ import it.unimi.dsi.fastutil.objects.ObjectList;
+ import it.unimi.dsi.fastutil.objects.ObjectListIterator;
+ import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicBoolean;
++import java.util.concurrent.atomic.AtomicReference;
+ import java.util.function.IntSupplier;
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -73,9 +92,131 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..4bdf778ee57037d57f3383aa4cc773a9
  
  public class LightEngineThreaded extends LightEngine implements AutoCloseable {
  
-@@ -272,13 +273,24 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -28,15 +31,20 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+         return status != null && status.isAtLeastStatus(ChunkStatus.LIGHT);
+     }
+ 
++    public void movePlayer(EntityPlayer entityplayer) {
++
++    }
++
+     static class ChunkLightQueue {
+         public boolean shouldFastUpdate;
+         java.util.ArrayDeque<Runnable> pre = new java.util.ArrayDeque<Runnable>();
+         java.util.ArrayDeque<Runnable> post = new java.util.ArrayDeque<Runnable>();
+ 
+-        ChunkLightQueue(long chunk) {}
++        ChunkLightQueue(long chunk) {
++        }
+     }
+ 
+-    static class PendingLightTask {
++    static class PendingLightTask implements Comparable<PendingLightTask> {
+         long chunkId;
+         IntSupplier priority;
+         Runnable pre;
+@@ -50,14 +58,19 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             this.post = post;
+             this.fastUpdate = fastUpdate;
+         }
++
++        @Override
++        public int compareTo(PendingLightTask that) {
++            return Integer.compare(this.priority.getAsInt(), that.priority.getAsInt());
++        }
+     }
+ 
+ 
+     // Retain the chunks priority level for queued light tasks
+     class LightQueue {
+-        private int size = 0;
++        private volatile int size = 0;
+         private final Long2ObjectLinkedOpenHashMap<ChunkLightQueue>[] buckets = new Long2ObjectLinkedOpenHashMap[MAX_PRIORITIES];
+-        private final java.util.concurrent.ConcurrentLinkedQueue<PendingLightTask> pendingTasks = new java.util.concurrent.ConcurrentLinkedQueue<>();
++        private final java.util.concurrent.PriorityBlockingQueue<PendingLightTask> pendingTasks = new java.util.concurrent.PriorityBlockingQueue<>();
+         private final java.util.concurrent.ConcurrentLinkedQueue<Runnable> priorityChanges = new java.util.concurrent.ConcurrentLinkedQueue<>();
+ 
+         private LightQueue() {
+@@ -104,7 +117,10 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             }
+         }
+ 
+-        public final void remove(long chunkId) { pendingTasks.removeIf(task -> task.chunkId == chunkId); queueUpdate(); } // Yatopia
++        public final void remove(long chunkId) {
++            pendingTasks.removeIf(task -> task.chunkId == chunkId);
++            queueUpdate();
++        } // Yatopia
+ 
+         public final boolean isEmpty() {
+             return this.size == 0 && this.pendingTasks.isEmpty();
+@@ -114,41 +130,15 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             return this.size;
+         }
+ 
+-        public boolean poll(java.util.List<Runnable> pre, java.util.List<Runnable> post) {
+-            PendingLightTask pending;
+-            while ((pending = pendingTasks.poll()) != null) {
+-                add(pending);
+-            }
++        public PendingLightTask poll() {
+             Runnable run;
+             while ((run = priorityChanges.poll()) != null) {
+                 run.run();
+             }
+-            boolean hasWork = false;
+-            Long2ObjectLinkedOpenHashMap<ChunkLightQueue>[] buckets = this.buckets;
+-            int lowestPriority = 0;
+-            while (lowestPriority < MAX_PRIORITIES && !isEmpty()) {
+-                Long2ObjectLinkedOpenHashMap<ChunkLightQueue> bucket = buckets[lowestPriority];
+-                if (bucket.isEmpty()) {
+-                    lowestPriority++;
+-                    if (hasWork && lowestPriority <= 5) {
+-                        return true;
+-                    } else {
+-                        continue;
+-                    }
+-                }
+-                ChunkLightQueue queue = bucket.removeFirst();
+-                this.size -= queue.pre.size() + queue.post.size();
+-                pre.addAll(queue.pre);
+-                post.addAll(queue.post);
+-                queue.pre.clear();
+-                queue.post.clear();
+-                hasWork = true;
+-                if (queue.shouldFastUpdate) {
+-                    return true;
+-                }
+-            }
+-            return hasWork;
++            return pendingTasks.isEmpty() ? null : pendingTasks.poll();
++
+         }
++
+     }
+ 
+     final LightQueue queue = new LightQueue();
+@@ -270,15 +260,41 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+         //ichunkaccess.b(false); // Don't need to disable this
+         long pair = chunkcoordintpair.pair();
          CompletableFuture<IChunkAccess> future = new CompletableFuture<>();
-         IntSupplier prioritySupplier = playerChunkMap.getPrioritySupplier(pair);
+-        IntSupplier prioritySupplier = playerChunkMap.getPrioritySupplier(pair);
++        IntSupplier prioritySupplier = () -> {
++            PlayerChunk visibleChunk = playerChunkMap.getVisibleChunk(pair);
++
++            if (visibleChunk == null) return Short.MAX_VALUE;
++
++            int chunkX = chunkcoordintpair.x;
++            int chunkZ = chunkcoordintpair.z;
++
++            int minPriority = Short.MAX_VALUE;
++            for (EntityPlayer player : playerChunkMap.world.players) {
++                Vec3D positionVector = player.getPositionVector();
++                int playerCX = ((int) Math.floor(positionVector.x)) >> 4;
++                int playerCZ = ((int) Math.floor(positionVector.z)) >> 4;
++                minPriority = (int) Math.min(minPriority, Math.sqrt((chunkX - playerCX) * (chunkX - playerCX)) + ((chunkZ - playerCZ) * (chunkZ - playerCZ)));
++            }
++            return minPriority;
++        };
          boolean[] skippedPre = {false};
 +        // Yatopia start - unblock chunk loading
 +        future.complete(ichunkaccess);
@@ -94,11 +235,10 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..4bdf778ee57037d57f3383aa4cc773a9
 +            if (updatingChunk == null || updatingChunk.getChunkHolderStatus() == null || !updatingChunk.getChunkHolderStatus().isAtLeastStatus(ChunkStatus.LIGHT))
 +                return;
 +
-+            LOGGER.info("Updating lighting for chunk " + chunkcoordintpair);
              ChunkSection[] achunksection = ichunkaccess.getSections();
  
              for (int i = 0; i < 16; ++i) {
-@@ -290,23 +302,44 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -290,23 +306,44 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
              }
  
              super.a(chunkcoordintpair, true);
@@ -146,7 +286,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..4bdf778ee57037d57f3383aa4cc773a9
          });
          return future;
          // Paper end
-@@ -315,7 +348,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -315,7 +352,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
      public void queueUpdate() {
          if ((!this.queue.isEmpty() || super.a()) && this.g.compareAndSet(false, true)) { // Paper
              this.b.a((() -> { // Paper - decompile error
@@ -159,3 +299,81 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..4bdf778ee57037d57f3383aa4cc773a9
                  this.g.set(false);
                  queueUpdate(); // Paper - if we still have work to do, do it!
              }));
+@@ -323,16 +364,26 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+ 
+     }
+ 
+-    // Paper start - replace impl
+-    private final java.util.List<Runnable> pre = new java.util.ArrayList<>();
+-    private final java.util.List<Runnable> post = new java.util.ArrayList<>();
+     private void b() {
+-        if (queue.poll(pre, post)) {
+-            pre.forEach(Runnable::run);
+-            pre.clear();
++        PendingLightTask task;
++        if ((task = queue.poll()) != null) {
++            if(task.pre != null) {
++                LOGGER.info("Running " +
++                        (task.pre instanceof SystemUtils.DetailedRunnable
++                                ? ((SystemUtils.DetailedRunnable)task.pre).detail.get().toString()
++                                : "task") +
++                        " for chunk " + new ChunkCoordIntPair(task.chunkId) + " at priority " + task.priority.getAsInt());
++                task.pre.run();
++            }
+             super.a(Integer.MAX_VALUE, true, true);
+-            post.forEach(Runnable::run);
+-            post.clear();
++            if(task.post != null) {
++                LOGGER.info("Running " +
++                        (task.post instanceof SystemUtils.DetailedRunnable
++                                ? ((SystemUtils.DetailedRunnable)task.post).detail.get().toString()
++                                : "task") +
++                        " for chunk " + new ChunkCoordIntPair(task.chunkId) + " at priority " + task.priority.getAsInt());
++                task.post.run();
++            }
+         } else {
+             // might have level updates to go still
+             super.a(Integer.MAX_VALUE, true, true);
+diff --git a/src/main/java/net/minecraft/server/SystemUtils.java b/src/main/java/net/minecraft/server/SystemUtils.java
+index 94fadd3d7ea7cdea07cb3fdc9e9bb1f92da0afcd..552b7388caf4ef542581530fcd2cbdceec87aa9d 100644
+--- a/src/main/java/net/minecraft/server/SystemUtils.java
++++ b/src/main/java/net/minecraft/server/SystemUtils.java
+@@ -29,8 +29,6 @@ import java.util.concurrent.CompletionException;
+ import java.util.concurrent.Executor;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+-import java.util.concurrent.ForkJoinPool;
+-import java.util.concurrent.ForkJoinWorkerThread;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.function.BooleanSupplier;
+@@ -301,7 +299,7 @@ public class SystemUtils {
+     }
+ 
+     public static Runnable a(Runnable runnable, Supplier<String> supplier) {
+-        return runnable;
++        return new DetailedRunnable<>(runnable, supplier);
+     }
+ 
+     public static <T extends Throwable> T c(T t0) {
+@@ -501,4 +499,20 @@ public class SystemUtils {
+ 
+         private OS() {}
+     }
++
++    static class DetailedRunnable<T> implements Runnable {
++
++        private final Runnable wrapped;
++        public final Supplier<T> detail;
++
++        DetailedRunnable(Runnable wrapped, Supplier<T> detail) {
++            this.wrapped = wrapped;
++            this.detail = detail;
++        }
++
++        @Override
++        public void run() {
++            wrapped.run();
++        }
++    }
+ }
