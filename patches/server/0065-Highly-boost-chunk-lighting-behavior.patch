@@ -6,6 +6,44 @@ Subject: [PATCH] Highly boost chunk lighting behavior
 Do not run lighting task immediately to get better chunk
 loading/generation performance especially for world pregen
 
+diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
+index f81bd67a323f2e72bdad76c52016993a0bf88307..a28499e758085431ba4e971e8414f66f0566c2bc 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
++++ b/src/main/java/com/destroystokyo/paper/PaperCommand.java
+@@ -232,31 +232,10 @@ public class PaperCommand extends Command {
+                 updateLight(sender, world, lightengine, queue);
+                 return;
+             }
+-            lightengine.a(world.paperConfig.lightQueueSize + 16 * 256); // ensure full chunk can fit into queue
+             sender.sendMessage("Updating Light " + coord);
+-            int cx = chunk.getPos().x << 4;
+-            int cz = chunk.getPos().z << 4;
+-            for (int y = 0; y < world.getHeight(); y++) {
+-                for (int x = 0; x < 16; x++) {
+-                    for (int z = 0; z < 16; z++) {
+-                        BlockPosition pos = new BlockPosition(cx + x, y, cz + z);
+-                        lightengine.a(pos);
+-                    }
+-                }
+-            }
++            lightengine.a(chunk, true);
+             lightengine.queueUpdate();
+-            PlayerChunk visibleChunk = world.getChunkProvider().playerChunkMap.getVisibleChunk(chunk.coordinateKey);
+-            if (visibleChunk != null) {
+-                world.getChunkProvider().playerChunkMap.addLightTask(visibleChunk, () -> {
+-                    MinecraftServer.getServer().processQueue.add(() -> {
+-                        visibleChunk.sendPacketToTrackedPlayers(new PacketPlayOutLightUpdate(chunk.getPos(), lightengine, true), false);
+-                        updateLight(sender, world, lightengine, queue);
+-                    });
+-                });
+-            } else {
+-                updateLight(sender, world, lightengine, queue);
+-            }
+-            lightengine.a(world.paperConfig.lightQueueSize);
++            updateLight(sender, world, lightengine, queue);
+         }, MinecraftServer.getServer());
+     }
+ 
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..a9276b58ccc2270ce9e8947ed3fff9a71e6f52ad 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
@@ -18,6 +56,19 @@ index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..a9276b58ccc2270ce9e8947ed3fff9a7
      }
  
      public void removeEntity(Entity entity) {
+diff --git a/src/main/java/net/minecraft/server/LightEngine.java b/src/main/java/net/minecraft/server/LightEngine.java
+index bca3da5c5d61f6d31aceefbe6d2f59747fa940a8..9c240cbc1cf14bd954ad5d11233fb1cc78cb2ec8 100644
+--- a/src/main/java/net/minecraft/server/LightEngine.java
++++ b/src/main/java/net/minecraft/server/LightEngine.java
+@@ -7,7 +7,7 @@ public class LightEngine implements ILightEngine {
+     @Nullable
+     private final LightEngineLayer<?, ?> a;
+     @Nullable
+-    private final LightEngineLayer<?, ?> b;
++    final LightEngineLayer<?, ?> b;
+ 
+     public LightEngine(ILightAccess ilightaccess, boolean flag, boolean flag1) {
+         this.a = flag ? new LightEngineBlock(ilightaccess) : null;
 diff --git a/src/main/java/net/minecraft/server/LightEngineGraph.java b/src/main/java/net/minecraft/server/LightEngineGraph.java
 index fed00cc6a4f63170e1ea275d151e2a96356c44d5..9a13baeec5bb123be22cc4dcb3d6fc7e0891bce4 100644
 --- a/src/main/java/net/minecraft/server/LightEngineGraph.java
@@ -74,7 +125,7 @@ index 549c2551c2b59730bf53a80f8706d388d96ad932..0782e89c4b98f6832cc1d589e0b94cb3
          this.data.queueUpdate(i, nibblearray); // Paper - avoid copying light data
      }
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591f72385e8 100644
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..e5509d537af019d45685ff1ce86165eac2876cb0 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 @@ -6,11 +6,14 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -195,7 +246,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591
      }
  
      final LightQueue queue = new LightQueue();
-@@ -270,15 +260,41 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -270,15 +260,46 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
          //ichunkaccess.b(false); // Don't need to disable this
          long pair = chunkcoordintpair.pair();
          CompletableFuture<IChunkAccess> future = new CompletableFuture<>();
@@ -215,6 +266,11 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591
 +                int playerCZ = ((int) Math.floor(positionVector.z)) >> 4;
 +                minPriority = (int) Math.min(minPriority, Math.sqrt((chunkX - playerCX) * (chunkX - playerCX)) + ((chunkZ - playerCZ) * (chunkZ - playerCZ)));
 +            }
++            Chunk chunk = visibleChunk.getChunk();
++            if (chunk == null || super.b == null) return minPriority;
++            int highestBlockY = chunk.getHighestBlockY(HeightMap.Type.MOTION_BLOCKING, 0, 0);
++            if (super.b.b(new BlockPosition(chunkX << 4, highestBlockY, chunkZ << 4)) < 15)
++                return minPriority - 64;
 +            return minPriority;
 +        };
          boolean[] skippedPre = {false};
@@ -238,35 +294,37 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591
              ChunkSection[] achunksection = ichunkaccess.getSections();
  
              for (int i = 0; i < 16; ++i) {
-@@ -290,23 +306,44 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -290,23 +311,42 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
              }
  
              super.a(chunkcoordintpair, true);
+-            if (!flag) {
+-                ichunkaccess.m().forEach((blockposition) -> {
+-                    super.a(blockposition, ichunkaccess.g(blockposition));
 +
-+            /*
-             if (!flag) {
 +
-                 ichunkaccess.m().forEach((blockposition) -> {
-                     super.a(blockposition, ichunkaccess.g(blockposition));
-                 });
++            ichunkaccess.m().forEach((blockposition) -> {
++                super.a(blockposition, ichunkaccess.g(blockposition));
++            });
 +
-             }
-+            */
 +            int cx = chunkcoordintpair.x << 4;
 +            int cz = chunkcoordintpair.z << 4;
-+            for (int y = 0; y < ichunkaccess.getBuildHeight(); y++)
-+                for (int x = 0; x < 16; x++)
-+                    for (int z = 0; z < 16; z++) {
-+                        BlockPosition var0 = new BlockPosition(cx + x, y, cz + z);
-+                        Material cachedMaterial = ichunkaccess.getType(var0).getBukkitMaterial();
-+                        if (cachedMaterial.isAir() || !cachedMaterial.isSolid())
-+                            super.a(var0);
-+                    }
++            if (super.b != null)
++                for (int y = 64; y < 200; y++)
++                    for (int x = 0; x < 16; x++)
++                        for (int z = 0; z < 16; z++) {
++                            BlockPosition var0 = new BlockPosition(cx + x, y, cz + z);
++                            if (super.b.b(var0) >= 15) break;
++                            Material cachedMaterial = ichunkaccess.getType(var0).getBukkitMaterial();
++                            if (!cachedMaterial.isAir() || cachedMaterial.isSolid()) continue;
++                            super.b.a(var0);
++                        }
 +
 +            playerChunkMap.addLightTask(updatingChunk, () -> {
 +                MinecraftServer.getServer().processQueue.add(() -> {
 +                    updatingChunk.sendPacketToTrackedPlayers(new PacketPlayOutLightUpdate(chunkcoordintpair, this, true), false);
-+                });
+                 });
+-            }
 +            });
  
              // this.d.c(chunkcoordintpair); // Paper - move into post task below
@@ -286,7 +344,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591
          });
          return future;
          // Paper end
-@@ -315,7 +352,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -315,7 +355,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
      public void queueUpdate() {
          if ((!this.queue.isEmpty() || super.a()) && this.g.compareAndSet(false, true)) { // Paper
              this.b.a((() -> { // Paper - decompile error
@@ -299,7 +357,7 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..417236d9f7e43e04dea6859079720591
                  this.g.set(false);
                  queueUpdate(); // Paper - if we still have work to do, do it!
              }));
-@@ -323,16 +364,26 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -323,16 +367,26 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
  
      }
  
