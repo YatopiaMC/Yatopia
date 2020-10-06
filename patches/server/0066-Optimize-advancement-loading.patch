@@ -18,7 +18,7 @@ index c405047c00d354bbc1449fd2f917b73f980ef1a5..8b31098032dc7a08d201e20c917f2734
          return this.rewards;
      }
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 17789407b9e86896a963a305a13357286aa5f319..3002065c390ffd67ea5468d2919ad2bd67a5bc8c 100644
+index 17789407b9e86896a963a305a13357286aa5f319..8a18fc380016c0df6bc5821defa4408df291679b 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -160,10 +160,13 @@ public class AdvancementDataPlayer {
@@ -44,7 +44,7 @@ index 17789407b9e86896a963a305a13357286aa5f319..3002065c390ffd67ea5468d2919ad2bd
                  } catch (Throwable throwable1) {
                      throwable = throwable1;
                      throw throwable1;
-@@ -200,10 +203,35 @@ public class AdvancementDataPlayer {
+@@ -200,10 +203,36 @@ public class AdvancementDataPlayer {
              }
          }
  
@@ -72,6 +72,7 @@ index 17789407b9e86896a963a305a13357286aa5f319..3002065c390ffd67ea5468d2919ad2bd
 +            if (progress.isDone()) {
 +                this.j.add(advancement);
 +                updateVisibility(advancement);
++                continue; // Do not double check isDone
 +            }
 +            beginTracking(advancement);
 +        }
@@ -80,7 +81,7 @@ index 17789407b9e86896a963a305a13357286aa5f319..3002065c390ffd67ea5468d2919ad2bd
  
      public void b() {
          if (org.spigotmc.SpigotConfig.disableAdvancementSaving) return; // Spigot
-@@ -325,6 +353,7 @@ public class AdvancementDataPlayer {
+@@ -325,6 +354,7 @@ public class AdvancementDataPlayer {
          return flag;
      }
  
@@ -88,7 +89,7 @@ index 17789407b9e86896a963a305a13357286aa5f319..3002065c390ffd67ea5468d2919ad2bd
      private void c(Advancement advancement) {
          AdvancementProgress advancementprogress = this.getProgress(advancement);
  
-@@ -442,6 +471,7 @@ public class AdvancementDataPlayer {
+@@ -442,6 +472,7 @@ public class AdvancementDataPlayer {
          this.data.put(advancement, advancementprogress);
      }
  
