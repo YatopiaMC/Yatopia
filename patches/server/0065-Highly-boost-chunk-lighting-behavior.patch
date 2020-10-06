@@ -33,11 +33,47 @@ index fed00cc6a4f63170e1ea275d151e2a96356c44d5..9a13baeec5bb123be22cc4dcb3d6fc7e
      }
  
      private void a(long i, int j, int k, boolean flag) {
+diff --git a/src/main/java/net/minecraft/server/LightEngineStorageArray.java b/src/main/java/net/minecraft/server/LightEngineStorageArray.java
+index 549c2551c2b59730bf53a80f8706d388d96ad932..0782e89c4b98f6832cc1d589e0b94cb3eb2aa1bd 100644
+--- a/src/main/java/net/minecraft/server/LightEngineStorageArray.java
++++ b/src/main/java/net/minecraft/server/LightEngineStorageArray.java
+@@ -39,7 +39,7 @@ public abstract class LightEngineStorageArray<M extends LightEngineStorageArray<
+     public abstract M b();
+ 
+     public void a(long i) {
+-        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
++        // if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+         NibbleArray updating = this.data.getUpdating(i); // Paper - pool nibbles
+         NibbleArray nibblearray = new NibbleArray().markPoolSafe(updating.getCloneIfSet()); // Paper
+         nibblearray.lightCacheKey = i; // Paper
+@@ -83,12 +83,12 @@ public abstract class LightEngineStorageArray<M extends LightEngineStorageArray<
+ 
+     @Nullable
+     public NibbleArray d(long i) {
+-        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
++        // if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+         return (NibbleArray) this.data.queueRemove(i); // Paper - avoid copying light data
+     }
+ 
+     public void a(long i, NibbleArray nibblearray) {
+-        if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
++        // if (this.isVisible) { throw new IllegalStateException("writing to visible data"); } // Paper - avoid copying light data
+         nibblearray.lightCacheKey = i; // Paper
+         this.data.queueUpdate(i, nibblearray); // Paper - avoid copying light data
+     }
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 4d024a4849b7566c0faba131caab57b4ddf35e29..86eacbc7ad26c1d2612db99efbe50fc25857258c 100644
+index 4d024a4849b7566c0faba131caab57b4ddf35e29..4bdf778ee57037d57f3383aa4cc773a9c3c6fb5d 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -272,6 +272,10 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -11,6 +11,7 @@ import java.util.function.IntSupplier;
+ import javax.annotation.Nullable;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.bukkit.Material;
+ 
+ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+ 
+@@ -272,13 +273,24 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
          CompletableFuture<IChunkAccess> future = new CompletableFuture<>();
          IntSupplier prioritySupplier = playerChunkMap.getPrioritySupplier(pair);
          boolean[] skippedPre = {false};
@@ -46,9 +82,55 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..86eacbc7ad26c1d2612db99efbe50fc2
 +        this.d.c(chunkcoordintpair);
 +        // Yatopia end
          this.queue.addChunk(pair, prioritySupplier, SystemUtils.a(() -> {
++            /*
              if (!isChunkLightStatus(pair)) {
                  future.complete(ichunkaccess);
-@@ -301,12 +305,12 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+                 skippedPre[0] = true;
+                 return;
+             }
++            */
+             // Paper end
++            PlayerChunk updatingChunk = playerChunkMap.getUpdatingChunk(pair);
++            if (updatingChunk == null || updatingChunk.getChunkHolderStatus() == null || !updatingChunk.getChunkHolderStatus().isAtLeastStatus(ChunkStatus.LIGHT))
++                return;
++
++            LOGGER.info("Updating lighting for chunk " + chunkcoordintpair);
+             ChunkSection[] achunksection = ichunkaccess.getSections();
+ 
+             for (int i = 0; i < 16; ++i) {
+@@ -290,23 +302,44 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             }
+ 
+             super.a(chunkcoordintpair, true);
++
++            /*
+             if (!flag) {
++
+                 ichunkaccess.m().forEach((blockposition) -> {
+                     super.a(blockposition, ichunkaccess.g(blockposition));
+                 });
++
+             }
++            */
++            int cx = chunkcoordintpair.x << 4;
++            int cz = chunkcoordintpair.z << 4;
++            for (int y = 0; y < ichunkaccess.getBuildHeight(); y++)
++                for (int x = 0; x < 16; x++)
++                    for (int z = 0; z < 16; z++) {
++                        BlockPosition var0 = new BlockPosition(cx + x, y, cz + z);
++                        Material cachedMaterial = ichunkaccess.getType(var0).getBukkitMaterial();
++                        if (cachedMaterial.isAir() || !cachedMaterial.isSolid())
++                            super.a(var0);
++                    }
++
++            playerChunkMap.addLightTask(updatingChunk, () -> {
++                MinecraftServer.getServer().processQueue.add(() -> {
++                    updatingChunk.sendPacketToTrackedPlayers(new PacketPlayOutLightUpdate(chunkcoordintpair, this, true), false);
++                });
++            });
+ 
+             // this.d.c(chunkcoordintpair); // Paper - move into post task below
+         }, () -> {
              return "lightChunk " + chunkcoordintpair + " " + flag;
              // Paper start  - merge the 2 together
          }), () -> {
@@ -56,10 +138,24 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..86eacbc7ad26c1d2612db99efbe50fc2
 +            // this.d.c(chunkcoordintpair); // Paper - release light tickets as post task to ensure they stay loaded until fully done // Yatopia - don't double release ticket
              if (skippedPre[0]) return; // Paper - future's already complete
              ichunkaccess.b(true);
-             super.b(chunkcoordintpair, false);
+-            super.b(chunkcoordintpair, false);
++            // super.b(chunkcoordintpair, false);
              // Paper start
 -            future.complete(ichunkaccess);
 +            // future.complete(ichunkaccess); // Yatopia - don't double complete future
          });
          return future;
          // Paper end
+@@ -315,7 +348,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+     public void queueUpdate() {
+         if ((!this.queue.isEmpty() || super.a()) && this.g.compareAndSet(false, true)) { // Paper
+             this.b.a((() -> { // Paper - decompile error
+-                this.b();
++                try {
++                    this.b();
++                } catch (Throwable t) {
++                    t.printStackTrace();
++                }
+                 this.g.set(false);
+                 queueUpdate(); // Paper - if we still have work to do, do it!
+             }));
