@@ -35,7 +35,6 @@ This is an overview over all patches that are currently used.
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
-| server |  Apply advancements async      | Mariell Hoversholm |  |
 | server |  Async entity tracking      | Mykyta Komarn | Ivan Pekov |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
@@ -84,6 +83,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
+| server |  Optimize advancement loading      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize player loops around weather      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |

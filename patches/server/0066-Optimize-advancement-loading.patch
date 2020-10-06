@@ -1,0 +1,99 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 6 Oct 2020 15:10:12 +0300
+Subject: [PATCH] Optimize advancement loading
+
+Removed some object allocations and reduced loops
+
+diff --git a/src/main/java/net/minecraft/server/Advancement.java b/src/main/java/net/minecraft/server/Advancement.java
+index c405047c00d354bbc1449fd2f917b73f980ef1a5..8b31098032dc7a08d201e20c917f27348dd2f437 100644
+--- a/src/main/java/net/minecraft/server/Advancement.java
++++ b/src/main/java/net/minecraft/server/Advancement.java
+@@ -68,6 +68,7 @@ public class Advancement {
+         return this.display;
+     }
+ 
++    public final AdvancementRewards getRewards() { return d(); } // Yatopia - OBFHELPER
+     public AdvancementRewards d() {
+         return this.rewards;
+     }
+diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+index 17789407b9e86896a963a305a13357286aa5f319..8a18fc380016c0df6bc5821defa4408df291679b 100644
+--- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
++++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+@@ -160,10 +160,13 @@ public class AdvancementDataPlayer {
+                     }
+ 
+                     Stream<Entry<MinecraftKey, AdvancementProgress>> stream = map.entrySet().stream().sorted(Comparator.comparing(Entry::getValue));
++                    /* // Yatopia start - avoid calling collect and iterator
+                     Iterator iterator = ((List) stream.collect(Collectors.toList())).iterator();
+ 
+                     while (iterator.hasNext()) {
+                         Entry<MinecraftKey, AdvancementProgress> entry = (Entry) iterator.next();
++                     */
++                    stream.forEach(entry -> {
+                         Advancement advancement = advancementdataworld.a((MinecraftKey) entry.getKey());
+ 
+                         if (advancement == null) {
+@@ -175,7 +178,7 @@ public class AdvancementDataPlayer {
+                         } else {
+                             this.a(advancement, (AdvancementProgress) entry.getValue());
+                         }
+-                    }
++                    }); // Yatopia end
+                 } catch (Throwable throwable1) {
+                     throwable = throwable1;
+                     throw throwable1;
+@@ -200,10 +203,36 @@ public class AdvancementDataPlayer {
+             }
+         }
+ 
++        /* // Yatopia start
+         this.c(advancementdataworld);
+         this.c();
+         this.b(advancementdataworld);
++         */
++        loadAdvancements(advancementdataworld);
++        // Yatopia end
++    }
++
++    // Yatopia start - reduce overload by post io load of advancements
++    // this combines c(AdvancementDataWorld), c() and b(AdvancementDataWorld) into 1 method
++    // the changes done: loops thru all the advancements only once, does not create an additional list
++    // and does not loop thru the additional list, does not create an additional set when checking for progress and
++    // does not additionally loop thru it
++    private void loadAdvancements(AdvancementDataWorld serverAdvancementManager) {
++        for (Advancement advancement : serverAdvancementManager.getAdvancements()) {
++            if (advancement.getCriteria().isEmpty()) {
++                grantCriteria(advancement, "");
++                advancement.getRewards().a(player); // todo: too lazy to import AdvancementRewards for an obfhelper
++            }
++            AdvancementProgress progress = getProgress(advancement);
++            if (progress.isDone()) {
++                this.j.add(advancement);
++                updateVisibility(advancement);
++                continue; // Do not double check isDone
++            }
++            beginTracking(advancement);
++        }
+     }
++    // Yatopia end
+ 
+     public void b() {
+         if (org.spigotmc.SpigotConfig.disableAdvancementSaving) return; // Spigot
+@@ -325,6 +354,7 @@ public class AdvancementDataPlayer {
+         return flag;
+     }
+ 
++    private final void beginTracking(Advancement advancement) { c(advancement); } // Yatopia - OBFHELPER
+     private void c(Advancement advancement) {
+         AdvancementProgress advancementprogress = this.getProgress(advancement);
+ 
+@@ -442,6 +472,7 @@ public class AdvancementDataPlayer {
+         this.data.put(advancement, advancementprogress);
+     }
+ 
++    private final void updateVisibility(Advancement advancement) { e(advancement); } // Yatopia
+     private void e(Advancement advancement) {
+         // Paper start
+         e(advancement, IterationEntryPoint.ROOT);

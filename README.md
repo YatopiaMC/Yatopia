@@ -17,7 +17,6 @@ Yatopia combines the best patches from many Paper forks and optimization mods, a
 * [Lithium](https://github.com/jellysquid3/lithium-fabric)
 * [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
-* [Rainforest](https://github.com/Proximyst/Rainforest)
 * [Tic-TACS](https://github.com/gegy1000/tic-tacs/)
 
 

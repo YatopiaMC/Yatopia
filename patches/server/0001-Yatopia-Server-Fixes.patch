@@ -36,37 +36,6 @@ index 8f31dba6a29514aad6e74e265bf000014cd1e3c3..00000000000000000000000000000000
 - 
 -                 if (names.size() == 1) {
 -                     MinecraftKey name = names.iterator().next();
-diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
-index e14d71d60c3433c39dcf217d48bd667b2c2b49e1..46ce13100b583d48642c6f3413d2b42507c98036 100644
---- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
-+++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
-@@ -462,4 +462,9 @@ public class PaperConfig {
-     private static void trackPluginScoreboards() {
-         trackPluginScoreboards = getBoolean("settings.track-plugin-scoreboards", false);
-     }
-+
-+    public static boolean asyncAdvancements;
-+    private static void asyncAdvancements() {
-+        asyncAdvancements = getBoolean("settings.async-advancements", asyncAdvancements);
-+    }
- }
-diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej b/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej
-deleted file mode 100644
-index 0f5cfb7c794fbf5f03e79d7f458d679a648fc1ec..0000000000000000000000000000000000000000
---- a/src/main/java/com/destroystokyo/paper/PaperConfig.java.rej
-+++ /dev/null
-@@ -1,11 +0,0 @@
--diff a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java	(rejected hunks)
--@@ -457,4 +457,9 @@ public class PaperConfig {
--     private static void maxJoinsPerTick() {
--         maxJoinsPerTick = getInt("settings.max-joins-per-tick", 3);
--     }
--+
--+    public static boolean asyncAdvancements;
--+    private static void asyncAdvancements() {
--+        asyncAdvancements = getBoolean("settings.async-advancements", asyncAdvancements);
--+    }
-- }
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 index dee9655b89d061ec8218ea2c54660c6003e8548f..253b73cfc597d4c7106d969be7b18c68166128ae 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
@@ -1518,10 +1487,10 @@ index d1016d22fbb2dd15042fd6ccdf2ee7848351e518..00000000000000000000000000000000
 - 
 -         entitypigzombie.addEffect(new MobEffect(MobEffects.CONFUSION, 200, 0));
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index f1779ce7809c416f31d6df11dd55bffc875480ac..a61b449ede25a3215a48002a3223c8430b74d835 100644
+index 8e1655a975af24f6781a95be7030afa8f1b14472..e6f2021e8406f7b14ce41429e871ffaffa52f108 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -764,11 +764,11 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -761,11 +761,11 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
      private void eV() {
          AxisAlignedBB axisalignedbb = (new AxisAlignedBB(this.getChunkCoordinates())).grow(32.0D, 10.0D, 32.0D);
  
@@ -1538,7 +1507,7 @@ index f1779ce7809c416f31d6df11dd55bffc875480ac..a61b449ede25a3215a48002a3223c843
      }
  
      @Override
-@@ -919,7 +919,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -916,7 +916,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              ShapeDetectorShape shapedetectorshape = this.a(worldserver);
  
              if (shapedetectorshape != null) {
@@ -1547,7 +1516,7 @@ index f1779ce7809c416f31d6df11dd55bffc875480ac..a61b449ede25a3215a48002a3223c843
                  worldserver = shapedetectorshape.world; // CraftBukkit
                  if (worldserver == null) { } else // CraftBukkit - empty to fall through to null to event
                  if (resourcekey == DimensionManager.OVERWORLD && worldserver.getTypeKey() == DimensionManager.THE_NETHER) { // CraftBukkit
-@@ -942,8 +942,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -939,8 +939,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              worldserver = ((CraftWorld) exit.getWorld()).getHandle();
              // CraftBukkit end
  
@@ -1558,7 +1527,7 @@ index f1779ce7809c416f31d6df11dd55bffc875480ac..a61b449ede25a3215a48002a3223c843
              if (true) { // CraftBukkit
                  this.worldChangeInvuln = true; // CraftBukkit - Set teleport invulnerability only if player changing worlds
  
-@@ -960,7 +960,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -957,7 +957,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
                  worldserver.addPlayerPortal(this);
                  this.playerConnection.teleport(exit); // CraftBukkit - use internal teleport without event
                  this.playerConnection.syncPosition(); // CraftBukkit - sync position after changing it (from PortalTravelAgent#findAndteleport)
