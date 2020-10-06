@@ -8,7 +8,7 @@ Previously, an advancement load would take up to 300ms (more like in the 200s). 
 trivial.
 
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 17789407b9e86896a963a305a13357286aa5f319..bffc3541e8446e5aaedb7e1d1c8e8ef3a4040368 100644
+index 17789407b9e86896a963a305a13357286aa5f319..f1c3675b77112724a77542ea312baebbb4730906 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 @@ -139,6 +139,7 @@ public class AdvancementDataPlayer {
@@ -19,38 +19,23 @@ index 17789407b9e86896a963a305a13357286aa5f319..bffc3541e8446e5aaedb7e1d1c8e8ef3
              try {
                  JsonReader jsonreader = new JsonReader(new StringReader(Files.toString(this.f, StandardCharsets.UTF_8)));
                  Throwable throwable = null;
-@@ -159,8 +160,18 @@ public class AdvancementDataPlayer {
-                         throw new JsonParseException("Found null for advancements");
-                     }
- 
-+                    // Yatopia start - replace stream
-+                    /*
-                     Stream<Entry<MinecraftKey, AdvancementProgress>> stream = map.entrySet().stream().sorted(Comparator.comparing(Entry::getValue));
-                     Iterator iterator = ((List) stream.collect(Collectors.toList())).iterator();
-+                     */
-+                    java.util.List<Entry<MinecraftKey, AdvancementProgress>> list = new net.yatopia.server.list.GlueList<>();
-+                    for (MinecraftKey key : map.keySet()) {
-+                        list.add(new java.util.AbstractMap.SimpleImmutableEntry<>(key, map.get(key)));
-+                    }
-+                    list.sort(Entry.comparingByValue());
-+                    Iterator<Entry<MinecraftKey, AdvancementProgress>> iterator = list.iterator();
-+                    // Yatopia end
+@@ -164,6 +165,7 @@ public class AdvancementDataPlayer {
  
                      while (iterator.hasNext()) {
                          Entry<MinecraftKey, AdvancementProgress> entry = (Entry) iterator.next();
-@@ -173,7 +184,10 @@ public class AdvancementDataPlayer {
-                             }
-                             // CraftBukkit end
++                        MCUtil.ensureMain(() -> { // Yatopia - we only load advancements asynchronosuly, we should apply them synchronously
+                         Advancement advancement = advancementdataworld.a((MinecraftKey) entry.getKey());
+ 
+                         if (advancement == null) {
+@@ -175,6 +177,7 @@ public class AdvancementDataPlayer {
                          } else {
--                            this.a(advancement, (AdvancementProgress) entry.getValue());
-+                            AdvancementProgress progress = entry.getValue();
-+                            MCUtil.ensureMain(() -> { // Yatopia start - ensure main
-+                            this.a(advancement, progress);
-+                            }); // Yatopia end
+                             this.a(advancement, (AdvancementProgress) entry.getValue());
                          }
++                        });
                      }
                  } catch (Throwable throwable1) {
-@@ -198,6 +212,7 @@ public class AdvancementDataPlayer {
+                     throwable = throwable1;
+@@ -198,6 +201,7 @@ public class AdvancementDataPlayer {
              } catch (IOException ioexception) {
                  AdvancementDataPlayer.LOGGER.error("Couldn't access player advancements in {}", this.f, ioexception);
              }
