@@ -26,7 +26,7 @@ for D in ${searchtxts[@]}; do
     dnoslashlower="${dnoslash,,}"
     if [ $dnoslashlower != "api" ]; then
       echo "$"
-      echo "Import new introduced NMS files.. test"
+      echo "Import new introduced NMS files.."
       $scriptdir/importSources.sh $1 $2 || exit 1
     fi
     for filename in $1/patches/$2/$dnoslashlower/*.patch; do

@@ -35,6 +35,7 @@ This is an overview over all patches that are currently used.
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
+| server |  Async entity tracking      | Mykyta Komarn | Ivan Pekov |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | tr7zw |  |
@@ -115,7 +116,8 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
-| server |  Use GlueList as delegate for NonNullList      | Mykyta Komarn |  |
+| server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
+| server |  Use Glue List in WeightedList      | Ivan Pekov |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
@@ -134,4 +136,3 @@ This is an overview over all patches that are currently used.
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium-MixinChunkGeneratorAbstract      | JellySquid | tr7zw |
 | server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |
-| server |  tic-tacs Threading Fix      | gegy1000 |  |
