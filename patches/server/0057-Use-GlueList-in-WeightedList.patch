@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: gegy1000 <gegy1000@gmail.com>
+From: Ivan Pekov <ivan@mrivanplays.com>
 Date: Mon, 28 Sep 2020 14:20:17 -0500
-Subject: [PATCH] tic-tacs Threading Fix
+Subject: [PATCH] Use GlueList in WeightedList
 
 
 diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
-index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..a7575ec7c1324c30f6865b78386b880df5de2fe8 100644
+index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..aadc091b42e58c9466f4378253da97e1fea29911 100644
 --- a/src/main/java/net/minecraft/server/WeightedList.java
 +++ b/src/main/java/net/minecraft/server/WeightedList.java
 @@ -21,7 +21,7 @@ public class WeightedList<U> {
@@ -42,34 +42,7 @@ index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..a7575ec7c1324c30f6865b78386b880d
          list.forEach((weightedlist_a) -> weightedlist_a.a(random.nextFloat()));
          list.sort(Comparator.comparingDouble(a::c));
          return isUnsafe ? new WeightedList<>(list, isUnsafe) : this;
-@@ -65,7 +72,25 @@ public class WeightedList<U> {
-     }
- 
-     public U b(Random random) {
--        return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
-+        // Yatopia start - replace this
-+        //return this.a(random).c().findFirst().orElseThrow(RuntimeException::new);
-+        WeightedList.a<U> selectedEntry = null;
-+        double selectedValue = 0.0;
-+
-+        for (WeightedList.a<U> entry : this.list) {
-+            double value = Math.pow(random.nextFloat(), 1.0F / entry.b);
-+            if (value > selectedValue) {
-+                selectedEntry = entry;
-+                selectedValue = value;
-+            }
-+        }
-+
-+        if (selectedEntry == null) {
-+            throw new IllegalStateException("no entries in WeightedList");
-+        }
-+
-+        return selectedEntry.getElement();
-+        // Yatopia end
-     }
- 
-     public String toString() {
-@@ -91,6 +116,7 @@ public class WeightedList<U> {
+@@ -91,6 +98,7 @@ public class WeightedList<U> {
              this.c = -Math.pow((double) f, (double) (1.0F / (float) this.b));
          }
  

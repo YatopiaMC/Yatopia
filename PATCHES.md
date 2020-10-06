@@ -116,6 +116,7 @@ This is an overview over all patches that are currently used.
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Use GlueList as delegate for NonNullList      | Mykyta Komarn |  |
+| server |  Use GlueList in WeightedList      | Ivan Pekov |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
