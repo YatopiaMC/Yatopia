@@ -96,6 +96,9 @@ pipeline {
                 success {
                     archiveArtifacts "target/*.jar"
                 }
+                failure {
+                    cleanWs()
+                }
             }
         }
     }
