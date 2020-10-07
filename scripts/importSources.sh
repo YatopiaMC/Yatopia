@@ -124,6 +124,8 @@ done
 # NMS import format:
 # importToPaperWorkspace MinecraftServer
 importToPaperWorkspace LightEngineLayerEventListener
+importToPaperWorkspace IChunkProvider
+importToPaperWorkspace IBlockLightAccess
 
 # Library import format (multiple files are supported):
 # NOTE: Imported libraries aren't a temporary change, YOU NEED TO LEAVE THEM AS IS!!!!
