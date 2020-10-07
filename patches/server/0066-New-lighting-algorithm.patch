@@ -5,7 +5,7 @@ Subject: [PATCH] New lighting algorithm
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
-index f81bd67a323f2e72bdad76c52016993a0bf88307..3a0e6077c1087c20826a0160e89136f1ce3c7daf 100644
+index f81bd67a323f2e72bdad76c52016993a0bf88307..b7424cdce0097b6cb57647821b3f6de2fe434537 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperCommand.java
 @@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
@@ -16,12 +16,20 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..3a0e6077c1087c20826a0160e89136f1
  import org.apache.commons.lang3.tuple.MutablePair;
  import org.apache.commons.lang3.tuple.Pair;
  import org.bukkit.Bukkit;
-@@ -208,14 +209,14 @@ public class PaperCommand extends Command {
+@@ -32,7 +33,6 @@ import java.io.StringWriter;
+ import java.time.LocalDateTime;
+ import java.time.format.DateTimeFormatter;
+ import java.util.*;
+-import java.util.stream.Collectors;
+ 
+ public class PaperCommand extends Command {
+ 
+@@ -208,14 +208,14 @@ public class PaperCommand extends Command {
          CraftPlayer player = (CraftPlayer) sender;
          EntityPlayer handle = player.getHandle();
          net.minecraft.server.WorldServer world = (WorldServer) handle.world;
 -        LightEngineThreaded lightengine = world.getChunkProvider().getLightEngine();
-+        LightEngineImpl lightengine = world.getChunkProvider().getLightEngine();
++        LightEngineImpl lightengine = world.getChunkProvider().getLightEngineImpl();
  
          BlockPosition center = MCUtil.toBlockPosition(player.getLocation());
          Deque<ChunkCoordIntPair> queue = new ArrayDeque<>(MCUtil.getSpiralOutChunks(center, radius));
@@ -33,7 +41,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..3a0e6077c1087c20826a0160e89136f1
          ChunkCoordIntPair coord = queue.poll();
          if (coord == null) {
              sender.sendMessage("All Chunks Light updated");
-@@ -232,7 +233,7 @@ public class PaperCommand extends Command {
+@@ -232,7 +232,7 @@ public class PaperCommand extends Command {
                  updateLight(sender, world, lightengine, queue);
                  return;
              }
@@ -42,7 +50,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..3a0e6077c1087c20826a0160e89136f1
              sender.sendMessage("Updating Light " + coord);
              int cx = chunk.getPos().x << 4;
              int cz = chunk.getPos().z << 4;
-@@ -240,11 +241,11 @@ public class PaperCommand extends Command {
+@@ -240,11 +240,11 @@ public class PaperCommand extends Command {
                  for (int x = 0; x < 16; x++) {
                      for (int z = 0; z < 16; z++) {
                          BlockPosition pos = new BlockPosition(cx + x, y, cz + z);
@@ -56,7 +64,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..3a0e6077c1087c20826a0160e89136f1
              PlayerChunk visibleChunk = world.getChunkProvider().playerChunkMap.getVisibleChunk(chunk.coordinateKey);
              if (visibleChunk != null) {
                  world.getChunkProvider().playerChunkMap.addLightTask(visibleChunk, () -> {
-@@ -256,7 +257,7 @@ public class PaperCommand extends Command {
+@@ -256,7 +256,7 @@ public class PaperCommand extends Command {
              } else {
                  updateLight(sender, world, lightengine, queue);
              }
@@ -66,7 +74,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..3a0e6077c1087c20826a0160e89136f1
      }
  
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index b7fcbef8d38c9406a891d64f8016bc16572f00d9..3fe8d96e18b4fdb8676e9bc438cd95eaebb79c5b 100644
+index b7fcbef8d38c9406a891d64f8016bc16572f00d9..bc4f50a5a83fe47773db25846fdc272fae90eaaa 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -20,6 +20,8 @@ import java.util.function.Supplier;
@@ -83,19 +91,21 @@ index b7fcbef8d38c9406a891d64f8016bc16572f00d9..3fe8d96e18b4fdb8676e9bc438cd95ea
  
              if (flag1 != flag2) {
 -                this.world.getChunkProvider().getLightEngine().a(blockposition, flag2);
-+                this.world.getChunkProvider().getLightEngine().setSectionStatus(SectionPosition.a(blockposition), flag2);
++                this.world.getChunkProvider().getLightEngineImpl().setSectionStatus(SectionPosition.a(blockposition), flag2);
              }
  
              if (!this.world.isClientSide) {
-@@ -588,7 +590,7 @@ public class Chunk implements IChunkAccess {
+@@ -588,8 +590,8 @@ public class Chunk implements IChunkAccess {
      }
  
      @Nullable
 -    public LightEngine e() {
+-        return this.world.getChunkProvider().getLightEngine();
 +    public LightEngineImpl e() {
-         return this.world.getChunkProvider().getLightEngine();
++        return this.world.getChunkProvider().getLightEngineImpl();
      }
  
+     @Override
 diff --git a/src/main/java/net/minecraft/server/ChunkEmpty.java b/src/main/java/net/minecraft/server/ChunkEmpty.java
 index d2286f1549de563332c3e4181b9ada30845b3725..bec0a9acccfbe5192fad6d8f8b7a2b79f4911ef8 100644
 --- a/src/main/java/net/minecraft/server/ChunkEmpty.java
@@ -118,7 +128,7 @@ index d2286f1549de563332c3e4181b9ada30845b3725..bec0a9acccfbe5192fad6d8f8b7a2b79
      }
  
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..a3b127e34620fb18b000deb5aa4fe1643d0e46c4 100644
+index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..457af45fcf370d123c27d8d8db228469e8776ac2 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 @@ -1,13 +1,11 @@
@@ -168,15 +178,22 @@ index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..a3b127e34620fb18b000deb5aa4fe164
  
      @Override
 -    public LightEngineThreaded getLightEngine() {
-+    public LightEngineImpl getLightEngine() {
++    public LightEngineImpl getLightEngineImpl() {
          return this.lightEngine;
      }
  
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-index e81c472e03ee50f58bd16709108572080760bcd5..448dd325ecaa583dbda3ada875b5f98cf0e9788b 100644
+index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db85f5daa7 100644
 --- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 +++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-@@ -17,6 +17,8 @@ import java.util.Map.Entry;
+@@ -1,6 +1,5 @@
+ package net.minecraft.server;
+ 
+-import co.aikar.timings.Timings;
+ import com.google.common.collect.Maps;
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ import it.unimi.dsi.fastutil.longs.LongSet;
+@@ -17,6 +16,8 @@ import java.util.Map.Entry;
  import java.util.Objects;
  import java.util.function.Function;
  import javax.annotation.Nullable;
@@ -185,12 +202,12 @@ index e81c472e03ee50f58bd16709108572080760bcd5..448dd325ecaa583dbda3ada875b5f98c
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
-@@ -101,11 +103,11 @@ public class ChunkRegionLoader {
+@@ -101,11 +102,11 @@ public class ChunkRegionLoader {
          ChunkSection[] achunksection = new ChunkSection[16];
          boolean flag2 = worldserver.getDimensionManager().hasSkyLight();
          ChunkProviderServer chunkproviderserver = worldserver.getChunkProvider();
 -        LightEngine lightengine = chunkproviderserver.getLightEngine();
-+        LightEngineImpl lightengine = chunkproviderserver.getLightEngine();
++        LightEngineImpl lightengine = chunkproviderserver.getLightEngineImpl();
  
          if (flag) {
              tasksToExecuteOnMain.add(() -> { // Paper - delay this task since we're executing off-main
@@ -199,7 +216,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..448dd325ecaa583dbda3ada875b5f98c
              }); // Paper - delay this task since we're executing off-main
          }
  
-@@ -132,7 +134,7 @@ public class ChunkRegionLoader {
+@@ -132,7 +133,7 @@ public class ChunkRegionLoader {
                      // Paper start - delay this task since we're executing off-main
                      NibbleArray blockLight = new NibbleArray(nbttagcompound2.getByteArray("BlockLight"));
                      tasksToExecuteOnMain.add(() -> {
@@ -208,7 +225,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..448dd325ecaa583dbda3ada875b5f98c
                      });
                      // Paper end - delay this task since we're executing off-main
                  }
-@@ -141,7 +143,7 @@ public class ChunkRegionLoader {
+@@ -141,7 +142,7 @@ public class ChunkRegionLoader {
                      // Paper start - delay this task since we're executing off-main
                      NibbleArray skyLight = new NibbleArray(nbttagcompound2.getByteArray("SkyLight"));
                      tasksToExecuteOnMain.add(() -> {
@@ -217,12 +234,12 @@ index e81c472e03ee50f58bd16709108572080760bcd5..448dd325ecaa583dbda3ada875b5f98c
                      });
                      // Paper end - delay this task since we're executing off-main
                  }
-@@ -345,14 +347,14 @@ public class ChunkRegionLoader {
+@@ -345,14 +346,14 @@ public class ChunkRegionLoader {
          org.spigotmc.AsyncCatcher.catchOp("preparation of chunk data for async save");
          ChunkCoordIntPair chunkPos = chunk.getPos();
  
 -        LightEngineThreaded lightenginethreaded = world.getChunkProvider().getLightEngine();
-+        LightEngineImpl lightengine = world.getChunkProvider().getLightEngine();
++        LightEngineImpl lightengine = world.getChunkProvider().getLightEngineImpl();
  
          NibbleArray[] blockLight = new NibbleArray[17 - (-1)];
          NibbleArray[] skyLight = new NibbleArray[17 - (-1)];
@@ -235,16 +252,16 @@ index e81c472e03ee50f58bd16709108572080760bcd5..448dd325ecaa583dbda3ada875b5f98c
  
              // copy data for safety
              if (blockArray != null) {
-@@ -412,7 +414,7 @@ public class ChunkRegionLoader {
+@@ -412,7 +413,7 @@ public class ChunkRegionLoader {
  
          ChunkSection[] achunksection = ichunkaccess.getSections();
          NBTTagList nbttaglist = new NBTTagList();
 -        LightEngineThreaded lightenginethreaded = worldserver.getChunkProvider().getLightEngine();
-+        LightEngineImpl lightengine = worldserver.getChunkProvider().getLightEngine();
++        LightEngineImpl lightengine = worldserver.getChunkProvider().getLightEngineImpl();
          boolean flag = ichunkaccess.r();
  
          NBTTagCompound nbttagcompound2;
-@@ -431,8 +433,8 @@ public class ChunkRegionLoader {
+@@ -431,8 +432,8 @@ public class ChunkRegionLoader {
              NibbleArray nibblearray; // block light
              NibbleArray nibblearray1; // sky light
              if (asyncsavedata == null) {
@@ -357,23 +374,26 @@ index 5d5fe1412918d0a2127801f92903fc47f7a78276..df7bbce4ccea13b66e6d7a8864230182
  
      default boolean e(BlockPosition blockposition) {
 diff --git a/src/main/java/net/minecraft/server/IChunkProvider.java b/src/main/java/net/minecraft/server/IChunkProvider.java
-index 1a0b60a1b63ed6f8471c2d9174c9f8bfec047936..79b66830d0bda6c3c0cc344b12647e44e6566ea1 100644
+index 1a0b60a1b63ed6f8471c2d9174c9f8bfec047936..1d6bf089479f643e1dae97cd630e456e0c9edcad 100644
 --- a/src/main/java/net/minecraft/server/IChunkProvider.java
 +++ b/src/main/java/net/minecraft/server/IChunkProvider.java
-@@ -1,5 +1,7 @@
+@@ -1,5 +1,8 @@
  package net.minecraft.server;
  
++import net.yatopia.server.lighting.LightEngineDelegate;
 +import net.yatopia.server.lighting.LightEngineImpl;
 +
  import java.io.IOException;
  import javax.annotation.Nullable;
  
-@@ -34,7 +36,7 @@ public abstract class IChunkProvider implements ILightAccess, AutoCloseable {
+@@ -34,7 +37,9 @@ public abstract class IChunkProvider implements ILightAccess, AutoCloseable {
  
      public void close() throws IOException {}
  
 -    public abstract LightEngine getLightEngine();
-+    public abstract LightEngineImpl getLightEngine();
++    public abstract LightEngineImpl getLightEngineImpl();
++
++    public LightEngine getLightEngine() { return new LightEngineDelegate(getLightEngineImpl()); }
  
      public void a(boolean flag, boolean flag1) {}
  
@@ -698,7 +718,7 @@ index 9172c679c874d42750d2adc32124ecda29ea43cf..32338cc0b5d8d4c06d804364fde491c4
      }
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 1b08df02c18230bffb37a945944073fff22b16c9..e558c48459fc369fe588c605af2097f7fe681883 100644
+index 1b08df02c18230bffb37a945944073fff22b16c9..4fb2fd4cdb40f3fc3f15f2e542d23b75c70c30bc 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -1,12 +1,9 @@
@@ -728,19 +748,21 @@ index 1b08df02c18230bffb37a945944073fff22b16c9..e558c48459fc369fe588c605af2097f7
                  if ((i & 128) == 0 && iblockdata2 != iblockdata1 && (iblockdata2.b((IBlockAccess) this, blockposition) != iblockdata1.b((IBlockAccess) this, blockposition) || iblockdata2.f() != iblockdata1.f() || iblockdata2.e() || iblockdata1.e())) {
                      //this.getMethodProfiler().enter("queueCheckLight"); // Akarin - remove caller
 -                    this.getChunkProvider().getLightEngine().a(blockposition);
-+                    this.getChunkProvider().getLightEngine().checkBlock(blockposition);
++                    this.getChunkProvider().getLightEngineImpl().checkBlock(blockposition);
                      //this.getMethodProfiler().exit(); // Akarin - remove caller
                  }
  
-@@ -674,7 +673,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -674,8 +673,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      }
  
      @Override
 -    public LightEngine e() {
+-        return this.getChunkProvider().getLightEngine();
 +    public LightEngineImpl e() {
-         return this.getChunkProvider().getLightEngine();
++        return this.getChunkProvider().getLightEngineImpl();
      }
  
+     @Override
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
 index 14b8bf88f6755818e0cdeb0a2ab0a8996ea1f886..bf8030d281571c6c2b74cca799ce28fa2b254c0a 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
@@ -763,6 +785,104 @@ index 14b8bf88f6755818e0cdeb0a2ab0a8996ea1f886..bf8030d281571c6c2b74cca799ce28fa
      }
  
      public void unregisterEntity(Entity entity) {
+diff --git a/src/main/java/net/yatopia/server/lighting/LightEngineDelegate.java b/src/main/java/net/yatopia/server/lighting/LightEngineDelegate.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a5ae657f8b4ea9a3056a51686b4ebb718a81b075
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/lighting/LightEngineDelegate.java
+@@ -0,0 +1,92 @@
++package net.yatopia.server.lighting;
++
++import net.minecraft.server.BlockPosition;
++import net.minecraft.server.ChunkCoordIntPair;
++import net.minecraft.server.EnumSkyBlock;
++import net.minecraft.server.ILightAccess;
++import net.minecraft.server.LightEngine;
++import net.minecraft.server.LightEngineLayerEventListener;
++import net.minecraft.server.NibbleArray;
++import net.minecraft.server.SectionPosition;
++
++import javax.annotation.Nullable;
++
++public class LightEngineDelegate extends LightEngine {
++
++    final LightEngineImpl delegate;
++
++    public LightEngineDelegate(LightEngineImpl delegate) {
++        super(null, false, false);
++        this.delegate = delegate;
++    }
++
++    @Override
++    public void a(BlockPosition var0) {
++        delegate.checkBlock(var0);
++    }
++
++    @Override
++    public void a(BlockPosition var0, int var1) {
++        delegate.addLightSource(var0, var1);
++    }
++
++    @Override
++    public boolean a() {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public int a(int var0, boolean var1, boolean var2) {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public void a(SectionPosition var0, boolean var1) {
++        delegate.setSectionStatus(var0, var1);
++    }
++
++    @Override
++    public void a(ChunkCoordIntPair var0, boolean var1) {
++        delegate.setColumnEnabled(var0, var1);
++    }
++
++    @Override
++    public LightEngineLayerEventListener a(EnumSkyBlock var0) {
++        return super.a(var0);
++    }
++
++    @Override
++    public void a(EnumSkyBlock var0, SectionPosition var1, @Nullable NibbleArray var2, boolean var3) {
++        delegate.enqueueSectionData(var0, var1, var2, var3);
++    }
++
++    @Override
++    public void b(ChunkCoordIntPair var0, boolean var1) {
++        delegate.setRetainData(var0, var1);
++    }
++
++    @Override
++    public int b(BlockPosition var0, int var1) {
++        return delegate.getLight(var0, var1);
++    }
++
++    @Override
++    public void a(BlockPosition var0, boolean var1) {
++        delegate.setSectionStatus(SectionPosition.a(var0), var1);
++    }
++
++    @Override
++    public int hashCode() {
++        return delegate.hashCode();
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++        return delegate.equals(obj);
++    }
++
++    @Override
++    public String toString() {
++        return super.toString() + " -> " + delegate.toString();
++    }
++}
 diff --git a/src/main/java/net/yatopia/server/lighting/LightEngineImpl.java b/src/main/java/net/yatopia/server/lighting/LightEngineImpl.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..9f521898321a4ecceadf218c82013fcf745909f3
@@ -809,10 +929,17 @@ index 0000000000000000000000000000000000000000..9f521898321a4ecceadf218c82013fcf
 +
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
-index d2c45157a27c24651c72fd8ab9a0950dec097b84..7c42dabaa3b5b4adfa1101f95ae6869fb8bc7808 100644
+index d2c45157a27c24651c72fd8ab9a0950dec097b84..df96017268c3f0e22d687aa6a39df77bad797b92 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
-@@ -24,6 +24,7 @@ import net.minecraft.server.SectionPosition;
+@@ -17,13 +17,13 @@ import net.minecraft.server.GameProfileSerializer;
+ import net.minecraft.server.HeightMap;
+ import net.minecraft.server.IBlockData;
+ import net.minecraft.server.IRegistry;
+-import net.minecraft.server.LightEngine;
+ import net.minecraft.server.NBTTagCompound;
+ import net.minecraft.server.NibbleArray;
+ import net.minecraft.server.SectionPosition;
  import net.minecraft.server.SeededRandom;
  import net.minecraft.server.WorldChunkManager;
  import net.minecraft.server.WorldServer;
@@ -820,13 +947,13 @@ index d2c45157a27c24651c72fd8ab9a0950dec097b84..7c42dabaa3b5b4adfa1101f95ae6869f
  import org.bukkit.Chunk;
  import org.bukkit.ChunkSnapshot;
  import org.bukkit.World;
-@@ -268,15 +269,15 @@ public class CraftChunk implements Chunk {
+@@ -268,15 +268,15 @@ public class CraftChunk implements Chunk {
  
                  sectionBlockIDs[i] = blockids;
  
 -                LightEngine lightengine = chunk.world.getChunkProvider().getLightEngine();
 -                NibbleArray skyLightArray = lightengine.a(EnumSkyBlock.SKY).a(SectionPosition.a(x, i, z));
-+                LightEngineImpl lightengine = chunk.world.getChunkProvider().getLightEngine();
++                LightEngineImpl lightengine = chunk.world.getChunkProvider().getLightEngineImpl();
 +                NibbleArray skyLightArray = lightengine.get(EnumSkyBlock.SKY).getLightSection(SectionPosition.a(x, i, z));
                  if (skyLightArray == null) {
                      sectionSkyLights[i] = emptyLight;
