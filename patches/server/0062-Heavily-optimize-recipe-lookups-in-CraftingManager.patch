@@ -12,7 +12,7 @@ These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..626c350350fe5283b28a548ad76db7cb381a368f 100644
+index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..1a1a71abb91f09033b26ec8bc88c160259ebea41 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -31,6 +31,10 @@ public class CraftingManager extends ResourceDataJson {
@@ -26,7 +26,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..626c350350fe5283b28a548ad76db7cb
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -84,18 +88,29 @@ public class CraftingManager extends ResourceDataJson {
+@@ -84,18 +88,38 @@ public class CraftingManager extends ResourceDataJson {
  
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
          // CraftBukkit start
@@ -36,8 +36,17 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..626c350350fe5283b28a548ad76db7cb
              return SystemUtils.a(recipes.a(irecipe, world, c0));
          }).findFirst();
 +         */
-+        Collection<IRecipe<C>> col = this.getRecipesMap(recipes).values();
-+        Optional<T> recipe = col.isEmpty() ? Optional.empty() : recipes.a(col.iterator().next(), world, c0);
++        // Yatopia start - replace stream
++        Collection<IRecipe<C>> allTypes = this.b(recipes).values();
++        Optional<T> recipe = Optional.empty();
++
++        for (IRecipe<C> possible : allTypes) {
++            Optional<T> possibleRecipe = recipes.a(possible, world, c0);
++            if (possibleRecipe.isPresent()) {
++                recipe = possibleRecipe;
++                break;
++            }
++        }
 +        // Yatopia end
          c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
          // CraftBukkit end
@@ -56,7 +65,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..626c350350fe5283b28a548ad76db7cb
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
-@@ -106,8 +121,9 @@ public class CraftingManager extends ResourceDataJson {
+@@ -106,8 +130,9 @@ public class CraftingManager extends ResourceDataJson {
          })).collect(Collectors.toList());
      }
  
@@ -67,7 +76,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..626c350350fe5283b28a548ad76db7cb
      }
  
      public <C extends IInventory, T extends IRecipe<C>> NonNullList<ItemStack> c(Recipes<T> recipes, C c0, World world) {
-@@ -127,15 +143,35 @@ public class CraftingManager extends ResourceDataJson {
+@@ -127,15 +152,35 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
