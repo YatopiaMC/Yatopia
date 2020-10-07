@@ -3,37 +3,10 @@ From: tr7zw <tr7zw@live.de>
 Date: Thu, 25 Jun 2020 23:40:12 +0200
 Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 
+Co-authored-by: Mykyta Komarn <nkomarn@hotmail.com>
 
-diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393..64adf87f2fe9921e49bf7a76170bb9908dfdaf19 100644
---- a/src/main/java/net/minecraft/server/CraftingManager.java
-+++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -83,7 +83,22 @@ public class CraftingManager extends ResourceDataJson {
-         }).findFirst();
-         c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
-         // CraftBukkit end
--        return recipe;
-+        // Yatopia start
-+	    if (c0.getCurrentRecipe() != null) {
-+		    Optional<T> optional = recipes.a(c0.getCurrentRecipe(), world, c0);
-+            optional.ifPresent(c0::setCurrentRecipe);
-+			return optional;
-+	    }
-+        for (IRecipe<C> rep : this.a(recipes)) {
-+		    Optional<T> optional = recipes.a(rep, world, c0);
-+		    if(optional.isPresent()) {
-+		        c0.setCurrentRecipe(optional.get());
-+			    return optional;
-+            }
-+        }
-+        c0.setCurrentRecipe(null); // CraftBukkit - Clear recipe when no recipe is found
-+        return Optional.empty();
-+        // Yatopia end
-     }
- 
-     public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ef008d7e1527bde01c4a66f86ecc16492026871f 100644
+index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ba9424eafc02a5311e0cbd43c340ca8962917acc 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
 @@ -83,7 +83,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
@@ -59,21 +32,34 @@ index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ef008d7e1527bde01c4a66f86ecc1649
          return map;
      }
  
-@@ -599,4 +607,17 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -273,7 +281,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+                     this.cookTime = MathHelper.clamp(this.cookTime - 2, 0, this.cookTimeTotal);
+                 }
+             } else {
+-                IRecipe irecipe = this.world.getCraftingManager().craft((Recipes<RecipeCooking>) this.c, this, this.world).orElse(null); // Eclipse fail
++                // Yatopia start - used cached recipe if possible, otherwise look up
++                IRecipe irecipe = getCurrentRecipe();
++                if (irecipe == null) irecipe = this.world.getCraftingManager().craft((Recipes<RecipeCooking>) this.c, this, this.world).orElse(null); // Eclipse fail
++                // Yatopia end
+ 
+                 if (!this.isBurning() && this.canBurn(irecipe)) {
+                     // CraftBukkit start
+@@ -599,4 +610,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }
 +
-+    // Yatopia start
++    // Yatopia start - cache recipe
 +    private IRecipe cachedRecipe = null;
++
 +    @Override
 +    public IRecipe getCurrentRecipe() {
 +        return cachedRecipe;
 +    }
++
 +    @Override
 +    public void setCurrentRecipe(IRecipe recipe) {
 +        cachedRecipe = recipe;
 +    }
 +    // Yatopia end
-+
  }

@@ -59,7 +59,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix merging spawning values      | Mariell Hoversholm |  |
-| server |  Fix recipe crash      | Ivan Pekov |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |

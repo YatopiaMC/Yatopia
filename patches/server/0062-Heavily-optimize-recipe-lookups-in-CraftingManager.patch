@@ -10,7 +10,7 @@ GlueList was also used as a replacement for ArrayList as it is substantially fas
 These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 running furnaces on a server.
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 09b8065156a66a72ad5d09c6e8be0551970ffb56..bd4bc17245d32772aef60e53eae4a572ffc6d1c2 100644
+index 2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393..06c025beed61feaf3239382b7d7778c5741869cc 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -25,6 +25,10 @@ public class CraftingManager extends ResourceDataJson {
@@ -24,7 +24,29 @@ index 09b8065156a66a72ad5d09c6e8be0551970ffb56..bd4bc17245d32772aef60e53eae4a572
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -108,12 +112,18 @@ public class CraftingManager extends ResourceDataJson {
+@@ -78,21 +82,37 @@ public class CraftingManager extends ResourceDataJson {
+ 
+     public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
+         // CraftBukkit start
+-        Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
+-            return SystemUtils.a(recipes.a(irecipe, world, c0));
+-        }).findFirst();
++        // Yatopia start - replace stream
++        Collection<IRecipe<C>> allTypes = this.b(recipes).values();
++        Optional<T> recipe = Optional.empty();
++
++        for (IRecipe<C> possible : allTypes) {
++            Optional<T> possibleRecipe = recipes.a(possible, world, c0);
++            if (possibleRecipe.isPresent()) {
++                recipe = possibleRecipe;
++                break;
++            }
++        }
++
+         c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
+         // CraftBukkit end
+         return recipe;
++        // Yatopia end
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
@@ -43,7 +65,7 @@ index 09b8065156a66a72ad5d09c6e8be0551970ffb56..bd4bc17245d32772aef60e53eae4a572
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
-@@ -134,7 +144,7 @@ public class CraftingManager extends ResourceDataJson {
+@@ -104,7 +124,7 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
