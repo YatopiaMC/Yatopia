@@ -9,11 +9,13 @@ GlueList was also used as a replacement for ArrayList as it is substantially fas
 
 These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 running furnaces on a server.
 
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
+
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393..06c025beed61feaf3239382b7d7778c5741869cc 100644
+index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..626c350350fe5283b28a548ad76db7cb381a368f 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -25,6 +25,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -31,6 +31,10 @@ public class CraftingManager extends ResourceDataJson {
      private static final Logger LOGGER = LogManager.getLogger();
      public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
      private boolean d;
@@ -24,66 +26,80 @@ index 2cbfef98508bcb07db1ad1e5bdafc4cc2bff1393..06c025beed61feaf3239382b7d7778c5
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -78,21 +82,37 @@ public class CraftingManager extends ResourceDataJson {
+@@ -84,18 +88,29 @@ public class CraftingManager extends ResourceDataJson {
  
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
          // CraftBukkit start
--        Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
--            return SystemUtils.a(recipes.a(irecipe, world, c0));
--        }).findFirst();
 +        // Yatopia start - replace stream
-+        Collection<IRecipe<C>> allTypes = this.b(recipes).values();
-+        Optional<T> recipe = Optional.empty();
-+
-+        for (IRecipe<C> possible : allTypes) {
-+            Optional<T> possibleRecipe = recipes.a(possible, world, c0);
-+            if (possibleRecipe.isPresent()) {
-+                recipe = possibleRecipe;
-+                break;
-+            }
-+        }
-+
++        /*
+         Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
+             return SystemUtils.a(recipes.a(irecipe, world, c0));
+         }).findFirst();
++         */
++        Collection<IRecipe<C>> col = this.getRecipesMap(recipes).values();
++        Optional<T> recipe = col.isEmpty() ? Optional.empty() : recipes.a(col.iterator().next(), world, c0);
++        // Yatopia end
          c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
          // CraftBukkit end
          return recipe;
-+        // Yatopia end
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
-+        // Yatopia start - replaced Logic
-+        return (List) CACHE.computeIfAbsent(recipes, recipes1 -> {
-+            return new net.yatopia.server.list.GlueList<>(this.b(recipes).values());
-+        });
++        // Yatopia start - replaced logic
 +        /*
-         List<IRecipe<C>> list = new ArrayList<>();
-         for (IRecipe<C> irecipe : this.b(recipes).values()) {
-             IRecipe<C> ciRecipe = irecipe;
-             list.add(ciRecipe);
-         }
-         return (List) list;
-+        */ // Yatopia end
+         return (List) this.b(recipes).values().stream().map((irecipe) -> {
+             return irecipe;
+         }).collect(Collectors.toList());
++         */
++        return (List) CACHE.computeIfAbsent(recipes, recipes1 -> new net.yatopia.server.list.GlueList<>(getRecipesMap(recipes).values()));
++        // Yatopia end
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
-@@ -104,7 +124,7 @@ public class CraftingManager extends ResourceDataJson {
+@@ -106,8 +121,9 @@ public class CraftingManager extends ResourceDataJson {
+         })).collect(Collectors.toList());
      }
  
++    private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> getRecipesMap(Recipes<T> recipes) { return b(recipes); } // Yatopia - OBFHELPER
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
 -        return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
 +        return (Map) this.recipes.getOrDefault(recipes, EMPTY_MAP); // CraftBukkit // Yatopia
      }
  
      public <C extends IInventory, T extends IRecipe<C>> NonNullList<ItemStack> c(Recipes<T> recipes, C c0, World world) {
-diff --git a/src/main/java/net/minecraft/server/RecipeItemStack.java b/src/main/java/net/minecraft/server/RecipeItemStack.java
-index 30da7471c3ecc66a61cb9fe1dd58d6d65438c505..27978f7b52c8db02f69fdcb092ffcce4550904d3 100644
---- a/src/main/java/net/minecraft/server/RecipeItemStack.java
-+++ b/src/main/java/net/minecraft/server/RecipeItemStack.java
-@@ -32,7 +32,7 @@ public final class RecipeItemStack implements Predicate<ItemStack> {
+@@ -127,15 +143,35 @@ public class CraftingManager extends ResourceDataJson {
+     }
  
-     public void buildChoices() {
-         if (this.choices == null) {
--            List<ItemStack> list = new ArrayList<>();
-+            List<ItemStack> list = new net.yatopia.server.list.GlueList<>(); // Yatopia
-             Set<ItemStack> uniqueValues = new HashSet<>();
-             for (Provider recipeitemstack_provider : this.b) {
-                 for (ItemStack itemStack : recipeitemstack_provider.a()) {
+     public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
++        // Yatopia start - replace stream
++        /*
+         return this.recipes.values().stream().map((map) -> {
+             return map.get(minecraftkey); // CraftBukkit - decompile error
+         }).filter(Objects::nonNull).findFirst();
++         */
++        for (Map<MinecraftKey, IRecipe<?>> map : recipes.values()) {
++            IRecipe<?> recipe = map.get(minecraftkey);
++            if (recipe != null) {
++                return Optional.of(recipe);
++            }
++        }
++        return Optional.empty();
++        // Yatopia end
+     }
+ 
+     public Collection<IRecipe<?>> b() {
++        // Yatopia start - replace stream
++        /*
+         return (Collection) this.recipes.values().stream().flatMap((map) -> {
+             return map.values().stream();
+         }).collect(Collectors.toSet());
++         */
++        List<IRecipe<?>> list = new net.yatopia.server.list.GlueList<>();
++        for (Map<MinecraftKey, IRecipe<?>> map : recipes.values()) {
++            list.addAll(map.values());
++        }
++        return list;
++        // Yatopia end
+     }
+ 
+     public Stream<MinecraftKey> d() {

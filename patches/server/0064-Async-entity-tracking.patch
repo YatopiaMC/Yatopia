@@ -21,7 +21,7 @@ go up.
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index e6f2021e8406f7b14ce41429e871ffaffa52f108..867ab3f3145d8bfcf62c10697a009ec96357ca96 100644
+index b43b02c0bdd5dbf0b7d30de90bdc2f74c015ecc8..4144dc7ca04b9a5d7da8ae619d3510c34c43e158 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -1801,10 +1801,18 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -45,7 +45,7 @@ index e6f2021e8406f7b14ce41429e871ffaffa52f108..867ab3f3145d8bfcf62c10697a009ec9
              this.playerConnection.teleport(this.spectatedEntity.locX(), this.spectatedEntity.locY(), this.spectatedEntity.locZ(), this.yaw, this.pitch, TeleportCause.SPECTATE); // CraftBukkit
          }
 diff --git a/src/main/java/net/minecraft/server/EntityTNTPrimed.java b/src/main/java/net/minecraft/server/EntityTNTPrimed.java
-index 2c058a9eb4ce77f6090f3516ea048483173e7511..7678ee6f8fbe5d40739f8426724447268474f3ab 100644
+index 3e71332c47000b21ff90aec6937f90dc639a41bd..f0cee1cd163a2054d73e0e4bdd20d1f68747a33c 100644
 --- a/src/main/java/net/minecraft/server/EntityTNTPrimed.java
 +++ b/src/main/java/net/minecraft/server/EntityTNTPrimed.java
 @@ -87,7 +87,12 @@ public class EntityTNTPrimed extends Entity {
@@ -62,9 +62,9 @@ index 2c058a9eb4ce77f6090f3516ea048483173e7511..7678ee6f8fbe5d40739f842672444726
              if (ete != null) {
                  PacketPlayOutEntityVelocity velocityPacket = new PacketPlayOutEntityVelocity(this);
                  PacketPlayOutEntityTeleport positionPacket = new PacketPlayOutEntityTeleport(this);
-@@ -110,6 +115,9 @@ public class EntityTNTPrimed extends Entity {
-                 }
-                 // Akarin end
+@@ -99,6 +104,9 @@ public class EntityTNTPrimed extends Entity {
+                         viewer.playerConnection.sendPacket(positionPacket);
+                     });
              }
 +            } finally { // Yatopia start
 +                chunkMap.trackedEntitiesLock.unlock();
@@ -136,7 +136,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..f379d591ed7083840e15ba94f514b4bf
              this.tracker.velocityChanged = false;
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579dac13bd8d 100644
+index 6c8cb39ac8786734cda994ef29ba74c685f3b9be..36d4aeec34186c3f065d7bae3cc49a49f59188d0 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
@@ -147,7 +147,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
  import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
  import it.unimi.dsi.fastutil.longs.Long2ByteMap;
  import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
-@@ -104,10 +105,12 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -113,10 +114,12 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final File w;
      private final PlayerMap playerMap;
      public final Int2ObjectMap<PlayerChunkMap.EntityTracker> trackedEntities;
@@ -160,7 +160,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
  
      // CraftBukkit start - recursion-safe executor for Chunk loadCallback() and unloadCallback()
      public final CallbackExecutor callbackExecutor = new CallbackExecutor();
-@@ -292,7 +295,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -301,7 +304,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.unloadQueue = new LongOpenHashSet();
          this.u = new AtomicInteger();
          this.playerMap = new PlayerMap();
@@ -169,7 +169,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
          this.z = new Long2ByteOpenHashMap();
          this.A = new com.destroystokyo.paper.utils.CachedSizeConcurrentLinkedQueue<>(); // Paper - need constant-time size()
          this.definedStructureManager = definedstructuremanager;
-@@ -2033,6 +2036,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2008,6 +2011,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      protected void addEntity(Entity entity) {
          org.spigotmc.AsyncCatcher.catchOp("entity track"); // Spigot
          // Paper start - ignore and warn about illegal addEntity calls instead of crashing server
@@ -178,7 +178,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
          if (!entity.valid || entity.world != this.world || this.trackedEntities.containsKey(entity.getId())) {
              new Throwable("[ERROR] Illegal PlayerChunkMap::addEntity for world " + this.world.getWorld().getName()
                  + ": " + entity  + (this.trackedEntities.containsKey(entity.getId()) ? " ALREADY CONTAINED (This would have crashed your server)" : ""))
-@@ -2072,10 +2077,15 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2047,10 +2052,15 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
  
              }
          }
@@ -194,7 +194,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
          if (entity instanceof EntityPlayer) {
              EntityPlayer entityplayer = (EntityPlayer) entity;
  
-@@ -2094,6 +2104,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2069,6 +2079,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          if (playerchunkmap_entitytracker1 != null) {
              playerchunkmap_entitytracker1.a();
          }
@@ -204,7 +204,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
          entity.tracker = null; // Paper - We're no longer tracked
      }
  
-@@ -2102,12 +2115,14 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2077,12 +2090,14 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.world.timings.tracker1.startTiming();
          try {
              com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet.Iterator<Chunk> iterator = this.world.getChunkProvider().entityTickingChunks.iterator();
@@ -219,7 +219,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
                      EntityTracker tracker = this.trackedEntities.get(entity.getId());
                      if (tracker != null) {
                          tracker.updatePlayers(tracker.tracker.getPlayersInTrackRange());
-@@ -2117,6 +2132,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2092,6 +2107,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              }
              } finally {
                  iterator.finishedIterating();
@@ -227,7 +227,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
              }
          } finally {
              this.world.timings.tracker1.stopTiming();
-@@ -2124,10 +2140,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2099,10 +2115,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      }
      // Paper end - optimised tracker
  
@@ -240,7 +240,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
              return;
          }
          // Paper end - optimized tracker
-@@ -2171,20 +2187,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -2146,20 +2162,30 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      }
  
      protected void broadcast(Entity entity, Packet<?> packet) {
@@ -271,7 +271,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
  
      }
  
-@@ -2297,11 +2323,13 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2272,11 +2298,13 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
  
          entityplayer.a(chunk.getPos(), apacket[0], apacket[1]);
          PacketDebug.a(this.world, chunk.getPos());
@@ -287,7 +287,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
          for (int i = 0, size = chunk.entities.size(); i < size; ++i) {
              Entity entity = entities[i];
              if (entity == entityplayer) {
-@@ -2323,6 +2351,9 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2298,6 +2326,9 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
                  list1.add(entity);
              }
          }
@@ -297,7 +297,7 @@ index 9f32a26fdbfaf024cfe5c0996c2253f2dd581d5e..807a54e24018455a997e4410cdb7579d
          // Paper end - optimise entity tracker
  
          Iterator iterator;
-@@ -2461,7 +2492,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2436,7 +2467,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
          }
  
          public void updatePlayer(EntityPlayer entityplayer) {
