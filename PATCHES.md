@@ -113,6 +113,7 @@ This is an overview over all patches that are currently used.
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
 | server |  Use Glue List in WeightedList      | Ivan Pekov |  |
+| server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
