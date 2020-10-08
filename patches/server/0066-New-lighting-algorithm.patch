@@ -581,18 +581,19 @@ index e6576054f1db3438d79e04fe252d20864ec84a08..675b352927c2f407e5c53f6b27d8f129
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 807a54e24018455a997e4410cdb7579dac13bd8d..0fca1bc92c844a7c753d39d1097178af77dae743 100644
+index 807a54e24018455a997e4410cdb7579dac13bd8d..afd4cbcf66506d20eb78982c48cdea73869f812f 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
+@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
  import java.util.stream.Stream;
  import javax.annotation.Nullable;
  import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet; // Paper
 +import net.yatopia.server.lighting.LightEngineImpl;
++import net.yatopia.server.lighting.LightEngineManager;
  import org.apache.commons.lang3.mutable.MutableBoolean;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -81,7 +82,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -81,7 +83,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final Long2ObjectLinkedOpenHashMap<PlayerChunk> pendingUnload;
      final LongSet loadedChunks; // Paper - private -> package
      public final WorldServer world;
@@ -601,7 +602,16 @@ index 807a54e24018455a997e4410cdb7579dac13bd8d..0fca1bc92c844a7c753d39d1097178af
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
-@@ -618,7 +619,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -332,7 +334,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         this.mailboxWorldGen = this.p.a(threadedmailbox, false);
+         this.mailboxMain = this.p.a(mailbox, false);
+         this.mailboxLight = this.p.a(lightthreaded, false);// Paper
+-        this.lightEngine = new LightEngineThreaded(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
++        this.lightEngine = LightEngineManager.create(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
+         this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler); this.chunkDistanceManager.chunkMap = this; // Paper
+         this.l = supplier;
+         this.m = new VillagePlace(new File(this.w, "poi"), datafixer, flag, this.world); // Paper
+@@ -618,7 +620,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          return Math.max(Math.abs(k), Math.abs(l));
      }
  
@@ -610,7 +620,7 @@ index 807a54e24018455a997e4410cdb7579dac13bd8d..0fca1bc92c844a7c753d39d1097178af
          return this.lightEngine;
      }
  
-@@ -1083,8 +1084,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1083,8 +1085,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                          this.saveChunk(ichunkaccess);
                      }
  
@@ -785,9 +795,36 @@ index 14b8bf88f6755818e0cdeb0a2ab0a8996ea1f886..bf8030d281571c6c2b74cca799ce28fa
      }
  
      public void unregisterEntity(Entity entity) {
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index f0e7684304cab9cea05fa266a66a2ad8172c55b6..893487d52aa58f4360cadfb83f87cf9d8396134e 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
+ import java.util.logging.Level;
+ import java.util.regex.Pattern;
+ import net.minecraft.server.MinecraftServer;
++import net.yatopia.server.lighting.LightEngineType;
+ import org.bukkit.Bukkit;
+ import org.bukkit.command.Command;
+ import org.bukkit.configuration.InvalidConfigurationException;
+@@ -253,4 +254,14 @@ public class YatopiaConfig {
+         checkFlying = getBoolean("settings.checks.flight", checkFlying);
+         checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);
+     }
++
++    public static LightEngineType lightEngineType = LightEngineType.VANILLA;
++    private static void lightEngineType() {
++        String type = getString("settings.light-engine.type", lightEngineType.name());
++        try {
++            lightEngineType = LightEngineType.valueOf(type);
++        } catch (IllegalArgumentException e){
++            Bukkit.getLogger().warning("Could not detect light engine type from \"" + type + "\", fallback to default " + lightEngineType.name());
++        }
++    }
+ }
 diff --git a/src/main/java/net/yatopia/server/lighting/LightEngineDelegate.java b/src/main/java/net/yatopia/server/lighting/LightEngineDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a5ae657f8b4ea9a3056a51686b4ebb718a81b075
+index 0000000000000000000000000000000000000000..58a22ca01b317ef7f7797a91c6a0932612119452
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/lighting/LightEngineDelegate.java
 @@ -0,0 +1,92 @@
@@ -845,7 +882,7 @@ index 0000000000000000000000000000000000000000..a5ae657f8b4ea9a3056a51686b4ebb71
 +
 +    @Override
 +    public LightEngineLayerEventListener a(EnumSkyBlock var0) {
-+        return super.a(var0);
++        return delegate.get(var0);
 +    }
 +
 +    @Override
@@ -926,6 +963,72 @@ index 0000000000000000000000000000000000000000..9f521898321a4ecceadf218c82013fcf
 +    LightEngineLayerEventListener get(EnumSkyBlock lightType);
 +
 +    int getLight(BlockPosition pos, int ambientDarkness);
++
++}
+diff --git a/src/main/java/net/yatopia/server/lighting/LightEngineManager.java b/src/main/java/net/yatopia/server/lighting/LightEngineManager.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..dd2135d80c9318407df1450290e492c4a63e1015
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/lighting/LightEngineManager.java
+@@ -0,0 +1,29 @@
++package net.yatopia.server.lighting;
++
++import net.minecraft.server.ChunkTaskQueueSorter;
++import net.minecraft.server.ILightAccess;
++import net.minecraft.server.Mailbox;
++import net.minecraft.server.PlayerChunkMap;
++import net.minecraft.server.ThreadedMailbox;
++import net.minecraft.server.WorldDataServer;
++import net.yatopia.server.YatopiaConfig;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++
++public class LightEngineManager {
++
++    private static final Logger LOGGER = LogManager.getLogger();
++
++    public static LightEngineImpl create(ILightAccess iLightAccess,
++                                  PlayerChunkMap playerChunkMap,
++                                  boolean hasSkylight,
++                                  ThreadedMailbox<Runnable> lightThreadMailbox,
++                                  Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailbox) {
++        LightEngineType lightEngineType = YatopiaConfig.lightEngineType;
++        LOGGER.info("Initializing " + lightEngineType.name() + " light engine for world " + ((WorldDataServer) playerChunkMap.world.getWorldData()).getName() + "...");
++        LightEngineImpl lightEngine = lightEngineType.create(iLightAccess, playerChunkMap, hasSkylight, lightThreadMailbox, mailbox);
++        LOGGER.info("Light engine initialized. ");
++        return lightEngine;
++    }
++
++}
+diff --git a/src/main/java/net/yatopia/server/lighting/LightEngineType.java b/src/main/java/net/yatopia/server/lighting/LightEngineType.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..18e1a4ccc465bae7189e150ad22f0937d28fd3a0
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/lighting/LightEngineType.java
+@@ -0,0 +1,25 @@
++package net.yatopia.server.lighting;
++
++import net.minecraft.server.ChunkTaskQueueSorter;
++import net.minecraft.server.ILightAccess;
++import net.minecraft.server.LightEngineThreaded;
++import net.minecraft.server.Mailbox;
++import net.minecraft.server.PlayerChunkMap;
++import net.minecraft.server.ThreadedMailbox;
++
++public enum LightEngineType {
++
++    VANILLA() {
++        @Override
++        public LightEngineImpl create(ILightAccess iLightAccess, PlayerChunkMap playerChunkMap, boolean hasSkylight, ThreadedMailbox<Runnable> lightThreadMailbox, Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailbox) {
++            return new LightEngineThreaded(iLightAccess, playerChunkMap, hasSkylight, lightThreadMailbox, mailbox);
++        }
++    };
++
++    public abstract LightEngineImpl create(ILightAccess iLightAccess,
++                                           PlayerChunkMap playerChunkMap,
++                                           boolean hasSkylight,
++                                           ThreadedMailbox<Runnable> lightThreadMailbox,
++                                           Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailbox);
 +
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
