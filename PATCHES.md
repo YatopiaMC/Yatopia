@@ -72,7 +72,6 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  Load also the chunk that you&#39;re teleporting to      | Ivan Pekov |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
-| server |  MC-171420 - Fix deop kicking non-whitelisted player when      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
