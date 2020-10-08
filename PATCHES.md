@@ -62,8 +62,8 @@ This is an overview over all patches that are currently used.
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |
-| server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw |  |
-| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn |  |
+| server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
+| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
@@ -98,12 +98,9 @@ This is an overview over all patches that are currently used.
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
-| api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
-| server |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
-| server |  Remove a few more streams      | Sotr |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
-| server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
+| server |  Replace some hot streams      | Ivan Pekov |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Respect rotation when respawning      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |

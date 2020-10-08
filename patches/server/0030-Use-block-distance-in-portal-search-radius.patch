@@ -28,14 +28,13 @@ index 4230872de3551393a35c567d07a570dd07976fb8..febd0a7413382e059b681a43cc9ac42a
      }
  
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index dbd6efb897ed62d0a9eda503e9af819e3243c174..99c641e409a416f22ba6c7d0d321a8816977d344 100644
+index f6ffefd7e356c9c68cb6591cab55de9363442faf..eddf3dff9a00bf3c7318745e52befd4c04fa2af7 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-@@ -29,6 +29,15 @@ public class PortalTravelAgent {
-             return villageplacerecord.f().getY();
-         });
+@@ -30,6 +30,13 @@ public class PortalTravelAgent {
+         }); // Yatopia
+         // Yatopia start
          java.util.List<VillagePlaceRecord> list = villageplace.b(type -> type == VillagePlaceType.v, blockposition, i, VillagePlace.Occupancy.ANY).collect(java.util.stream.Collectors.toList());
-+        // Yatopia start - fix portal bug
 +        if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
 +            list.removeIf(villagePlaceRecord -> {
 +                BlockPosition portalPosition = villagePlaceRecord.getPosition();
@@ -43,7 +42,6 @@ index dbd6efb897ed62d0a9eda503e9af819e3243c174..99c641e409a416f22ba6c7d0d321a881
 +                        || Math.abs(portalPosition.getZ() - blockposition.getZ()) > i;
 +            });
 +        }
-+        // Yatopia end
          Optional<VillagePlaceRecord> optional = Optional.empty();
          if (!list.isEmpty()) {
              list.sort(comparator);
