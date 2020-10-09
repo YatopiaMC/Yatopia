@@ -1181,7 +1181,7 @@ index 963c90c065a9e362c8c3030bb36ac6bf0c14a8e2..00000000000000000000000000000000
 - 
 -     public boolean checkIfLeftOwner() { return this.h(); } // Purpur - OBFHELPER
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 06194f1fe6e2b57c1ef370d807f6faad06953b38..fbbc1ab3a77df9da7c76d456330d9c63ed190628 100644
+index 06194f1fe6e2b57c1ef370d807f6faad06953b38..6250b32a9dae310561be9e8cde76aa92547d35eb 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1295,7 +1295,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -1193,6 +1193,72 @@ index 06194f1fe6e2b57c1ef370d807f6faad06953b38..fbbc1ab3a77df9da7c76d456330d9c63
              if (playerSaveInterval > 0) { // Paper
              this.playerList.savePlayers(playerSaveInterval); // Paper
              }// Paper
+@@ -1307,11 +1307,13 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+             }
+             // Paper end
+ 
+-            this.methodProfiler.exit();
++            //this.methodProfiler.exit(); // Akarin - remove caller
+             //MinecraftServer.LOGGER.debug("Autosave finished"); // Paper
+         //} // Paper
+ 
+-        this.methodProfiler.enter("snooper");
++        //this.methodProfiler.enter("snooper"); // Akarin - remove caller
++        // Akarin - Disable Snooper
++        /*
+         if (((DedicatedServer) this).getDedicatedServerProperties().snooperEnabled && !this.snooper.d() && this.ticks > 100) { // Spigot
+             this.snooper.a();
+         }
+@@ -1319,8 +1321,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         if (((DedicatedServer) this).getDedicatedServerProperties().snooperEnabled && this.ticks % 6000 == 0) { // Spigot
+             this.snooper.b();
+         }
++         */
+ 
+-        this.methodProfiler.exit();
++        //this.methodProfiler.exit(); // Akarin - remove caller
+ 
+         // Paper start - move executeAll() into full server tick timing
+         try (co.aikar.timings.Timing ignored = MinecraftTimings.processTasksTimer.startTiming()) {
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java.rej b/src/main/java/net/minecraft/server/MinecraftServer.java.rej
+deleted file mode 100644
+index 2b5435d6bb0d50ce27a4d3451582d7ad816033d1..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java.rej
++++ /dev/null
+@@ -1,33 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java	(rejected hunks)
+-@@ -1283,7 +1283,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+-         //if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // CraftBukkit // Paper - move down
+-             //MinecraftServer.LOGGER.debug("Autosave started"); // Paper
+-             serverAutoSave = (autosavePeriod > 0 && this.ticks % autosavePeriod == 0); // Paper
+--            this.methodProfiler.enter("save");
+-+            //this.methodProfiler.enter("save"); // Akarin - remove caller
+-             if (autosavePeriod > 0 && this.ticks % autosavePeriod == 0) { // Paper
+-             this.playerList.savePlayers();
+-             }// Paper
+-@@ -1295,11 +1295,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+-             }
+-             // Paper end
+- 
+--            this.methodProfiler.exit();
+-+            //this.methodProfiler.exit(); // Akarin - remove caller
+-             //MinecraftServer.LOGGER.debug("Autosave finished"); // Paper
+-         //} // Paper
+- 
+--        this.methodProfiler.enter("snooper");
+-+        //this.methodProfiler.enter("snooper"); // Akarin - remove caller
+-         // Akarin - Disable Snooper
+-         /*
+-         if (((DedicatedServer) this).getDedicatedServerProperties().snooperEnabled && !this.snooper.d() && this.ticks > 100) { // Spigot
+-@@ -1311,7 +1311,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+-         }
+-         */
+- 
+--        this.methodProfiler.exit();
+-+        //this.methodProfiler.exit(); // Akarin - remove caller
+- 
+-         // Paper start - move executeAll() into full server tick timing
+-         try (co.aikar.timings.Timing ignored = MinecraftTimings.processTasksTimer.startTiming()) {
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
 index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..f6ffefd7e356c9c68cb6591cab55de9363442faf 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
