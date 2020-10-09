@@ -21,10 +21,84 @@ go up.
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index b43b02c0bdd5dbf0b7d30de90bdc2f74c015ecc8..4144dc7ca04b9a5d7da8ae619d3510c34c43e158 100644
+index b43b02c0bdd5dbf0b7d30de90bdc2f74c015ecc8..d3d1120395ee0e5be781febefa502c40ad9dacdd 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -1801,10 +1801,18 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -49,6 +49,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     public final MinecraftServer server;
+     public final PlayerInteractManager playerInteractManager;
+     public final Deque<Integer> removeQueue = new ArrayDeque<>(); // Paper
++    public final java.util.concurrent.locks.Lock removeQueueLock = new java.util.concurrent.locks.ReentrantLock(); // Yatopia
+     private final AdvancementDataPlayer advancementDataPlayer;
+     private final ServerStatisticManager serverStatisticManager;
+     private float lastHealthScored = Float.MIN_VALUE;
+@@ -459,6 +460,10 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             this.activeContainer = this.defaultContainer;
+         }
+ 
++        // Yatopia start
++        removeQueueLock.lock();
++        try {
++            // Yatopia end
+         while (!this.removeQueue.isEmpty()) {
+             int i = Math.min(this.removeQueue.size(), Integer.MAX_VALUE);
+             int[] aint = new int[i];
+@@ -479,6 +484,9 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+             this.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(aint));
+         }
++        } finally { // Yatopia start
++            removeQueueLock.unlock();
++        } // Yatopia end
+ 
+         Entity entity = this.getSpecatorTarget();
+ 
+@@ -1545,9 +1553,16 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         // Applies to the same player, so we need to not duplicate our removal queue. The rest of this method does "resetting"
+         // type logic so it does need to be called, maybe? This is silly.
+         // this.removeQueue.addAll(entityplayer.removeQueue);
++        // Yatopia start
++        removeQueueLock.lock();
++        try {
++            // Yatopia end
+         if (this.removeQueue != entityplayer.removeQueue) {
+             this.removeQueue.addAll(entityplayer.removeQueue);
+         }
++        } finally { // Yatopia start
++            removeQueueLock.unlock();
++        } // Yatopia end
+         // Paper end
+         this.cd = entityplayer.cd;
+         this.ci = entityplayer.ci;
+@@ -1733,13 +1748,27 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+         if (entity instanceof EntityHuman) {
+             this.playerConnection.sendPacket(new PacketPlayOutEntityDestroy(new int[]{entity.getId()}));
+         } else {
++            // Yatopia start
++            removeQueueLock.lock();
++            try {
++                // Yatopia end
+             this.removeQueue.add((Integer) entity.getId()); // CraftBukkit - decompile error
++            } finally { // Yatopia start
++                removeQueueLock.unlock();
++            } // Yatopia end
+         }
+ 
+     }
+ 
+     public void d(Entity entity) {
++        // Yatopia start
++        removeQueueLock.lock();
++        try {
++            // Yatopia end
+         this.removeQueue.remove((Integer) entity.getId()); // CraftBukkit - decompile error
++        } finally { // Yatopia start
++            removeQueueLock.unlock();
++        } // Yatopia end
+     }
+ 
+     @Override
+@@ -1801,10 +1830,18 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              this.getBukkitEntity().teleport(new Location(newSpectatorTarget.getWorld().getWorld(), newSpectatorTarget.locX(), newSpectatorTarget.locY(), newSpectatorTarget.locZ(), this.yaw, this.pitch), TeleportCause.SPECTATE); // Correctly handle cross-world entities from api calls by using CB teleport
  
              // Make sure we're tracking the entity before sending
@@ -45,10 +119,10 @@ index b43b02c0bdd5dbf0b7d30de90bdc2f74c015ecc8..4144dc7ca04b9a5d7da8ae619d3510c3
              this.playerConnection.teleport(this.spectatedEntity.locX(), this.spectatedEntity.locY(), this.spectatedEntity.locZ(), this.yaw, this.pitch, TeleportCause.SPECTATE); // CraftBukkit
          }
 diff --git a/src/main/java/net/minecraft/server/EntityTNTPrimed.java b/src/main/java/net/minecraft/server/EntityTNTPrimed.java
-index 3e71332c47000b21ff90aec6937f90dc639a41bd..f0cee1cd163a2054d73e0e4bdd20d1f68747a33c 100644
+index 3e71332c47000b21ff90aec6937f90dc639a41bd..b12aa1b3bf1397eea42cffb1c67c03448a56409b 100644
 --- a/src/main/java/net/minecraft/server/EntityTNTPrimed.java
 +++ b/src/main/java/net/minecraft/server/EntityTNTPrimed.java
-@@ -87,7 +87,12 @@ public class EntityTNTPrimed extends Entity {
+@@ -87,18 +87,33 @@ public class EntityTNTPrimed extends Entity {
               */
              // Send position and velocity updates to nearby players on every tick while the TNT is in water.
              // This does pretty well at keeping their clients in sync with the server.
@@ -62,9 +136,20 @@ index 3e71332c47000b21ff90aec6937f90dc639a41bd..f0cee1cd163a2054d73e0e4bdd20d1f6
              if (ete != null) {
                  PacketPlayOutEntityVelocity velocityPacket = new PacketPlayOutEntityVelocity(this);
                  PacketPlayOutEntityTeleport positionPacket = new PacketPlayOutEntityTeleport(this);
-@@ -99,6 +104,9 @@ public class EntityTNTPrimed extends Entity {
+ 
++                // Yatopia start
++                ete.trackedPlayersLock.lock();
++                try {
++                    // Yatopia end
+                 ete.trackedPlayers.stream()
+                     .filter(viewer -> (viewer.locX() - this.locX()) * (viewer.locY() - this.locY()) * (viewer.locZ() - this.locZ()) < 16 * 16)
+                     .forEach(viewer -> {
+                         viewer.playerConnection.sendPacket(velocityPacket);
                          viewer.playerConnection.sendPacket(positionPacket);
                      });
++                } finally { // Yatopia start
++                    ete.trackedPlayersLock.unlock();
++                } // Yatopia end
              }
 +            } finally { // Yatopia start
 +                chunkMap.trackedEntitiesLock.unlock();
@@ -73,7 +158,7 @@ index 3e71332c47000b21ff90aec6937f90dc639a41bd..f0cee1cd163a2054d73e0e4bdd20d1f6
          // Paper end
      }
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
-index aea72b0db10eed151db18490c02f291c3cded92a..f379d591ed7083840e15ba94f514b4bf06e52010 100644
+index aea72b0db10eed151db18490c02f291c3cded92a..8e35ada472e9ba2e896c83cbbbf9a093063e6a65 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 @@ -39,6 +39,7 @@ public class EntityTrackerEntry {
@@ -135,8 +220,28 @@ index aea72b0db10eed151db18490c02f291c3cded92a..f379d591ed7083840e15ba94f514b4bf
              // CraftBukkit end
              this.tracker.velocityChanged = false;
          }
+@@ -282,7 +292,9 @@ public class EntityTrackerEntry {
+     // Purpur end
+ 
+     public void a(EntityPlayer entityplayer) {
++        MCUtil.ensureMain(() -> { // Yatopia - ensure main
+         this.tracker.c(entityplayer);
++        }); // Yatopia
+         entityplayer.c(this.tracker);
+     }
+ 
+@@ -291,7 +303,9 @@ public class EntityTrackerEntry {
+ 
+         entityplayer.playerConnection.getClass();
+         this.a(playerconnection::sendPacket, entityplayer); // CraftBukkit - add player
++        MCUtil.ensureMain(() -> { // Yatopia - ensure main
+         this.tracker.b(entityplayer);
++        }); // Yatopia
+         entityplayer.d(this.tracker);
+     }
+ 
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 6c8cb39ac8786734cda994ef29ba74c685f3b9be..36d4aeec34186c3f065d7bae3cc49a49f59188d0 100644
+index 6c8cb39ac8786734cda994ef29ba74c685f3b9be..9cde23731ca8e22b5263784e65c7efb0ce5312f8 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
@@ -297,7 +402,88 @@ index 6c8cb39ac8786734cda994ef29ba74c685f3b9be..36d4aeec34186c3f065d7bae3cc49a49
          // Paper end - optimise entity tracker
  
          Iterator iterator;
-@@ -2436,7 +2467,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2345,6 +2376,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         // their first update (which is forced to have absolute coordinates), false afterward.
+         public java.util.Map<EntityPlayer, Boolean> trackedPlayerMap = new java.util.HashMap<>();
+         public Set<EntityPlayer> trackedPlayers = trackedPlayerMap.keySet();
++        public java.util.concurrent.locks.Lock trackedPlayersLock = new java.util.concurrent.locks.ReentrantLock(); // Yatopia
+ 
+         public EntityTracker(Entity entity, int i, int j, boolean flag) {
+             this.trackerEntry = new EntityTrackerEntry(PlayerChunkMap.this.world, entity, j, flag, this::broadcast, trackedPlayerMap); // CraftBukkit // Paper
+@@ -2381,11 +2413,18 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+             // stuff could have been removed, so we need to check the trackedPlayers set
+             // for players that were removed
+ 
++            // Yatopia start
++            trackedPlayersLock.lock();
++            try {
++                // Yatopia end
+             for (EntityPlayer player : this.trackedPlayers.toArray(new EntityPlayer[0])) { // avoid CME
+                 if (newTrackerCandidates == null || !newTrackerCandidates.contains(player)) {
+                     this.updatePlayer(player);
+                 }
+             }
++            } finally { // Yatopia start
++                trackedPlayersLock.unlock();
++            } // Yatopia end
+         }
+         // Paper end - use distance map to optimise tracker
+ 
+@@ -2398,6 +2437,10 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         }
+ 
+         public void broadcast(Packet<?> packet) {
++            // Yatopia start
++            trackedPlayersLock.lock();
++            try {
++                // Yatopia end
+             Iterator iterator = this.trackedPlayers.iterator();
+ 
+             while (iterator.hasNext()) {
+@@ -2405,6 +2448,9 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+ 
+                 entityplayer.playerConnection.sendPacket(packet);
+             }
++            } finally { // Yatopia start
++                trackedPlayersLock.unlock();
++            } // Yatopia end
+ 
+         }
+ 
+@@ -2417,6 +2463,10 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         }
+ 
+         public void a() {
++            // Yatopia start
++            trackedPlayersLock.lock();
++            try {
++                // Yatopia end
+             Iterator iterator = this.trackedPlayers.iterator();
+ 
+             while (iterator.hasNext()) {
+@@ -2424,19 +2474,29 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+ 
+                 this.trackerEntry.a(entityplayer);
+             }
++            } finally { // Yatopia start
++                trackedPlayersLock.unlock();
++            } // Yatopia end
+ 
+         }
+ 
+         public void clear(EntityPlayer entityplayer) {
+             org.spigotmc.AsyncCatcher.catchOp("player tracker clear"); // Spigot
++            // Yatopia start
++            trackedPlayersLock.lock();
++            try {
++                // Yatopia end
+             if (this.trackedPlayers.remove(entityplayer)) {
+                 this.trackerEntry.a(entityplayer);
+             }
++            } finally { // Yatopia start
++                trackedPlayersLock.unlock();
++            } // Yatopia end
+ 
          }
  
          public void updatePlayer(EntityPlayer entityplayer) {
@@ -306,8 +492,44 @@ index 6c8cb39ac8786734cda994ef29ba74c685f3b9be..36d4aeec34186c3f065d7bae3cc49a49
              if (entityplayer != this.tracker) {
                  // Paper start - remove allocation of Vec3D here
                  //Vec3D vec3d = entityplayer.getPositionVector().d(this.tracker.getPositionVector()); // MC-155077, SPIGOT-5113
+@@ -2447,6 +2507,10 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                 int i = Math.min(this.b(), (PlayerChunkMap.this.viewDistance - 1) * 16);
+                 boolean flag = vec3d_dx >= (double) (-i) && vec3d_dx <= (double) i && vec3d_dz >= (double) (-i) && vec3d_dz <= (double) i && this.tracker.a(entityplayer); // Paper - remove allocation of Vec3D here
+ 
++                // Yatopia start
++                trackedPlayersLock.lock();
++                try {
++                    // Yatopia end
+                 if (flag) {
+                     boolean flag1 = this.tracker.attachedToPlayer;
+ 
+@@ -2467,7 +2531,14 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                         }
+                     }
+ 
++                    // Yatopia start
++                    entityplayer.removeQueueLock.lock();
++                    try {
++                        // Yatopia end
+                     entityplayer.removeQueue.remove(Integer.valueOf(this.tracker.getId()));
++                    } finally { // Yatopia start
++                        entityplayer.removeQueueLock.unlock();
++                    } // Yatopia end
+                     // CraftBukkit end
+ 
+                     if (flag1 && this.trackedPlayerMap.putIfAbsent(entityplayer, true) == null) { // Paper
+@@ -2476,6 +2547,9 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                 } else if (this.trackedPlayers.remove(entityplayer)) {
+                     this.trackerEntry.a(entityplayer);
+                 }
++                } finally { // Yatopia start
++                    trackedPlayersLock.unlock();
++                } // Yatopia end
+ 
+             }
+         }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 7e91e95941039cce630ed3eb88e1919e1d08c091..9225658cdfb12ae918b5410515f0b3145ed15369 100644
+index 7e91e95941039cce630ed3eb88e1919e1d08c091..b444552e2cd6374fe975b8a319d319fadbe6b11a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -1253,10 +1253,16 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
@@ -327,7 +549,7 @@ index 7e91e95941039cce630ed3eb88e1919e1d08c091..9225658cdfb12ae918b5410515f0b314
  
          // Remove the hidden player from this player user list, if they're on it
          if (other.sentListPacket) {
-@@ -1303,10 +1309,16 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -1303,10 +1309,23 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
  
          getHandle().playerConnection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, other));
  
@@ -335,9 +557,16 @@ index 7e91e95941039cce630ed3eb88e1919e1d08c091..9225658cdfb12ae918b5410515f0b314
 +        tracker.trackedEntitiesLock.lock();
 +        try { // Yatopia end
          PlayerChunkMap.EntityTracker entry = tracker.trackedEntities.get(other.getId());
++        // Yatopia start
++            entry.trackedPlayersLock.lock();
++            try {
++                // Yatopia end
          if (entry != null && !entry.trackedPlayers.contains(getHandle())) {
              entry.updatePlayer(getHandle());
          }
++            } finally { // Yatopia start
++                entry.trackedPlayersLock.unlock();
++            } // Yatopia end
 +        } finally { // Yatopia start
 +            tracker.trackedEntitiesLock.unlock();
 +        } // Yatopia end
