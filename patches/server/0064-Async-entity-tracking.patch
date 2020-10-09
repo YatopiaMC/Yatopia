@@ -529,7 +529,7 @@ index 6c8cb39ac8786734cda994ef29ba74c685f3b9be..9cde23731ca8e22b5263784e65c7efb0
              }
          }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 7e91e95941039cce630ed3eb88e1919e1d08c091..b444552e2cd6374fe975b8a319d319fadbe6b11a 100644
+index 7e91e95941039cce630ed3eb88e1919e1d08c091..e87c02eec6885805a86e67fada0cf033ced5f304 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -1253,10 +1253,16 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
@@ -549,7 +549,7 @@ index 7e91e95941039cce630ed3eb88e1919e1d08c091..b444552e2cd6374fe975b8a319d319fa
  
          // Remove the hidden player from this player user list, if they're on it
          if (other.sentListPacket) {
-@@ -1303,10 +1309,23 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -1303,10 +1309,25 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
  
          getHandle().playerConnection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, other));
  
@@ -557,16 +557,19 @@ index 7e91e95941039cce630ed3eb88e1919e1d08c091..b444552e2cd6374fe975b8a319d319fa
 +        tracker.trackedEntitiesLock.lock();
 +        try { // Yatopia end
          PlayerChunkMap.EntityTracker entry = tracker.trackedEntities.get(other.getId());
-+        // Yatopia start
+-        if (entry != null && !entry.trackedPlayers.contains(getHandle())) {
++        if (entry != null) { // Yatopia - check moved down
++            // Yatopia start
 +            entry.trackedPlayersLock.lock();
 +            try {
-+                // Yatopia end
-         if (entry != null && !entry.trackedPlayers.contains(getHandle())) {
++                if (!entry.trackedPlayers.contains(getHandle())) {
              entry.updatePlayer(getHandle());
-         }
-+            } finally { // Yatopia start
++                }
++            } finally {
 +                entry.trackedPlayersLock.unlock();
-+            } // Yatopia end
++            }
++            // Yatopia end
+         }
 +        } finally { // Yatopia start
 +            tracker.trackedEntitiesLock.unlock();
 +        } // Yatopia end
