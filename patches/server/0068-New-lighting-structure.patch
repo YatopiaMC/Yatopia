@@ -5,7 +5,7 @@ Subject: [PATCH] New lighting structure
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/PaperCommand.java b/src/main/java/com/destroystokyo/paper/PaperCommand.java
-index f81bd67a323f2e72bdad76c52016993a0bf88307..b7424cdce0097b6cb57647821b3f6de2fe434537 100644
+index d798de637389cc5d5289a6c75304de307b01f493..631f4c656433e164cf7d5188deb157d78d0b6d4c 100644
 --- a/src/main/java/com/destroystokyo/paper/PaperCommand.java
 +++ b/src/main/java/com/destroystokyo/paper/PaperCommand.java
 @@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
@@ -24,7 +24,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..b7424cdce0097b6cb57647821b3f6de2
  
  public class PaperCommand extends Command {
  
-@@ -208,14 +208,14 @@ public class PaperCommand extends Command {
+@@ -201,14 +201,14 @@ public class PaperCommand extends Command {
          CraftPlayer player = (CraftPlayer) sender;
          EntityPlayer handle = player.getHandle();
          net.minecraft.server.WorldServer world = (WorldServer) handle.world;
@@ -41,7 +41,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..b7424cdce0097b6cb57647821b3f6de2
          ChunkCoordIntPair coord = queue.poll();
          if (coord == null) {
              sender.sendMessage("All Chunks Light updated");
-@@ -232,7 +232,7 @@ public class PaperCommand extends Command {
+@@ -225,7 +225,7 @@ public class PaperCommand extends Command {
                  updateLight(sender, world, lightengine, queue);
                  return;
              }
@@ -50,7 +50,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..b7424cdce0097b6cb57647821b3f6de2
              sender.sendMessage("Updating Light " + coord);
              int cx = chunk.getPos().x << 4;
              int cz = chunk.getPos().z << 4;
-@@ -240,11 +240,11 @@ public class PaperCommand extends Command {
+@@ -233,11 +233,11 @@ public class PaperCommand extends Command {
                  for (int x = 0; x < 16; x++) {
                      for (int z = 0; z < 16; z++) {
                          BlockPosition pos = new BlockPosition(cx + x, y, cz + z);
@@ -64,7 +64,7 @@ index f81bd67a323f2e72bdad76c52016993a0bf88307..b7424cdce0097b6cb57647821b3f6de2
              PlayerChunk visibleChunk = world.getChunkProvider().playerChunkMap.getVisibleChunk(chunk.coordinateKey);
              if (visibleChunk != null) {
                  world.getChunkProvider().playerChunkMap.addLightTask(visibleChunk, () -> {
-@@ -256,7 +256,7 @@ public class PaperCommand extends Command {
+@@ -249,7 +249,7 @@ public class PaperCommand extends Command {
              } else {
                  updateLight(sender, world, lightengine, queue);
              }
@@ -183,7 +183,7 @@ index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..457af45fcf370d123c27d8d8db228469
      }
  
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db85f5daa7 100644
+index 422b5f0c28d85ee167bce2967e1b5ee9fa7833dd..bd8322bdc4935886f57c1c8047ad5ede15bf1e1a 100644
 --- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 +++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 @@ -1,6 +1,5 @@
@@ -202,7 +202,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
-@@ -101,11 +102,11 @@ public class ChunkRegionLoader {
+@@ -99,11 +100,11 @@ public class ChunkRegionLoader {
          ChunkSection[] achunksection = new ChunkSection[16];
          boolean flag2 = worldserver.getDimensionManager().hasSkyLight();
          ChunkProviderServer chunkproviderserver = worldserver.getChunkProvider();
@@ -216,7 +216,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db
              }); // Paper - delay this task since we're executing off-main
          }
  
-@@ -132,7 +133,7 @@ public class ChunkRegionLoader {
+@@ -130,7 +131,7 @@ public class ChunkRegionLoader {
                      // Paper start - delay this task since we're executing off-main
                      NibbleArray blockLight = new NibbleArray(nbttagcompound2.getByteArray("BlockLight"));
                      tasksToExecuteOnMain.add(() -> {
@@ -225,7 +225,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db
                      });
                      // Paper end - delay this task since we're executing off-main
                  }
-@@ -141,7 +142,7 @@ public class ChunkRegionLoader {
+@@ -139,7 +140,7 @@ public class ChunkRegionLoader {
                      // Paper start - delay this task since we're executing off-main
                      NibbleArray skyLight = new NibbleArray(nbttagcompound2.getByteArray("SkyLight"));
                      tasksToExecuteOnMain.add(() -> {
@@ -234,7 +234,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db
                      });
                      // Paper end - delay this task since we're executing off-main
                  }
-@@ -345,14 +346,14 @@ public class ChunkRegionLoader {
+@@ -343,14 +344,14 @@ public class ChunkRegionLoader {
          org.spigotmc.AsyncCatcher.catchOp("preparation of chunk data for async save");
          ChunkCoordIntPair chunkPos = chunk.getPos();
  
@@ -252,7 +252,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db
  
              // copy data for safety
              if (blockArray != null) {
-@@ -412,7 +413,7 @@ public class ChunkRegionLoader {
+@@ -410,7 +411,7 @@ public class ChunkRegionLoader {
  
          ChunkSection[] achunksection = ichunkaccess.getSections();
          NBTTagList nbttaglist = new NBTTagList();
@@ -261,7 +261,7 @@ index e81c472e03ee50f58bd16709108572080760bcd5..4bf929cd5c6cfa449b7853dc6c4ae6db
          boolean flag = ichunkaccess.r();
  
          NBTTagCompound nbttagcompound2;
-@@ -431,8 +432,8 @@ public class ChunkRegionLoader {
+@@ -435,8 +436,8 @@ public class ChunkRegionLoader {
              NibbleArray nibblearray; // block light
              NibbleArray nibblearray1; // sky light
              if (asyncsavedata == null) {
@@ -460,10 +460,10 @@ index 4d024a4849b7566c0faba131caab57b4ddf35e29..97d8a0ad1e8e4d24580207e38a9c0f68
          if ((!this.queue.isEmpty() || super.a()) && this.g.compareAndSet(false, true)) { // Paper
              this.b.a((() -> { // Paper - decompile error
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 07fc09543c154fdf8b8beb86c3466c9ccd24372b..8006c3abcb4112353a70c9df339dcfafa2160b07 100644
+index 6d62aa2b08f40479997f8bcc841cfb704b18e1b9..c3b2a77300bce04139741c8d79bb7c0d8199f403 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -625,7 +625,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -632,7 +632,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          worldloadlistener.a(new ChunkCoordIntPair(blockposition));
          ChunkProviderServer chunkproviderserver = worldserver.getChunkProvider();
  
@@ -472,7 +472,7 @@ index 07fc09543c154fdf8b8beb86c3466c9ccd24372b..8006c3abcb4112353a70c9df339dcfaf
          this.nextTick = SystemUtils.getMonotonicMillis();
          // Paper start - Configurable spawn radius
          if (worldserver.keepSpawnInMemory) {
-@@ -661,7 +661,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -668,7 +668,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          this.executeModerately();
          // CraftBukkit end
          worldloadlistener.b();
@@ -581,10 +581,10 @@ index e6576054f1db3438d79e04fe252d20864ec84a08..675b352927c2f407e5c53f6b27d8f129
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 807a54e24018455a997e4410cdb7579dac13bd8d..afd4cbcf66506d20eb78982c48cdea73869f812f 100644
+index 9cde23731ca8e22b5263784e65c7efb0ce5312f8..c0dea9b480cd7539e726ba236e9b812cf6f43f35 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
+@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
  import java.util.stream.Stream;
  import javax.annotation.Nullable;
  import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet; // Paper
@@ -593,7 +593,7 @@ index 807a54e24018455a997e4410cdb7579dac13bd8d..afd4cbcf66506d20eb78982c48cdea73
  import org.apache.commons.lang3.mutable.MutableBoolean;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -81,7 +83,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -90,7 +92,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final Long2ObjectLinkedOpenHashMap<PlayerChunk> pendingUnload;
      final LongSet loadedChunks; // Paper - private -> package
      public final WorldServer world;
@@ -602,7 +602,7 @@ index 807a54e24018455a997e4410cdb7579dac13bd8d..afd4cbcf66506d20eb78982c48cdea73
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
-@@ -332,7 +334,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -341,7 +343,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.mailboxWorldGen = this.p.a(threadedmailbox, false);
          this.mailboxMain = this.p.a(mailbox, false);
          this.mailboxLight = this.p.a(lightthreaded, false);// Paper
@@ -611,7 +611,7 @@ index 807a54e24018455a997e4410cdb7579dac13bd8d..afd4cbcf66506d20eb78982c48cdea73
          this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler); this.chunkDistanceManager.chunkMap = this; // Paper
          this.l = supplier;
          this.m = new VillagePlace(new File(this.w, "poi"), datafixer, flag, this.world); // Paper
-@@ -618,7 +620,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -627,7 +629,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          return Math.max(Math.abs(k), Math.abs(l));
      }
  
@@ -620,7 +620,7 @@ index 807a54e24018455a997e4410cdb7579dac13bd8d..afd4cbcf66506d20eb78982c48cdea73
          return this.lightEngine;
      }
  
-@@ -1083,8 +1085,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1074,8 +1076,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                          this.saveChunk(ichunkaccess);
                      }
  
@@ -774,10 +774,10 @@ index 1b08df02c18230bffb37a945944073fff22b16c9..4fb2fd4cdb40f3fc3f15f2e542d23b75
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 14b8bf88f6755818e0cdeb0a2ab0a8996ea1f886..bf8030d281571c6c2b74cca799ce28fa2b254c0a 100644
+index 304769013a68ec18cb87916b0363edfa0e7a0cda..4ef7dd9b6dd55ea28a460e52fab8792016b8692c 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1147,7 +1147,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1144,7 +1144,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              }
              //gameprofilerfiller.exit(); // Akarin - remove caller
              timings.chunkTicksBlocks.stopTiming(); // Paper
@@ -786,7 +786,7 @@ index 14b8bf88f6755818e0cdeb0a2ab0a8996ea1f886..bf8030d281571c6c2b74cca799ce28fa
              // Paper end
          }
      }
-@@ -1780,7 +1780,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1777,7 +1777,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Paper end
  
