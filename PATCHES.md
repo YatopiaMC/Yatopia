@@ -10,17 +10,17 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
-| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
+| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
-| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
-| server |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
-| server |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add StructureLocateEvent      | dfsek |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
@@ -63,7 +63,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
-| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn |  |
+| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
@@ -72,12 +72,10 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  Load also the chunk that you&#39;re teleporting to      | Ivan Pekov |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
-| server |  MC-171420 - Fix deop kicking non-whitelisted player when      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
-| server |  Modify POM      | tr7zw |  |
 | api |  Modify POM      | tr7zw |  |
+| server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
-| server |  New lighting algorithm      | ishland |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
@@ -93,18 +91,15 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Add hex color code support for console logging      | William Blake Galbreath |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
-| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
-| server |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
-| api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
-| server |  Remove a few more streams      | Sotr |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
-| server |  Remove stream for ender teleport      | Sotr |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
+| server |  Replace some hot streams      | Ivan Pekov |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Respect rotation when respawning      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
@@ -118,6 +113,7 @@ This is an overview over all patches that are currently used.
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
 | server |  Use Glue List in WeightedList      | Ivan Pekov |  |
+| server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
 | server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |

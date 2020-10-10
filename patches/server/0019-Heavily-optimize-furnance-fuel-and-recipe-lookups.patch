@@ -6,7 +6,7 @@ Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 Co-authored-by: Mykyta Komarn <nkomarn@hotmail.com>
 
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ba9424eafc02a5311e0cbd43c340ca8962917acc 100644
+index 1d3c2dd93657fb5dc71ee6b444c585b54619d1e8..77ea56c5a25fe09a1721429d42965ad34d905870 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
 @@ -83,7 +83,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
@@ -32,7 +32,7 @@ index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ba9424eafc02a5311e0cbd43c340ca89
          return map;
      }
  
-@@ -273,7 +281,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -271,7 +279,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
                      this.cookTime = MathHelper.clamp(this.cookTime - 2, 0, this.cookTimeTotal);
                  }
              } else {
@@ -44,7 +44,7 @@ index 99bd8626b28a837f0da2268d89fddb6d28b2a944..ba9424eafc02a5311e0cbd43c340ca89
  
                  if (!this.isBurning() && this.canBurn(irecipe)) {
                      // CraftBukkit start
-@@ -599,4 +610,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -597,4 +608,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }
