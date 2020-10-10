@@ -125,10 +125,10 @@ index a60bb54270b98bad9cc8caa9ce2538f54b03fbfe..3b9ba7c012586c7620e69cf450b8d1c1
  
      private void fa() {
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index d3d1120395ee0e5be781febefa502c40ad9dacdd..d61f493f515625772ab338cbad0292513493f132 100644
+index b43b02c0bdd5dbf0b7d30de90bdc2f74c015ecc8..b113d60408bcb77762587109ede7dc855d983254 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -769,11 +769,20 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -761,11 +761,20 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
      private void eV() {
          AxisAlignedBB axisalignedbb = (new AxisAlignedBB(this.getChunkCoordinates())).grow(32.0D, 10.0D, 32.0D);
  
@@ -150,10 +150,10 @@ index d3d1120395ee0e5be781febefa502c40ad9dacdd..d61f493f515625772ab338cbad029251
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 4c7e1f5c2a332f5b5ed15b0528ed717f5f84f63f..2a6735ce6a3ac233e5b2e75538c182e613c9896e 100644
+index 939ef3bd6439a68dba4224661d050c6af0164178..ab3348a89b6864184d432e4a73fe02ac195b8629 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
-@@ -679,11 +679,20 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -678,11 +678,20 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
              if (optional.isPresent()) {
                  WorldServer worldserver = (WorldServer) this.world;
  
@@ -280,7 +280,7 @@ index 89464cc770b4875ad65c5e84315e462689cea57b..ed13f8fe725ce7601e5c506b590042ce
      // CraftBukkit end
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa0e7a0cda 100644
+index b739e19cb50e4f86f1cb100b88cf91fbbbf796b4..e41f0ae32f66e5bf3b5ca1e10be2293f945bb5b1 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -60,11 +60,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -297,7 +297,7 @@ index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa
      public void doIfNotEntityTicking(java.lang.Runnable run) {
          if (tickingEntities) {
              afterEntityTickingTasks.add(run);
-@@ -829,6 +829,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -828,6 +828,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // */
          // Yatopia start
@@ -305,7 +305,7 @@ index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa
          for (EntityPlayer player : players) {
              if (player.world == this) {
                  player.tickWeather();
-@@ -836,6 +837,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -835,6 +836,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  player.updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
                  // Yatopia end
              }
@@ -317,7 +317,7 @@ index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa
          }
  
          /* // Yatopia start - moved up
-@@ -855,9 +861,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -854,9 +860,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // CraftBukkit end
           */ // Yatopia end
  
@@ -328,7 +328,7 @@ index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
              TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
-@@ -1027,9 +1031,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1026,9 +1030,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      private void wakeupPlayers() {
@@ -340,7 +340,7 @@ index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa
      }
  
      // Paper start - optimise random block ticking
-@@ -1795,8 +1799,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1794,8 +1798,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // Spigot start
          if ( entity instanceof EntityHuman )
          {
@@ -351,7 +351,7 @@ index b3e24d6f44320bf9b13f627dc5a9cb46614afe9b..304769013a68ec18cb87916b0363edfa
                  for (Object o : worldData.data.values() )
                  {
                      if ( o instanceof WorldMap )
-@@ -1813,7 +1818,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1812,7 +1817,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          }
                      }
                  }
