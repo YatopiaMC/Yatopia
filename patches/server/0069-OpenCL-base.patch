@@ -1,0 +1,408 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sun, 11 Oct 2020 12:30:35 +0800
+Subject: [PATCH] OpenCL base
+
+Patch used for OpenCL computing
+Using GlowStoneMC implementation of OpenCompute API with JOCL
+
+diff --git a/pom.xml b/pom.xml
+index 4e9dfd79751fbf5c926c9683a2c8bb2800c60f0c..78be7c38d1a5a10a8638c5cdc2ab826cb4ece5a0 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -111,6 +111,17 @@
+             <artifactId>netty-all</artifactId>
+             <version>4.1.50.Final</version>
+         </dependency>
++        <!-- OpenCL -->
++        <dependency>
++            <groupId>org.jogamp.gluegen</groupId>
++            <artifactId>gluegen-rt-main</artifactId>
++            <version>2.3.2</version>
++        </dependency>
++        <dependency>
++            <groupId>org.jogamp.jocl</groupId>
++            <artifactId>jocl-main</artifactId>
++            <version>2.3.2</version>
++        </dependency>
+         <!-- deprecated API depend -->
+         <dependency>
+             <groupId>com.googlecode.json-simple</groupId>
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..5d1312e58f07ebfd5bb3684c6c81dfa447f89673 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -256,12 +256,21 @@ public class YatopiaConfig {
+     }
+ 
+     public static LightEngineType lightEngineType = LightEngineType.VANILLA;
++
+     private static void lightEngineType() {
+         String type = getString("settings.light-engine.type", lightEngineType.name());
+         try {
+             lightEngineType = LightEngineType.valueOf(type);
+-        } catch (IllegalArgumentException e){
++        } catch (IllegalArgumentException e) {
+             Bukkit.getLogger().warning("Could not detect light engine type from \"" + type + "\", fallback to default " + lightEngineType.name());
+         }
+     }
++
++    public static boolean useOpenCL = true;
++    public static boolean useAnyOpenCLDevice = true;
++
++    private static void openCL() {
++        useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
++        useAnyOpenCLDevice = getBoolean("settings.opencl.use-any", useAnyOpenCLDevice);
++    }
+ }
+diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..72b9698b1c7fe5e4f198762733311c81b6c9362c
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
+@@ -0,0 +1,312 @@
++/*
++ * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
++ * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
++ * Lightstone Copyright (C) 2010-2011 Graham Edgecombe.
++ */
++
++package net.yatopia.server.opencl;
++
++import com.jogamp.opencl.CLCommandQueue;
++import com.jogamp.opencl.CLContext;
++import com.jogamp.opencl.CLDevice;
++import com.jogamp.opencl.CLKernel;
++import com.jogamp.opencl.CLPlatform;
++import com.jogamp.opencl.CLProgram;
++import net.yatopia.server.YatopiaConfig;
++import org.apache.logging.log4j.Level;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++
++import java.io.File;
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.io.InputStream;
++import java.util.HashMap;
++
++public class OpenCompute {
++
++    private static final Logger LOGGER = LogManager.getLogger();
++
++    private static final ClassLoader CLASS_LOADER = OpenCompute.class.getClassLoader();
++    private static File openCLDir;
++    private static CLPlatform platform;
++    private static CLContext context;
++    private static CLDevice device;
++    private static CLCommandQueue queue;
++    private static HashMap<String, CLProgram> programs;
++    private static HashMap<CLProgram, HashMap<String, CLKernel>> kernels;
++
++    private static volatile boolean isStarted = false;
++
++    public static CLPlatform getPlatform() {
++        return platform;
++    }
++
++    public static CLContext getContext() {
++        return context;
++    }
++
++    public static CLDevice getDevice() {
++        return device;
++    }
++
++    public static CLCommandQueue getQueue() {
++        return queue;
++    }
++
++    public static boolean isStarted() {
++        return isStarted;
++    }
++
++    /**
++     * Returns an OpenCL program, loading it synchronously if it's not in cache.
++     *
++     * @param name the program filename
++     * @return the OpenCL program, or null if there isn't a valid program with that name
++     */
++    public static CLProgram getProgram(String name) {
++        if (programs.containsKey(name)) {
++            return programs.get(name);
++        } else {
++            if (openCLDir.exists() && openCLDir.isDirectory()) {
++                File file = new File(openCLDir, name);
++                if (file.exists()) {
++                    try (InputStream input = new FileInputStream(file)) {
++                        CLProgram program = context.createProgram(input).build();
++                        programs.put(name, program);
++                        return program;
++                    } catch (IOException ex) {
++                        LOGGER.log(Level.WARN,
++                                "Could not load custom OpenCL program.", ex);
++                    }
++                } else {
++                    try (InputStream input = CLASS_LOADER
++                            .getResourceAsStream("builtin/opencl/" + name)) {
++                        CLProgram program = context.createProgram(input).build();
++                        programs.put(name, program);
++                        return program;
++                    } catch (IOException ex) {
++                        LOGGER.log(Level.WARN,
++                                "Could not load builtin OpenCL program.", ex);
++                    }
++                }
++            }
++        }
++        return null;
++    }
++
++    public static CLKernel getKernel(CLProgram program, String name) {
++        return getKernel(program, name, false);
++    }
++
++    /**
++     * Returns a {@link CLKernel} that is part of the given {@link CLProgram}.
++     *
++     * @param program  the {@link CLProgram} that contains the kernel
++     * @param name     the name of the kernel
++     * @param threaded if true, always create a new {@link CLKernel} instance
++     * @return the {@link CLKernel}
++     */
++    public static CLKernel getKernel(CLProgram program, String name, boolean threaded) {
++        if (kernels.containsKey(program)) {
++            HashMap<String, CLKernel> kernel = kernels.get(program);
++            if (kernel.containsKey(name) && !threaded) {
++                return kernel.get(name);
++            } else {
++                CLKernel clKernel = program.createCLKernel(name);
++                kernel.put(name, clKernel);
++                return clKernel;
++            }
++        } else {
++            kernels.put(program, new HashMap<>());
++            CLKernel clKernel = program.createCLKernel(name);
++            kernels.get(program).put(name, clKernel);
++            return clKernel;
++        }
++    }
++
++    /**
++     * Initializes OpenCompute API with settings defined in yatopia.yml
++     */
++    public static synchronized void init() {
++        if (YatopiaConfig.useOpenCL) {
++            int openClMajor = 1;
++            int openClMinor = 2;
++
++            int maxGpuFlops = 0;
++            int maxIntelFlops = 0;
++            int maxCpuFlops = 0;
++            CLPlatform bestPlatform = null;
++            CLPlatform bestIntelPlatform = null;
++            CLPlatform bestCpuPlatform = null;
++            // gets the max flops device across platforms on the computer
++            for (CLPlatform platform : CLPlatform.listCLPlatforms()) {
++                if (platform.isAtLeast(openClMajor, openClMinor) && platform
++                        .isExtensionAvailable("cl_khr_fp64")) { // NON-NLS
++                    for (CLDevice device : platform.listCLDevices()) {
++                        if (device.getType() == CLDevice.Type.GPU) {
++                            int flops = device.getMaxComputeUnits() * device.getMaxClockFrequency();
++                            LOGGER.info("Found device {} with {} flops", device, flops);
++                            if (device.getVendor().contains("Intel")) { // NON-NLS
++                                if (flops > maxIntelFlops) {
++                                    maxIntelFlops = flops;
++                                    LOGGER.info("Device is best platform so far, on {}", platform);
++                                    bestIntelPlatform = platform;
++                                } else if (flops == maxIntelFlops) {
++                                    if (bestIntelPlatform != null && bestIntelPlatform.getVersion()
++                                            .compareTo(platform.getVersion()) < 0) {
++                                        maxIntelFlops = flops;
++                                        LOGGER.info("Device tied for flops, but had higher version on {}", platform);
++                                        bestIntelPlatform = platform;
++                                    }
++                                }
++                            } else {
++                                if (flops > maxGpuFlops) {
++                                    maxGpuFlops = flops;
++                                    LOGGER.info("Device is best platform so far, on {}", platform);
++                                    bestPlatform = platform;
++                                } else if (flops == maxGpuFlops) {
++                                    if (bestPlatform != null && bestPlatform.getVersion()
++                                            .compareTo(platform.getVersion()) < 0) {
++                                        maxGpuFlops = flops;
++                                        LOGGER.info("Device tied for flops, but had higher version on {}", platform);
++                                        bestPlatform = platform;
++                                    }
++                                }
++                            }
++                        } else {
++                            int flops = device.getMaxComputeUnits() * device.getMaxClockFrequency();
++                            LOGGER.info("Found device {} with {} flops", device, flops);
++                            if (flops > maxCpuFlops) {
++                                maxCpuFlops = flops;
++                                LOGGER.info("Device is best platform so far, on {}", platform);
++                                bestCpuPlatform = platform;
++                            } else if (flops == maxCpuFlops) {
++                                if (bestCpuPlatform != null && bestCpuPlatform.getVersion()
++                                        .compareTo(platform.getVersion()) < 0) {
++                                    maxCpuFlops = flops;
++                                    LOGGER.info("Device tied for flops, but had higher version on {}", platform);
++                                    bestCpuPlatform = platform;
++                                }
++                            }
++                        }
++                    }
++                }
++            }
++
++            if (YatopiaConfig.useAnyOpenCLDevice) {
++                if (maxGpuFlops - maxIntelFlops < 0 && maxCpuFlops - maxIntelFlops <= 0) {
++                    bestPlatform = bestIntelPlatform;
++                } else if (maxGpuFlops - maxCpuFlops < 0 && maxIntelFlops - maxCpuFlops < 0) {
++                    bestPlatform = bestCpuPlatform;
++                }
++            } else {
++                if (maxGpuFlops == 0) {
++                    if (maxIntelFlops == 0) {
++                        LOGGER.info("No Intel graphics found, best platform is the best CPU platform we could find...");
++                        bestPlatform = bestCpuPlatform;
++                    } else {
++                        LOGGER.info("No dGPU found, best platform is the best Intel graphics we could find...");
++                        bestPlatform = bestIntelPlatform;
++                    }
++                }
++            }
++
++            if (bestPlatform == null) {
++                LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. See if driver updates are available.");
++                LOGGER.warn("Required version: {}.{}", openClMajor, openClMinor);
++                LOGGER.warn("Required extensions: [ cl_khr_fp64 ]");
++            } else {
++                OpenCompute.initContext(bestPlatform);
++            }
++        }
++    }
++
++    /**
++     * Initializes the {@link CLContext}, {@link CLDevice} and {@link CLCommandQueue} for the given
++     * {@link CLPlatform}.
++     *
++     * @param platform the {@link CLPlatform} to use
++     */
++    public static synchronized void initContext(CLPlatform platform) {
++
++        if (isStarted) {
++            LOGGER.warn("initContext() called twice");
++            return;
++        }
++
++        openCLDir = new File("opencl");
++
++        if (!openCLDir.isDirectory() && !openCLDir.mkdirs()) {
++            LOGGER.fatal("Cannot create OpenCL directory");
++        }
++
++        programs = new HashMap<>();
++        kernels = new HashMap<>();
++        OpenCompute.platform = platform;
++        context = CLContext.create(platform);
++        device = context.getMaxFlopsDevice();
++        queue = device.createCommandQueue();
++
++        LOGGER.info("OpenCL: Using " + platform + " on device " + device + ".");
++        isStarted = true;
++    }
++
++    /**
++     * Calculates the number of work groups.
++     *
++     * @param size the total number of local work units
++     * @return the number of work groups
++     */
++    public static int getGlobalSize(int size) {
++        return getGlobalSize(size, getLocalSize());
++    }
++
++    /**
++     * Calculates the number of work groups.
++     *
++     * @param size          the total number of local work units
++     * @param localWorkSize the number of local work units per work group
++     * @return the number of work groups
++     */
++    public static int getGlobalSize(int size, int localWorkSize) {
++        int globalSize = size;
++        int r = globalSize % localWorkSize;
++        if (r != 0) {
++            globalSize += localWorkSize - r;
++        }
++        return globalSize;
++    }
++
++    /**
++     * Calculates the number of local work units per work group.
++     *
++     * @return the size of the work groups
++     */
++    public static int getLocalSize() {
++        return Math.min(device.getMaxWorkGroupSize(), 256);
++    }
++
++    /**
++     * Calculates the number of local work units per work group, applying a specified maximum.
++     *
++     * @param max the maximum size allowed
++     * @return the size of the work groups
++     */
++    public static int getLocalSize(int max) {
++        return Math.min(device.getMaxWorkGroupSize(), max);
++    }
++
++    /**
++     * Static de-initializer. Clears all references to {@link CLProgram}, {@link CLKernel} and
++     * {@link CLContext} instances.
++     */
++    public static synchronized void release() {
++        programs.clear();
++        programs = null;
++        kernels.clear();
++        kernels = null;
++        context.release();
++        isStarted = false;
++    }
++}
+diff --git a/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..8ca30ee31f3ca7e24ce93d6f0298a50cb013aa70
+--- /dev/null
++++ b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
+@@ -0,0 +1,26 @@
++package net.yatopia.server.opencl;
++
++import junit.framework.TestCase;
++import net.yatopia.server.YatopiaConfig;
++import org.junit.Assert;
++
++public class OpenComputeTest extends TestCase {
++
++    public void testInitDefault() {
++        YatopiaConfig.useAnyOpenCLDevice = true;
++        OpenCompute.init();
++        if(!OpenCompute.isStarted())
++            System.out.println("[WARN] OpenCL service not started");
++        OpenCompute.release();
++        Assert.assertTrue(true);
++    }
++
++    public void testInitNotAnyDevice() {
++        YatopiaConfig.useAnyOpenCLDevice = false;
++        OpenCompute.init();
++        if(!OpenCompute.isStarted())
++            System.out.println("[WARN] OpenCL service not started");
++        OpenCompute.release();
++        Assert.assertTrue(true);
++    }
++}
+\ No newline at end of file
