@@ -10,17 +10,17 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
-| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
+| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
-| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
-| server |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
-| server |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add StructureLocateEvent      | dfsek |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
@@ -70,8 +70,8 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
-| server |  Modify POM      | tr7zw |  |
 | api |  Modify POM      | tr7zw |  |
+| server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
@@ -85,13 +85,13 @@ This is an overview over all patches that are currently used.
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
-| server |  PaperPR - Add hex color code support for console logging      | William Blake Galbreath |  |
+| server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
-| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
