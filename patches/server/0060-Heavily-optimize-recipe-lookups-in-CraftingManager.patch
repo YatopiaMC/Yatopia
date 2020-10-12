@@ -12,7 +12,7 @@ These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..594396242e02094df3c830ddc75e014e81ea25b0 100644
+index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd02594d2071fe 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -31,6 +31,10 @@ public class CraftingManager extends ResourceDataJson {
@@ -20,17 +20,23 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..594396242e02094df3c830ddc75e014e
      public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
      private boolean d;
 +    // Yatopia start
-+    private static final List<IRecipe<?>> ALL_RECIPES_CACHE = new java.util.ArrayList<>();
++    private static final List<IRecipe<?>> ALL_RECIPES_CACHE = new net.yatopia.server.list.GlueList<>();
 +    private static final Map<Recipes<?>, List<IRecipe<?>>> TYPES_CACHE = new Object2ObjectLinkedOpenHashMap<>();
 +    // Yatopia end
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -66,6 +70,11 @@ public class CraftingManager extends ResourceDataJson {
+@@ -63,9 +67,17 @@ public class CraftingManager extends ResourceDataJson {
+             }
+         }
+ 
++        // Yatopia start - nuke stream & cache all recipes for constant access in b()
++        /*
          this.recipes = (Map) map1.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (entry1) -> {
              return entry1.getValue(); // CraftBukkit // Paper - decompile fix - *shrugs internally*
          }));
-+        // Yatopia start - cache all recipes for constant access in b()
++         */
++        this.recipes = ImmutableMap.copyOf(map1);
 +        for (Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> recipesMap : map1.values()) {
 +            ALL_RECIPES_CACHE.addAll(recipesMap.values());
 +        }
@@ -38,7 +44,13 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..594396242e02094df3c830ddc75e014e
          CraftingManager.LOGGER.info("Loaded {} recipes", map1.size());
      }
  
-@@ -84,18 +93,38 @@ public class CraftingManager extends ResourceDataJson {
+@@ -79,23 +91,44 @@ public class CraftingManager extends ResourceDataJson {
+         } else {
+             map.putAndMoveToFirst(irecipe.getKey(), irecipe); // CraftBukkit - SPIGOT-4638: last recipe gets priority
+         }
++        ALL_RECIPES_CACHE.add(irecipe); // Yatopia
+     }
+     // CraftBukkit end
  
      public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
          // CraftBukkit start
@@ -77,7 +89,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..594396242e02094df3c830ddc75e014e
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
-@@ -106,6 +135,7 @@ public class CraftingManager extends ResourceDataJson {
+@@ -106,6 +139,7 @@ public class CraftingManager extends ResourceDataJson {
          })).collect(Collectors.toList());
      }
  
@@ -85,7 +97,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..594396242e02094df3c830ddc75e014e
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
          return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
      }
-@@ -127,15 +157,26 @@ public class CraftingManager extends ResourceDataJson {
+@@ -127,15 +161,26 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
@@ -115,7 +127,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..594396242e02094df3c830ddc75e014e
      }
  
      public Stream<MinecraftKey> d() {
-@@ -155,6 +196,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -155,6 +200,10 @@ public class CraftingManager extends ResourceDataJson {
      // CraftBukkit start
      public void clearRecipes() {
          this.recipes = Maps.newHashMap();
