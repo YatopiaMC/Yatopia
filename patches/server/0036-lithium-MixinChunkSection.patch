@@ -7,18 +7,18 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index 100afe2000c981c6837b98436bd53add96e17a29..fb083996c10f553d7eff629a815b11eb7f0bf42c 100644
+index 00bf3ceae4f341277c6442d8555537d9a6066bcd..344b23dfe54df6dee5e2d6bf1bbbe4a9d1da87c4 100644
 --- a/src/main/java/net/minecraft/server/BlockBase.java
 +++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -345,6 +345,8 @@ public abstract class BlockBase {
+@@ -350,6 +350,8 @@ public abstract class BlockBase {
          }
          // Tuinity end
  
 +        public final boolean shapeExceedsCubeUncached() { return this.a == null || this.a.c; } // Yatopia - uncached shapeExceedsCube due to collisions stuff
 +
-         // Tuinity start
-         protected boolean isTicking;
-         protected Fluid fluid;
+         public void a() {
+             this.fluid = this.getBlock().d(this.p()); // Paper - moved from getFluid()
+             this.isTicking = this.getBlock().isTicking(this.p()); // Paper - moved from isTicking()
 diff --git a/src/main/java/net/minecraft/server/ChunkSection.java b/src/main/java/net/minecraft/server/ChunkSection.java
 index cebd808e273dbdb88feb16920dd7a2f60390b34f..d210ac3d5775491e9beb885dde608f5e8fda8eb2 100644
 --- a/src/main/java/net/minecraft/server/ChunkSection.java
