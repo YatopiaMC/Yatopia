@@ -57,10 +57,10 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..5d1312e58f07ebfd5bb3684c6c81dfa4
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..72b9698b1c7fe5e4f198762733311c81b6c9362c
+index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338d9e4d703
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,312 @@
+@@ -0,0 +1,313 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -365,6 +365,7 @@ index 0000000000000000000000000000000000000000..72b9698b1c7fe5e4f198762733311c81
 +     * {@link CLContext} instances.
 +     */
 +    public static synchronized void release() {
++        if(!isStarted) return;
 +        programs.clear();
 +        programs = null;
 +        kernels.clear();
@@ -375,34 +376,22 @@ index 0000000000000000000000000000000000000000..72b9698b1c7fe5e4f198762733311c81
 +}
 diff --git a/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8ca30ee31f3ca7e24ce93d6f0298a50cb013aa70
+index 0000000000000000000000000000000000000000..ce386a74b75ac98b52917c05116bce40e0aca607
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,14 @@
 +package net.yatopia.server.opencl;
 +
 +import junit.framework.TestCase;
-+import net.yatopia.server.YatopiaConfig;
-+import org.junit.Assert;
 +
 +public class OpenComputeTest extends TestCase {
 +
 +    public void testInitDefault() {
-+        YatopiaConfig.useAnyOpenCLDevice = true;
 +        OpenCompute.init();
 +        if(!OpenCompute.isStarted())
 +            System.out.println("[WARN] OpenCL service not started");
 +        OpenCompute.release();
-+        Assert.assertTrue(true);
 +    }
 +
-+    public void testInitNotAnyDevice() {
-+        YatopiaConfig.useAnyOpenCLDevice = false;
-+        OpenCompute.init();
-+        if(!OpenCompute.isStarted())
-+            System.out.println("[WARN] OpenCL service not started");
-+        OpenCompute.release();
-+        Assert.assertTrue(true);
-+    }
 +}
 \ No newline at end of file
