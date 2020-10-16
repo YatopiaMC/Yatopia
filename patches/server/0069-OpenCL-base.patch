@@ -29,7 +29,7 @@ index 4e9dfd79751fbf5c926c9683a2c8bb2800c60f0c..78be7c38d1a5a10a8638c5cdc2ab826c
          <dependency>
              <groupId>com.googlecode.json-simple</groupId>
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 893487d52aa58f4360cadfb83f87cf9d8396134e..5d1312e58f07ebfd5bb3684c6c81dfa447f89673 100644
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..3fc95746c29d38aabb6a174eee7190dcf43e846d 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -256,12 +256,21 @@ public class YatopiaConfig {
@@ -48,19 +48,19 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..5d1312e58f07ebfd5bb3684c6c81dfa4
      }
 +
 +    public static boolean useOpenCL = true;
-+    public static boolean useAnyOpenCLDevice = true;
++    public static int openCLDeviceOverride = -1;
 +
 +    private static void openCL() {
 +        useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
-+        useAnyOpenCLDevice = getBoolean("settings.opencl.use-any", useAnyOpenCLDevice);
++        openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
 +    }
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338d9e4d703
+index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647f7935567
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,288 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -75,7 +75,9 @@ index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338
 +import com.jogamp.opencl.CLKernel;
 +import com.jogamp.opencl.CLPlatform;
 +import com.jogamp.opencl.CLProgram;
++import com.jogamp.opencl.llb.impl.CLAbstractImpl;
 +import net.yatopia.server.YatopiaConfig;
++import net.yatopia.server.list.GlueList;
 +import org.apache.logging.log4j.Level;
 +import org.apache.logging.log4j.LogManager;
 +import org.apache.logging.log4j.Logger;
@@ -84,7 +86,15 @@ index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338
 +import java.io.FileInputStream;
 +import java.io.IOException;
 +import java.io.InputStream;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.Comparator;
 +import java.util.HashMap;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Set;
++import java.util.concurrent.ConcurrentHashMap;
 +
 +public class OpenCompute {
 +
@@ -96,8 +106,8 @@ index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338
 +    private static CLContext context;
 +    private static CLDevice device;
 +    private static CLCommandQueue queue;
-+    private static HashMap<String, CLProgram> programs;
-+    private static HashMap<CLProgram, HashMap<String, CLKernel>> kernels;
++    private static ConcurrentHashMap<String, CLProgram> programs;
++    private static ConcurrentHashMap<CLProgram, HashMap<String, CLKernel>> kernels;
 +
 +    private static volatile boolean isStarted = false;
 +
@@ -193,94 +203,59 @@ index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338
 +     */
 +    public static synchronized void init() {
 +        if (YatopiaConfig.useOpenCL) {
-+            int openClMajor = 1;
-+            int openClMinor = 2;
-+
-+            int maxGpuFlops = 0;
-+            int maxIntelFlops = 0;
-+            int maxCpuFlops = 0;
-+            CLPlatform bestPlatform = null;
-+            CLPlatform bestIntelPlatform = null;
-+            CLPlatform bestCpuPlatform = null;
-+            // gets the max flops device across platforms on the computer
-+            for (CLPlatform platform : CLPlatform.listCLPlatforms()) {
-+                if (platform.isAtLeast(openClMajor, openClMinor) && platform
-+                        .isExtensionAvailable("cl_khr_fp64")) { // NON-NLS
-+                    for (CLDevice device : platform.listCLDevices()) {
-+                        if (device.getType() == CLDevice.Type.GPU) {
-+                            int flops = device.getMaxComputeUnits() * device.getMaxClockFrequency();
-+                            LOGGER.info("Found device {} with {} flops", device, flops);
-+                            if (device.getVendor().contains("Intel")) { // NON-NLS
-+                                if (flops > maxIntelFlops) {
-+                                    maxIntelFlops = flops;
-+                                    LOGGER.info("Device is best platform so far, on {}", platform);
-+                                    bestIntelPlatform = platform;
-+                                } else if (flops == maxIntelFlops) {
-+                                    if (bestIntelPlatform != null && bestIntelPlatform.getVersion()
-+                                            .compareTo(platform.getVersion()) < 0) {
-+                                        maxIntelFlops = flops;
-+                                        LOGGER.info("Device tied for flops, but had higher version on {}", platform);
-+                                        bestIntelPlatform = platform;
-+                                    }
-+                                }
-+                            } else {
-+                                if (flops > maxGpuFlops) {
-+                                    maxGpuFlops = flops;
-+                                    LOGGER.info("Device is best platform so far, on {}", platform);
-+                                    bestPlatform = platform;
-+                                } else if (flops == maxGpuFlops) {
-+                                    if (bestPlatform != null && bestPlatform.getVersion()
-+                                            .compareTo(platform.getVersion()) < 0) {
-+                                        maxGpuFlops = flops;
-+                                        LOGGER.info("Device tied for flops, but had higher version on {}", platform);
-+                                        bestPlatform = platform;
-+                                    }
-+                                }
-+                            }
-+                        } else {
-+                            int flops = device.getMaxComputeUnits() * device.getMaxClockFrequency();
-+                            LOGGER.info("Found device {} with {} flops", device, flops);
-+                            if (flops > maxCpuFlops) {
-+                                maxCpuFlops = flops;
-+                                LOGGER.info("Device is best platform so far, on {}", platform);
-+                                bestCpuPlatform = platform;
-+                            } else if (flops == maxCpuFlops) {
-+                                if (bestCpuPlatform != null && bestCpuPlatform.getVersion()
-+                                        .compareTo(platform.getVersion()) < 0) {
-+                                    maxCpuFlops = flops;
-+                                    LOGGER.info("Device tied for flops, but had higher version on {}", platform);
-+                                    bestCpuPlatform = platform;
-+                                }
-+                            }
-+                        }
-+                    }
-+                }
++            if (!CLAbstractImpl.isAvailable()) {
++                LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. " +
++                        "See if driver updates are available.");
++                return;
 +            }
 +
-+            if (YatopiaConfig.useAnyOpenCLDevice) {
-+                if (maxGpuFlops - maxIntelFlops < 0 && maxCpuFlops - maxIntelFlops <= 0) {
-+                    bestPlatform = bestIntelPlatform;
-+                } else if (maxGpuFlops - maxCpuFlops < 0 && maxIntelFlops - maxCpuFlops < 0) {
-+                    bestPlatform = bestCpuPlatform;
-+                }
-+            } else {
-+                if (maxGpuFlops == 0) {
-+                    if (maxIntelFlops == 0) {
-+                        LOGGER.info("No Intel graphics found, best platform is the best CPU platform we could find...");
-+                        bestPlatform = bestCpuPlatform;
-+                    } else {
-+                        LOGGER.info("No dGPU found, best platform is the best Intel graphics we could find...");
-+                        bestPlatform = bestIntelPlatform;
-+                    }
-+                }
++            CLPlatform[] platforms = CLPlatform.listCLPlatforms();
++            LOGGER.info(String.format("Found %d platforms", platforms.length));
++            List<CLDevice> devices = new GlueList<>();
++            for (int i = 0; i < platforms.length; i++) {
++                CLPlatform platform = platforms[i];
++                LOGGER.info("Platform {}: Vendor string: {} ", i, platform.getVendor());
++                LOGGER.info("Platform {}: Profile string: {}", i, platform.getProfile());
++                LOGGER.info("Platform {}: Version string: {} ", i, platform.getVersion());
++                LOGGER.info("Platform {}: Name string: {} ", i, platform.getName());
++                LOGGER.info("Platform {}: Available extensions: {} ", i, platform.getExtensions());
++                CLDevice[] platformDevices = platform.listCLDevices();
++                devices.addAll(Arrays.asList(platformDevices));
 +            }
 +
-+            if (bestPlatform == null) {
-+                LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. See if driver updates are available.");
-+                LOGGER.warn("Required version: {}.{}", openClMajor, openClMinor);
-+                LOGGER.warn("Required extensions: [ cl_khr_fp64 ]");
++            LOGGER.info("Found {} devices", devices.size());
++
++            for (int i = 0, deviceCount = devices.size(); i < deviceCount; i++) {
++                CLDevice device = devices.get(i);
++                CLPlatform platform = device.getPlatform();
++                int platformID = -1;
++                for (int j = 0; j < platforms.length; j++)
++                    if (platforms[j] == platform) {
++                        platformID = j;
++                        break;
++                    }
++                LOGGER.info("Device {} of Platform {}: Name string: {} ", i, platformID, device.getName());
++                LOGGER.info("Device {} of Platform {}: Profile string: {} ", i, platformID, device.getProfile());
++                LOGGER.info("Device {} of Platform {}: Device type: {} ", i, platformID, device.getType());
++                LOGGER.info("Device {} of Platform {}: Available extensions: {}", i, platformID, device.getExtensions());
++                LOGGER.info("Device {} of Platform {}: Execution capabilities: {}", i, platformID, device.getExecutionCapabilities());
++            }
++
++            if (YatopiaConfig.openCLDeviceOverride < -1 || YatopiaConfig.openCLDeviceOverride >= devices.size()) {
++                LOGGER.warn("Invalid override in configuration, ignoring");
++                YatopiaConfig.openCLDeviceOverride = -1;
++            }
++            if (YatopiaConfig.openCLDeviceOverride != -1) {
++                LOGGER.info("Overrides detected, using device {}", YatopiaConfig.openCLDeviceOverride);
++                OpenCompute.initContext(devices.get(YatopiaConfig.openCLDeviceOverride));
 +            } else {
-+                OpenCompute.initContext(bestPlatform);
++                LOGGER.info("No overrides defined, sorting devices by flops...");
++                devices.sort((o1, o2) -> {
++                    int flops1 = o1.getMaxComputeUnits() * o1.getMaxClockFrequency();
++                    int flops2 = o2.getMaxComputeUnits() * o2.getMaxClockFrequency();
++                    return -Integer.compare(flops1, flops2);
++                });
++                OpenCompute.initContext(devices.get(0));
 +            }
 +        }
 +    }
@@ -289,9 +264,9 @@ index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338
 +     * Initializes the {@link CLContext}, {@link CLDevice} and {@link CLCommandQueue} for the given
 +     * {@link CLPlatform}.
 +     *
-+     * @param platform the {@link CLPlatform} to use
++     * @param device the {@link CLDevice} to use
 +     */
-+    public static synchronized void initContext(CLPlatform platform) {
++    public static synchronized void initContext(CLDevice device) {
 +
 +        if (isStarted) {
 +            LOGGER.warn("initContext() called twice");
@@ -304,11 +279,11 @@ index 0000000000000000000000000000000000000000..ed0c94029ba97d25b01b57a8d41af338
 +            LOGGER.fatal("Cannot create OpenCL directory");
 +        }
 +
-+        programs = new HashMap<>();
-+        kernels = new HashMap<>();
-+        OpenCompute.platform = platform;
-+        context = CLContext.create(platform);
-+        device = context.getMaxFlopsDevice();
++        programs = new ConcurrentHashMap<>();
++        kernels = new ConcurrentHashMap<>();
++        platform = device.getPlatform();
++        context = CLContext.create(device);
++        OpenCompute.device = device;
 +        queue = device.createCommandQueue();
 +
 +        LOGGER.info("OpenCL: Using " + platform + " on device " + device + ".");
