@@ -76,12 +76,104 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..3fc95746c29d38aabb6a174eee7190dc
 +        openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
 +    }
  }
+diff --git a/src/main/java/net/yatopia/server/opencl/BasicBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicBenchmark.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..cb5c4cfc3e8ae5511b7fe96bb1267e80b2cf103d
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/opencl/BasicBenchmark.java
+@@ -0,0 +1,86 @@
++package net.yatopia.server.opencl;
++
++import com.jogamp.opencl.CLBuffer;
++import com.jogamp.opencl.CLCommandQueue;
++import com.jogamp.opencl.CLEventList;
++import com.jogamp.opencl.CLKernel;
++import com.jogamp.opencl.CLProgram;
++import com.jogamp.opencl.CLUserEvent;
++
++import java.nio.LongBuffer;
++import java.util.Random;
++import java.util.concurrent.CompletableFuture;
++
++import static com.jogamp.opencl.CLEvent.ProfilingCommand.*;
++
++public class BasicBenchmark {
++
++    private static int WORK_SIZE = 1048576;
++    private static final long[] testData1 = new long[WORK_SIZE];
++    private static final long[] testData2 = new long[WORK_SIZE];
++
++    static {
++        Random random = new Random();
++        for (int i = 0; i < WORK_SIZE; i++) {
++            testData1[i] = random.nextLong();
++            testData2[i] = random.nextLong();
++        }
++    }
++
++    public static CompletableFuture<BenchmarkResult> benchmark(OpenCompute openCompute) {
++        CompletableFuture<BenchmarkResult> future = new CompletableFuture<>();
++        OpenCompute.OPENCL_EXECUTOR.execute(() -> {
++            CLProgram program = openCompute.getProgram("net/yatopia/server/opencl/SpeedTest.cl");
++            long startTime = System.nanoTime();
++            CLBuffer<LongBuffer> longBuffer1 = null;
++            CLBuffer<LongBuffer> longBuffer2 = null;
++            CLBuffer<LongBuffer> longBuffer3 = null;
++            CLKernel kernel = null;
++            CLEventList events = null;
++            try {
++                longBuffer1 = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                longBuffer2 = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                longBuffer3 = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                longBuffer1.getBuffer().put(testData1);
++                longBuffer2.getBuffer().put(testData2);
++                kernel = openCompute.getKernel(program, "test");
++                kernel.putArg(longBuffer1)
++                        .putArg(longBuffer2)
++                        .putArg(longBuffer3);
++                CLCommandQueue clCommandQueue = openCompute.getQueue();
++                events = new CLEventList(null, 1);
++                clCommandQueue.put1DRangeKernel(kernel, 0,
++                        openCompute.getGlobalSize(WORK_SIZE), openCompute.getLocalSize(), events)
++                        .putReadBuffer(longBuffer3, true)
++                        .putWaitForEvents(events, true);
++
++                long gpuTiming = events.getEvent(0).getProfilingInfo(END) - events.getEvent(0).getProfilingInfo(START);
++                long cpuTiming = System.nanoTime() - startTime;
++                future.complete(new BenchmarkResult(gpuTiming, cpuTiming, openCompute));
++            } catch (Throwable t) {
++                future.completeExceptionally(t);
++            } finally {
++                if (longBuffer1 != null && !longBuffer1.isReleased()) longBuffer1.release();
++                if (longBuffer2 != null && !longBuffer2.isReleased()) longBuffer2.release();
++                if (longBuffer3 != null && !longBuffer3.isReleased()) longBuffer3.release();
++                if (kernel != null && !kernel.isReleased()) kernel.release();
++                if (events != null && !events.isReleased()) events.release();
++            }
++
++        });
++        return future;
++    }
++
++    public static class BenchmarkResult {
++        public final long gpuTiming;
++        public final long cpuTiming;
++        public final OpenCompute openCompute;
++
++        private BenchmarkResult(long gpuTiming, long cpuTiming, OpenCompute openCompute) {
++            this.gpuTiming = gpuTiming;
++            this.cpuTiming = cpuTiming;
++            this.openCompute = openCompute;
++        }
++    }
++
++}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe250a9c9b9
+index 0000000000000000000000000000000000000000..62cd9ef6c54dec3d09b8d10f9f65e31ce49ce1b2
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,291 @@
+@@ -0,0 +1,336 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -111,20 +203,39 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +import java.util.Arrays;
 +import java.util.HashMap;
 +import java.util.List;
++import java.util.concurrent.CompletableFuture;
 +import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.atomic.AtomicLong;
++import java.util.function.BiFunction;
++import java.util.function.Function;
 +
 +public class OpenCompute implements Closeable {
 +
 +    private static final Logger LOGGER = LogManager.getLogger();
-+
 +    private static final ClassLoader CLASS_LOADER = OpenCompute.class.getClassLoader();
-+    private File openCLDir;
-+    private CLPlatform platform;
-+    private CLContext context;
-+    private CLDevice device;
-+    private CLCommandQueue queue;
++    static final ExecutorService OPENCL_EXECUTOR = Executors.newCachedThreadPool(new ThreadFactory() {
++        private AtomicLong serial = new AtomicLong(0);
++
++        @Override
++        public Thread newThread(Runnable r) {
++            Thread thread = new Thread(r);
++            thread.setName("YatopiaCL-" + serial.getAndIncrement());
++            thread.setPriority(Thread.NORM_PRIORITY - 1);
++            thread.setDaemon(true);
++            return thread;
++        }
++    });
++
++    private final File openCLDir;
++    private final CLPlatform platform;
++    private final CLContext context;
++    private final CLDevice device;
++    private final CLCommandQueue queue;
 +    private ConcurrentHashMap<String, CLProgram> programs;
-+    private ConcurrentHashMap<CLProgram, HashMap<String, CLKernel>> kernels;
 +
 +    private static OpenCompute activeInstance = null;
 +
@@ -133,6 +244,7 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +    }
 +
 +    public static synchronized void release() {
++        LOGGER.info("Yatopia OpenCL: Shutting down");
 +        activeInstance.close();
 +        activeInstance = null;
 +    }
@@ -160,20 +272,20 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +     * @param device the {@link CLDevice} to use
 +     */
 +    private OpenCompute(CLDevice device) {
++        this(device, false);
++    }
++
++    private OpenCompute(CLDevice device, boolean profilingEnabled) {
 +        openCLDir = new File("opencl");
 +
-+        if (!openCLDir.isDirectory() && !openCLDir.mkdirs()) {
-+            LOGGER.fatal("Cannot create OpenCL directory");
-+        }
-+
 +        programs = new ConcurrentHashMap<>();
-+        kernels = new ConcurrentHashMap<>();
 +        platform = device.getPlatform();
 +        context = CLContext.create(device);
 +        this.device = device;
-+        queue = device.createCommandQueue();
-+
-+        LOGGER.info("OpenCL: Using " + platform + " on device " + device + ".");
++        if (profilingEnabled)
++            queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
++        else
++            queue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
 +    }
 +
 +    /**
@@ -186,26 +298,30 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +        if (programs.containsKey(name)) {
 +            return programs.get(name);
 +        } else {
-+            if (openCLDir.exists() && openCLDir.isDirectory()) {
-+                File file = new File(openCLDir, name);
-+                if (file.exists()) {
-+                    try (InputStream input = new FileInputStream(file)) {
-+                        CLProgram program = context.createProgram(input).build();
-+                        programs.put(name, program);
-+                        return program;
-+                    } catch (IOException ex) {
-+                        LOGGER.log(Level.WARN,
-+                                "Could not load custom OpenCL program.", ex);
-+                    }
-+                } else {
-+                    try (InputStream input = CLASS_LOADER
-+                            .getResourceAsStream("builtin/opencl/" + name)) {
-+                        CLProgram program = context.createProgram(input).build();
-+                        programs.put(name, program);
-+                        return program;
-+                    } catch (IOException ex) {
-+                        LOGGER.log(Level.WARN,
-+                                "Could not load builtin OpenCL program.", ex);
++            synchronized (this) {
++                if (programs.containsKey(name))
++                    return programs.get(name);
++                if (openCLDir.exists() && openCLDir.isDirectory()) {
++                    File file = new File(openCLDir, name);
++                    if (file.exists()) {
++                        try (InputStream input = new FileInputStream(file)) {
++                            CLProgram program = context.createProgram(input).build();
++                            programs.put(name, program);
++                            return program;
++                        } catch (IOException ex) {
++                            LOGGER.log(Level.WARN,
++                                    "Could not load custom OpenCL program.", ex);
++                        }
++                    } else {
++                        try (InputStream input = CLASS_LOADER
++                                .getResourceAsStream("builtin/opencl/" + name)) {
++                            CLProgram program = context.createProgram(input).build();
++                            programs.put(name, program);
++                            return program;
++                        } catch (IOException ex) {
++                            LOGGER.log(Level.WARN,
++                                    "Could not load builtin OpenCL program.", ex);
++                        }
 +                    }
 +                }
 +            }
@@ -214,33 +330,7 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +    }
 +
 +    public CLKernel getKernel(CLProgram program, String name) {
-+        return getKernel(program, name, true);
-+    }
-+
-+    /**
-+     * Returns a {@link CLKernel} that is part of the given {@link CLProgram}.
-+     *
-+     * @param program  the {@link CLProgram} that contains the kernel
-+     * @param name     the name of the kernel
-+     * @param threaded if true, always create a new {@link CLKernel} instance
-+     * @return the {@link CLKernel}
-+     */
-+    public CLKernel getKernel(CLProgram program, String name, boolean threaded) {
-+        if (kernels.containsKey(program)) {
-+            HashMap<String, CLKernel> kernel = kernels.get(program);
-+            if (kernel.containsKey(name) && !threaded) {
-+                return kernel.get(name);
-+            } else {
-+                CLKernel clKernel = program.createCLKernel(name);
-+                kernel.put(name, clKernel);
-+                return clKernel;
-+            }
-+        } else {
-+            kernels.put(program, new HashMap<>());
-+            CLKernel clKernel = program.createCLKernel(name);
-+            kernels.get(program).put(name, clKernel);
-+            return clKernel;
-+        }
++        return program.createCLKernel(name);
 +    }
 +
 +    /**
@@ -248,6 +338,7 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +     */
 +    public static synchronized void init() {
 +        if (YatopiaConfig.useOpenCL) {
++            LOGGER.info("Initializing OpenCL...");
 +            if (!CLAbstractImpl.isAvailable()) {
 +                LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. " +
 +                        "See if driver updates are available.");
@@ -257,6 +348,7 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +            CLPlatform[] platforms = CLPlatform.listCLPlatforms();
 +            LOGGER.info(String.format("Found %d platforms", platforms.length));
 +            List<CLDevice> devices = new GlueList<>();
++            List<CompletableFuture<BasicBenchmark.BenchmarkResult>> deviceBenchmarks = new GlueList<>();
 +            for (int i = 0; i < platforms.length; i++) {
 +                CLPlatform platform = platforms[i];
 +                LOGGER.info("Platform {}: Vendor string: {} ", i, platform.getVendor());
@@ -292,7 +384,6 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +                LOGGER.info("Device {} of Platform {}: Device type: {} ", i, platformID, device.getType());
 +                LOGGER.info("Device {} of Platform {}: Available extensions: {}", i, platformID, device.getExtensions());
 +                LOGGER.info("Device {} of Platform {}: Execution capabilities: {}", i, platformID, device.getExecutionCapabilities());
-+                LOGGER.info("Device {} of Platform {}: Maximum computing power: {} * {} = {}", i, platformID, device.getMaxComputeUnits(), device.getMaxClockFrequency(),device.getMaxComputeUnits() * device.getMaxClockFrequency());
 +            }
 +
 +            if (YatopiaConfig.openCLDeviceOverride < -1 || YatopiaConfig.openCLDeviceOverride >= devices.size()) {
@@ -303,13 +394,62 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +                LOGGER.info("Overrides detected, using device {}", YatopiaConfig.openCLDeviceOverride);
 +                activeInstance = new OpenCompute(devices.get(YatopiaConfig.openCLDeviceOverride));
 +            } else {
-+                LOGGER.info("No overrides defined, sorting devices by maximum computing power...");
-+                devices.sort((o1, o2) -> {
-+                    int flops1 = o1.getMaxComputeUnits() * o1.getMaxClockFrequency();
-+                    int flops2 = o2.getMaxComputeUnits() * o2.getMaxClockFrequency();
-+                    return -Integer.compare(flops1, flops2);
++                LOGGER.info("No overrides defined, sorting devices by benchmark results...");
++                for (CLDevice device : devices) {
++                    OpenCompute openCompute = new OpenCompute(device, true);
++                    deviceBenchmarks.add(BasicBenchmark.benchmark(openCompute).handle((benchmarkResult, throwable) -> {
++                        if (throwable != null)
++                            throwable.printStackTrace();
++                        openCompute.close();
++                        return benchmarkResult;
++                    }));
++                }
++                deviceBenchmarks.sort((o1, o2) -> {
++                    BasicBenchmark.BenchmarkResult benchmarkResult1;
++                    BasicBenchmark.BenchmarkResult benchmarkResult2;
++                    try {
++                        benchmarkResult1 = o1.get();
++                    } catch (Throwable e) {
++                        e.printStackTrace();
++                        return 1;
++                    }
++                    try {
++                        benchmarkResult2 = o2.get();
++                    } catch (Throwable e) {
++                        e.printStackTrace();
++                        return -1;
++                    }
++                    int gpuTimingCompare = Long.compare(benchmarkResult1.gpuTiming, benchmarkResult2.gpuTiming);
++                    int cpuTimingCompare = Long.compare(benchmarkResult1.cpuTiming, benchmarkResult2.cpuTiming);
++                    if (gpuTimingCompare != 0) return gpuTimingCompare;
++                    else return cpuTimingCompare;
 +                });
-+                activeInstance = new OpenCompute(devices.get(0));
++                deviceBenchmarks.removeIf(future -> {
++                    try {
++                        future.get();
++                    } catch (Throwable e) {
++                        LOGGER.warn("A device failed benchmark", e);
++                        return true;
++                    }
++                    return false;
++                });
++
++                if (deviceBenchmarks.isEmpty()) {
++                    LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. " +
++                            "See if driver updates are available.");
++                    return;
++                }
++
++                LOGGER.info("Benchmark results: ");
++                for (int i = 0, size = deviceBenchmarks.size(); i < size; i++) {
++                    BasicBenchmark.BenchmarkResult benchmarkResult = deviceBenchmarks.get(i).join();
++                    LOGGER.info("{}: {}ms, {}ms: CLPlatform {} on device CLDevice {}",
++                            i + 1, benchmarkResult.gpuTiming / 1_000_000.0, benchmarkResult.cpuTiming / 1_000_000.0,
++                            benchmarkResult.openCompute.getPlatform(), benchmarkResult.openCompute.getDevice());
++                }
++                CLDevice device = deviceBenchmarks.get(0).join().openCompute.device;
++                LOGGER.info("OpenCL: Using CLPlatform {} on device CLDevice {}", device.getPlatform(), device);
++                activeInstance = new OpenCompute(device);
 +            }
 +        }
 +    }
@@ -365,11 +505,8 @@ index 0000000000000000000000000000000000000000..097ba0e8706bce78dddcee2d8238cfe2
 +     */
 +    @Override
 +    public synchronized void close() {
-+        LOGGER.info("OpenCL: Shutting down");
 +        programs.clear();
 +        programs = null;
-+        kernels.clear();
-+        kernels = null;
 +        context.release();
 +    }
 +}
@@ -395,7 +532,17 @@ index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..d9ba1e3f0011d68a9199fc72a7e7b9ed
                  t.printStackTrace();
 diff --git a/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl
 new file mode 100644
-index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+index 0000000000000000000000000000000000000000..64bc704cea2eb94e62739c13f67012440b844a73
+--- /dev/null
++++ b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl
+@@ -0,0 +1,7 @@
++__kernel void test(__global const long *o1, __global const long *o2,
++                   __global long *result) {
++  int current = get_global_id(0);
++
++  result[current] = o1[current] * current +
++                    o2[current] / (o1[current] + current) + 1 / current;
++}
 diff --git a/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..3c1a7955a0738e3103dc8d4ccddda673345c4b92
