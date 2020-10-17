@@ -170,10 +170,10 @@ index 0000000000000000000000000000000000000000..cb5c4cfc3e8ae5511b7fe96bb1267e80
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..62cd9ef6c54dec3d09b8d10f9f65e31ce49ce1b2
+index 0000000000000000000000000000000000000000..c16cd6d838cc661fa7a235b3e51cf92bb56305d9
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,336 @@
+@@ -0,0 +1,315 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -312,17 +312,16 @@ index 0000000000000000000000000000000000000000..62cd9ef6c54dec3d09b8d10f9f65e31c
 +                            LOGGER.log(Level.WARN,
 +                                    "Could not load custom OpenCL program.", ex);
 +                        }
-+                    } else {
-+                        try (InputStream input = CLASS_LOADER
-+                                .getResourceAsStream("builtin/opencl/" + name)) {
-+                            CLProgram program = context.createProgram(input).build();
-+                            programs.put(name, program);
-+                            return program;
-+                        } catch (IOException ex) {
-+                            LOGGER.log(Level.WARN,
-+                                    "Could not load builtin OpenCL program.", ex);
-+                        }
 +                    }
++                }
++                try (InputStream input = CLASS_LOADER
++                        .getResourceAsStream("builtin/opencl/" + name)) {
++                    CLProgram program = context.createProgram(input).build();
++                    programs.put(name, program);
++                    return program;
++                } catch (IOException ex) {
++                    LOGGER.log(Level.WARN,
++                            "Could not load builtin OpenCL program.", ex);
 +                }
 +            }
 +        }
@@ -399,40 +398,20 @@ index 0000000000000000000000000000000000000000..62cd9ef6c54dec3d09b8d10f9f65e31c
 +                    OpenCompute openCompute = new OpenCompute(device, true);
 +                    deviceBenchmarks.add(BasicBenchmark.benchmark(openCompute).handle((benchmarkResult, throwable) -> {
 +                        if (throwable != null)
-+                            throwable.printStackTrace();
++                            LOGGER.info("A device failed to benchmark, device information unavailable", throwable);
 +                        openCompute.close();
 +                        return benchmarkResult;
 +                    }));
 +                }
 +                deviceBenchmarks.sort((o1, o2) -> {
-+                    BasicBenchmark.BenchmarkResult benchmarkResult1;
-+                    BasicBenchmark.BenchmarkResult benchmarkResult2;
-+                    try {
-+                        benchmarkResult1 = o1.get();
-+                    } catch (Throwable e) {
-+                        e.printStackTrace();
-+                        return 1;
-+                    }
-+                    try {
-+                        benchmarkResult2 = o2.get();
-+                    } catch (Throwable e) {
-+                        e.printStackTrace();
-+                        return -1;
-+                    }
++                    BasicBenchmark.BenchmarkResult benchmarkResult1 = o1.join();
++                    BasicBenchmark.BenchmarkResult benchmarkResult2 = o2.join();
 +                    int gpuTimingCompare = Long.compare(benchmarkResult1.gpuTiming, benchmarkResult2.gpuTiming);
 +                    int cpuTimingCompare = Long.compare(benchmarkResult1.cpuTiming, benchmarkResult2.cpuTiming);
 +                    if (gpuTimingCompare != 0) return gpuTimingCompare;
 +                    else return cpuTimingCompare;
 +                });
-+                deviceBenchmarks.removeIf(future -> {
-+                    try {
-+                        future.get();
-+                    } catch (Throwable e) {
-+                        LOGGER.warn("A device failed benchmark", e);
-+                        return true;
-+                    }
-+                    return false;
-+                });
++                deviceBenchmarks.removeIf(future -> future.join() == null);
 +
 +                if (deviceBenchmarks.isEmpty()) {
 +                    LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. " +
