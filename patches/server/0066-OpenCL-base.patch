@@ -78,10 +78,10 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..3fc95746c29d38aabb6a174eee7190dc
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..cb5c4cfc3e8ae5511b7fe96bb1267e80b2cf103d
+index 0000000000000000000000000000000000000000..a85d3728cc03f4f45b38d97667155c99cf6cd5a9
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicBenchmark.java
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,83 @@
 +package net.yatopia.server.opencl;
 +
 +import com.jogamp.opencl.CLBuffer;
@@ -100,20 +100,17 @@ index 0000000000000000000000000000000000000000..cb5c4cfc3e8ae5511b7fe96bb1267e80
 +public class BasicBenchmark {
 +
 +    private static int WORK_SIZE = 1048576;
-+    private static final long[] testData1 = new long[WORK_SIZE];
-+    private static final long[] testData2 = new long[WORK_SIZE];
-+
-+    static {
-+        Random random = new Random();
-+        for (int i = 0; i < WORK_SIZE; i++) {
-+            testData1[i] = random.nextLong();
-+            testData2[i] = random.nextLong();
-+        }
-+    }
 +
 +    public static CompletableFuture<BenchmarkResult> benchmark(OpenCompute openCompute) {
 +        CompletableFuture<BenchmarkResult> future = new CompletableFuture<>();
 +        OpenCompute.OPENCL_EXECUTOR.execute(() -> {
++            final long[] testData1 = new long[WORK_SIZE];
++            final long[] testData2 = new long[WORK_SIZE];
++            Random random = new Random();
++            for (int i = 0; i < WORK_SIZE; i++) {
++                testData1[i] = random.nextLong();
++                testData2[i] = random.nextLong();
++            }
 +            CLProgram program = openCompute.getProgram("net/yatopia/server/opencl/SpeedTest.cl");
 +            long startTime = System.nanoTime();
 +            CLBuffer<LongBuffer> longBuffer1 = null;
@@ -170,10 +167,10 @@ index 0000000000000000000000000000000000000000..cb5c4cfc3e8ae5511b7fe96bb1267e80
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c16cd6d838cc661fa7a235b3e51cf92bb56305d9
+index 0000000000000000000000000000000000000000..16dc0a19eb5137c5444e06718c64c42f749b7a4c
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,315 @@
+@@ -0,0 +1,316 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -245,7 +242,8 @@ index 0000000000000000000000000000000000000000..c16cd6d838cc661fa7a235b3e51cf92b
 +
 +    public static synchronized void release() {
 +        LOGGER.info("Yatopia OpenCL: Shutting down");
-+        activeInstance.close();
++        if (activeInstance != null)
++            activeInstance.close();
 +        activeInstance = null;
 +    }
 +
@@ -511,16 +509,17 @@ index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..d9ba1e3f0011d68a9199fc72a7e7b9ed
                  t.printStackTrace();
 diff --git a/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl
 new file mode 100644
-index 0000000000000000000000000000000000000000..64bc704cea2eb94e62739c13f67012440b844a73
+index 0000000000000000000000000000000000000000..f3deb06b5b51efbce68a450e58e4ad0359934023
 --- /dev/null
 +++ b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,8 @@
 +__kernel void test(__global const long *o1, __global const long *o2,
 +                   __global long *result) {
 +  int current = get_global_id(0);
 +
-+  result[current] = o1[current] * current +
-+                    o2[current] / (o1[current] + current) + 1 / current;
++  result[current] = ((o1[current] * current) << 2) +
++                    (o2[current] % 2) / (current + 1) +
++                    (current >> 2) / ((current + 1) << 4);
 +}
 diff --git a/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
 new file mode 100644
