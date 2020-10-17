@@ -78,7 +78,7 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..3fc95746c29d38aabb6a174eee7190dc
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f2bbdb955706f57a7c094cd1205b2c94254cfd2b
+index 0000000000000000000000000000000000000000..fd9dc1e8949dad904af4b21ddf29efa679215792
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 @@ -0,0 +1,291 @@
@@ -108,14 +108,9 @@ index 0000000000000000000000000000000000000000..f2bbdb955706f57a7c094cd1205b2c94
 +import java.io.FileInputStream;
 +import java.io.IOException;
 +import java.io.InputStream;
-+import java.util.ArrayList;
 +import java.util.Arrays;
-+import java.util.Collections;
-+import java.util.Comparator;
 +import java.util.HashMap;
-+import java.util.HashSet;
 +import java.util.List;
-+import java.util.Set;
 +import java.util.concurrent.ConcurrentHashMap;
 +
 +public class OpenCompute implements Closeable {
@@ -274,6 +269,11 @@ index 0000000000000000000000000000000000000000..f2bbdb955706f57a7c094cd1205b2c94
 +            }
 +
 +            LOGGER.info("Found {} devices", devices.size());
++            if (devices.isEmpty()) {
++                LOGGER.warn("Your system does not meet the OpenCL requirements for Yatopia OpenCL Acceleration. " +
++                        "See if driver updates are available.");
++                return;
++            }
 +
 +            for (int i = 0, deviceCount = devices.size(); i < deviceCount; i++) {
 +                CLDevice device = devices.get(i);
