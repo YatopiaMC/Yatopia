@@ -35,7 +35,6 @@ This is an overview over all patches that are currently used.
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
-| server |  Async entity tracking      | Mykyta Komarn | Ivan Pekov |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | tr7zw |  |
@@ -60,7 +59,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
-| server |  Fix villager dupe      | Ivan Pekov |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
@@ -70,7 +68,6 @@ This is an overview over all patches that are currently used.
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
-| server |  Load also the chunk that you&#39;re teleporting to      | Ivan Pekov |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | tr7zw |  |
@@ -88,7 +85,7 @@ This is an overview over all patches that are currently used.
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
-| server |  PaperPR - Add hex color code support for console logging      | William Blake Galbreath |  |
+| server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |

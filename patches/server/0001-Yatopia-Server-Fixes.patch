@@ -381,7 +381,7 @@ index c2b788bb29fdfec9b4b6768a42e32e5af966f0ae..00000000000000000000000000000000
 - 
 -         // Tuinity start - controlled flush for entity tracker packets
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index d280ff20082fa526fa08c38eeff5ef21d3134e76..1ec7046dd79c07203d7c4a8c60145db9d0ac3b82 100644
+index 5f085743931cd43be1eac2886adf2ac45a3941b2..585b8c341e83a50714af2b35ea875ddeef38a826 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -440,7 +440,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -1128,7 +1128,7 @@ index 98a910fa6bfc9542b1d1cb56b6621809acd6b279..00000000000000000000000000000000
 -                         TileEntity tileentity = block.isTileEntity() ? this.world.getTileEntity(blockposition) : null;
 -                         LootTableInfo.Builder loottableinfo_builder = (new LootTableInfo.Builder((WorldServer) this.world)).a(this.world.random).set(LootContextParameters.POSITION, blockposition).set(LootContextParameters.TOOL, ItemStack.b).setOptional(LootContextParameters.BLOCK_ENTITY, tileentity).setOptional(LootContextParameters.THIS_ENTITY, this.source);
 diff --git a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java
-index 567c1bb19020a76b3ce03d8b79b8982d51238dde..97267c4a5040617a24f8131739cc5ee4ac14f34f 100644
+index 567c1bb19020a76b3ce03d8b79b8982d51238dde..b7dfa73d4119fe1195412e9ce60fe982ffc42c55 100644
 --- a/src/main/java/net/minecraft/server/IProjectile.java
 +++ b/src/main/java/net/minecraft/server/IProjectile.java
 @@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
@@ -1146,7 +1146,7 @@ index 567c1bb19020a76b3ce03d8b79b8982d51238dde..97267c4a5040617a24f8131739cc5ee4
 +
 +        // Purpur start
 +        if (!(this instanceof EntityArrow)) {
-+            if (ticksLived > 200) this.tickDespawnCounter(); // Paper - tick despawnCounter regardless after 10 seconds
++            this.tickDespawnCounter();
 +        }
 +        // Purpur end
      }
@@ -1288,7 +1288,7 @@ index 2ae4a20ca763c60c9661661d2ae558bd5b6f79a1..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index c0815269be89c2b9d316ccaf8ccfa15beec98cc4..b06264b2315d7fed50946050445117c8aa930b3c 100644
+index 13aa1a10f3cbcceb4f05d407d4b6d36f5e8a06a0..b365596205f97efef2d1eac70df18401910c22d7 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -1682,12 +1682,12 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..9fd735bb4e5590be1eec958f10acb76a
  }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 deleted file mode 100644
-index c32fd03bad569d36b2225e89e9b550b08f83e4e2..0000000000000000000000000000000000000000
+index b355db095a49ccee8027a4f350c45526abb98273..0000000000000000000000000000000000000000
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java.rej
 +++ /dev/null
 @@ -1,17 +0,0 @@
 -diff a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java	(rejected hunks)
--@@ -182,6 +182,7 @@ public class PurpurWorldConfig {
+-@@ -184,6 +184,7 @@ public class PurpurWorldConfig {
 -     public boolean fixClimbingBypassingCrammingRule = false;
 -     public boolean milkCuresBadOmen = true;
 -     public boolean saveProjectilesToDisk = true;
@@ -1695,7 +1695,7 @@ index c32fd03bad569d36b2225e89e9b550b08f83e4e2..00000000000000000000000000000000
 -     public double tridentLoyaltyVoidReturnHeight = 0.0D;
 -     public double voidDamageHeight = -64.0D;
 -     public int raidCooldownSeconds = 0;
--@@ -194,6 +195,7 @@ public class PurpurWorldConfig {
+-@@ -196,6 +197,7 @@ public class PurpurWorldConfig {
 -         fixClimbingBypassingCrammingRule = getBoolean("gameplay-mechanics.fix-climbing-bypassing-cramming-rule", fixClimbingBypassingCrammingRule);
 -         milkCuresBadOmen = getBoolean("gameplay-mechanics.milk-cures-bad-omen", milkCuresBadOmen);
 -         saveProjectilesToDisk = getBoolean("gameplay-mechanics.save-projectiles-to-disk", saveProjectilesToDisk);

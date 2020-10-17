@@ -406,7 +406,7 @@ index 7f7bfea0b71f556b5272370c9e9e1fe35ff10c69..efc40224c1df629d82775ed5b43437bf
      public static enum Void implements LightEngineLayerEventListener {
  
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 4d024a4849b7566c0faba131caab57b4ddf35e29..97d8a0ad1e8e4d24580207e38a9c0f68a9dc745f 100644
+index f3494ac1ad659352ca5595adf9e6919bdb4018d0..eec36b8bf0502d21e1559af45d66cce8d7f3a929 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 @@ -1,10 +1,7 @@
@@ -533,7 +533,7 @@ index a22f0cccecc85b4e4fe4603bcfa213f15c23db69..9712f2b42403c7dc399f3387cd0ff151
                      this.h.add(nibblearray.getCloneIfSet()); // Paper
                  } else {
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index e6576054f1db3438d79e04fe252d20864ec84a08..675b352927c2f407e5c53f6b27d8f129d5922ae3 100644
+index 135ee97605d74be3a3dba4a3d973843b73c658e8..d45562d423556a9386c4a6fc65559cd3f204787e 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunk.java
 @@ -4,6 +4,8 @@ import com.mojang.datafixers.util.Either;
@@ -573,10 +573,10 @@ index e6576054f1db3438d79e04fe252d20864ec84a08..675b352927c2f407e5c53f6b27d8f129
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 9cde23731ca8e22b5263784e65c7efb0ce5312f8..c0dea9b480cd7539e726ba236e9b812cf6f43f35 100644
+index 2c5c224e90f85d0c5a99daf4fcf5a49d5abcc299..f98e9cb85f3cd62c2a96266a5e3c25162a508d07 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
+@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
  import java.util.stream.Stream;
  import javax.annotation.Nullable;
  import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet; // Paper
@@ -585,7 +585,7 @@ index 9cde23731ca8e22b5263784e65c7efb0ce5312f8..c0dea9b480cd7539e726ba236e9b812c
  import org.apache.commons.lang3.mutable.MutableBoolean;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -90,7 +92,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -89,7 +91,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      private final Long2ObjectLinkedOpenHashMap<PlayerChunk> pendingUnload;
      final LongSet loadedChunks; // Paper - private -> package
      public final WorldServer world;
@@ -594,7 +594,7 @@ index 9cde23731ca8e22b5263784e65c7efb0ce5312f8..c0dea9b480cd7539e726ba236e9b812c
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
-@@ -341,7 +343,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -338,7 +340,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.mailboxWorldGen = this.p.a(threadedmailbox, false);
          this.mailboxMain = this.p.a(mailbox, false);
          this.mailboxLight = this.p.a(lightthreaded, false);// Paper
@@ -603,7 +603,7 @@ index 9cde23731ca8e22b5263784e65c7efb0ce5312f8..c0dea9b480cd7539e726ba236e9b812c
          this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler); this.chunkDistanceManager.chunkMap = this; // Paper
          this.l = supplier;
          this.m = new VillagePlace(new File(this.w, "poi"), datafixer, flag, this.world); // Paper
-@@ -627,7 +629,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -624,7 +626,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          return Math.max(Math.abs(k), Math.abs(l));
      }
  
@@ -612,7 +612,7 @@ index 9cde23731ca8e22b5263784e65c7efb0ce5312f8..c0dea9b480cd7539e726ba236e9b812c
          return this.lightEngine;
      }
  
-@@ -1074,8 +1076,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1071,8 +1073,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                          this.saveChunk(ichunkaccess);
                      }
  
@@ -720,7 +720,7 @@ index 9172c679c874d42750d2adc32124ecda29ea43cf..32338cc0b5d8d4c06d804364fde491c4
      }
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 1b08df02c18230bffb37a945944073fff22b16c9..4fb2fd4cdb40f3fc3f15f2e542d23b75c70c30bc 100644
+index b356686a963e6f5367f39735967b1fb43ad075dc..600a7488e01287608d7d3ff8866606a01b875121 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -1,12 +1,9 @@
@@ -766,10 +766,10 @@ index 1b08df02c18230bffb37a945944073fff22b16c9..4fb2fd4cdb40f3fc3f15f2e542d23b75
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 304769013a68ec18cb87916b0363edfa0e7a0cda..4ef7dd9b6dd55ea28a460e52fab8792016b8692c 100644
+index e41f0ae32f66e5bf3b5ca1e10be2293f945bb5b1..3112740c85ea12a2acc4e15d67b81ac1371c7ef3 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1144,7 +1144,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1143,7 +1143,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              }
              //gameprofilerfiller.exit(); // Akarin - remove caller
              timings.chunkTicksBlocks.stopTiming(); // Paper
@@ -778,7 +778,7 @@ index 304769013a68ec18cb87916b0363edfa0e7a0cda..4ef7dd9b6dd55ea28a460e52fab87920
              // Paper end
          }
      }
-@@ -1777,7 +1777,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1776,7 +1776,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Paper end
  
