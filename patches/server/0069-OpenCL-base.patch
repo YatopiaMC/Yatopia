@@ -28,6 +28,27 @@ index 4e9dfd79751fbf5c926c9683a2c8bb2800c60f0c..78be7c38d1a5a10a8638c5cdc2ab826c
          <!-- deprecated API depend -->
          <dependency>
              <groupId>com.googlecode.json-simple</groupId>
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b4cd0037f 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -56,6 +56,8 @@ import java.util.function.Function;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+ import javax.imageio.ImageIO;
++
++import net.yatopia.server.opencl.OpenCompute;
+ import org.apache.commons.lang3.Validate;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -838,6 +840,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         LOGGER.info("Closing Thread Pool");
+         SystemUtils.shutdownServerThreadPool(); // Paper
+         LOGGER.info("Closing Server");
++        OpenCompute.release(); // Yatopia
+         try {
+             net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
+         } catch (Exception e) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
 index 893487d52aa58f4360cadfb83f87cf9d8396134e..3fc95746c29d38aabb6a174eee7190dcf43e846d 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
@@ -57,10 +78,10 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..3fc95746c29d38aabb6a174eee7190dc
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647f7935567
+index 0000000000000000000000000000000000000000..f2bbdb955706f57a7c094cd1205b2c94254cfd2b
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,288 @@
+@@ -0,0 +1,291 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -82,6 +103,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +import org.apache.logging.log4j.LogManager;
 +import org.apache.logging.log4j.Logger;
 +
++import java.io.Closeable;
 +import java.io.File;
 +import java.io.FileInputStream;
 +import java.io.IOException;
@@ -96,39 +118,67 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +import java.util.Set;
 +import java.util.concurrent.ConcurrentHashMap;
 +
-+public class OpenCompute {
++public class OpenCompute implements Closeable {
 +
 +    private static final Logger LOGGER = LogManager.getLogger();
 +
 +    private static final ClassLoader CLASS_LOADER = OpenCompute.class.getClassLoader();
-+    private static File openCLDir;
-+    private static CLPlatform platform;
-+    private static CLContext context;
-+    private static CLDevice device;
-+    private static CLCommandQueue queue;
-+    private static ConcurrentHashMap<String, CLProgram> programs;
-+    private static ConcurrentHashMap<CLProgram, HashMap<String, CLKernel>> kernels;
++    private File openCLDir;
++    private CLPlatform platform;
++    private CLContext context;
++    private CLDevice device;
++    private CLCommandQueue queue;
++    private ConcurrentHashMap<String, CLProgram> programs;
++    private ConcurrentHashMap<CLProgram, HashMap<String, CLKernel>> kernels;
 +
-+    private static volatile boolean isStarted = false;
++    private static OpenCompute activeInstance = null;
 +
-+    public static CLPlatform getPlatform() {
++    public static OpenCompute getActiveInstance() {
++        return activeInstance;
++    }
++
++    public static synchronized void release() {
++        activeInstance.close();
++        activeInstance = null;
++    }
++
++    public CLPlatform getPlatform() {
 +        return platform;
 +    }
 +
-+    public static CLContext getContext() {
++    public CLContext getContext() {
 +        return context;
 +    }
 +
-+    public static CLDevice getDevice() {
++    public CLDevice getDevice() {
 +        return device;
 +    }
 +
-+    public static CLCommandQueue getQueue() {
++    public CLCommandQueue getQueue() {
 +        return queue;
 +    }
 +
-+    public static boolean isStarted() {
-+        return isStarted;
++    /**
++     * Initializes the {@link CLContext}, {@link CLDevice} and {@link CLCommandQueue} for the given
++     * {@link CLPlatform}.
++     *
++     * @param device the {@link CLDevice} to use
++     */
++    private OpenCompute(CLDevice device) {
++        openCLDir = new File("opencl");
++
++        if (!openCLDir.isDirectory() && !openCLDir.mkdirs()) {
++            LOGGER.fatal("Cannot create OpenCL directory");
++        }
++
++        programs = new ConcurrentHashMap<>();
++        kernels = new ConcurrentHashMap<>();
++        platform = device.getPlatform();
++        context = CLContext.create(device);
++        this.device = device;
++        queue = device.createCommandQueue();
++
++        LOGGER.info("OpenCL: Using " + platform + " on device " + device + ".");
 +    }
 +
 +    /**
@@ -137,7 +187,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     * @param name the program filename
 +     * @return the OpenCL program, or null if there isn't a valid program with that name
 +     */
-+    public static CLProgram getProgram(String name) {
++    public CLProgram getProgram(String name) {
 +        if (programs.containsKey(name)) {
 +            return programs.get(name);
 +        } else {
@@ -168,8 +218,8 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +        return null;
 +    }
 +
-+    public static CLKernel getKernel(CLProgram program, String name) {
-+        return getKernel(program, name, false);
++    public CLKernel getKernel(CLProgram program, String name) {
++        return getKernel(program, name, true);
 +    }
 +
 +    /**
@@ -180,7 +230,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     * @param threaded if true, always create a new {@link CLKernel} instance
 +     * @return the {@link CLKernel}
 +     */
-+    public static CLKernel getKernel(CLProgram program, String name, boolean threaded) {
++    public CLKernel getKernel(CLProgram program, String name, boolean threaded) {
 +        if (kernels.containsKey(program)) {
 +            HashMap<String, CLKernel> kernel = kernels.get(program);
 +            if (kernel.containsKey(name) && !threaded) {
@@ -235,10 +285,14 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +                        break;
 +                    }
 +                LOGGER.info("Device {} of Platform {}: Name string: {} ", i, platformID, device.getName());
++                LOGGER.info("Device {} of Platform {}: Version string: {} ", i, platformID, device.getVersion());
++                LOGGER.info("Device {} of Platform {}: C-Version string: {} ", i, platformID, device.getCVersion());
++                LOGGER.info("Device {} of Platform {}: Driver version string: {} ", i, platformID, device.getDriverVersion());
 +                LOGGER.info("Device {} of Platform {}: Profile string: {} ", i, platformID, device.getProfile());
 +                LOGGER.info("Device {} of Platform {}: Device type: {} ", i, platformID, device.getType());
 +                LOGGER.info("Device {} of Platform {}: Available extensions: {}", i, platformID, device.getExtensions());
 +                LOGGER.info("Device {} of Platform {}: Execution capabilities: {}", i, platformID, device.getExecutionCapabilities());
++                LOGGER.info("Device {} of Platform {}: Maximum computing power: {} * {} = {}", i, platformID, device.getMaxComputeUnits(), device.getMaxClockFrequency(),device.getMaxComputeUnits() * device.getMaxWorkGroupSize() * device.getMaxClockFrequency());
 +            }
 +
 +            if (YatopiaConfig.openCLDeviceOverride < -1 || YatopiaConfig.openCLDeviceOverride >= devices.size()) {
@@ -247,47 +301,17 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +            }
 +            if (YatopiaConfig.openCLDeviceOverride != -1) {
 +                LOGGER.info("Overrides detected, using device {}", YatopiaConfig.openCLDeviceOverride);
-+                OpenCompute.initContext(devices.get(YatopiaConfig.openCLDeviceOverride));
++                activeInstance = new OpenCompute(devices.get(YatopiaConfig.openCLDeviceOverride));
 +            } else {
-+                LOGGER.info("No overrides defined, sorting devices by flops...");
++                LOGGER.info("No overrides defined, sorting devices by maximum computing power...");
 +                devices.sort((o1, o2) -> {
 +                    int flops1 = o1.getMaxComputeUnits() * o1.getMaxClockFrequency();
 +                    int flops2 = o2.getMaxComputeUnits() * o2.getMaxClockFrequency();
 +                    return -Integer.compare(flops1, flops2);
 +                });
-+                OpenCompute.initContext(devices.get(0));
++                activeInstance = new OpenCompute(devices.get(0));
 +            }
 +        }
-+    }
-+
-+    /**
-+     * Initializes the {@link CLContext}, {@link CLDevice} and {@link CLCommandQueue} for the given
-+     * {@link CLPlatform}.
-+     *
-+     * @param device the {@link CLDevice} to use
-+     */
-+    public static synchronized void initContext(CLDevice device) {
-+
-+        if (isStarted) {
-+            LOGGER.warn("initContext() called twice");
-+            return;
-+        }
-+
-+        openCLDir = new File("opencl");
-+
-+        if (!openCLDir.isDirectory() && !openCLDir.mkdirs()) {
-+            LOGGER.fatal("Cannot create OpenCL directory");
-+        }
-+
-+        programs = new ConcurrentHashMap<>();
-+        kernels = new ConcurrentHashMap<>();
-+        platform = device.getPlatform();
-+        context = CLContext.create(device);
-+        OpenCompute.device = device;
-+        queue = device.createCommandQueue();
-+
-+        LOGGER.info("OpenCL: Using " + platform + " on device " + device + ".");
-+        isStarted = true;
 +    }
 +
 +    /**
@@ -296,7 +320,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     * @param size the total number of local work units
 +     * @return the number of work groups
 +     */
-+    public static int getGlobalSize(int size) {
++    public int getGlobalSize(int size) {
 +        return getGlobalSize(size, getLocalSize());
 +    }
 +
@@ -307,7 +331,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     * @param localWorkSize the number of local work units per work group
 +     * @return the number of work groups
 +     */
-+    public static int getGlobalSize(int size, int localWorkSize) {
++    private static int getGlobalSize(int size, int localWorkSize) {
 +        int globalSize = size;
 +        int r = globalSize % localWorkSize;
 +        if (r != 0) {
@@ -321,7 +345,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     *
 +     * @return the size of the work groups
 +     */
-+    public static int getLocalSize() {
++    public int getLocalSize() {
 +        return Math.min(device.getMaxWorkGroupSize(), 256);
 +    }
 +
@@ -331,7 +355,7 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     * @param max the maximum size allowed
 +     * @return the size of the work groups
 +     */
-+    public static int getLocalSize(int max) {
++    public int getLocalSize(int max) {
 +        return Math.min(device.getMaxWorkGroupSize(), max);
 +    }
 +
@@ -339,19 +363,42 @@ index 0000000000000000000000000000000000000000..eb945e46419f80538e33e7cb05e7d647
 +     * Static de-initializer. Clears all references to {@link CLProgram}, {@link CLKernel} and
 +     * {@link CLContext} instances.
 +     */
-+    public static synchronized void release() {
-+        if(!isStarted) return;
++    @Override
++    public synchronized void close() {
++        LOGGER.info("OpenCL: Shutting down");
 +        programs.clear();
 +        programs = null;
 +        kernels.clear();
 +        kernels = null;
 +        context.release();
-+        isStarted = false;
 +    }
 +}
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..d9ba1e3f0011d68a9199fc72a7e7b9ed9b33be2c 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -13,6 +13,7 @@ import java.util.logging.Logger;
+ import joptsimple.OptionParser;
+ import joptsimple.OptionSet;
+ import net.minecrell.terminalconsole.TerminalConsoleAppender; // Paper
++import net.yatopia.server.opencl.OpenCompute;
+ 
+ public class Main {
+     public static boolean useJline = true;
+@@ -305,6 +306,7 @@ public class Main {
+                 System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
+                 //de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config // Yatopia - no load here for u
+                 System.out.println("Loading libraries, please wait...");
++                OpenCompute.init(); // Yatopia
+                 net.minecraft.server.Main.main(options);
+             } catch (Throwable t) {
+                 t.printStackTrace();
+diff --git a/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/SpeedTest.cl
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
 diff --git a/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ce386a74b75ac98b52917c05116bce40e0aca607
+index 0000000000000000000000000000000000000000..8f267576b547cb25a9e5bcc191629072324c5432
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/opencl/OpenComputeTest.java
 @@ -0,0 +1,14 @@
@@ -363,7 +410,7 @@ index 0000000000000000000000000000000000000000..ce386a74b75ac98b52917c05116bce40
 +
 +    public void testInitDefault() {
 +        OpenCompute.init();
-+        if(!OpenCompute.isStarted())
++        if(OpenCompute.getActiveInstance() != null)
 +            System.out.println("[WARN] OpenCL service not started");
 +        OpenCompute.release();
 +    }
