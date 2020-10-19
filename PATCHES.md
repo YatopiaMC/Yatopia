@@ -43,6 +43,7 @@ This is an overview over all patches that are currently used.
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
+| api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
@@ -86,6 +87,7 @@ This is an overview over all patches that are currently used.
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
+| server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
