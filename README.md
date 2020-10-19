@@ -48,7 +48,7 @@ Run the following commands in the root directory:
 ./yatopia full
 ```
 
-If you are repatching you need to delete `Yatopa-API` and `Yatopia-Server` folders.
+If you are repatching you need to delete `Yatopia-API` and `Yatopia-Server` folders.
 
 ## Using Yatopia-API
 
