@@ -66,7 +66,7 @@ index d798de637389cc5d5289a6c75304de307b01f493..95938d5abdc55cc36211c948658ee312
      }
  
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index b7fcbef8d38c9406a891d64f8016bc16572f00d9..bc4f50a5a83fe47773db25846fdc272fae90eaaa 100644
+index 450d5fabba6cbcc3443f049b2e980b316a2598c0..d2bb5fd16607b8dac8ce82c4c4b3cffe264ee443 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -20,6 +20,8 @@ import java.util.function.Supplier;
@@ -78,7 +78,7 @@ index b7fcbef8d38c9406a891d64f8016bc16572f00d9..bc4f50a5a83fe47773db25846fdc272f
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
-@@ -545,7 +547,7 @@ public class Chunk implements IChunkAccess {
+@@ -548,7 +550,7 @@ public class Chunk implements IChunkAccess {
              boolean flag2 = chunksection.c();
  
              if (flag1 != flag2) {
@@ -87,7 +87,7 @@ index b7fcbef8d38c9406a891d64f8016bc16572f00d9..bc4f50a5a83fe47773db25846fdc272f
              }
  
              if (!this.world.isClientSide) {
-@@ -588,8 +590,8 @@ public class Chunk implements IChunkAccess {
+@@ -591,8 +593,8 @@ public class Chunk implements IChunkAccess {
      }
  
      @Nullable
@@ -175,7 +175,7 @@ index 084a31f16c925ccdc58d6e4faeeb497f4de7b2ee..457af45fcf370d123c27d8d8db228469
      }
  
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-index 422b5f0c28d85ee167bce2967e1b5ee9fa7833dd..bd8322bdc4935886f57c1c8047ad5ede15bf1e1a 100644
+index bf7d5394a59186aa516497e8eaae8e5000db6a62..327f2d26302a3cc652ee3b8992f290f7d23c0b58 100644
 --- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 +++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 @@ -1,6 +1,5 @@
@@ -226,7 +226,7 @@ index 422b5f0c28d85ee167bce2967e1b5ee9fa7833dd..bd8322bdc4935886f57c1c8047ad5ede
                      });
                      // Paper end - delay this task since we're executing off-main
                  }
-@@ -343,14 +344,14 @@ public class ChunkRegionLoader {
+@@ -356,14 +357,14 @@ public class ChunkRegionLoader {
          org.spigotmc.AsyncCatcher.catchOp("preparation of chunk data for async save");
          ChunkCoordIntPair chunkPos = chunk.getPos();
  
@@ -244,7 +244,7 @@ index 422b5f0c28d85ee167bce2967e1b5ee9fa7833dd..bd8322bdc4935886f57c1c8047ad5ede
  
              // copy data for safety
              if (blockArray != null) {
-@@ -410,7 +411,7 @@ public class ChunkRegionLoader {
+@@ -423,7 +424,7 @@ public class ChunkRegionLoader {
  
          ChunkSection[] achunksection = ichunkaccess.getSections();
          NBTTagList nbttaglist = new NBTTagList();
@@ -253,7 +253,7 @@ index 422b5f0c28d85ee167bce2967e1b5ee9fa7833dd..bd8322bdc4935886f57c1c8047ad5ede
          boolean flag = ichunkaccess.r();
  
          NBTTagCompound nbttagcompound2;
-@@ -435,8 +436,8 @@ public class ChunkRegionLoader {
+@@ -448,8 +449,8 @@ public class ChunkRegionLoader {
              NibbleArray nibblearray; // block light
              NibbleArray nibblearray1; // sky light
              if (asyncsavedata == null) {
@@ -573,7 +573,7 @@ index 135ee97605d74be3a3dba4a3d973843b73c658e8..d45562d423556a9386c4a6fc65559cd3
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 2c5c224e90f85d0c5a99daf4fcf5a49d5abcc299..f98e9cb85f3cd62c2a96266a5e3c25162a508d07 100644
+index 841dd0cbd771d878d53292adbd590a1ecffc367e..87b7ee93725212f160f4f25afb56bd25dd7a32cd 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -49,6 +49,8 @@ import java.util.stream.Collectors;
@@ -1024,7 +1024,7 @@ index 0000000000000000000000000000000000000000..18e1a4ccc465bae7189e150ad22f0937
 +
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
-index d2c45157a27c24651c72fd8ab9a0950dec097b84..df96017268c3f0e22d687aa6a39df77bad797b92 100644
+index 42b47634437135a9e9b608283f3ce81c98ca181a..0bc5c209113c0c5c16834491b1b1d17b8b067578 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftChunk.java
 @@ -17,13 +17,13 @@ import net.minecraft.server.GameProfileSerializer;
@@ -1042,7 +1042,7 @@ index d2c45157a27c24651c72fd8ab9a0950dec097b84..df96017268c3f0e22d687aa6a39df77b
  import org.bukkit.Chunk;
  import org.bukkit.ChunkSnapshot;
  import org.bukkit.World;
-@@ -268,15 +268,15 @@ public class CraftChunk implements Chunk {
+@@ -269,15 +269,15 @@ public class CraftChunk implements Chunk {
  
                  sectionBlockIDs[i] = blockids;
  
