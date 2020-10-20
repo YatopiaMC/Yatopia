@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Mon, 19 Oct 2020 15:48:06 +0300
+Subject: [PATCH] Disable reload command
+
+
+diff --git a/src/main/java/org/bukkit/command/defaults/ReloadCommand.java b/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
+index 0c7ba0718de2b93d013968ca0fec34ffd423990f..3a726fd145e5bbb1513b74eaae7d768ae6ab4a9f 100644
+--- a/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
++++ b/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
+@@ -21,6 +21,19 @@ public class ReloadCommand extends BukkitCommand {
+     @Override
+     public boolean execute(@NotNull CommandSender sender, @NotNull String currentAlias, @NotNull String[] args) { // Paper
+         if (!testPermission(sender)) return true;
++        // Yatopia start - fix lag
++        if (Boolean.parseBoolean(System.getProperty("Yatopia.DisableReloadCommand", "true"))) {
++            sender.sendMessage(ChatColor.RED + "Operation denied.");
++            sender.sendMessage(ChatColor.RED + "Reload command SHOULD NEVER EVER EVER be used in whatever circumstances.");
++            sender.sendMessage(ChatColor.RED + "YatopiaMC team has intentionally disabled it in order to stop you using it, instead of restarting your server.");
++            sender.sendMessage(ChatColor.RED + "---------------------------------------------");
++            sender.sendMessage(ChatColor.RED + "RESTART YOUR SERVER AND NEVER USE /reload");
++            sender.sendMessage(ChatColor.YELLOW + "For plugin developers: learn what a HOTSWAP AGENT is and stop using /reload");
++            sender.sendMessage(ChatColor.RED + "---------------------------------------------");
++            sender.sendMessage(ChatColor.YELLOW + "For more information, join our discord server.");
++            return true;
++        }
++        // Yatopia end
+ 
+         // Paper start - Reload permissions.yml & require confirm
+         boolean confirmed = System.getProperty("LetMeReload") != null;

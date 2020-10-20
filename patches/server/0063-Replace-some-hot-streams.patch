@@ -5,20 +5,19 @@ Subject: [PATCH] Replace some hot streams
 
 
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-index 24a6102b37b7e6b4ed208f803d646645dcafe1c3..422b5f0c28d85ee167bce2967e1b5ee9fa7833dd 100644
+index 30d4589c9cdad11809fc09cb51235d6da8e03195..bf7d5394a59186aa516497e8eaae8e5000db6a62 100644
 --- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 +++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-@@ -416,10 +416,21 @@ public class ChunkRegionLoader {
-         NBTTagCompound nbttagcompound2;
+@@ -430,9 +430,20 @@ public class ChunkRegionLoader {
  
          for (int i = -1; i < 17; ++i) { // Paper - conflict on loop parameter change
+             int finalI = i; // CraftBukkit - decompile errors
 +            // Yatopia start - replace stream
 +            /*
-             int finalI = i;
              ChunkSection chunksection = (ChunkSection) Arrays.stream(achunksection).filter((chunksection1) -> {
-                 return chunksection1 != null && chunksection1.getYPosition() >> 4 == finalI;
+                 return chunksection1 != null && chunksection1.getYPosition() >> 4 == finalI; // CraftBukkit - decompile errors
              }).findFirst().orElse(Chunk.a);
-+             */
++            */
 +            ChunkSection chunksection = Chunk.EMPTY_CHUNK_SECTION;
 +            for (ChunkSection section : achunksection) {
 +                if (section != null && section.getYPosition() >> 4 == i) {
@@ -30,7 +29,7 @@ index 24a6102b37b7e6b4ed208f803d646645dcafe1c3..422b5f0c28d85ee167bce2967e1b5ee9
              // Paper start - async chunk save for unload
              NibbleArray nibblearray; // block light
              NibbleArray nibblearray1; // sky light
-@@ -706,6 +717,8 @@ public class ChunkRegionLoader {
+@@ -728,6 +739,8 @@ public class ChunkRegionLoader {
          while (iterator.hasNext()) {
              String s = (String) iterator.next();
  
@@ -39,7 +38,7 @@ index 24a6102b37b7e6b4ed208f803d646645dcafe1c3..422b5f0c28d85ee167bce2967e1b5ee9
              map.put(StructureGenerator.a.get(s.toLowerCase(Locale.ROOT)), new LongOpenHashSet(Arrays.stream(nbttagcompound1.getLongArray(s)).filter((i) -> {
                  ChunkCoordIntPair chunkcoordintpair1 = new ChunkCoordIntPair(i);
  
-@@ -716,6 +729,22 @@ public class ChunkRegionLoader {
+@@ -738,6 +751,22 @@ public class ChunkRegionLoader {
                      return true;
                  }
              }).toArray()));
