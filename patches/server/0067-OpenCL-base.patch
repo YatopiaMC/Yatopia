@@ -50,7 +50,7 @@ index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 893487d52aa58f4360cadfb83f87cf9d8396134e..381969e56ee491d78e0caf8461f676615aa84bd0 100644
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..287f824eae871c7867857ade584bc28519f5bdb9 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -256,12 +256,23 @@ public class YatopiaConfig {
@@ -75,7 +75,7 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..381969e56ee491d78e0caf8461f67661
 +    private static void openCL() {
 +        useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
 +        openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
-+        openCLOverride = getBoolean("settings.opencl.overrided", useOpenCL);
++        openCLOverride = getBoolean("settings.opencl.overrided", openCLOverride);
 +    }
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java
@@ -291,10 +291,10 @@ index 0000000000000000000000000000000000000000..8f4beaf5808008809dcf23a96ea97a4b
 +
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..cd938461da4efedc1f2dd96bb47b3b30e72d07d8
+index 0000000000000000000000000000000000000000..357c6f2d002cb967324451574adc0a5e1a8e3bbd
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,323 @@
+@@ -0,0 +1,324 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -547,9 +547,10 @@ index 0000000000000000000000000000000000000000..cd938461da4efedc1f2dd96bb47b3b30
 +                }
 +
 +                double CPUResult = BasicCPUBenchmark.benchmark().join().getTiming() / 1_000_000.0;
++                OpenCLBenchmarkResult fastestdeivce = deviceBenchmarks.get(0).join();
 +                LOGGER.info("Native CPU: {}ms round trip", CPUResult);
-+                if (deviceBenchmarks.get(0).join().getCpuTiming() < CPUResult || YatopiaConfig.openCLOverride) {
-+                    CLDevice device = deviceBenchmarks.get(0).join().openCompute.device;
++                if (fastestdeivce.getCpuTiming() / 1_000_000.0 < CPUResult || YatopiaConfig.openCLOverride) {
++                    CLDevice device = fastestdeivce.openCompute.device;
 +                    LOGGER.info("OpenCL: Using CLPlatform {} on device CLDevice {}", device.getPlatform(), device);
 +                    activeInstance = new OpenCompute(device);
 +                } else {
