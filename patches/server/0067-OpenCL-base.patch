@@ -290,10 +290,10 @@ index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910f
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..451b80b8e48d6e507ea5fbb4894e1477b14fb07f
+index 0000000000000000000000000000000000000000..378a09ea426ec373270d03da50a4887a660282bb
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,324 @@
+@@ -0,0 +1,326 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -462,16 +462,16 @@ index 0000000000000000000000000000000000000000..451b80b8e48d6e507ea5fbb4894e1477
 +            }
 +
 +            CLPlatform[] platforms = CLPlatform.listCLPlatforms();
-+            LOGGER.info(String.format("Found %d platforms", platforms.length));
++            LOGGER.debug(String.format("Found %d platforms", platforms.length));
 +            List<CLDevice> devices = new GlueList<>();
 +            List<CompletableFuture<OpenCLBenchmarkResult>> deviceBenchmarks = new GlueList<>();
 +            for (int i = 0; i < platforms.length; i++) {
 +                CLPlatform platform = platforms[i];
-+                LOGGER.info("Platform {}: Vendor string: {} ", i, platform.getVendor());
-+                LOGGER.info("Platform {}: Profile string: {}", i, platform.getProfile());
-+                LOGGER.info("Platform {}: Version string: {} ", i, platform.getVersion());
-+                LOGGER.info("Platform {}: Name string: {} ", i, platform.getName());
-+                LOGGER.info("Platform {}: Available extensions: {} ", i, platform.getExtensions());
++                LOGGER.debug("Platform {}: Vendor string: {} ", i, platform.getVendor());
++                LOGGER.debug("Platform {}: Profile string: {}", i, platform.getProfile());
++                LOGGER.debug("Platform {}: Version string: {} ", i, platform.getVersion());
++                LOGGER.debug("Platform {}: Name string: {} ", i, platform.getName());
++                LOGGER.debug("Platform {}: Available extensions: {} ", i, platform.getExtensions());
 +                CLDevice[] platformDevices = platform.listCLDevices();
 +                devices.addAll(Arrays.asList(platformDevices));
 +            }
@@ -493,13 +493,13 @@ index 0000000000000000000000000000000000000000..451b80b8e48d6e507ea5fbb4894e1477
 +                        break;
 +                    }
 +                LOGGER.info("Device {} of Platform {}: Name string: {} ", i, platformID, device.getName());
-+                LOGGER.info("Device {} of Platform {}: Version string: {} ", i, platformID, device.getVersion());
-+                LOGGER.info("Device {} of Platform {}: C-Version string: {} ", i, platformID, device.getCVersion());
-+                LOGGER.info("Device {} of Platform {}: Driver version string: {} ", i, platformID, device.getDriverVersion());
-+                LOGGER.info("Device {} of Platform {}: Profile string: {} ", i, platformID, device.getProfile());
-+                LOGGER.info("Device {} of Platform {}: Device type: {} ", i, platformID, device.getType());
-+                LOGGER.info("Device {} of Platform {}: Available extensions: {}", i, platformID, device.getExtensions());
-+                LOGGER.info("Device {} of Platform {}: Execution capabilities: {}", i, platformID, device.getExecutionCapabilities());
++                LOGGER.debug("Device {} of Platform {}: Version string: {} ", i, platformID, device.getVersion());
++                LOGGER.debug("Device {} of Platform {}: C-Version string: {} ", i, platformID, device.getCVersion());
++                LOGGER.debug("Device {} of Platform {}: Driver version string: {} ", i, platformID, device.getDriverVersion());
++                LOGGER.debug("Device {} of Platform {}: Profile string: {} ", i, platformID, device.getProfile());
++                LOGGER.debug("Device {} of Platform {}: Device type: {} ", i, platformID, device.getType());
++                LOGGER.debug("Device {} of Platform {}: Available extensions: {}", i, platformID, device.getExtensions());
++                LOGGER.debug("Device {} of Platform {}: Execution capabilities: {}", i, platformID, device.getExecutionCapabilities());
 +            }
 +
 +            if (YatopiaConfig.openCLDeviceOverride < -1 || YatopiaConfig.openCLDeviceOverride >= devices.size()) {
@@ -539,10 +539,11 @@ index 0000000000000000000000000000000000000000..451b80b8e48d6e507ea5fbb4894e1477
 +                LOGGER.info("Benchmark results: ");
 +                for (int i = 0, size = deviceBenchmarks.size(); i < size; i++) {
 +                    OpenCLBenchmarkResult openCLBenchmarkResult = deviceBenchmarks.get(i).join();
-+                    LOGGER.info("{}: {}ms compute time, {}ms round trip, {}ms latency, CLPlatform {} on device CLDevice {}",
++                    LOGGER.info("{}: {}ms compute time, {}ms round trip, {}ms latency",
 +                            i + 1, openCLBenchmarkResult.getGpuTiming() / 1_000_000.0, openCLBenchmarkResult.getCpuTiming() / 1_000_000.0,
-+                            openCLBenchmarkResult.getLatencyTiming() / 1_000_000.0,
-+                            openCLBenchmarkResult.openCompute.getPlatform(), openCLBenchmarkResult.openCompute.getDevice());
++                            openCLBenchmarkResult.getLatencyTiming() / 1_000_000.0);
++                    LOGGER.debug("{}: CLPlatform {} on device CLDevice {}",
++                            i + 1, openCLBenchmarkResult.openCompute.getPlatform(), openCLBenchmarkResult.openCompute.getDevice());
 +                }
 +
 +                double CPUResult = BasicCPUBenchmark.benchmark().join().getTiming() / 1_000_000.0;
@@ -550,7 +551,8 @@ index 0000000000000000000000000000000000000000..451b80b8e48d6e507ea5fbb4894e1477
 +                LOGGER.info("Native CPU: {}ms round trip", CPUResult);
 +                if (fastestdeivce.getCpuTiming() / 1_000_000.0 < CPUResult || YatopiaConfig.openCLOverride) {
 +                    CLDevice device = fastestdeivce.openCompute.device;
-+                    LOGGER.info("OpenCL: Using CLPlatform {} on device CLDevice {}", device.getPlatform(), device);
++                    LOGGER.info("OpenCL: Using {}", device.getName());
++                    LOGGER.debug("OpenCL: Using CLPlatform {} on device CLDevice {}", device.getPlatform(), device);
 +                    activeInstance = new OpenCompute(device);
 +                } else {
 +                    LOGGER.info("OpenCL: OpenCL is not faster disabling OpenCL");
