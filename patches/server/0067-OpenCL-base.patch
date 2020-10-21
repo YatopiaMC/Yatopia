@@ -306,10 +306,10 @@ index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910f
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java b/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e77ecca72433bd2d9b7ed8634402261747788966
+index 0000000000000000000000000000000000000000..d2c4b95991f84d14d99d4213dad990c3bf4db771
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,84 @@
 +package net.yatopia.server.opencl;
 +
 +import com.destroystokyo.paper.PaperCommand;
@@ -332,6 +332,9 @@ index 0000000000000000000000000000000000000000..e77ecca72433bd2d9b7ed86344022617
 +
 +    @Override
 +    public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
++        if (Boolean.parseBoolean(System.getProperty("Yatopia.OpenCLDebug", "true"))) {
++            return PaperCommand.getListMatchingLast(args, "info", "reload", "enable", "override");
++        }
 +        return PaperCommand.getListMatchingLast(args, "info");
 +    }
 +
@@ -356,34 +359,37 @@ index 0000000000000000000000000000000000000000..e77ecca72433bd2d9b7ed86344022617
 +            return true;
 +        }
 +
-+        if (args[0].equals("reload")) {
-+            try {
-+                sender.sendMessage("Reloading OpenCL");
-+                sender.sendMessage("Shutting down OpenCL");
-+                OpenCompute.release();
-+                sender.sendMessage("Starting OpenCL");
-+                YatopiaConfig.useOpenCL = true;
-+                OpenCompute.init();
-+                sender.sendMessage("OpenCL has been successfully reloaded");
-+            } catch (Exception e) {
-+                YatopiaConfig.useOpenCL = false;
-+                LogManager.getLogger().error(e);
-+                sender.sendMessage("Error Reloading OpenCL");
++        if (Boolean.parseBoolean(System.getProperty("Yatopia.OpenCLDebug", "true"))) {
++            if (args[0].equals("reload")) {
++                try {
++                    sender.sendMessage("Reloading OpenCL");
++                    sender.sendMessage("Shutting down OpenCL");
++                    OpenCompute.release();
++                    sender.sendMessage("Starting OpenCL");
++                    YatopiaConfig.useOpenCL = true;
++                    OpenCompute.init();
++                    sender.sendMessage("OpenCL has been successfully reloaded");
++                } catch (Exception e) {
++                    YatopiaConfig.useOpenCL = false;
++                    LogManager.getLogger().error(e);
++                    sender.sendMessage("Error Reloading OpenCL");
++                }
++                return true;
 +            }
-+            return true;
++
++            if (args[0].equals("enable")) {
++                sender.sendMessage("Enabling OpenCL");
++                YatopiaConfig.useOpenCL = true;
++                return true;
++            }
++
++            if (args[0].equals("override")) {
++                sender.sendMessage("Overriding OpenCL Performance Check");
++                YatopiaConfig.openCLOverride = true;
++                return true;
++            }
 +        }
 +
-+        if (args[0].equals("enable")) {
-+            sender.sendMessage("Enabling OpenCL");
-+            YatopiaConfig.useOpenCL = true;
-+            return true;
-+        }
-+
-+        if (args[0].equals("override")) {
-+            sender.sendMessage("Overriding OpenCL Performance Check");
-+            YatopiaConfig.openCLOverride = true;
-+            return true;
-+        }
 +
 +        return true;
 +    }
