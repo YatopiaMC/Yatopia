@@ -402,10 +402,10 @@ index 0000000000000000000000000000000000000000..d2c4b95991f84d14d99d4213dad990c3
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9a513bd81e4b5563a77c6645571a68146d216887
+index 0000000000000000000000000000000000000000..10caa040eb6caf25da83cd3c76d9c28e5ed9798a
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,331 @@
+@@ -0,0 +1,335 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -506,20 +506,24 @@ index 0000000000000000000000000000000000000000..9a513bd81e4b5563a77c6645571a6814
 +    }
 +
 +    private OpenCompute(CLDevice device, boolean profilingEnabled) {
++        CLCommandQueue queue1;
 +        openCLDir = new File("opencl");
 +
 +        programs = new ConcurrentHashMap<>();
 +        platform = device.getPlatform();
 +        context = CLContext.create(device);
++        CLCommandQueue tmpqueue = null;
 +        this.device = device;
 +        try {
 +            if (profilingEnabled)
-+                queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
++                tmpqueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
 +            else
-+                queue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
++                tmpqueue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
 +        } catch (Exception e) {
 +            LOGGER.info("Failed to initialize {}", device.getName());
 +        }
++
++        queue = tmpqueue;
 +    }
 +
 +    /**
