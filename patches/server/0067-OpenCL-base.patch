@@ -290,7 +290,7 @@ index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910f
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..378a09ea426ec373270d03da50a4887a660282bb
+index 0000000000000000000000000000000000000000..9a4d4e9e5864015fb048860ef79e10572a1e9032
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 @@ -0,0 +1,326 @@
@@ -540,10 +540,10 @@ index 0000000000000000000000000000000000000000..378a09ea426ec373270d03da50a4887a
 +                for (int i = 0, size = deviceBenchmarks.size(); i < size; i++) {
 +                    OpenCLBenchmarkResult openCLBenchmarkResult = deviceBenchmarks.get(i).join();
 +                    LOGGER.info("{}: {}ms compute time, {}ms round trip, {}ms latency",
-+                            i + 1, openCLBenchmarkResult.getGpuTiming() / 1_000_000.0, openCLBenchmarkResult.getCpuTiming() / 1_000_000.0,
++                            openCLBenchmarkResult.openCompute.getDevice().getName(), openCLBenchmarkResult.getGpuTiming() / 1_000_000.0, openCLBenchmarkResult.getCpuTiming() / 1_000_000.0,
 +                            openCLBenchmarkResult.getLatencyTiming() / 1_000_000.0);
 +                    LOGGER.debug("{}: CLPlatform {} on device CLDevice {}",
-+                            i + 1, openCLBenchmarkResult.openCompute.getPlatform(), openCLBenchmarkResult.openCompute.getDevice());
++                            openCLBenchmarkResult.openCompute.getDevice().getName(), openCLBenchmarkResult.openCompute.getPlatform(), openCLBenchmarkResult.openCompute.getDevice());
 +                }
 +
 +                double CPUResult = BasicCPUBenchmark.benchmark().join().getTiming() / 1_000_000.0;
@@ -676,3 +676,4 @@ index 0000000000000000000000000000000000000000..c0fa8e93ab521b98261ab4e8ae6a0693
 +    }
 +
 +}
+\ No newline at end of file
