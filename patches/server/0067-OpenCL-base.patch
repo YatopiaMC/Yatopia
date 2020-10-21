@@ -50,7 +50,7 @@ index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 893487d52aa58f4360cadfb83f87cf9d8396134e..287f824eae871c7867857ade584bc28519f5bdb9 100644
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..98632979f04839f035adf8c8fe9a1afe02814406 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -256,12 +256,23 @@ public class YatopiaConfig {
@@ -75,7 +75,7 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..287f824eae871c7867857ade584bc285
 +    private static void openCL() {
 +        useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
 +        openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
-+        openCLOverride = getBoolean("settings.opencl.overrided", openCLOverride);
++        openCLOverride = getBoolean("settings.opencl.override", openCLOverride);
 +    }
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java
@@ -290,7 +290,7 @@ index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910f
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9a4d4e9e5864015fb048860ef79e10572a1e9032
+index 0000000000000000000000000000000000000000..d375b4a60d37fe525cd587a5b768c750a0ad7fc7
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 @@ -0,0 +1,326 @@
@@ -492,7 +492,7 @@ index 0000000000000000000000000000000000000000..9a4d4e9e5864015fb048860ef79e1057
 +                        platformID = j;
 +                        break;
 +                    }
-+                LOGGER.info("Device {} of Platform {}: Name string: {} ", i, platformID, device.getName());
++                LOGGER.info("Device {}: {} ", i, device.getName());
 +                LOGGER.debug("Device {} of Platform {}: Version string: {} ", i, platformID, device.getVersion());
 +                LOGGER.debug("Device {} of Platform {}: C-Version string: {} ", i, platformID, device.getCVersion());
 +                LOGGER.debug("Device {} of Platform {}: Driver version string: {} ", i, platformID, device.getDriverVersion());
