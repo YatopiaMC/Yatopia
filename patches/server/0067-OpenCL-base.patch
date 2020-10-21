@@ -50,7 +50,7 @@ index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 893487d52aa58f4360cadfb83f87cf9d8396134e..5c9148554688e422f4f78463cde298ae47822940 100644
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..ee0ad28add93b8ee5be2814884dd5a0809c4890a 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -14,6 +14,7 @@ import java.util.logging.Level;
@@ -69,7 +69,7 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..5c9148554688e422f4f78463cde298ae
  
          version = getInt("config-version", 1);
          set("config-version", 1);
-@@ -256,12 +258,23 @@ public class YatopiaConfig {
+@@ -256,12 +258,25 @@ public class YatopiaConfig {
      }
  
      public static LightEngineType lightEngineType = LightEngineType.VANILLA;
@@ -87,29 +87,32 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..5c9148554688e422f4f78463cde298ae
 +    public static boolean useOpenCL = true;
 +    public static int openCLDeviceOverride = -1;
 +    public static boolean openCLOverride = false;
++    public static int openCLTestSize = 1048576;
 +
 +    private static void openCL() {
 +        useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
 +        openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
 +        openCLOverride = getBoolean("settings.opencl.override", openCLOverride);
++        openCLTestSize = getInt("settings.opencl.test-size", openCLTestSize);
 +    }
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..44ccdd0fac6a05b15a9af3b7a0ad1d1176d79beb
+index 0000000000000000000000000000000000000000..c6195b8a4d7e44bf332358645978affb68e39aa4
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,38 @@
 +package net.yatopia.server.opencl;
 +
 +import io.netty.util.internal.ThreadLocalRandom;
++import net.yatopia.server.YatopiaConfig;
 +import net.yatopia.server.list.GlueList;
 +
 +import java.util.concurrent.CompletableFuture;
 +
 +public class BasicCPUBenchmark {
 +
-+    private static int WORK_SIZE = 1048576;
++    private static int WORK_SIZE = YatopiaConfig.openCLTestSize;
 +
 +    public static CompletableFuture<CPUBenchmarkResult> benchmark() {
 +        CompletableFuture<CPUBenchmarkResult> future = new CompletableFuture<>();
@@ -139,10 +142,10 @@ index 0000000000000000000000000000000000000000..44ccdd0fac6a05b15a9af3b7a0ad1d11
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..aae88c24d06bed2c06dbdda9bd44bf1bc41e1c06
+index 0000000000000000000000000000000000000000..187b6f38f4bd6d9f44ec7c4e5d845f55aeaf8dd4
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
-@@ -0,0 +1,85 @@
+@@ -0,0 +1,86 @@
 +package net.yatopia.server.opencl;
 +
 +import com.jogamp.opencl.CLBuffer;
@@ -151,6 +154,7 @@ index 0000000000000000000000000000000000000000..aae88c24d06bed2c06dbdda9bd44bf1b
 +import com.jogamp.opencl.CLKernel;
 +import com.jogamp.opencl.CLProgram;
 +import io.netty.util.internal.ThreadLocalRandom;
++import net.yatopia.server.YatopiaConfig;
 +import net.yatopia.server.list.GlueList;
 +
 +import java.nio.LongBuffer;
@@ -161,7 +165,7 @@ index 0000000000000000000000000000000000000000..aae88c24d06bed2c06dbdda9bd44bf1b
 +
 +public class BasicOpenCLBenchmark {
 +
-+    private static int WORK_SIZE = 1048576;
++    private static int WORK_SIZE = YatopiaConfig.openCLTestSize;
 +    private static CLBuffer<LongBuffer> longBuffer1 = null;
 +    private static CLBuffer<LongBuffer> longBuffer2 = null;
 +    private static CLBuffer<LongBuffer> longBuffer3 = null;
