@@ -80,7 +80,7 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..287f824eae871c7867857ade584bc285
  }
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..965663a3584fb76f1e203fc81baca8566acf301d
+index 0000000000000000000000000000000000000000..44ccdd0fac6a05b15a9af3b7a0ad1d1176d79beb
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicCPUBenchmark.java
 @@ -0,0 +1,37 @@
@@ -93,7 +93,7 @@ index 0000000000000000000000000000000000000000..965663a3584fb76f1e203fc81baca856
 +
 +public class BasicCPUBenchmark {
 +
-+    private static int WORK_SIZE = 10485760;
++    private static int WORK_SIZE = 1048576;
 +
 +    public static CompletableFuture<CPUBenchmarkResult> benchmark() {
 +        CompletableFuture<CPUBenchmarkResult> future = new CompletableFuture<>();
@@ -123,7 +123,7 @@ index 0000000000000000000000000000000000000000..965663a3584fb76f1e203fc81baca856
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6156f6b1d57cfc6b163f2de98dc795548669a120
+index 0000000000000000000000000000000000000000..0e0624eb912b9aed433adf4de2273c8cde3d3ed8
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
 @@ -0,0 +1,83 @@
@@ -145,7 +145,7 @@ index 0000000000000000000000000000000000000000..6156f6b1d57cfc6b163f2de98dc79554
 +
 +public class BasicOpenCLBenchmark {
 +
-+    private static int WORK_SIZE = 10485760;
++    private static int WORK_SIZE = 1048576;
 +
 +    public static CompletableFuture<OpenCLBenchmarkResult> benchmark(OpenCompute openCompute) {
 +        CompletableFuture<OpenCLBenchmarkResult> future = new CompletableFuture<>();
@@ -244,10 +244,10 @@ index 0000000000000000000000000000000000000000..a41d27ce71dd38dee9c6d46d9b13fcfb
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java b/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8f4beaf5808008809dcf23a96ea97a4b0c517eff
+index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910fc4070b35
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,40 @@
 +package net.yatopia.server.opencl;
 +
 +import net.yatopia.server.list.GlueList;
@@ -288,10 +288,9 @@ index 0000000000000000000000000000000000000000..8f4beaf5808008809dcf23a96ea97a4b
 +        return sum;
 +    }
 +}
-+
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..357c6f2d002cb967324451574adc0a5e1a8e3bbd
+index 0000000000000000000000000000000000000000..451b80b8e48d6e507ea5fbb4894e1477b14fb07f
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 @@ -0,0 +1,324 @@
@@ -540,7 +539,7 @@ index 0000000000000000000000000000000000000000..357c6f2d002cb967324451574adc0a5e
 +                LOGGER.info("Benchmark results: ");
 +                for (int i = 0, size = deviceBenchmarks.size(); i < size; i++) {
 +                    OpenCLBenchmarkResult openCLBenchmarkResult = deviceBenchmarks.get(i).join();
-+                    LOGGER.info("{}: {}ms compute time, {}ms round trip, {}ms latency: CLPlatform {} on device CLDevice {}",
++                    LOGGER.info("{}: {}ms compute time, {}ms round trip, {}ms latency, CLPlatform {} on device CLDevice {}",
 +                            i + 1, openCLBenchmarkResult.getGpuTiming() / 1_000_000.0, openCLBenchmarkResult.getCpuTiming() / 1_000_000.0,
 +                            openCLBenchmarkResult.getLatencyTiming() / 1_000_000.0,
 +                            openCLBenchmarkResult.openCompute.getPlatform(), openCLBenchmarkResult.openCompute.getDevice());
@@ -675,4 +674,3 @@ index 0000000000000000000000000000000000000000..c0fa8e93ab521b98261ab4e8ae6a0693
 +    }
 +
 +}
-\ No newline at end of file
