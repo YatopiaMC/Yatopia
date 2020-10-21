@@ -390,10 +390,10 @@ index 0000000000000000000000000000000000000000..e77ecca72433bd2d9b7ed86344022617
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1b394c8ca052efbbb4dc1979c9b698f53d5d16d4
+index 0000000000000000000000000000000000000000..8f70bbe594ea4527946cb8e22e9d3c343f9f7166
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,327 @@
+@@ -0,0 +1,331 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -500,10 +500,14 @@ index 0000000000000000000000000000000000000000..1b394c8ca052efbbb4dc1979c9b698f5
 +        platform = device.getPlatform();
 +        context = CLContext.create(device);
 +        this.device = device;
-+        if (profilingEnabled)
-+            queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
-+        else
-+            queue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
++        try {
++            if (profilingEnabled)
++                queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
++            else
++                queue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
++        } catch (Exception e) {
++            LOGGER.log("Failed to initialize {}", device.getName());
++        }
 +    }
 +
 +    /**

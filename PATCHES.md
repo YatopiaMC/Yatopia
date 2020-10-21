@@ -74,8 +74,10 @@ This is an overview over all patches that are currently used.
 | api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
+| server |  New lighting structure      | ishland |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
+| server |  OpenCL base      | ishland |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
