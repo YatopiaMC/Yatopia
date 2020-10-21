@@ -139,10 +139,10 @@ index 0000000000000000000000000000000000000000..44ccdd0fac6a05b15a9af3b7a0ad1d11
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0e0624eb912b9aed433adf4de2273c8cde3d3ed8
+index 0000000000000000000000000000000000000000..aae88c24d06bed2c06dbdda9bd44bf1bc41e1c06
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
-@@ -0,0 +1,83 @@
+@@ -0,0 +1,85 @@
 +package net.yatopia.server.opencl;
 +
 +import com.jogamp.opencl.CLBuffer;
@@ -162,6 +162,10 @@ index 0000000000000000000000000000000000000000..0e0624eb912b9aed433adf4de2273c8c
 +public class BasicOpenCLBenchmark {
 +
 +    private static int WORK_SIZE = 1048576;
++    private static CLBuffer<LongBuffer> longBuffer1 = null;
++    private static CLBuffer<LongBuffer> longBuffer2 = null;
++    private static CLBuffer<LongBuffer> longBuffer3 = null;
++
 +
 +    public static CompletableFuture<OpenCLBenchmarkResult> benchmark(OpenCompute openCompute) {
 +        CompletableFuture<OpenCLBenchmarkResult> future = new CompletableFuture<>();
@@ -179,15 +183,12 @@ index 0000000000000000000000000000000000000000..0e0624eb912b9aed433adf4de2273c8c
 +                        testData2[h] = ThreadLocalRandom.current().nextLong();
 +                    }
 +                    long startTime = System.nanoTime();
-+                    CLBuffer<LongBuffer> longBuffer1 = null;
-+                    CLBuffer<LongBuffer> longBuffer2 = null;
-+                    CLBuffer<LongBuffer> longBuffer3 = null;
 +                    CLKernel kernel = null;
 +                    CLEventList events = null;
 +                    try {
-+                        longBuffer1 = openCompute.getContext().createLongBuffer(WORK_SIZE);
-+                        longBuffer2 = openCompute.getContext().createLongBuffer(WORK_SIZE);
-+                        longBuffer3 = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                        if (longBuffer1 != null) { longBuffer1 = openCompute.getContext().createLongBuffer(WORK_SIZE); }
++                        if (longBuffer2 != null) { longBuffer2 = openCompute.getContext().createLongBuffer(WORK_SIZE); }
++                        if (longBuffer3 != null) { longBuffer3 = openCompute.getContext().createLongBuffer(WORK_SIZE); }
 +                        longBuffer1.getBuffer().put(testData1);
 +                        longBuffer2.getBuffer().put(testData2);
 +                        kernel = openCompute.getKernel(program, "test");
@@ -208,9 +209,6 @@ index 0000000000000000000000000000000000000000..0e0624eb912b9aed433adf4de2273c8c
 +                        cpuTimingList.add(cpuTiming);
 +                        latencyTimingList.add(latencyTiming);
 +                    } finally {
-+                        if (longBuffer1 != null && !longBuffer1.isReleased()) longBuffer1.release();
-+                        if (longBuffer2 != null && !longBuffer2.isReleased()) longBuffer2.release();
-+                        if (longBuffer3 != null && !longBuffer3.isReleased()) longBuffer3.release();
 +                        if (kernel != null && !kernel.isReleased()) kernel.release();
 +                        if (events != null && !events.isReleased()) events.release();
 +                    }
@@ -220,6 +218,10 @@ index 0000000000000000000000000000000000000000..0e0624eb912b9aed433adf4de2273c8c
 +            });
 +        } catch (Throwable t) {
 +            future.completeExceptionally(t);
++        } finally {
++            if (longBuffer1 != null && !longBuffer1.isReleased()) longBuffer1.release();
++            if (longBuffer2 != null && !longBuffer2.isReleased()) longBuffer2.release();
++            if (longBuffer3 != null && !longBuffer3.isReleased()) longBuffer3.release();
 +        }
 +
 +        return future;
