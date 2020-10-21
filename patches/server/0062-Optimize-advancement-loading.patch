@@ -18,33 +18,27 @@ index c405047c00d354bbc1449fd2f917b73f980ef1a5..8b31098032dc7a08d201e20c917f2734
          return this.rewards;
      }
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index 17789407b9e86896a963a305a13357286aa5f319..8a18fc380016c0df6bc5821defa4408df291679b 100644
+index 17789407b9e86896a963a305a13357286aa5f319..30e5220770f813a28c4c9bdf5d90592e4f12dc68 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-@@ -160,10 +160,13 @@ public class AdvancementDataPlayer {
+@@ -159,11 +159,16 @@ public class AdvancementDataPlayer {
+                         throw new JsonParseException("Found null for advancements");
                      }
  
++                    /* // Yatopia start - streams no good
                      Stream<Entry<MinecraftKey, AdvancementProgress>> stream = map.entrySet().stream().sorted(Comparator.comparing(Entry::getValue));
-+                    /* // Yatopia start - avoid calling collect and iterator
                      Iterator iterator = ((List) stream.collect(Collectors.toList())).iterator();
  
                      while (iterator.hasNext()) {
                          Entry<MinecraftKey, AdvancementProgress> entry = (Entry) iterator.next();
 +                     */
-+                    stream.forEach(entry -> {
++                    Entry<MinecraftKey, AdvancementProgress>[] entries = map.entrySet().toArray(new Entry[0]);
++                    java.util.Arrays.sort(entries, Entry.comparingByValue());
++                    for (Entry<MinecraftKey, AdvancementProgress> entry : entries) { // Yatopia end
                          Advancement advancement = advancementdataworld.a((MinecraftKey) entry.getKey());
  
                          if (advancement == null) {
-@@ -175,7 +178,7 @@ public class AdvancementDataPlayer {
-                         } else {
-                             this.a(advancement, (AdvancementProgress) entry.getValue());
-                         }
--                    }
-+                    }); // Yatopia end
-                 } catch (Throwable throwable1) {
-                     throwable = throwable1;
-                     throw throwable1;
-@@ -200,10 +203,36 @@ public class AdvancementDataPlayer {
+@@ -200,11 +205,37 @@ public class AdvancementDataPlayer {
              }
          }
  
@@ -55,8 +49,8 @@ index 17789407b9e86896a963a305a13357286aa5f319..8a18fc380016c0df6bc5821defa4408d
 +         */
 +        loadAdvancements(advancementdataworld);
 +        // Yatopia end
-+    }
-+
+     }
+ 
 +    // Yatopia start - reduce overload by post io load of advancements
 +    // this combines c(AdvancementDataWorld), c() and b(AdvancementDataWorld) into 1 method
 +    // the changes done: loops thru all the advancements only once, does not create an additional list
@@ -74,22 +68,36 @@ index 17789407b9e86896a963a305a13357286aa5f319..8a18fc380016c0df6bc5821defa4408d
 +                updateVisibility(advancement);
 +                continue; // Do not double check isDone
 +            }
-+            beginTracking(advancement);
++            beginTrackingNoIsDone(advancement, progress);
 +        }
-     }
++    }
 +    // Yatopia end
- 
++
      public void b() {
          if (org.spigotmc.SpigotConfig.disableAdvancementSaving) return; // Spigot
-@@ -325,6 +354,7 @@ public class AdvancementDataPlayer {
-         return flag;
-     }
- 
-+    private final void beginTracking(Advancement advancement) { c(advancement); } // Yatopia - OBFHELPER
-     private void c(Advancement advancement) {
+         Map<MinecraftKey, AdvancementProgress> map = Maps.newHashMap();
+@@ -329,6 +360,11 @@ public class AdvancementDataPlayer {
          AdvancementProgress advancementprogress = this.getProgress(advancement);
  
-@@ -442,6 +472,7 @@ public class AdvancementDataPlayer {
+         if (!advancementprogress.isDone()) {
++            // Yatopia start - beginTrackig with no isDone check
++            beginTrackingNoIsDone(advancement, advancementprogress);
++        }
++    }
++    private void beginTrackingNoIsDone(Advancement advancement, AdvancementProgress advancementprogress) {
+             Iterator iterator = advancement.getCriteria().entrySet().iterator();
+ 
+             while (iterator.hasNext()) {
+@@ -348,7 +384,7 @@ public class AdvancementDataPlayer {
+                 }
+             }
+ 
+-        }
++        //} // Yatopia end
+     }
+ 
+     private void d(Advancement advancement) {
+@@ -442,6 +478,7 @@ public class AdvancementDataPlayer {
          this.data.put(advancement, advancementprogress);
      }
  
