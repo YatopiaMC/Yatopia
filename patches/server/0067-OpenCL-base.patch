@@ -142,10 +142,10 @@ index 0000000000000000000000000000000000000000..c6195b8a4d7e44bf332358645978affb
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..53ffc340f49609942079495753091bc36c3cf622
+index 0000000000000000000000000000000000000000..30e0e8d705271fc6d47f401116a93d99052ddaec
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/BasicOpenCLBenchmark.java
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,99 @@
 +package net.yatopia.server.opencl;
 +
 +import com.jogamp.opencl.CLBuffer;
@@ -160,15 +160,13 @@ index 0000000000000000000000000000000000000000..53ffc340f49609942079495753091bc3
 +import java.nio.LongBuffer;
 +import java.util.Random;
 +import java.util.concurrent.CompletableFuture;
++import java.util.logging.Logger;
 +
 +import static com.jogamp.opencl.CLEvent.ProfilingCommand.*;
 +
 +public class BasicOpenCLBenchmark {
 +
 +    private static int WORK_SIZE = YatopiaConfig.openCLTestSize;
-+    private static CLBuffer<LongBuffer> longBuffer1 = null;
-+    private static CLBuffer<LongBuffer> longBuffer2 = null;
-+    private static CLBuffer<LongBuffer> longBuffer3 = null;
 +
 +
 +    public static CompletableFuture<OpenCLBenchmarkResult> benchmark(OpenCompute openCompute) {
@@ -176,6 +174,9 @@ index 0000000000000000000000000000000000000000..53ffc340f49609942079495753091bc3
 +        GlueList<Long> gpuTimingList = new GlueList<>();
 +        GlueList<Long> cpuTimingList = new GlueList<>();
 +        GlueList<Long> latencyTimingList = new GlueList<>();
++        final CLBuffer<LongBuffer>[] longBuffer1 = new CLBuffer[]{null};
++        final CLBuffer<LongBuffer>[] longBuffer2 = new CLBuffer[]{null};
++        final CLBuffer<LongBuffer>[] longBuffer3 = new CLBuffer[]{null};
 +        try {
 +            OpenCompute.OPENCL_EXECUTOR.execute(() -> {
 +                final long[] testData1 = new long[WORK_SIZE];
@@ -190,20 +191,32 @@ index 0000000000000000000000000000000000000000..53ffc340f49609942079495753091bc3
 +                    CLKernel kernel = null;
 +                    CLEventList events = null;
 +                    try {
-+                        if (longBuffer1 == null) { longBuffer1 = openCompute.getContext().createLongBuffer(WORK_SIZE); }
-+                        if (longBuffer2 == null) { longBuffer2 = openCompute.getContext().createLongBuffer(WORK_SIZE); }
-+                        if (longBuffer3 == null) { longBuffer3 = openCompute.getContext().createLongBuffer(WORK_SIZE); }
-+                        longBuffer1.getBuffer().put(testData1);
-+                        longBuffer2.getBuffer().put(testData2);
++                        if (longBuffer1[0] == null) {
++                            longBuffer1[0] = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                        } else {
++                            longBuffer1[0].getBuffer().clear();
++                        }
++                        if (longBuffer2[0] == null) {
++                            longBuffer2[0] = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                        } else {
++                            longBuffer2[0].getBuffer().clear();
++                        }
++                        if (longBuffer3[0] == null) {
++                            longBuffer3[0] = openCompute.getContext().createLongBuffer(WORK_SIZE);
++                        } else {
++                            longBuffer3[0].getBuffer().clear();
++                        }
++                        longBuffer1[0].getBuffer().put(testData1);
++                        longBuffer2[0].getBuffer().put(testData2);
 +                        kernel = openCompute.getKernel(program, "test");
-+                        kernel.putArg(longBuffer1)
-+                                .putArg(longBuffer2)
-+                                .putArg(longBuffer3);
++                        kernel.putArg(longBuffer1[0])
++                                .putArg(longBuffer2[0])
++                                .putArg(longBuffer3[0]);
 +                        CLCommandQueue clCommandQueue = openCompute.getQueue();
 +                        events = new CLEventList(null, 1);
 +                        clCommandQueue.put1DRangeKernel(kernel, 0,
 +                                openCompute.getGlobalSize(WORK_SIZE), openCompute.getLocalSize(), events)
-+                                .putReadBuffer(longBuffer3, true)
++                                .putReadBuffer(longBuffer3[0], true)
 +                                .putWaitForEvents(events, true);
 +
 +                        long gpuTiming = events.getEvent(0).getProfilingInfo(END) - events.getEvent(0).getProfilingInfo(START);
@@ -223,9 +236,9 @@ index 0000000000000000000000000000000000000000..53ffc340f49609942079495753091bc3
 +        } catch (Throwable t) {
 +            future.completeExceptionally(t);
 +        } finally {
-+            if (longBuffer1 != null && !longBuffer1.isReleased()) longBuffer1.release();
-+            if (longBuffer2 != null && !longBuffer2.isReleased()) longBuffer2.release();
-+            if (longBuffer3 != null && !longBuffer3.isReleased()) longBuffer3.release();
++            if (longBuffer1[0] != null && !longBuffer1[0].isReleased()) longBuffer1[0].release();
++            if (longBuffer2[0] != null && !longBuffer2[0].isReleased()) longBuffer2[0].release();
++            if (longBuffer3[0] != null && !longBuffer3[0].isReleased()) longBuffer3[0].release();
 +        }
 +
 +        return future;
