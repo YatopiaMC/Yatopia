@@ -50,10 +50,26 @@ index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 893487d52aa58f4360cadfb83f87cf9d8396134e..98632979f04839f035adf8c8fe9a1afe02814406 100644
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..5c9148554688e422f4f78463cde298ae47822940 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
-@@ -256,12 +256,23 @@ public class YatopiaConfig {
+@@ -14,6 +14,7 @@ import java.util.logging.Level;
+ import java.util.regex.Pattern;
+ import net.minecraft.server.MinecraftServer;
+ import net.yatopia.server.lighting.LightEngineType;
++import net.yatopia.server.opencl.OpenCLCommand;
+ import org.bukkit.Bukkit;
+ import org.bukkit.command.Command;
+ import org.bukkit.configuration.InvalidConfigurationException;
+@@ -47,6 +48,7 @@ public class YatopiaConfig {
+         verbose = getBoolean("verbose", false);
+         commands = new HashMap<>();
+         commands.put("nspt", new NSPTCommand("nspt"));
++        commands.put("opencl", new OpenCLCommand("opencl"));
+ 
+         version = getInt("config-version", 1);
+         set("config-version", 1);
+@@ -256,12 +258,23 @@ public class YatopiaConfig {
      }
  
      public static LightEngineType lightEngineType = LightEngineType.VANILLA;
@@ -288,12 +304,96 @@ index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910f
 +        return sum;
 +    }
 +}
+diff --git a/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java b/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e77ecca72433bd2d9b7ed8634402261747788966
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java
+@@ -0,0 +1,78 @@
++package net.yatopia.server.opencl;
++
++import com.destroystokyo.paper.PaperCommand;
++import net.yatopia.server.YatopiaConfig;
++import org.apache.logging.log4j.LogManager;
++import org.bukkit.Location;
++import org.bukkit.command.Command;
++import org.bukkit.command.CommandSender;
++
++import java.util.List;
++
++public class OpenCLCommand extends Command {
++
++    public OpenCLCommand(String name) {
++        super(name);
++        this.description = "OpenCL related post-launch functions";
++        this.usageMessage = "/opencl";
++        this.setPermission("bukkit.command.opencl");
++    }
++
++    @Override
++    public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
++        return PaperCommand.getListMatchingLast(args, "info");
++    }
++
++    @Override
++    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
++        if (!testPermission(sender)) return true;
++
++
++        if (!YatopiaConfig.useOpenCL) {
++            sender.sendMessage("Your system does not support OpenCL, OpenCL has been explicitly disabled, or OpenCL yields no performance gains");
++            sender.sendMessage("Check logs for more info");
++            return true;
++        }
++
++        if (args.length <= 0) {
++            sender.sendMessage(String.format("Using %s for OpenCL acceleration", OpenCompute.getActiveInstance().getDevice().getName()));
++            return true;
++        }
++
++        if (args[0].equals("info")) {
++            sender.sendMessage(String.format("Using %s for OpenCL acceleration", OpenCompute.getActiveInstance().getDevice().getName()));
++            return true;
++        }
++
++        if (args[0].equals("reload")) {
++            try {
++                sender.sendMessage("Reloading OpenCL");
++                sender.sendMessage("Shutting down OpenCL");
++                OpenCompute.release();
++                sender.sendMessage("Starting OpenCL");
++                YatopiaConfig.useOpenCL = true;
++                OpenCompute.init();
++                sender.sendMessage("OpenCL has been successfully reloaded");
++            } catch (Exception e) {
++                YatopiaConfig.useOpenCL = false;
++                LogManager.getLogger().error(e);
++                sender.sendMessage("Error Reloading OpenCL");
++            }
++            return true;
++        }
++
++        if (args[0].equals("enable")) {
++            sender.sendMessage("Enabling OpenCL");
++            YatopiaConfig.useOpenCL = true;
++            return true;
++        }
++
++        if (args[0].equals("override")) {
++            sender.sendMessage("Overriding OpenCL Performance Check");
++            YatopiaConfig.openCLOverride = true;
++            return true;
++        }
++
++        return true;
++    }
++}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..d375b4a60d37fe525cd587a5b768c750a0ad7fc7
+index 0000000000000000000000000000000000000000..1b394c8ca052efbbb4dc1979c9b698f53d5d16d4
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,326 @@
+@@ -0,0 +1,327 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -363,6 +463,7 @@ index 0000000000000000000000000000000000000000..d375b4a60d37fe525cd587a5b768c750
 +        LOGGER.info("Yatopia OpenCL: Shutting down");
 +        if (activeInstance != null)
 +            activeInstance.close();
++        YatopiaConfig.useOpenCL = false;
 +        activeInstance = null;
 +    }
 +
