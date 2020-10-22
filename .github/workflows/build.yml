@@ -1,4 +1,4 @@
-name: Yatopia Build Script
+name: Yatopia Build and Code Anylysis Script
 
 on:
   push:
@@ -57,6 +57,13 @@ jobs:
     - name: Build Yatopia
       run: |
         ./yatopia full
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      # Override language selection by uncommenting this and choosing your languages
+      with:
+        config-file: ./.github/codeql-config.yml
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
     - name: Upload Artifact
       if: github.ref != 'refs/heads/ver/1.16.3'
       uses: actions/upload-artifact@v2
