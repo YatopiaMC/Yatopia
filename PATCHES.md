@@ -77,7 +77,7 @@ This is an overview over all patches that are currently used.
 | server |  New lighting structure      | ishland |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
-| server |  OpenCL base      | ishland |  |
+| server |  OpenCL base      | ishland | Bud Gidiere |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |

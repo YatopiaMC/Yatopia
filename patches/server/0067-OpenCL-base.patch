@@ -5,6 +5,9 @@ Subject: [PATCH] OpenCL base
 
 Patch used for OpenCL computing
 Using GlowStoneMC implementation of OpenCompute API with JOCL
+Uses configurable benchmark to determine whether or not Yatopia should use OpenCL and which device it should use.
+
+Co-authored-by:  Bud Gidiere <sgidiere@gmail.com>
 
 diff --git a/pom.xml b/pom.xml
 index fd15e54ea87581c61566b7ed4620435fac579bab..c246d2883d1c172c9f7774f53407eb77a6540443 100644
@@ -29,19 +32,18 @@ index fd15e54ea87581c61566b7ed4620435fac579bab..c246d2883d1c172c9f7774f53407eb77
          <dependency>
              <groupId>com.googlecode.json-simple</groupId>
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b4cd0037f 100644
+index c3b2a77300bce04139741c8d79bb7c0d8199f403..120eba26e81596889bfd5f168096c053dae41d2a 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -56,6 +56,8 @@ import java.util.function.Function;
+@@ -56,6 +56,7 @@ import java.util.function.Function;
  import java.util.stream.Stream;
  import javax.annotation.Nullable;
  import javax.imageio.ImageIO;
-+
 +import net.yatopia.server.opencl.OpenCompute;
  import org.apache.commons.lang3.Validate;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -838,6 +840,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -838,6 +839,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          LOGGER.info("Closing Thread Pool");
          SystemUtils.shutdownServerThreadPool(); // Paper
          LOGGER.info("Closing Server");
@@ -50,7 +52,7 @@ index c3b2a77300bce04139741c8d79bb7c0d8199f403..09982930f614a49961fd116c9c59852b
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 893487d52aa58f4360cadfb83f87cf9d8396134e..ee0ad28add93b8ee5be2814884dd5a0809c4890a 100644
+index 893487d52aa58f4360cadfb83f87cf9d8396134e..a45591fd42b6850d5f20ff2f3da2aefa7b61d7d0 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -14,6 +14,7 @@ import java.util.logging.Level;
@@ -69,17 +71,7 @@ index 893487d52aa58f4360cadfb83f87cf9d8396134e..ee0ad28add93b8ee5be2814884dd5a08
  
          version = getInt("config-version", 1);
          set("config-version", 1);
-@@ -256,12 +258,25 @@ public class YatopiaConfig {
-     }
- 
-     public static LightEngineType lightEngineType = LightEngineType.VANILLA;
-+
-     private static void lightEngineType() {
-         String type = getString("settings.light-engine.type", lightEngineType.name());
-         try {
-             lightEngineType = LightEngineType.valueOf(type);
--        } catch (IllegalArgumentException e){
-+        } catch (IllegalArgumentException e) {
+@@ -264,4 +266,16 @@ public class YatopiaConfig {
              Bukkit.getLogger().warning("Could not detect light engine type from \"" + type + "\", fallback to default " + lightEngineType.name());
          }
      }
@@ -245,28 +237,18 @@ index 0000000000000000000000000000000000000000..30e0e8d705271fc6d47f401116a93d99
 +    }
 +
 +}
-diff --git a/src/main/java/net/yatopia/server/opencl/CPUBenchmarkResult.java b/src/main/java/net/yatopia/server/opencl/CPUBenchmarkResult.java
+diff --git a/src/main/java/net/yatopia/server/opencl/BenchmarkResult.java b/src/main/java/net/yatopia/server/opencl/BenchmarkResult.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a41d27ce71dd38dee9c6d46d9b13fcfb5ff99cff
+index 0000000000000000000000000000000000000000..d134549cce3cd1ab9ac274058f59eaeb1132d9a9
 --- /dev/null
-+++ b/src/main/java/net/yatopia/server/opencl/CPUBenchmarkResult.java
-@@ -0,0 +1,26 @@
++++ b/src/main/java/net/yatopia/server/opencl/BenchmarkResult.java
+@@ -0,0 +1,16 @@
 +package net.yatopia.server.opencl;
 +
 +import net.yatopia.server.list.GlueList;
 +
-+public class CPUBenchmarkResult {
-+    private final long timing;
-+
-+    CPUBenchmarkResult(GlueList timing) {
-+        this.timing = CalculateAverage(timing);
-+    }
-+
-+    public long getTiming() {
-+        return timing;
-+    }
-+
-+    private long CalculateAverage(GlueList list) {
++public class BenchmarkResult {
++    long CalculateAverage(GlueList list) {
 +        long sum = 0;
 +        if (!list.isEmpty()) {
 +            for (int i = 0; i < list.size(); i++) {
@@ -277,17 +259,39 @@ index 0000000000000000000000000000000000000000..a41d27ce71dd38dee9c6d46d9b13fcfb
 +        return sum;
 +    }
 +}
-diff --git a/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java b/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java
+diff --git a/src/main/java/net/yatopia/server/opencl/CPUBenchmarkResult.java b/src/main/java/net/yatopia/server/opencl/CPUBenchmarkResult.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910fc4070b35
+index 0000000000000000000000000000000000000000..c19a9a75b3a0fee2251b18231b5f11012e7f6186
 --- /dev/null
-+++ b/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java
-@@ -0,0 +1,40 @@
++++ b/src/main/java/net/yatopia/server/opencl/CPUBenchmarkResult.java
+@@ -0,0 +1,16 @@
 +package net.yatopia.server.opencl;
 +
 +import net.yatopia.server.list.GlueList;
 +
-+public class OpenCLBenchmarkResult {
++public class CPUBenchmarkResult extends BenchmarkResult{
++    private final long timing;
++
++    CPUBenchmarkResult(GlueList timing) {
++        this.timing = CalculateAverage(timing);
++    }
++
++    public long getTiming() {
++        return timing;
++    }
++
++}
+diff --git a/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java b/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e72ecd17ce2007c597eb975080c7e78e48c30a92
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/opencl/OpenCLBenchmarkResult.java
+@@ -0,0 +1,30 @@
++package net.yatopia.server.opencl;
++
++import net.yatopia.server.list.GlueList;
++
++public class OpenCLBenchmarkResult extends BenchmarkResult{
 +    private final long gpuTiming;
 +    private final long cpuTiming;
 +    private final long latencyTiming;
@@ -312,16 +316,6 @@ index 0000000000000000000000000000000000000000..bd629a02f509b63b28d61ebf32b3910f
 +            return latencyTiming;
 +        }
 +
-+    private long CalculateAverage(GlueList list) {
-+        long sum = 0;
-+        if (!list.isEmpty()) {
-+            for (int i = 0; i < list.size(); i++) {
-+                sum += (long) list.get(i);
-+            }
-+            return sum / list.size();
-+        }
-+        return sum;
-+    }
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java b/src/main/java/net/yatopia/server/opencl/OpenCLCommand.java
 new file mode 100644
@@ -415,7 +409,7 @@ index 0000000000000000000000000000000000000000..d2c4b95991f84d14d99d4213dad990c3
 +}
 diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..10caa040eb6caf25da83cd3c76d9c28e5ed9798a
+index 0000000000000000000000000000000000000000..8f385681a14ff19fb03ffa9c515fbabd278d79d8
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
 @@ -0,0 +1,335 @@
@@ -533,7 +527,7 @@ index 0000000000000000000000000000000000000000..10caa040eb6caf25da83cd3c76d9c28e
 +            else
 +                tmpqueue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
 +        } catch (Exception e) {
-+            LOGGER.info("Failed to initialize {}", device.getName());
++            LOGGER.warn("Failed to initialize {}", device.getName());
 +        }
 +
 +        queue = tmpqueue;
