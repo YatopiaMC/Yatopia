@@ -26,7 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         java: [15, 11, 8]
-        language: ['java']
 
     steps:
     - name: Cancel Previous Runs
@@ -60,9 +59,9 @@ jobs:
         ./yatopia full
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
-      # Override language selection by uncommenting this and choosing your languages
       with:
         config-file: ./.github/codeql-config.yml
+        languages: java 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
     - name: Upload Artifact
