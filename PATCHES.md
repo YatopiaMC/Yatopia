@@ -58,7 +58,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
-| server |  Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
@@ -81,13 +80,15 @@ This is an overview over all patches that are currently used.
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize advancement loading      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
-| server |  Optimize player loops around weather      | MrIvanPlays |  |
+| server |  Optimize some stuff in WorldServer ticking      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
+| server |  PaperPR: Fix merging spawning values      | Mariell Hoversholm |  |
+| server |  PaperPR: Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
@@ -98,7 +99,6 @@ This is an overview over all patches that are currently used.
 | server |  Redirect Configs      | tr7zw |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
-| server |  Replace some hot streams      | Ivan Pekov |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Respect rotation when respawning      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
@@ -113,7 +113,6 @@ This is an overview over all patches that are currently used.
 | server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
 | server |  Use Glue List in WeightedList      | Ivan Pekov |  |
 | server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
-| server |  Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
