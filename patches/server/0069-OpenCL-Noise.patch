@@ -1,0 +1,465 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Bud Gidiere <sgidiere@gmail.com>
+Date: Thu, 22 Oct 2020 23:12:41 -0500
+Subject: [PATCH] OpenCL Noise
+
+
+diff --git a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
+index bf7aad5885138db06ce7c51a65b0493dd825f6f7..fcee67b1daa990db7a310b1617964f6feaa4d2e0 100644
+--- a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
++++ b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
+@@ -1,5 +1,11 @@
+ package net.minecraft.server;
+ 
++import com.jogamp.opencl.*;
++import net.yatopia.server.YatopiaConfig;
++import net.yatopia.server.opencl.OpenCompute;
++
++import java.nio.ByteBuffer;
++import java.nio.DoubleBuffer;
+ import java.util.Random;
+ 
+ public final class NoiseGeneratorPerlin {
+@@ -11,6 +17,14 @@ public final class NoiseGeneratorPerlin {
+     // Yatopia start - Faster Perlin
+     private static final int GRADIENT_STRIDE = 4;
+     private static final int GRADIENT_STRIDE_SH = 2;
++    private static Boolean canOpenCL = null;
++    private static final CLBuffer<DoubleBuffer>[] doubleInputBuffer = new CLBuffer[]{null};
++    private static final CLBuffer<ByteBuffer>[] byteBuffer1 = new CLBuffer[]{null};
++    private static final CLBuffer<ByteBuffer>[] byteBuffer2 = new CLBuffer[]{null};
++    private static final CLBuffer<DoubleBuffer>[] doubleOutputBuffer = new CLBuffer[]{null};
++    private CLProgram program = null;
++    private OpenCompute openCompute = null;
++
+ 
+     private final byte[] gradientTable = new byte[256 * GRADIENT_STRIDE];
+     // Yatopia end
+@@ -74,6 +88,58 @@ public final class NoiseGeneratorPerlin {
+ 
+         return this.a(i, j, k, d8, d9 - d14, d10, d11, d12, d13);
+          */
++        long starttime = System.nanoTime();
++        if (canOpenCL == null) { canOpenCL = (YatopiaConfig.useOpenCL && OpenCompute.extensions.stream().parallel().anyMatch(n -> (n.equals("cl_khr_fp64") || n.equals(("cl_amd_fp64"))))); }
++        if (canOpenCL) {
++            if (openCompute == null) { openCompute = OpenCompute.getActiveInstance(); }
++            if (program == null) { program = openCompute.getProgram("net/yatopia/server/opencl/NoiseGeneratorPerlin.cl"); }
++            CLKernel[] kernel = new CLKernel[]{null};
++            double[] output = new double[] {0.0D};
++            OpenCompute.OPENCL_EXECUTOR.execute(() -> {
++                try {
++
++                    if (doubleInputBuffer[0] == null) {
++                        doubleInputBuffer[0] = openCompute.getContext().createDoubleBuffer(128);
++                    } else {
++                        doubleInputBuffer[0].getBuffer().clear();
++                    }
++                    if (byteBuffer1[0] == null) {
++                        byteBuffer1[0] = openCompute.getContext().createByteBuffer(256 * GRADIENT_STRIDE);
++                    } else {
++                        byteBuffer1[0].getBuffer().clear();
++                    }
++                    if (byteBuffer2[0] == null) {
++                        byteBuffer2[0] = openCompute.getContext().createByteBuffer(this.gradientTable.length);
++                    } else {
++                        byteBuffer2[0].getBuffer().clear();
++                    }
++                    if (doubleOutputBuffer[0] == null) {
++                        doubleOutputBuffer[0] = openCompute.getContext().createDoubleBuffer(8);
++                    } else {
++                        doubleOutputBuffer[0].getBuffer().clear();
++                    }
++                    double[] doubleInput = new double[]{d0, d1, d2, d3, d4, this.a, this.b, this.c, GRADIENT_STRIDE_SH};
++                    doubleInputBuffer[0].getBuffer().put(doubleInput);
++                    byteBuffer1[0].getBuffer().put(this.gradientTable);
++                    byteBuffer2[0].getBuffer().put(this.d);
++                    kernel[0] = openCompute.getKernel(program, "sample");
++                    kernel[0].putArg(doubleInputBuffer[0])
++                            .putArg(byteBuffer1[0])
++                            .putArg(byteBuffer2[0])
++                            .putArg(doubleOutputBuffer[0]);
++                    CLCommandQueue clCommandQueue = openCompute.getQueue();
++                    clCommandQueue.put1DRangeKernel(kernel[0], 0,
++                            openCompute.getGlobalSize(YatopiaConfig.openCLTestSize), openCompute.getLocalSize())
++                            .putReadBuffer(doubleOutputBuffer[0], true);
++                    output[0] = doubleOutputBuffer[0].getBuffer().get(0);
++                } finally {
++                    if (kernel[0] != null && !kernel[0].isReleased()) kernel[0].release();
++                }
++
++            });
++            return output[0];
++        }
++
+         final double ox = d0 + this.a;
+         final double oy = d1 + this.b;
+         final double oz = d2 + this.c;
+@@ -88,99 +154,67 @@ public final class NoiseGeneratorPerlin {
+ 
+         final double fx = MathHelper.j(oox);
+         final double fy = MathHelper.j(ooy);
+-        final double fz = MathHelper.j(ooz);
+ 
+         if (d3 != 0.0D) {
+             ooy = ooy - (Math.floor(Math.min(d4, ooy) / d3) * d3);
+         }
+ 
+-        return this.sample((int) fox, (int) foy, (int) foz, oox, ooy, ooz, fx, fy, fz);
+-        // Yatopia end
+-    }
+-
+-    private static double a(int i, double d0, double d1, double d2) {
+-        int j = i & 15;
+-
+-        return NoiseGenerator3Handler.a(NoiseGenerator3Handler.a[j], d0, d1, d2);
+-    }
+-
+-    private int a(int i) {
+-        return this.d[i & 255] & 255;
+-    }
+-
+-    public final double sample(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) { return a(i, j, k, d0, d1, d2, d3, d4, d5); } // Yatopia - OBFHELPER
+-    public double a(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) {
+-        // Yatopia start - replaced logic
+-        /*
+-        int l = this.a(i) + j;
+-        int i1 = this.a(l) + k;
+-        int j1 = this.a(l + 1) + k;
+-        int k1 = this.a(i + 1) + j;
+-        int l1 = this.a(k1) + k;
+-        int i2 = this.a(k1 + 1) + k;
+-        double d6 = a(this.a(i1), d0, d1, d2);
+-        double d7 = a(this.a(l1), d0 - 1.0D, d1, d2);
+-        double d8 = a(this.a(j1), d0, d1 - 1.0D, d2);
+-        double d9 = a(this.a(i2), d0 - 1.0D, d1 - 1.0D, d2);
+-        double d10 = a(this.a(i1 + 1), d0, d1, d2 - 1.0D);
+-        double d11 = a(this.a(l1 + 1), d0 - 1.0D, d1, d2 - 1.0D);
+-        double d12 = a(this.a(j1 + 1), d0, d1 - 1.0D, d2 - 1.0D);
+-        double d13 = a(this.a(i2 + 1), d0 - 1.0D, d1 - 1.0D, d2 - 1.0D);
++        int i = (int) fox;
++        int j = (int) foy;
++        int k = (int) foz;
+ 
+-        return MathHelper.a(d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13);
+-         */
+         final byte[] perm = this.d;
+ 
+         final int i1 = (perm[i & 255] & 255) + j;
+         final int l = (perm[(i + 1) & 255] & 255) + j;
+ 
+-        final int j1 = (perm[255 & i] & 255) + k;
++        final int j1 = (perm[255 & i1] & 255) + k;
+         final int m = (perm[l & 255] & 255) + k;
+ 
+-        final int k1 = (perm[(i + 1) & 255] & 255) + k;
++        final int k1 = (perm[(i1 + 1) & 255] & 255) + k;
+         final int n = (perm[(l + 1) & 255] & 255) + k;
+ 
+-        final double localX2 = d0 - 1.0D;
+-        final double localY2 = d1 - 1.0D;
+-        final double localZ2 = d2 - 1.0D;
++        final double localX2 = oox - 1.0D;
++        final double localY2 = ooy - 1.0D;
++        final double localZ2 = ooz - 1.0D;
+ 
+-        final int d00 = (j & 255) << GRADIENT_STRIDE_SH;
++        final int d00 = (j1 & 255) << GRADIENT_STRIDE_SH;
+         final int d01 = (m & 255) << GRADIENT_STRIDE_SH;
+         final int d02 = (k & 255) << GRADIENT_STRIDE_SH;
+         final int d03 = (n & 255) << GRADIENT_STRIDE_SH;
+ 
+-        final int d10 = ((j + 1) & 255) << GRADIENT_STRIDE_SH;
++        final int d10 = ((j1 + 1) & 255) << GRADIENT_STRIDE_SH;
+         final int d11 = ((m + 1) & 255) << GRADIENT_STRIDE_SH;
+-        final int d12 = ((k + 1) & 255) << GRADIENT_STRIDE_SH;
++        final int d12 = ((k1 + 1) & 255) << GRADIENT_STRIDE_SH;
+         final int d13 = ((n + 1) & 255) << GRADIENT_STRIDE_SH;
+ 
+         final byte[] grad = this.gradientTable;
+ 
+-        final double g00x = grad[d00] * d0;
+-        final double g00y = grad[d00 + 1] * d1;
+-        final double g00z = grad[d00 + 2] * d2;
++        final double g00x = grad[d00] * oox;
++        final double g00y = grad[d00 + 1] * ooy;
++        final double g00z = grad[d00 + 2] * ooz;
+ 
+         final double g01x = grad[d01] * localX2;
+-        final double g01y = grad[d01 + 1] * d1;
+-        final double g01z = grad[d01 + 2] * d2;
++        final double g01y = grad[d01 + 1] * ooy;
++        final double g01z = grad[d01 + 2] * ooz;
+ 
+-        final double g02x = grad[d02] * d0;
++        final double g02x = grad[d02] * oox;
+         final double g02y = grad[d02 + 1] * localY2;
+-        final double g02z = grad[d02 + 2] * d2;
++        final double g02z = grad[d02 + 2] * ooz;
+ 
+         final double g03x = grad[d03] * localX2;
+         final double g03y = grad[d03 + 1] * localY2;
+-        final double g03z = grad[d03 + 2] * d2;
++        final double g03z = grad[d03 + 2] * ooz;
+ 
+-        final double g10x = grad[d10] * d0;
+-        final double g10y = grad[d10 + 1] * d1;
++        final double g10x = grad[d10] * oox;
++        final double g10y = grad[d10 + 1] * ooy;
+         final double g10z = grad[d10 + 2] * localZ2;
+ 
+         final double g11x = grad[d11] * localX2;
+-        final double g11y = grad[d11 + 1] * d1;
++        final double g11y = grad[d11 + 1] * ooy;
+         final double g11z = grad[d11 + 2] * localZ2;
+ 
+-        final double g12x = grad[d12] * d0;
++        final double g12x = grad[d12] * oox;
+         final double g12y = grad[d12 + 1] * localY2;
+         final double g12z = grad[d12 + 2] * localZ2;
+ 
+@@ -202,10 +236,10 @@ public final class NoiseGeneratorPerlin {
+         final double dc1 = g03 - g02;
+         final double dc2 = g13 - g12;
+ 
+-        final double dba1 = d3 * ba1;
+-        final double dba2 = d3 * ba2;
+-        final double ddc1 = d3 * dc1;
+-        final double ddc2 = d3 * dc2;
++        final double dba1 = fx * ba1;
++        final double dba2 = fx * ba2;
++        final double ddc1 = fx * dc1;
++        final double ddc2 = fx * dc2;
+ 
+         final double dd0 = g00 + dba1;
+         final double dd1 = g10 + dba2;
+@@ -215,13 +249,46 @@ public final class NoiseGeneratorPerlin {
+         final double aa0 = dd2 - dd0;
+         final double aa1 = dd3 - dd1;
+ 
+-        final double y20 = d4 * aa0;
+-        final double y31 = d4 * aa1;
++        final double y20 = fy * aa0;
++        final double y31 = fy * aa1;
+ 
+         final double aa2 = dd0 + y20;
+         final double aa3 = dd1 + y31;
+ 
+-        return dd0 + y20 + (d4 * (aa3 - aa2));
++        return dd0 + y20 + (fy * (aa3 - aa2));
+         // Yatopia end
+     }
++
++    private static double a(int i, double d0, double d1, double d2) {
++        int j = i & 15;
++
++        return NoiseGenerator3Handler.a(NoiseGenerator3Handler.a[j], d0, d1, d2);
++    }
++
++    private int a(int i) {
++        return this.d[i & 255] & 255;
++    }
++
++    // Yatopia start - replaced logic
++    /*
++    public double a(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) {
++        int l = this.a(i) + j;
++        int i1 = this.a(l) + k;
++        int j1 = this.a(l + 1) + k;
++        int k1 = this.a(i + 1) + j;
++        int l1 = this.a(k1) + k;
++        int i2 = this.a(k1 + 1) + k;
++        double d6 = a(this.a(i1), d0, d1, d2);
++        double d7 = a(this.a(l1), d0 - 1.0D, d1, d2);
++        double d8 = a(this.a(j1), d0, d1 - 1.0D, d2);
++        double d9 = a(this.a(i2), d0 - 1.0D, d1 - 1.0D, d2);
++        double d10 = a(this.a(i1 + 1), d0, d1, d2 - 1.0D);
++        double d11 = a(this.a(l1 + 1), d0 - 1.0D, d1, d2 - 1.0D);
++        double d12 = a(this.a(j1 + 1), d0, d1 - 1.0D, d2 - 1.0D);
++        double d13 = a(this.a(i2 + 1), d0 - 1.0D, d1 - 1.0D, d2 - 1.0D);
++
++        return MathHelper.a(d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13);
++    }
++    */
++    // Yatopia end
+ }
+diff --git a/src/main/java/net/yatopia/server/opencl/OpenCompute.java b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
+index 8f385681a14ff19fb03ffa9c515fbabd278d79d8..e6eddf52f4b9dccec8526cdc7d40a420b452406c 100644
+--- a/src/main/java/net/yatopia/server/opencl/OpenCompute.java
++++ b/src/main/java/net/yatopia/server/opencl/OpenCompute.java
+@@ -26,6 +26,7 @@ import java.io.IOException;
+ import java.io.InputStream;
+ import java.util.Arrays;
+ import java.util.List;
++import java.util.Set;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.ExecutorService;
+@@ -37,7 +38,7 @@ public class OpenCompute implements Closeable {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     private static final ClassLoader CLASS_LOADER = OpenCompute.class.getClassLoader();
+-    static final ExecutorService OPENCL_EXECUTOR = Executors.newCachedThreadPool(new ThreadFactory() {
++    public static final ExecutorService OPENCL_EXECUTOR = Executors.newCachedThreadPool(new ThreadFactory() {
+         private AtomicLong serial = new AtomicLong(0);
+ 
+         @Override
+@@ -56,6 +57,7 @@ public class OpenCompute implements Closeable {
+     private final CLDevice device;
+     private final CLCommandQueue queue;
+     private ConcurrentHashMap<String, CLProgram> programs;
++    public static GlueList<String> extensions = new GlueList<>();
+ 
+     private static OpenCompute activeInstance = null;
+ 
+@@ -266,10 +268,15 @@ public class OpenCompute implements Closeable {
+                     CLDevice device = fastestdeivce.openCompute.device;
+                     LOGGER.info("OpenCL: Using {}", device.getName());
+                     LOGGER.debug("OpenCL: Using CLPlatform {} on device CLDevice {}", device.getPlatform(), device);
++                    Set<String> ext = device.getExtensions();
++                    for (int i = 0; i < ext.size(); i++) {
++                        extensions.add(i, (String) ext.toArray()[i]);
++                    }
+                     activeInstance = new OpenCompute(device);
+                 } else {
+                     LOGGER.info("OpenCL: OpenCL is not faster disabling OpenCL");
+                     YatopiaConfig.useOpenCL = false;
++                    extensions.clear();
+                     activeInstance = null;
+                 }
+ 
+diff --git a/src/main/resources/builtin/opencl/net/yatopia/server/opencl/NoiseGeneratorPerlin.cl b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/NoiseGeneratorPerlin.cl
+new file mode 100644
+index 0000000000000000000000000000000000000000..6b6725d73608aeb341b0af4d7d161f5d2e470f2f
+--- /dev/null
++++ b/src/main/resources/builtin/opencl/net/yatopia/server/opencl/NoiseGeneratorPerlin.cl
+@@ -0,0 +1,130 @@
++#ifdef cl_khr_fp64
++#pragma OPENCL EXTENSION cl_khr_fp64 : enable
++#elif defined(cl_amd_fp64)
++#pragma OPENCL EXTENSION cl_amd_fp64 : enable
++#else
++#error "Double precision floating point not supported by OpenCL implementation."
++#endif
++
++inline double mathj(double var0) {
++        return (var0 * var0 * var0 * (var0 * (var0 * 6.0 - 15.0) + 10.0));
++}
++
++__kernel void sample(__global const double* input, __global const char* grad, __global const char* perm,
++                   __global double* result) {
++    const double ox = input[0] + input[5];
++    const double oy = input[1] + input[6];
++    const double oz = input[2] + input[7];
++
++    const double fox = convert_double_rtp(ox);
++    const double foy = convert_double_rtp(oy);
++    const double foz = convert_double_rtp(oz);
++
++    const double oox = ox - fox;
++    double ooy = oy - foy;
++    const double ooz = oz - foz;
++
++    const double fx = mathj(oox);
++    const double fy = mathj(ooy);
++
++    if (input[3] != 0.0)
++       ooy = ooy - (convert_double_rtp(min(input[4], ooy) / input[3]) * input[3]);
++
++    const int i = (int) fox;
++    const int j = (int) foy;
++    const int k = (int) foz;
++
++    const int i1 = (perm[i & 255] & 255) + j;
++    const int l = (perm[(i + 1) & 255] & 255) + j;
++
++    const int j1 = (perm[255 & i1] & 255) + k;
++    const int m = (perm[l & 255] & 255) + k;
++
++    const int k1 = (perm[(i1 + 1) & 255] & 255) + k;
++    const int n = (perm[(l + 1) & 255] & 255) + k;
++
++    const double localX2 = oox - 1.0;
++    const double localY2 = ooy - 1.0;
++    const double localZ2 = ooz - 1.0;
++
++    const int gradsh = (int) input[8];
++
++    const int d00 = (j1 & 255) << gradsh;
++    const int d01 = (m & 255) << gradsh;
++    const int d02 = (k & 255) << gradsh;
++    const int d03 = (n & 255) << gradsh;
++
++    const int d10 = ((j1 + 1) & 255) << gradsh;
++    const int d11 = ((m + 1) & 255) << gradsh;
++    const int d12 = ((k1 + 1) & 255) << gradsh;
++    const int d13 = ((n + 1) & 255) << gradsh;
++
++
++    const double g00x = grad[d00] * oox;
++    const double g00y = grad[d00 + 1] * ooy;
++    const double g00z = grad[d00 + 2] * ooz;
++
++    const double g01x = grad[d01] * localX2;
++    const double g01y = grad[d01 + 1] * ooy;
++    const double g01z = grad[d01 + 2] * ooz;
++
++    const double g02x = grad[d02] * oox;
++    const double g02y = grad[d02 + 1] * localY2;
++    const double g02z = grad[d02 + 2] * ooz;
++
++    const double g03x = grad[d03] * localX2;
++    const double g03y = grad[d03 + 1] * localY2;
++    const double g03z = grad[d03 + 2] * ooz;
++
++    const double g10x = grad[d10] * oox;
++    const double g10y = grad[d10 + 1] * ooy;
++    const double g10z = grad[d10 + 2] * localZ2;
++
++    const double g11x = grad[d11] * localX2;
++    const double g11y = grad[d11 + 1] * ooy;
++    const double g11z = grad[d11 + 2] * localZ2;
++
++    const double g12x = grad[d12] * oox;
++    const double g12y = grad[d12 + 1] * localY2;
++    const double g12z = grad[d12 + 2] * localZ2;
++
++    const double g13x = grad[d13] * localX2;
++    const double g13y = grad[d13 + 1] * localY2;
++    const double g13z = grad[d13 + 2] * localZ2;
++
++    const double g00 = g00x + g00y + g00z;
++    const double g01 = g01x + g01y + g01z;
++    const double g02 = g02x + g02y + g02z;
++    const double g03 = g03x + g03y + g03z;
++    const double g10 = g10x + g10y + g10z;
++    const double g11 = g11x + g11y + g11z;
++    const double g12 = g12x + g12y + g12z;
++    const double g13 = g13x + g13y + g13z;
++
++    const double ba1 = g01 - g00;
++    const double ba2 = g11 - g10;
++    const double dc1 = g03 - g02;
++    const double dc2 = g13 - g12;
++
++    const double dba1 = input[3] * ba1;
++    const double dba2 = input[3] * ba2;
++    const double ddc1 = input[3] * dc1;
++    const double ddc2 = input[3] * dc2;
++
++    const double dd0 = g00 + dba1;
++    const double dd1 = g10 + dba2;
++    const double dd2 = g02 + ddc1;
++    const double dd3 = g12 + ddc2;
++
++    const double aa0 = dd2 - dd0;
++    const double aa1 = dd3 - dd1;
++
++    const double y20 = input[4] * aa0;
++    const double y31 = input[4] * aa1;
++
++    const double aa2 = dd0 + y20;
++    const double aa3 = dd1 + y31;
++
++    result[0] = dd0 + y20 + (input[4] * (aa3 - aa2));
++}
++

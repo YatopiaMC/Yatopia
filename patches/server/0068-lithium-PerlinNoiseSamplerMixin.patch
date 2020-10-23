@@ -1,0 +1,189 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sat, 26 Sep 2020 11:37:25 -0500
+Subject: [PATCH] lithium PerlinNoiseSamplerMixin
+
+Original code by JellySquid, licensed under LGPLv3
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
+index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..bf7aad5885138db06ce7c51a65b0493dd825f6f7 100644
+--- a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
++++ b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
+@@ -8,6 +8,12 @@ public final class NoiseGeneratorPerlin {
+     public final double a;
+     public final double b;
+     public final double c;
++    // Yatopia start - Faster Perlin
++    private static final int GRADIENT_STRIDE = 4;
++    private static final int GRADIENT_STRIDE_SH = 2;
++
++    private final byte[] gradientTable = new byte[256 * GRADIENT_STRIDE];
++    // Yatopia end
+ 
+     public NoiseGeneratorPerlin(Random random) {
+         this.a = random.nextDouble() * 256.0D;
+@@ -29,9 +35,21 @@ public final class NoiseGeneratorPerlin {
+             this.d[i + j] = b0;
+         }
+ 
++        // Yatopia start
++        for (i = 0; i < 256; i++) {
++            int hash = this.d[i & 255] & 15;
++
++            for (int j = 0; j < 3; j++) {
++                this.gradientTable[(i * GRADIENT_STRIDE) + j] = (byte) NoiseGenerator3Handler.a[hash][j];
++            }
++        }
++        // Yatopia end
+     }
+ 
++    public final double sample(double x, double y, double z, double d, double e) { return a(x, y, z, d, e); } // Yatopia - OBFHELPER
+     public double a(double d0, double d1, double d2, double d3, double d4) {
++        // Yatopia start - replaced logic
++        /*
+         double d5 = d0 + this.a;
+         double d6 = d1 + this.b;
+         double d7 = d2 + this.c;
+@@ -55,6 +73,29 @@ public final class NoiseGeneratorPerlin {
+         }
+ 
+         return this.a(i, j, k, d8, d9 - d14, d10, d11, d12, d13);
++         */
++        final double ox = d0 + this.a;
++        final double oy = d1 + this.b;
++        final double oz = d2 + this.c;
++
++        final double fox = Math.floor(ox);
++        final double foy = Math.floor(oy);
++        final double foz = Math.floor(oz);
++
++        double oox = ox - fox;
++        double ooy = oy - foy;
++        double ooz = oz - foz;
++
++        final double fx = MathHelper.j(oox);
++        final double fy = MathHelper.j(ooy);
++        final double fz = MathHelper.j(ooz);
++
++        if (d3 != 0.0D) {
++            ooy = ooy - (Math.floor(Math.min(d4, ooy) / d3) * d3);
++        }
++
++        return this.sample((int) fox, (int) foy, (int) foz, oox, ooy, ooz, fx, fy, fz);
++        // Yatopia end
+     }
+ 
+     private static double a(int i, double d0, double d1, double d2) {
+@@ -67,7 +108,10 @@ public final class NoiseGeneratorPerlin {
+         return this.d[i & 255] & 255;
+     }
+ 
++    public final double sample(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) { return a(i, j, k, d0, d1, d2, d3, d4, d5); } // Yatopia - OBFHELPER
+     public double a(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) {
++        // Yatopia start - replaced logic
++        /*
+         int l = this.a(i) + j;
+         int i1 = this.a(l) + k;
+         int j1 = this.a(l + 1) + k;
+@@ -84,5 +128,100 @@ public final class NoiseGeneratorPerlin {
+         double d13 = a(this.a(i2 + 1), d0 - 1.0D, d1 - 1.0D, d2 - 1.0D);
+ 
+         return MathHelper.a(d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13);
++         */
++        final byte[] perm = this.d;
++
++        final int i1 = (perm[i & 255] & 255) + j;
++        final int l = (perm[(i + 1) & 255] & 255) + j;
++
++        final int j1 = (perm[255 & i] & 255) + k;
++        final int m = (perm[l & 255] & 255) + k;
++
++        final int k1 = (perm[(i + 1) & 255] & 255) + k;
++        final int n = (perm[(l + 1) & 255] & 255) + k;
++
++        final double localX2 = d0 - 1.0D;
++        final double localY2 = d1 - 1.0D;
++        final double localZ2 = d2 - 1.0D;
++
++        final int d00 = (j & 255) << GRADIENT_STRIDE_SH;
++        final int d01 = (m & 255) << GRADIENT_STRIDE_SH;
++        final int d02 = (k & 255) << GRADIENT_STRIDE_SH;
++        final int d03 = (n & 255) << GRADIENT_STRIDE_SH;
++
++        final int d10 = ((j + 1) & 255) << GRADIENT_STRIDE_SH;
++        final int d11 = ((m + 1) & 255) << GRADIENT_STRIDE_SH;
++        final int d12 = ((k + 1) & 255) << GRADIENT_STRIDE_SH;
++        final int d13 = ((n + 1) & 255) << GRADIENT_STRIDE_SH;
++
++        final byte[] grad = this.gradientTable;
++
++        final double g00x = grad[d00] * d0;
++        final double g00y = grad[d00 + 1] * d1;
++        final double g00z = grad[d00 + 2] * d2;
++
++        final double g01x = grad[d01] * localX2;
++        final double g01y = grad[d01 + 1] * d1;
++        final double g01z = grad[d01 + 2] * d2;
++
++        final double g02x = grad[d02] * d0;
++        final double g02y = grad[d02 + 1] * localY2;
++        final double g02z = grad[d02 + 2] * d2;
++
++        final double g03x = grad[d03] * localX2;
++        final double g03y = grad[d03 + 1] * localY2;
++        final double g03z = grad[d03 + 2] * d2;
++
++        final double g10x = grad[d10] * d0;
++        final double g10y = grad[d10 + 1] * d1;
++        final double g10z = grad[d10 + 2] * localZ2;
++
++        final double g11x = grad[d11] * localX2;
++        final double g11y = grad[d11 + 1] * d1;
++        final double g11z = grad[d11 + 2] * localZ2;
++
++        final double g12x = grad[d12] * d0;
++        final double g12y = grad[d12 + 1] * localY2;
++        final double g12z = grad[d12 + 2] * localZ2;
++
++        final double g13x = grad[d13] * localX2;
++        final double g13y = grad[d13 + 1] * localY2;
++        final double g13z = grad[d13 + 2] * localZ2;
++
++        final double g00 = g00x + g00y + g00z;
++        final double g01 = g01x + g01y + g01z;
++        final double g02 = g02x + g02y + g02z;
++        final double g03 = g03x + g03y + g03z;
++        final double g10 = g10x + g10y + g10z;
++        final double g11 = g11x + g11y + g11z;
++        final double g12 = g12x + g12y + g12z;
++        final double g13 = g13x + g13y + g13z;
++
++        final double ba1 = g01 - g00;
++        final double ba2 = g11 - g10;
++        final double dc1 = g03 - g02;
++        final double dc2 = g13 - g12;
++
++        final double dba1 = d3 * ba1;
++        final double dba2 = d3 * ba2;
++        final double ddc1 = d3 * dc1;
++        final double ddc2 = d3 * dc2;
++
++        final double dd0 = g00 + dba1;
++        final double dd1 = g10 + dba2;
++        final double dd2 = g02 + ddc1;
++        final double dd3 = g12 + ddc2;
++
++        final double aa0 = dd2 - dd0;
++        final double aa1 = dd3 - dd1;
++
++        final double y20 = d4 * aa0;
++        final double y31 = d4 * aa1;
++
++        final double aa2 = dd0 + y20;
++        final double aa3 = dd1 + y31;
++
++        return dd0 + y20 + (d4 * (aa3 - aa2));
++        // Yatopia end
+     }
+ }
