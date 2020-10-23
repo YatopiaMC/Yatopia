@@ -1,0 +1,114 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sat, 26 Sep 2020 15:45:09 -0500
+Subject: [PATCH] lithium VoronoiBiomeAccessTypeMixin
+
+Original code by JellySquid, licensed under LGPLv3
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java b/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
+index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..6888efc480105f5702dbad7270d59a5c908b4122 100644
+--- a/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
++++ b/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
+@@ -6,6 +6,80 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+ 
+     private GenLayerZoomVoronoi() {}
+ 
++
++    // Disable constant condition warnings due to IDEA not being able to see that a method will be replaced at runtime
++    @SuppressWarnings("ConstantConditions")
++    @Override
++    public BiomeBase a(long seed, int x, int y, int z, BiomeManager.Provider storage) {
++        int x1 = x - 2;
++        int y1 = y - 2;
++        int z1 = z - 2;
++
++        int x2 = x1 >> 2;
++        int y2 = y1 >> 2;
++        int z2 = z1 >> 2;
++
++        double x3 = (double) (x1 & 3) / 4.0D;
++        double y3 = (double) (y1 & 3) / 4.0D;
++        double z3 = (double) (z1 & 3) / 4.0D;
++
++        int retX = Integer.MIN_VALUE;
++        int retY = Integer.MIN_VALUE;
++        int retZ = Integer.MIN_VALUE;
++
++        // This code would normally allocate an array to store each iteration's results, then scan back over it
++        // to determine the closest one. We can avoid the unnecessary step and simply keep track of the nearest one.
++        double minDist = Double.POSITIVE_INFINITY;
++
++        for (int i = 0; i < 8; i++) {
++            // Block sample positions
++            int bX;
++            int bY;
++            int bZ;
++
++            // Sample positions
++            double sX;
++            double sY;
++            double sZ;
++
++            if ((i & 0b100) == 0) {
++                bX = x2;
++                sX = x3;
++            } else {
++                bX = x2 + 1;
++                sX = x3 - 1.0D;
++            }
++
++            if ((i & 0b010) == 0) {
++                bY = y2;
++                sY = y3;
++            } else {
++                bY = y2 + 1;
++                sY = y3 - 1.0D;
++            }
++
++            if ((i & 0b001) == 0) {
++                bZ = z2;
++                sZ = z3;
++            } else {
++                bZ = z2 + 1;
++                sZ = z3 - 1.0D;
++            }
++
++            double dist = a(seed, bX, bY, bZ, sX, sY, sZ);
++
++            if (minDist > dist) {
++                minDist = dist;
++
++                retX = bX;
++                retY = bY;
++                retZ = bZ;
++            }
++        }
++
++        return storage.getBiome(retX, retY, retZ);
++    }
++    /* //Yatopia Start - Replaced Logic
+     @Override
+     public BiomeBase a(long i, int j, int k, int l, BiomeManager.Provider biomemanager_provider) {
+         int i1 = j - 2;
+@@ -55,6 +129,7 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+         i3 = (k2 & 1) == 0 ? j2 : j2 + 1;
+         return biomemanager_provider.getBiome(k3, l2, i3);
+     }
++    */ //Yatopia End
+ 
+     private static double a(long i, int j, int k, int l, double d0, double d1, double d2) {
+         long i1 = LinearCongruentialGenerator.a(i, (long) j);
+@@ -75,10 +150,8 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+         return a(d2 + d5) + a(d1 + d4) + a(d0 + d3);
+     }
+ 
+-    private static double a(long i) {
+-        double d0 = (double) ((int) Math.floorMod(i >> 24, 1024L)) / 1024.0D;
+-
+-        return (d0 - 0.5D) * 0.9D;
++    private static double a(long seed) {
++        return (((seed >> 24) & 1023L) - 512) * 0.00087890625; // * 0.9 / 1024.0d
+     }
+ 
+     private static double a(double d0) {
