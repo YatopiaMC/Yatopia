@@ -53,6 +53,20 @@ pipeline {
                 }
             }
         }
+        stage('Build Hwaccel Module') {
+            tools {
+                jdk "OpenJDK 8"
+            }
+            steps {
+                withMaven(
+                    maven: '3',
+                    mavenLocalRepo: '.repository',
+                    publisherStrategy: 'EXPLICIT'
+                ) {
+                    sh 'cd ./Yatopia-Hwaccel && mvn install'
+                }
+            }
+        }
         stage('Build Server') {
             tools {
                 jdk "OpenJDK 8"

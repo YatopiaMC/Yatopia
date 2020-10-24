@@ -10,17 +10,17 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
-| api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
+| api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
-| api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| api |  Add StructureLocateEvent      | dfsek |  |
+| api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add StructureLocateEvent      | dfsek |  |
-| api |  Add last tick time API      | Ivan Pekov | tr7zw |
+| api |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
+| api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
@@ -61,6 +61,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
+| server |  Hardware acceleration      | ishland |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
@@ -71,13 +72,11 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
-| api |  Modify POM      | tr7zw |  |
 | server |  Modify POM      | tr7zw |  |
+| api |  Modify POM      | tr7zw |  |
 | server |  Modify default configs      | tr7zw |  |
-| server |  New lighting structure      | ishland |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
-| server |  OpenCL base      | ishland | Bud Gidiere |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
@@ -92,12 +91,13 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
-| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
+| api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Replace some hot streams      | Ivan Pekov |  |

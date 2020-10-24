@@ -1,0 +1,770 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sat, 24 Oct 2020 23:01:02 +0800
+Subject: [PATCH] Hardware acceleration
+
+This patch integrates Yatopia-Hwaccel into the server
+
+diff --git a/pom.xml b/pom.xml
+index fd15e54ea87581c61566b7ed4620435fac579bab..75a6e56b6ec35bde11cdc76756ad1d9575bc535d 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -111,6 +111,12 @@
+             <artifactId>netty-all</artifactId>
+             <version>4.1.50.Final</version>
+         </dependency>
++        <!-- Hardware aceleration -->
++        <dependency>
++            <groupId>net.yatopia</groupId>
++            <artifactId>Yatopia-Hwaccel</artifactId>
++            <version>0.0.1-SNAPSHOT</version>
++        </dependency>
+         <!-- deprecated API depend -->
+         <dependency>
+             <groupId>com.googlecode.json-simple</groupId>
+diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f485f0680acfa0490c5a9961c4d3fc87a6e59a42 100644
+--- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
++++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+@@ -1,18 +1,27 @@
+ package net.minecraft.server;
+ 
+-import com.mojang.datafixers.util.Pair;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap; // Paper
+-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+-import it.unimi.dsi.fastutil.objects.ObjectList;
+-import it.unimi.dsi.fastutil.objects.ObjectListIterator;
++
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.function.IntSupplier;
+ import javax.annotation.Nullable;
++
++import net.yatopia.hwaccel.lighting.LightEngineImpl;
++import net.yatopia.hwaccel.lighting.structures.Chunk;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
++import net.yatopia.hwaccel.lighting.structures.LightAccessor;
++import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaLightingAccessor;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+-public class LightEngineThreaded extends LightEngine implements AutoCloseable {
++public class LightEngineThreaded extends LightEngine implements AutoCloseable, LightEngineImpl {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     private final ThreadedMailbox<Runnable> b;
+@@ -340,6 +349,67 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+         // Paper end
+     }
+ 
++    // Yatopia start - OBFHELPER and implement methods
++    @Override
++    public int doLightUpdates(int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
++        return this.a(maxUpdateCount, doSkylight, skipEdgeLightPropagation);
++    }
++
++    @Override
++    public void addLightSource(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int level) {
++        this.a(BlockPositionAdapter.toNMS(pos), level);
++    }
++
++    @Override
++    public void checkBlock(net.yatopia.hwaccel.lighting.structures.BlockPosition pos) {
++        this.a(BlockPositionAdapter.toNMS(pos));
++    }
++
++    @Override
++    public void updateChunkStatus(ChunkPosition pos) {
++        this.a(ChunkPositionAdapter.toNMS(pos));
++    }
++
++    @Override
++    public void setSectionStatus(ChunkSectionPosition pos, boolean notReady) {
++        this.a(ChunkSectionPositionAdapter.toNMS(pos), notReady);
++    }
++
++    @Override
++    public void setColumnEnabled(ChunkPosition pos, boolean lightEnabled) {
++        this.a(ChunkPositionAdapter.toNMS(pos), lightEnabled);
++    }
++
++    @Override
++    public void enqueueSectionData(LightType lightType, ChunkSectionPosition pos, @Nullable byte[] nibbles, boolean flag) {
++        this.a(EnumSkyBlock.valueOf(lightType.name()), ChunkSectionPositionAdapter.toNMS(pos), new NibbleArray(nibbles), flag);
++    }
++
++    @Override
++    public void setRetainData(ChunkPosition pos, boolean retainData) {
++        this.b(ChunkPositionAdapter.toNMS(pos), retainData);
++    }
++
++    @Override
++    public CompletableFuture<Void> lightChunk(Chunk chunk, boolean excludeBlocks) {
++        return this.a(((MinecraftChunk)chunk).handle, excludeBlocks).handle((iChunkAccess, throwable) -> {
++            if(throwable != null)
++                throwable.printStackTrace();
++            return null;
++        });
++    }
++
++    @Override
++    public LightAccessor get(LightType lightType) {
++        return new VanillaLightingAccessor(super.a(EnumSkyBlock.valueOf(lightType.name())));
++    }
++
++    @Override
++    public int getLight(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int ambientDarkness) {
++        return super.b(BlockPositionAdapter.toNMS(pos), ambientDarkness);
++    }
++    // Yatopia end
++
+     public void a(int i) {
+         this.f = i;
+     }
+@@ -348,6 +418,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+ 
+         PRE_UPDATE, POST_UPDATE;
+ 
+-        private Update() {}
++        private Update() {
++        }
+     }
+ }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 841dd0cbd771d878d53292adbd590a1ecffc367e..d7d926b641ef211077bb825be29be9cb782953ee 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -39,6 +39,7 @@ import java.util.UUID; // Paper
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.CompletionException;
+ import java.util.concurrent.Executor;
++import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.function.BooleanSupplier;
+ import java.util.function.Consumer;
+@@ -48,7 +49,14 @@ import java.util.function.Supplier;
+ import java.util.stream.Collectors;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
++
+ import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet; // Paper
++import net.yatopia.hwaccel.lighting.LightEngineImpl;
++import net.yatopia.hwaccel.lighting.LightEngineManager;
++import net.yatopia.hwaccel.lighting.VanillaLightingHook;
++import net.yatopia.hwaccel.lighting.structures.ChunkProvider;
++import net.yatopia.server.hwaccel.LightEngineThreadedDelegate;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunkProvider;
+ import org.apache.commons.lang3.mutable.MutableBoolean;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -90,6 +98,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     final LongSet loadedChunks; // Paper - private -> package
+     public final WorldServer world;
+     private final LightEngineThreaded lightEngine;
++    private final LightEngineImpl lightEngineImpl;
+     private final IAsyncTaskHandler<Runnable> executor;
+     final java.util.concurrent.Executor mainInvokingExecutor; // Paper
+     public final ChunkGenerator chunkGenerator;
+@@ -329,7 +338,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+             Thread thread = new Thread(r);
+             thread.setName(((WorldDataServer)world.getWorldData()).getName() + " - Light");
+             thread.setDaemon(true);
+-            thread.setPriority(Thread.NORM_PRIORITY+1);
++            thread.setPriority(Thread.NORM_PRIORITY + 1);
+             return thread;
+         }), "light");
+         // Paper end
+@@ -338,8 +347,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         this.mailboxWorldGen = this.p.a(threadedmailbox, false);
+         this.mailboxMain = this.p.a(mailbox, false);
+         this.mailboxLight = this.p.a(lightthreaded, false);// Paper
+-        this.lightEngine = new LightEngineThreaded(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
+-        this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler); this.chunkDistanceManager.chunkMap = this; // Paper
++        // this.lightEngineImpl = new LightEngineThreaded(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
++        synchronized (VanillaLightingHook.class){
++            VanillaLightingHook.constructor = new VanillaLightingHook.LightEngineConstructor() {
++                @Override
++                public LightEngineImpl create(ChunkProvider chunkProvider, boolean hasSkylight, ExecutorService lightThread) {
++                    final ChunkProviderServer handle = ((MinecraftChunkProvider) chunkProvider).handle;
++                    return new LightEngineThreaded(handle, PlayerChunkMap.this, hasSkylight, threadedmailbox1, PlayerChunkMap.this.p.a(threadedmailbox1, false));
++                }
++            };
++            this.lightEngineImpl = LightEngineManager.create(new MinecraftChunkProvider((ChunkProviderServer) ilightaccess), this.world.getDimensionManager().hasSkyLight(), lightThread);
++            this.lightEngine = new LightEngineThreadedDelegate(lightEngineImpl);
++            VanillaLightingHook.constructor = new VanillaLightingHook.DefaultConstructor();
++        }
++        this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler);
++        this.chunkDistanceManager.chunkMap = this; // Paper
+         this.l = supplier;
+         this.m = new VillagePlace(new File(this.w, "poi"), datafixer, flag, this.world); // Paper
+         this.setViewDistance(i);
+diff --git a/src/main/java/net/minecraft/server/ProtoChunk.java b/src/main/java/net/minecraft/server/ProtoChunk.java
+index a3ac883500eaebb353ad3108a17b5c740e384b03..2227c46cd2d553b651c0d98dcde3a605ca18bba8 100644
+--- a/src/main/java/net/minecraft/server/ProtoChunk.java
++++ b/src/main/java/net/minecraft/server/ProtoChunk.java
+@@ -47,6 +47,7 @@ public class ProtoChunk implements IChunkAccess {
+     private final Map<WorldGenStage.Features, BitSet> t;
+     private volatile boolean u;
+     final World world; // Paper - Anti-Xray - Add world // Paper - private -> default
++    public World getWorld() { return world; } // Yatopia - Accessor
+ 
+     // Paper start - Anti-Xray - Add world
+     @Deprecated public ProtoChunk(ChunkCoordIntPair chunkcoordintpair, ChunkConverter chunkconverter) { this(chunkcoordintpair, chunkconverter, null); } // Notice for updates: Please make sure this constructor isn't used anywhere
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index f0e7684304cab9cea05fa266a66a2ad8172c55b6..f42808d0c0b62a5475d051518d4439f52adc760f 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -13,6 +13,11 @@ import java.util.concurrent.TimeUnit;
+ import java.util.logging.Level;
+ import java.util.regex.Pattern;
+ import net.minecraft.server.MinecraftServer;
++import net.yatopia.hwaccel.configuration.LightingConfiguration;
++import net.yatopia.hwaccel.configuration.OpenCLConfiguration;
++import net.yatopia.hwaccel.lighting.LightEngineType;
++import net.yatopia.hwaccel.utils.ConfigSuppliers;
++import net.yatopia.server.hwaccel.OpenCLCommand;
+ import org.bukkit.Bukkit;
+ import org.bukkit.command.Command;
+ import org.bukkit.configuration.InvalidConfigurationException;
+@@ -46,6 +51,7 @@ public class YatopiaConfig {
+         verbose = getBoolean("verbose", false);
+         commands = new HashMap<>();
+         commands.put("nspt", new NSPTCommand("nspt"));
++        commands.put("opencl", new OpenCLCommand("opencl"));
+ 
+         version = getInt("config-version", 1);
+         set("config-version", 1);
+@@ -253,4 +259,13 @@ public class YatopiaConfig {
+         checkFlying = getBoolean("settings.checks.flight", checkFlying);
+         checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);
+     }
++
++    private static void hwaccelConfig(){
++        ConfigSuppliers.stringConfigSupplier = YatopiaConfig::getString;
++        ConfigSuppliers.integerConfigSupplier = YatopiaConfig::getInt;
++        ConfigSuppliers.doubleConfigSupplier = YatopiaConfig::getDouble;
++        ConfigSuppliers.booleanConfigSupplier = YatopiaConfig::getBoolean;
++        OpenCLConfiguration.reload();
++        LightingConfiguration.reload();
++    }
+ }
+diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..537b9d2e0b86b87f4a5fc99d8fa5f9bbf419ecfb
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
+@@ -0,0 +1,130 @@
++package net.yatopia.server.hwaccel;
++
++import net.minecraft.server.BlockPosition;
++import net.minecraft.server.Chunk;
++import net.minecraft.server.ChunkCoordIntPair;
++import net.minecraft.server.ChunkTaskQueueSorter;
++import net.minecraft.server.EnumSkyBlock;
++import net.minecraft.server.IChunkAccess;
++import net.minecraft.server.ILightAccess;
++import net.minecraft.server.LightEngine;
++import net.minecraft.server.LightEngineLayerEventListener;
++import net.minecraft.server.LightEngineThreaded;
++import net.minecraft.server.Mailbox;
++import net.minecraft.server.NibbleArray;
++import net.minecraft.server.PlayerChunkMap;
++import net.minecraft.server.SectionPosition;
++import net.minecraft.server.ThreadedMailbox;
++import net.yatopia.hwaccel.lighting.LightEngineImpl;
++import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaChunkLightingViewDelegate;
++
++import javax.annotation.Nullable;
++import java.util.concurrent.CompletableFuture;
++import java.util.function.BiFunction;
++
++public class LightEngineThreadedDelegate extends LightEngineThreaded {
++
++    final LightEngineImpl delegate;
++
++    public LightEngineThreadedDelegate(LightEngineImpl delegate) {
++        super(null, null, false, null, null);
++        this.delegate = delegate;
++    }
++
++    @Override
++    public void a(BlockPosition var0) {
++        delegate.checkBlock(BlockPositionAdapter.fromNMS(var0));
++    }
++
++    @Override
++    public void a(BlockPosition var0, int var1) {
++        delegate.addLightSource(BlockPositionAdapter.fromNMS(var0), var1);
++    }
++
++    @Override
++    public boolean a() {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public int a(int var0, boolean var1, boolean var2) {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public void a(SectionPosition var0, boolean var1) {
++        delegate.setSectionStatus(ChunkSectionPositionAdapter.fromNMS(var0), var1);
++    }
++
++    @Override
++    public void a(ChunkCoordIntPair var0, boolean var1) {
++        delegate.setColumnEnabled(ChunkPositionAdapter.fromNMS(var0), var1);
++    }
++
++    @Override
++    public LightEngineLayerEventListener a(EnumSkyBlock var0) {
++        return new VanillaChunkLightingViewDelegate(delegate.get(LightType.valueOf(var0.name())));
++    }
++
++    @Override
++    public void a(EnumSkyBlock var0, SectionPosition var1, @Nullable NibbleArray var2, boolean var3) {
++        delegate.enqueueSectionData(LightType.valueOf(var0.name()), ChunkSectionPositionAdapter.fromNMS(var1), var2 != null ? var2.asBytes() : null, var3);
++    }
++
++    @Override
++    public void b(ChunkCoordIntPair var0, boolean var1) {
++        delegate.setRetainData(ChunkPositionAdapter.fromNMS(var0), var1);
++    }
++
++    @Override
++    public int b(BlockPosition var0, int var1) {
++        return delegate.getLight(BlockPositionAdapter.fromNMS(var0), var1);
++    }
++
++    @Override
++    public void a(BlockPosition var0, boolean var1) {
++        delegate.setSectionStatus(ChunkSectionPositionAdapter.fromNMS(SectionPosition.a(var0)), var1);
++    }
++
++    @Override
++    public int hashCode() {
++        return delegate.hashCode();
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++        return delegate.equals(obj);
++    }
++
++    @Override
++    public String toString() {
++        return super.toString() + " -> " + delegate.toString();
++    }
++
++    @Override
++    public void close() {
++        super.close();
++    }
++
++    @Override
++    public CompletableFuture<IChunkAccess> a(IChunkAccess ichunkaccess, boolean flag) {
++        return delegate.lightChunk(new MinecraftChunk(ichunkaccess), flag).handle((unused, throwable) -> {
++            if(throwable != null)
++                throwable.printStackTrace();
++            return ichunkaccess;
++        });
++    }
++
++    @Override
++    public void queueUpdate() {
++    }
++
++    @Override
++    public void a(int i) { // setQueueSize
++    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/OpenCLCommand.java b/src/main/java/net/yatopia/server/hwaccel/OpenCLCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..668f94459e4a861d4416232a8279b621e8f4e817
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/OpenCLCommand.java
+@@ -0,0 +1,72 @@
++package net.yatopia.server.hwaccel;
++
++import com.destroystokyo.paper.PaperCommand;
++import net.yatopia.hwaccel.configuration.OpenCLConfiguration;
++import net.yatopia.hwaccel.opencl.OpenCompute;
++import org.apache.logging.log4j.LogManager;
++import org.bukkit.Location;
++import org.bukkit.command.Command;
++import org.bukkit.command.CommandSender;
++
++import java.util.List;
++
++public class OpenCLCommand extends Command {
++
++    public OpenCLCommand(String name) {
++        super(name);
++        this.description = "OpenCL related post-launch functions";
++        this.usageMessage = "/opencl";
++        this.setPermission("bukkit.command.opencl");
++    }
++
++    @Override
++    public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
++        if (Boolean.parseBoolean(System.getProperty("Yatopia.OpenCLDebug", "true"))) {
++            return PaperCommand.getListMatchingLast(args, "info", "reload", "enable", "override");
++        }
++        return PaperCommand.getListMatchingLast(args, "info");
++    }
++
++    @Override
++    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
++        if (!testPermission(sender)) return true;
++
++
++        if (OpenCompute.getActiveInstance() == null) {
++            sender.sendMessage("Your system does not support OpenCL, OpenCL has been explicitly disabled");
++            sender.sendMessage("Check startup logs for more info");
++            return true;
++        }
++
++        if (args.length <= 0) {
++            sender.sendMessage(String.format("Using %s for OpenCL acceleration", OpenCompute.getActiveInstance().getDevice().getName()));
++            return true;
++        }
++
++        if (args[0].equals("info")) {
++            sender.sendMessage(String.format("Using %s for OpenCL acceleration", OpenCompute.getActiveInstance().getDevice().getName()));
++            return true;
++        }
++
++        if (Boolean.parseBoolean(System.getProperty("Yatopia.OpenCLDebug", "true"))) {
++            if (args[0].equals("reload")) {
++                try {
++                    sender.sendMessage("Reloading OpenCL");
++                    sender.sendMessage("Shutting down OpenCL");
++                    OpenCompute.release();
++                    sender.sendMessage("Starting OpenCL");
++                    OpenCLConfiguration.useOpenCL = true;
++                    OpenCompute.init();
++                    sender.sendMessage("OpenCL has been successfully reloaded");
++                } catch (Exception e) {
++                    LogManager.getLogger().error(e);
++                    sender.sendMessage("Error Reloading OpenCL");
++                }
++                return true;
++            }
++        }
++
++
++        return true;
++    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/BlockPositionAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/BlockPositionAdapter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4d4eb2365b3b3c70635c064da54263dad67438dc
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/BlockPositionAdapter.java
+@@ -0,0 +1,15 @@
++package net.yatopia.server.hwaccel.adapter;
++
++import net.yatopia.hwaccel.lighting.structures.BlockPosition;
++
++public class BlockPositionAdapter {
++
++    public static BlockPosition fromNMS(net.minecraft.server.BlockPosition var0){
++        return new BlockPosition(var0.getX(), var0.getY(), var0.getZ());
++    }
++
++    public static net.minecraft.server.BlockPosition toNMS(BlockPosition var0) {
++        return new net.minecraft.server.BlockPosition(var0.x, var0.y, var0.z);
++    }
++
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkPositionAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkPositionAdapter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..3fb1ee0ffdf351863ee674b6ea19c23bca0205f4
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkPositionAdapter.java
+@@ -0,0 +1,16 @@
++package net.yatopia.server.hwaccel.adapter;
++
++import net.minecraft.server.ChunkCoordIntPair;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++
++public class ChunkPositionAdapter {
++
++    public static ChunkPosition fromNMS(ChunkCoordIntPair var0) {
++        return new ChunkPosition(var0.x, var0.z);
++    }
++
++    public static ChunkCoordIntPair toNMS(ChunkPosition var0) {
++        return new ChunkCoordIntPair(var0.x, var0.z);
++    }
++
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkSectionPositionAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkSectionPositionAdapter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..00fd5fcfd4cd6554e17c4902942be9659cf12c53
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkSectionPositionAdapter.java
+@@ -0,0 +1,16 @@
++package net.yatopia.server.hwaccel.adapter;
++
++import net.minecraft.server.SectionPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
++
++public class ChunkSectionPositionAdapter {
++
++    public static ChunkSectionPosition fromNMS(SectionPosition var0){
++        return new ChunkSectionPosition(var0.getX(), var0.getY(), var0.getZ());
++    }
++
++    public static SectionPosition toNMS(ChunkSectionPosition var0){
++        return SectionPosition.a(var0.x, var0.y, var0.z);
++    }
++
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/LightAccessorAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/LightAccessorAdapter.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b5cf730fd7b15586b24f681a5ca78894a0c95166
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/LightAccessorAdapter.java
+@@ -0,0 +1,9 @@
++package net.yatopia.server.hwaccel.adapter;
++
++public class LightAccessorAdapter {
++
++
++
++
++
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9346a51358112d1be87a12c39a91c6c8e4e690ac
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java
+@@ -0,0 +1,16 @@
++package net.yatopia.server.hwaccel.adapter.chunkprovider;
++
++import net.minecraft.server.IChunkAccess;
++import net.yatopia.hwaccel.lighting.structures.Chunk;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++
++public class MinecraftChunk extends Chunk {
++
++    public final IChunkAccess handle;
++
++    public MinecraftChunk(IChunkAccess handle) {
++        super(ChunkPositionAdapter.fromNMS(handle.getPos()));
++        this.handle = handle;
++    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..13a4d54d2e539f0a0372a617859c635a2f765e10
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java
+@@ -0,0 +1,22 @@
++package net.yatopia.server.hwaccel.adapter.chunkprovider;
++
++import net.minecraft.server.ChunkProviderServer;
++import net.minecraft.server.WorldDataServer;
++import net.yatopia.hwaccel.lighting.structures.ChunkProvider;
++
++import javax.annotation.Nonnull;
++
++public class MinecraftChunkProvider implements ChunkProvider {
++
++    public final ChunkProviderServer handle;
++
++    public MinecraftChunkProvider(ChunkProviderServer handle) {
++        this.handle = handle;
++    }
++
++    @Nonnull
++    @Override
++    public String getWorldName() {
++        return ((WorldDataServer) handle.getWorld().getWorldData()).getName();
++    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4403d9948a596a96ef9142acff257caaf5f499a
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
+@@ -0,0 +1,35 @@
++package net.yatopia.server.hwaccel.adapter.lightaccessor;
++
++import net.minecraft.server.BlockPosition;
++import net.minecraft.server.LightEngineLayerEventListener;
++import net.minecraft.server.NibbleArray;
++import net.minecraft.server.SectionPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.hwaccel.lighting.structures.LightAccessor;
++import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++
++import javax.annotation.Nullable;
++
++public class VanillaChunkLightingViewDelegate implements LightEngineLayerEventListener {
++    private final LightAccessor delegate;
++
++    public VanillaChunkLightingViewDelegate(LightAccessor delegate) {
++        this.delegate = delegate;
++    }
++
++    @Nullable
++    @Override
++    public NibbleArray a(SectionPosition sectionposition) {
++        return new NibbleArray(delegate.getLightStorage(new ChunkPosition(sectionposition.getX(), sectionposition.getZ())).getSectionCopy(sectionposition.getY()));
++    }
++
++    @Override
++    public int b(BlockPosition blockposition) {
++        return delegate.getLightLevel(BlockPositionAdapter.fromNMS(blockposition));
++    }
++
++    @Override
++    public void a(SectionPosition sectionPosition, boolean b) {
++        throw new UnsupportedOperationException();
++    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaLightingAccessor.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaLightingAccessor.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..35597f59081d7b11ae391c809ee17b1d090204ff
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaLightingAccessor.java
+@@ -0,0 +1,31 @@
++package net.yatopia.server.hwaccel.adapter.lightaccessor;
++
++import net.minecraft.server.ChunkCoordIntPair;
++import net.minecraft.server.LightEngineLayerEventListener;
++import net.yatopia.hwaccel.lighting.storage.ChunkLightStorage;
++import net.yatopia.hwaccel.lighting.structures.BlockPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.hwaccel.lighting.structures.LightAccessor;
++import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.storage.NibbleArrayChunkStorage;
++
++public class VanillaLightingAccessor implements LightAccessor {
++
++    private final LightEngineLayerEventListener delegate;
++
++    public VanillaLightingAccessor(LightEngineLayerEventListener delegate) {
++        this.delegate = delegate;
++    }
++
++    @Override
++    public NibbleArrayChunkStorage getLightStorage(ChunkPosition chunkPosition) {
++        return new NibbleArrayChunkStorage(delegate, ChunkPositionAdapter.toNMS(chunkPosition));
++    }
++
++    @Override
++    public byte getLightLevel(BlockPosition blockPosition) {
++        return this.getLightStorage(new ChunkPosition(blockPosition.x >> 4, blockPosition.z >> 4))
++                .getLight(blockPosition.x % 16, blockPosition.y, blockPosition.z % 16);
++    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4020db328dd41d479e721359d62bdbc53b0f9f4d
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
+@@ -0,0 +1,60 @@
++package net.yatopia.server.hwaccel.adapter.lightaccessor.storage;
++
++import net.minecraft.server.ChunkCoordIntPair;
++import net.minecraft.server.LightEngineLayerEventListener;
++import net.minecraft.server.NibbleArray;
++import net.minecraft.server.SectionPosition;
++import net.yatopia.hwaccel.lighting.storage.ChunkLightStorage;
++
++import java.util.Arrays;
++
++public class NibbleArrayChunkStorage implements ChunkLightStorage {
++
++    private final LightEngineLayerEventListener lightAccessor;
++    private final ChunkCoordIntPair chunkPos;
++
++    public NibbleArrayChunkStorage(LightEngineLayerEventListener lightAccessor, ChunkCoordIntPair chunkPos) {
++        this.lightAccessor = lightAccessor;
++        this.chunkPos = chunkPos;
++    }
++
++    @Override
++    public byte[] getArrayCopy() {
++        byte[] bytes = new byte[32678];
++        Arrays.fill(bytes, (byte) 0x00);
++        for (int i = 0; i < 16; i++) {
++            NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, i));
++            if (nibbleArray != null)
++                System.arraycopy(nibbleArray.asBytes(), 0, bytes, i << 11, 2048);
++        }
++        return bytes;
++    }
++
++    @Override
++    public byte[] getSectionCopy(int index) {
++        NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, index));
++        if (nibbleArray != null)
++            return nibbleArray.asBytes();
++        else {
++            byte[] bytes = new byte[2048];
++            Arrays.fill(bytes, (byte) 0x00);
++            return bytes;
++        }
++    }
++
++    @Override
++    public void setByte(int index, byte value) {
++        NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, index << 11));
++        if(nibbleArray == null)
++            throw new IllegalStateException("NibbleArray not initialized yet");
++        nibbleArray.asBytes()[index % 2048] = value;
++    }
++
++    @Override
++    public byte getByte(int index) {
++        NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, index << 11));
++        if(nibbleArray == null)
++            return 0;
++        return nibbleArray.asBytes()[index % 2048];
++    }
++}
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..6e9e24b8db6f6fc3a130cf0fc590982d9e54ed61 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -7,12 +7,12 @@ import java.util.Arrays;
+ import java.util.Calendar;
+ import java.util.Date;
+ import java.util.List;
+-import java.util.concurrent.TimeUnit;
+ import java.util.logging.Level;
+ import java.util.logging.Logger;
+ import joptsimple.OptionParser;
+ import joptsimple.OptionSet;
+ import net.minecrell.terminalconsole.TerminalConsoleAppender; // Paper
++import net.yatopia.hwaccel.opencl.OpenCompute;
+ 
+ public class Main {
+     public static boolean useJline = true;
+@@ -305,6 +305,7 @@ public class Main {
+                 System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
+                 //de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config // Yatopia - no load here for u
+                 System.out.println("Loading libraries, please wait...");
++                OpenCompute.init(); // Yatopia
+                 net.minecraft.server.Main.main(options);
+             } catch (Throwable t) {
+                 t.printStackTrace();
