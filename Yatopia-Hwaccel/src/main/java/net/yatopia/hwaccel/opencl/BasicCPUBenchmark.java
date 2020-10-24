@@ -25,14 +25,18 @@ public class BasicCPUBenchmark {
                 long lastTime = Long.MAX_VALUE;
                 long thisTime = Long.MIN_VALUE;
                 int times = 0;
-                while (Math.abs((lastTime - thisTime) / 1_000_000) >= 2 || times ++ < 5) {
+                int totalTimes = 0;
+                while ((Math.abs((lastTime - thisTime) / 1_000_000) >= 2 || times ++ < 5) && totalTimes < 96) {
                     if(Math.abs((lastTime - thisTime) / 1_000_000) >= 2)
                         times = 0;
                     lastTime = thisTime;
                     long startTime = System.nanoTime();
                     run0(testData1, testData2, result);
                     thisTime = System.nanoTime() - startTime;
+                    totalTimes ++;
                 }
+                if(totalTimes == 96)
+                    LOGGER.warn("Reached warmup timeout");
 
                 for (int i = 0; i < OpenCLConfiguration.openCLTestPasses; i++) {
                     long duration = run0(testData1, testData2, result);
