@@ -67,6 +67,7 @@ This is an overview over all patches that are currently used.
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
+| server |  Infinity bow setting      | William Blake Galbreath | Bud Gidiere |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
