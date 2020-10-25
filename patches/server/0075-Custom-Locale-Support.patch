@@ -6,19 +6,10 @@ Subject: [PATCH] Custom Locale Support
 All Server Jars Come with a pre-baked, usually English, locale file. This patch allows you to change the locale file by creating a locale.json file in the root directory of your server. Note that while custom locale files are supported by the server no support will be given for non-official Mojang locale files.
 
 diff --git a/src/main/java/net/minecraft/server/LocaleLanguage.java b/src/main/java/net/minecraft/server/LocaleLanguage.java
-index 29d55483510d3644a1edd3a01d7314232c358ac6..01252ccb9eb6c297c4eed4a2e3fc4f4130c2191d 100644
+index 29d55483510d3644a1edd3a01d7314232c358ac6..92b7728288cc5fc233aae190ef3e1f1ca3cf6896 100644
 --- a/src/main/java/net/minecraft/server/LocaleLanguage.java
 +++ b/src/main/java/net/minecraft/server/LocaleLanguage.java
-@@ -9,6 +9,8 @@ import com.google.gson.JsonParseException;
- import java.io.IOException;
- import java.io.InputStream;
- import java.io.InputStreamReader;
-+import java.io.File; // Yatopia
-+import java.io.FileInputStream; // Yatopia
- import java.nio.charset.StandardCharsets;
- import java.util.Iterator;
- import java.util.Map;
-@@ -30,9 +32,19 @@ public abstract class LocaleLanguage {
+@@ -30,9 +30,19 @@ public abstract class LocaleLanguage {
      private static LocaleLanguage c() {
          Builder<String, String> builder = ImmutableMap.builder();
          BiConsumer<String, String> biconsumer = builder::put; // Paper - decompile fix
@@ -28,10 +19,10 @@ index 29d55483510d3644a1edd3a01d7314232c358ac6..01252ccb9eb6c297c4eed4a2e3fc4f41
 -            InputStream inputstream = LocaleLanguage.class.getResourceAsStream("/assets/minecraft/lang/en_us.json");
 +            // Yatopia Start - Custom Locale
 +            InputStream inputstream;
-+            File file = new File("./locale.json");
++            java.io.File file = new java.io.File("./locale.json");
 +            if (file.isFile() && file.canRead()) {
 +                usingCustomLocale = true;
-+                inputstream = new FileInputStream("./locale.json");
++                inputstream = new java.io.FileInputStream(file);
 +            } else {
 +                inputstream = LocaleLanguage.class.getResourceAsStream("/assets/minecraft/lang/en_us.json");
 +            }
@@ -39,7 +30,7 @@ index 29d55483510d3644a1edd3a01d7314232c358ac6..01252ccb9eb6c297c4eed4a2e3fc4f41
              Throwable throwable = null;
  
              try {
-@@ -55,7 +67,13 @@ public abstract class LocaleLanguage {
+@@ -55,7 +65,13 @@ public abstract class LocaleLanguage {
  
              }
          } catch (JsonParseException | IOException ioexception) {

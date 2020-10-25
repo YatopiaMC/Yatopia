@@ -61,28 +61,19 @@ index 55a5999080b831217b88ed3657e95218fe982c18..f30587b0c455d5159084020719bca7de
  
          @Override
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index b356686a963e6f5367f39735967b1fb43ad075dc..adbec93f3d39ca9f13bd8336ba4dc22630714880 100644
+index b356686a963e6f5367f39735967b1fb43ad075dc..989cc3d8ca161be0307ce8b43a56c1770fb10c88 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -18,6 +18,8 @@ import java.util.function.Consumer;
- import java.util.function.Predicate;
- import java.util.function.Supplier;
- import javax.annotation.Nullable;
-+
-+import me.jellysquid.mods.lithium.common.world.ChunkRandomSource;
- import org.apache.logging.log4j.LogManager;
- import org.apache.logging.log4j.Logger;
- 
-@@ -33,7 +35,7 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
+@@ -33,7 +33,7 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
  import org.bukkit.event.block.BlockPhysicsEvent;
  // CraftBukkit end
  
 -public abstract class World implements GeneratorAccess, AutoCloseable {
-+public abstract class World implements GeneratorAccess, AutoCloseable, ChunkRandomSource {
++public abstract class World implements GeneratorAccess, AutoCloseable, me.jellysquid.mods.lithium.common.world.ChunkRandomSource {
  
      protected static final Logger LOGGER = LogManager.getLogger();
      public static final Codec<ResourceKey<World>> f = MinecraftKey.a.xmap(ResourceKey.b(IRegistry.L), ResourceKey::a);
-@@ -1509,4 +1511,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1509,4 +1509,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      public final boolean isDebugWorld() {
          return this.debugWorld;
      }
