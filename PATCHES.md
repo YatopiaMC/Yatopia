@@ -38,6 +38,8 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | tr7zw |  |
+| server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
+| server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
 | server |  Configurable flight checks      | epserv |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
@@ -104,6 +106,7 @@ This is an overview over all patches that are currently used.
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
+| server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
@@ -115,6 +118,7 @@ This is an overview over all patches that are currently used.
 | server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
+| server |  Utilities      | Mykyta Komarnytskyy |  |
 | api |  Yatopia API Bundle      | Bud Gidiere |  |
 | server |  Yatopia configuration      | tr7zw |  |
 | server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
@@ -125,8 +129,13 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
+| server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
+| server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
+| server |  lithium ScaleLayer CachingLayerContext      | JellySquid |  |
+| server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
 | server |  lithium collision optimizations      | JellySquid | Ivan Pekov |
 | server |  lithium enum_values      | JellySquid |  |
+| server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
 | server |  lithium-MixinChunkGeneratorAbstract      | JellySquid | tr7zw |
 | server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |

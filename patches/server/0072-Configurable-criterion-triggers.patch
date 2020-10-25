@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Sat, 24 Oct 2020 21:08:17 -0500
+Subject: [PATCH] Configurable criterion triggers
+
+This patch adds toggles for three criterion triggers that are called every tick. These can be very unnecessary, and especially in the case of CriterionTriggerEnterBlock, quite heavy.
+
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index b43b02c0bdd5dbf0b7d30de90bdc2f74c015ecc8..b97b6d124089828f773528480fd4a235d89c0c15 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -427,6 +427,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+     @Override
+     protected void a(IBlockData iblockdata) {
++        if (net.yatopia.server.YatopiaConfig.criterionTriggerEnterBlock) // Yatopia
+         CriterionTriggers.d.a(this, iblockdata);
+     }
+ 
+@@ -569,7 +570,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+                 this.playerConnection.sendPacket(new PacketPlayOutExperience(this.exp, this.expTotal, this.expLevel));
+             }
+ 
+-            if (this.ticksLived % 20 == 0) {
++            if (net.yatopia.server.YatopiaConfig.criterionTriggerLocation && this.ticksLived % 20 == 0) { // Yatopia
+                 CriterionTriggers.p.a(this);
+             }
+ 
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index 9df9f316ac2ec2567435ad33e7d4cdfff384381f..b92ef7f84755b1de4726c993601ec134a1e7ce9c 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -258,4 +258,14 @@ public class YatopiaConfig {
+     private static void intervals() {
+         playerTimeStatisticsInterval = Math.max(1, getInt("settings.intervals.player-time-statistics", 1));
+     }
++
++    public static boolean criterionTriggerLocation = true;
++    public static boolean criterionTriggerEnterBlock = true;
++    public static boolean criterionTriggerTick = true;
++    private static void criterionTriggers() {
++        criterionTriggerLocation = getBoolean("settings.criterion-triggers.location", true);
++        criterionTriggerEnterBlock = getBoolean("settings.criterion-triggers.enter-block", true);
++        criterionTriggerTick = getBoolean("settings.criterion-triggers.tick", true);
++    }
++
+ }
