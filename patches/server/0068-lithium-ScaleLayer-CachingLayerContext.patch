@@ -23,64 +23,60 @@ index 0000000000000000000000000000000000000000..d1932a66fa30bd80f29933ac23670e7d
 +    void skipInt();
 +}
 diff --git a/src/main/java/net/minecraft/server/GenLayerZoom.java b/src/main/java/net/minecraft/server/GenLayerZoom.java
-index 08e85d98a5cdd017b6f4de588c93de7aa45ef1e1..ff0f031c7a4fa01310e6dabfec349aa0bb3c332c 100644
+index 08e85d98a5cdd017b6f4de588c93de7aa45ef1e1..73417affd8b09c82ecabde0889a57486c14ca211 100644
 --- a/src/main/java/net/minecraft/server/GenLayerZoom.java
 +++ b/src/main/java/net/minecraft/server/GenLayerZoom.java
-@@ -21,6 +21,8 @@ public enum GenLayerZoom implements AreaTransformer2 {
-         return i >> 1;
-     }
+@@ -23,6 +23,8 @@ public enum GenLayerZoom implements AreaTransformer2 {
  
-+    // Yatopia Replace Logic
-+    /*
      @Override
      public int a(AreaContextTransformed<?> areacontexttransformed, Area area, int i, int j) {
++        // Yatopia start - replaced logic
++        /*
          int k = area.a(this.a(i), this.b(j));
-@@ -50,8 +52,44 @@ public enum GenLayerZoom implements AreaTransformer2 {
+ 
+         areacontexttransformed.a((long) (i >> 1 << 1), (long) (j >> 1 << 1));
+@@ -50,6 +52,41 @@ public enum GenLayerZoom implements AreaTransformer2 {
                  }
              }
          }
--    }
-+     */
-+    @Override
-+    public int a(AreaContextTransformed<?> ctx, Area parent, int x, int z) {
++         */
 +        // [VanillaCopy] ScaleLayer#sample
 +
-+        int tl = parent.a(this.a(x), this.b(z));
-+        int ix = x & 1;
-+        int iz = z & 1;
++        int tl = area.a(this.a(i), this.b(j));
++        int ix = i & 1;
++        int iz = j & 1;
 +
 +        if (ix == 0 && iz == 0) {
 +            return tl;
 +        }
 +
-+        ctx.a(x & ~1, z & ~1);
++        areacontexttransformed.a(i & ~1, j & ~1);
 +
 +        if (ix == 0) {
-+            int bl = parent.a(this.a(x), this.b(z + 1));
-+            return ctx.a(tl, bl);
++            int bl = area.a(this.a(i), this.b(j + 1));
++            return areacontexttransformed.a(tl, bl);
 +        }
 +
 +        // move `choose` into above if-statement: maintain rng parity
-+        ((me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended) ctx).skipInt();
++        ((me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended) areacontexttransformed).skipInt();
 +
 +        if (iz == 0) {
-+            int tr = parent.a(this.a(x + 1), this.b(z));
-+            return ctx.a(tl, tr);
++            int tr = area.a(this.a(i + 1), this.b(j));
++            return areacontexttransformed.a(tl, tr);
 +        }
- 
++
 +        // move `choose` into above if-statement: maintain rng parity
-+        ((me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended) ctx).skipInt();
++        ((me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended) areacontexttransformed).skipInt();
 +
-+        int bl = parent.a(this.a(x), this.b(z + 1));
-+        int tr = parent.a(this.a(x + 1), this.b(z));
-+        int br = parent.a(this.a(x + 1), this.b(z + 1));
++        int bl = area.a(this.a(i), this.b(j + 1));
++        int tr = area.a(this.a(i + 1), this.b(j));
++        int br = area.a(this.a(i + 1), this.b(j + 1));
 +
-+        return this.a(ctx, tl, tr, bl, br);
-+    }
-+    // Yatopia End
-     protected int a(AreaContextTransformed<?> areacontexttransformed, int i, int j, int k, int l) {
-         return j == k && k == l ? j : (i == j && i == k ? i : (i == j && i == l ? i : (i == k && i == l ? i : (i == j && k != l ? i : (i == k && j != l ? i : (i == l && j != k ? i : (j == k && i != l ? j : (j == l && i != k ? j : (k == l && i != j ? k : areacontexttransformed.a(i, j, k, l))))))))));
++        return this.a(areacontexttransformed, tl, tr, bl, br);
++        // Yatopia end
      }
+ 
+     protected int a(AreaContextTransformed<?> areacontexttransformed, int i, int j, int k, int l) {
 diff --git a/src/main/java/net/minecraft/server/WorldGenContextArea.java b/src/main/java/net/minecraft/server/WorldGenContextArea.java
 index b67d88d32a73b3a51809b91db11d54bc99169fe1..d5a373692a0c167a83c2c61d94c6ab85d9678e13 100644
 --- a/src/main/java/net/minecraft/server/WorldGenContextArea.java
