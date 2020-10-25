@@ -30,6 +30,7 @@ This is an overview over all patches that are currently used.
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
+| server |  Allow infinite and mending enchantments together      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
 | server |  Allow leashing villagers      | William Blake Galbreath |  |
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
@@ -43,6 +44,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable flight checks      | epserv |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
+| server |  Custom Locale Support      | Bud Gidiere |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -67,7 +69,8 @@ This is an overview over all patches that are currently used.
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
-| server |  Infinity bow setting      | William Blake Galbreath | Bud Gidiere |
+| server |  Infinity No Arrows      | Bud Gidiere |  |
+| server |  Infinity bow settings      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |

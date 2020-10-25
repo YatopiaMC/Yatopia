@@ -6,7 +6,7 @@ Subject: [PATCH] Custom Locale Support
 All Server Jars Come with a pre-baked, usually English, locale file. This patch allows you to change the locale file by creating a locale.json file in the root directory of your server. Note that while custom locale files are supported by the server no support will be given for non-official Mojang locale files.
 
 diff --git a/src/main/java/net/minecraft/server/LocaleLanguage.java b/src/main/java/net/minecraft/server/LocaleLanguage.java
-index 29d55483510d3644a1edd3a01d7314232c358ac6..93aab8af84d2163b87d0b83e3d5c9d43268418dd 100644
+index 29d55483510d3644a1edd3a01d7314232c358ac6..01252ccb9eb6c297c4eed4a2e3fc4f4130c2191d 100644
 --- a/src/main/java/net/minecraft/server/LocaleLanguage.java
 +++ b/src/main/java/net/minecraft/server/LocaleLanguage.java
 @@ -9,6 +9,8 @@ import com.google.gson.JsonParseException;
@@ -45,7 +45,7 @@ index 29d55483510d3644a1edd3a01d7314232c358ac6..93aab8af84d2163b87d0b83e3d5c9d43
          } catch (JsonParseException | IOException ioexception) {
 -            LocaleLanguage.LOGGER.error("Couldn't read strings from /assets/minecraft/lang/en_us.json", ioexception);
 +            // Yatopia Start - Custom Locale
-+            if (usingCustomLocale == true) {
++            if (usingCustomLocale) {
 +                LocaleLanguage.LOGGER.error("Couldn't read strings from custom locale file. Please check that your custom Locale File is formatted correctly");
 +            } else {
 +                LocaleLanguage.LOGGER.error("Couldn't read strings from /assets/minecraft/lang/en_us.json File", ioexception);
