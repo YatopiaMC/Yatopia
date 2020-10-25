@@ -8,20 +8,32 @@ In vanilla, statistics that count time spent for an action (i.e. time played or 
 With an interval of 20, this patch saves roughly 3ms per tick on a server w/ 80 players online.
 
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index ff6a8473027d82db1fbf3ab18fd0cfe08e2d9d78..b14e1a84840e8c6b8abfcc2f6cc85e58f58eabc6 100644
+index ff6a8473027d82db1fbf3ab18fd0cfe08e2d9d78..1c46e9eaedfd8214d998845a07fd8f88eec711ae 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
-@@ -163,6 +163,7 @@ public abstract class EntityHuman extends EntityLiving {
+@@ -163,18 +163,23 @@ public abstract class EntityHuman extends EntityLiving {
          this.p();
          if (!this.world.isClientSide) {
              this.foodData.a(this);
-+            if (net.yatopia.server.util.MathUtils.fastMod(ticksLived, net.yatopia.server.YatopiaConfig.playerTimeStatisticsInterval) == 0) { // Yatopia
-             this.a(StatisticList.PLAY_ONE_MINUTE);
+-            this.a(StatisticList.PLAY_ONE_MINUTE);
++            // Yatopia start
++            int interval = net.yatopia.server.YatopiaConfig.playerTimeStatisticsInterval;
++            if (net.yatopia.server.util.MathUtils.fastMod(ticksLived, interval) == 0) {
++            this.a(StatisticList.PLAY_ONE_MINUTE, interval);
++            // Yatopia end
              if (this.isAlive()) {
-                 this.a(StatisticList.TIME_SINCE_DEATH);
-@@ -175,6 +176,7 @@ public abstract class EntityHuman extends EntityLiving {
+-                this.a(StatisticList.TIME_SINCE_DEATH);
++                this.a(StatisticList.TIME_SINCE_DEATH, interval); // Yatopia
+             }
+ 
+             if (this.bw()) {
+-                this.a(StatisticList.SNEAK_TIME);
++                this.a(StatisticList.SNEAK_TIME, interval); // Yatopia
+             }
+ 
              if (!this.isSleeping()) {
-                 this.a(StatisticList.TIME_SINCE_REST);
+-                this.a(StatisticList.TIME_SINCE_REST);
++                this.a(StatisticList.TIME_SINCE_REST, interval); // Yatopia
              }
 +            } // Yatopia
          }
