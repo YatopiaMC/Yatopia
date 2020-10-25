@@ -23,7 +23,7 @@ index fd15e54ea87581c61566b7ed4620435fac579bab..75a6e56b6ec35bde11cdc76756ad1d95
          <dependency>
              <groupId>com.googlecode.json-simple</groupId>
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f485f0680acfa0490c5a9961c4d3fc87a6e59a42 100644
+index f3494ac1ad659352ca5595adf9e6919bdb4018d0..bfca0c025956296fe0f5b97dfe951216917e1bc7 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 @@ -1,18 +1,27 @@
@@ -59,6 +59,15 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f485f0680acfa0490c5a9961c4d3fc87
  
      private static final Logger LOGGER = LogManager.getLogger();
      private final ThreadedMailbox<Runnable> b;
+@@ -188,7 +197,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+         }));
+     }
+ 
+-    protected void a(ChunkCoordIntPair chunkcoordintpair) {
++    public void a(ChunkCoordIntPair chunkcoordintpair) {
+         this.a(chunkcoordintpair.x, chunkcoordintpair.z, () -> {
+             return 0;
+         }, LightEngineThreaded.Update.PRE_UPDATE, SystemUtils.a(() -> {
 @@ -340,6 +349,67 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
          // Paper end
      }
@@ -254,9 +263,108 @@ index f0e7684304cab9cea05fa266a66a2ad8172c55b6..f42808d0c0b62a5475d051518d4439f5
 +        LightingConfiguration.reload();
 +    }
  }
+diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f152ae13870c8570c22851b2f2cff11db5c6d6cb
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java
+@@ -0,0 +1,93 @@
++package net.yatopia.server.hwaccel;
++
++import net.minecraft.server.EnumSkyBlock;
++import net.minecraft.server.LightEngineThreaded;
++import net.minecraft.server.NibbleArray;
++import net.yatopia.hwaccel.lighting.LightEngineImpl;
++import net.yatopia.hwaccel.lighting.structures.Chunk;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
++import net.yatopia.hwaccel.lighting.structures.LightAccessor;
++import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaLightingAccessor;
++
++import javax.annotation.Nullable;
++import java.io.IOException;
++import java.util.concurrent.CompletableFuture;
++
++public class LightEngineImplDelegate implements LightEngineImpl {
++
++    private final LightEngineThreaded delegate;
++
++    public LightEngineImplDelegate(LightEngineThreaded delegate) {
++        this.delegate = delegate;
++    }
++
++    @Override
++    public int doLightUpdates(int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
++        return delegate.a(maxUpdateCount, doSkylight, skipEdgeLightPropagation);
++    }
++
++    @Override
++    public void addLightSource(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int level) {
++        delegate.a(BlockPositionAdapter.toNMS(pos), level);
++    }
++
++    @Override
++    public void checkBlock(net.yatopia.hwaccel.lighting.structures.BlockPosition pos) {
++        delegate.a(BlockPositionAdapter.toNMS(pos));
++    }
++
++    @Override
++    public void updateChunkStatus(ChunkPosition pos) {
++        delegate.a(ChunkPositionAdapter.toNMS(pos));
++    }
++
++    @Override
++    public void setSectionStatus(ChunkSectionPosition pos, boolean notReady) {
++        delegate.a(ChunkSectionPositionAdapter.toNMS(pos), notReady);
++    }
++
++    @Override
++    public void setColumnEnabled(ChunkPosition pos, boolean lightEnabled) {
++        delegate.a(ChunkPositionAdapter.toNMS(pos), lightEnabled);
++    }
++
++    @Override
++    public void enqueueSectionData(LightType lightType, ChunkSectionPosition pos, @Nullable byte[] nibbles, boolean flag) {
++        delegate.a(EnumSkyBlock.valueOf(lightType.name()), ChunkSectionPositionAdapter.toNMS(pos), new NibbleArray(nibbles), flag);
++    }
++
++    @Override
++    public void setRetainData(ChunkPosition pos, boolean retainData) {
++        delegate.b(ChunkPositionAdapter.toNMS(pos), retainData);
++    }
++
++    @Override
++    public CompletableFuture<Void> lightChunk(Chunk chunk, boolean excludeBlocks) {
++        return delegate.a(((MinecraftChunk)chunk).handle, excludeBlocks).handle((iChunkAccess, throwable) -> {
++            if(throwable != null)
++                throwable.printStackTrace();
++            return null;
++        });
++    }
++
++    @Override
++    public LightAccessor get(LightType lightType) {
++        return new VanillaLightingAccessor(delegate.a(EnumSkyBlock.valueOf(lightType.name())));
++    }
++
++    @Override
++    public int getLight(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int ambientDarkness) {
++        return delegate.b(BlockPositionAdapter.toNMS(pos), ambientDarkness);
++    }
++
++    @Override
++    public void close() {
++        delegate.close();
++    }
++}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..537b9d2e0b86b87f4a5fc99d8fa5f9bbf419ecfb
+index 0000000000000000000000000000000000000000..6b0a6440b6ab7f12e9f5354fc16d7f69013a2a12
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
 @@ -0,0 +1,130 @@
@@ -315,7 +423,7 @@ index 0000000000000000000000000000000000000000..537b9d2e0b86b87f4a5fc99d8fa5f9bb
 +
 +    @Override
 +    public int a(int var0, boolean var1, boolean var2) {
-+        throw new UnsupportedOperationException();
++        return delegate.doLightUpdates(var0, var1, var2);
 +    }
 +
 +    @Override
@@ -550,16 +658,18 @@ index 0000000000000000000000000000000000000000..b5cf730fd7b15586b24f681a5ca78894
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9346a51358112d1be87a12c39a91c6c8e4e690ac
+index 0000000000000000000000000000000000000000..645b70e9a37c8c64d3bc29f8b73d7a9b4f4acd1f
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,32 @@
 +package net.yatopia.server.hwaccel.adapter.chunkprovider;
 +
 +import net.minecraft.server.IChunkAccess;
 +import net.yatopia.hwaccel.lighting.structures.Chunk;
 +import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++
++import java.util.Objects;
 +
 +public class MinecraftChunk extends Chunk {
 +
@@ -569,6 +679,20 @@ index 0000000000000000000000000000000000000000..9346a51358112d1be87a12c39a91c6c8
 +        super(ChunkPositionAdapter.fromNMS(handle.getPos()));
 +        this.handle = handle;
 +    }
++
++    public int hashCode() {
++        return chunkPosition.hashCode();
++    }
++
++    public boolean equals(Object that) {
++        return chunkPosition.equals(((Chunk)that).chunkPosition);
++    }
++
++    public String toString(){
++        return chunkPosition.toString();
++    }
++
++
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java
 new file mode 100644
@@ -768,3 +892,437 @@ index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..6e9e24b8db6f6fc3a130cf0fc590982d
                  net.minecraft.server.Main.main(options);
              } catch (Throwable t) {
                  t.printStackTrace();
+diff --git a/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..774870fdde4737b2ba554554fc03fa118a0d6078
+--- /dev/null
++++ b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
+@@ -0,0 +1,335 @@
++package net.yatopia.server.hwaccel;
++
++import it.unimi.dsi.fastutil.longs.LongSet;
++import it.unimi.dsi.fastutil.shorts.ShortList;
++import net.minecraft.server.BiomeStorage;
++import net.minecraft.server.Block;
++import net.minecraft.server.ChunkConverter;
++import net.minecraft.server.ChunkCoordIntPair;
++import net.minecraft.server.ChunkSection;
++import net.minecraft.server.ChunkStatus;
++import net.minecraft.server.Entity;
++import net.minecraft.server.Fluid;
++import net.minecraft.server.FluidType;
++import net.minecraft.server.HeightMap;
++import net.minecraft.server.IBlockData;
++import net.minecraft.server.IChunkAccess;
++import net.minecraft.server.NBTTagCompound;
++import net.minecraft.server.StructureGenerator;
++import net.minecraft.server.StructureStart;
++import net.minecraft.server.TickList;
++import net.minecraft.server.TileEntity;
++import net.yatopia.hwaccel.lighting.LightEngineImpl;
++import net.yatopia.hwaccel.lighting.structures.BlockPosition;
++import net.yatopia.hwaccel.lighting.structures.Chunk;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
++import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
++import net.yatopia.server.hwaccel.structure.TestingLightEngineImpl;
++import org.junit.Assert;
++import org.junit.Test;
++
++import javax.annotation.Nullable;
++import java.lang.reflect.InvocationTargetException;
++import java.lang.reflect.Method;
++import java.util.Collection;
++import java.util.Map;
++import java.util.Random;
++import java.util.Set;
++import java.util.stream.Stream;
++
++public class AdapterTest {
++
++    private static final int TEST_SIZE = 2048;
++
++    @Test
++    public void testBlockPositionAdapter() {
++        Random random = new Random();
++        for (int i = 0; i < TEST_SIZE; i++) {
++            BlockPosition blockPosition = new BlockPosition(random.nextInt(), random.nextInt(), random.nextInt());
++            Assert.assertEquals(blockPosition, BlockPositionAdapter.fromNMS(BlockPositionAdapter.toNMS(blockPosition)));
++        }
++    }
++
++    @Test
++    public void testChunkPositionAdapter() {
++        Random random = new Random();
++        for (int i = 0; i < TEST_SIZE; i++) {
++            ChunkPosition blockPosition = new ChunkPosition(random.nextInt(), random.nextInt());
++            Assert.assertEquals(blockPosition, ChunkPositionAdapter.fromNMS(ChunkPositionAdapter.toNMS(blockPosition)));
++        }
++    }
++
++    @Test
++    public void testChunkSectionPositionAdapter() {
++        Random random = new Random();
++        for (int i = 0; i < TEST_SIZE; i++) {
++            ChunkSectionPosition blockPosition = new ChunkSectionPosition(random.nextInt(), random.nextInt(), random.nextInt());
++            Assert.assertEquals(blockPosition, ChunkSectionPositionAdapter.fromNMS(ChunkSectionPositionAdapter.toNMS(blockPosition)));
++        }
++    }
++
++    @Test
++    public void testLightEngineThreadedDelegate() throws IllegalAccessException, InvocationTargetException {
++        Random random = new Random();
++        LightEngineImpl impl = new LightEngineImplDelegate(new LightEngineThreadedDelegate(new TestingLightEngineImpl()));
++        Class<LightEngineImpl> clazz = LightEngineImpl.class;
++        Method[] methods = clazz.getMethods();
++        for(Method method: methods){
++            final Class<?>[] parameterTypes = method.getParameterTypes();
++            final Object[] parameters = new Object[parameterTypes.length];
++            for (int i = 0; i < parameterTypes.length; i++) {
++                Class<?> param = parameterTypes[i];
++                if (param == int.class)
++                    parameters[i] = random.nextInt();
++                else if(param == boolean.class)
++                    parameters[i] = random.nextBoolean();
++                else if(param == BlockPosition.class)
++                    parameters[i] = new BlockPosition(random.nextInt(), random.nextInt(), random.nextInt());
++                else if(param == ChunkPosition.class)
++                    parameters[i] = new ChunkPosition(random.nextInt(), random.nextInt());
++                else if(param == ChunkSectionPosition.class)
++                    parameters[i] = new ChunkSectionPosition(random.nextInt(), random.nextInt(), random.nextInt());
++                else if(param == LightType.class)
++                    parameters[i] = LightType.values()[random.nextBoolean() ? 0 : 1];
++                else if (param == byte[].class)
++                    parameters[i] = generateNibble();
++                else if(param == Chunk.class) {
++                    final ChunkPosition chunkPosition = new ChunkPosition(random.nextInt(), random.nextInt());
++                    parameters[i] = new MinecraftChunk(new IChunkAccess() {
++                        @Override
++                        public IBlockData getType(int x, int y, int z) {
++                            return null;
++                        }
++
++                        @Nullable
++                        @Override
++                        public IBlockData setType(net.minecraft.server.BlockPosition blockposition, IBlockData iblockdata, boolean flag) {
++                            return null;
++                        }
++
++                        @Override
++                        public void setTileEntity(net.minecraft.server.BlockPosition blockposition, TileEntity tileentity) {
++
++                        }
++
++                        @Override
++                        public void a(Entity entity) {
++
++                        }
++
++                        @Override
++                        public Set<net.minecraft.server.BlockPosition> c() {
++                            return null;
++                        }
++
++                        @Override
++                        public ChunkSection[] getSections() {
++                            return new ChunkSection[0];
++                        }
++
++                        @Override
++                        public Collection<Map.Entry<HeightMap.Type, HeightMap>> f() {
++                            return null;
++                        }
++
++                        @Override
++                        public void a(HeightMap.Type heightmap_type, long[] along) {
++
++                        }
++
++                        @Override
++                        public HeightMap a(HeightMap.Type heightmap_type) {
++                            return null;
++                        }
++
++                        @Override
++                        public int getHighestBlock(HeightMap.Type heightmap_type, int i, int j) {
++                            return 0;
++                        }
++
++                        @Override
++                        public ChunkCoordIntPair getPos() {
++                            return ChunkPositionAdapter.toNMS(chunkPosition);
++                        }
++
++                        @Override
++                        public void setLastSaved(long i) {
++
++                        }
++
++                        @Override
++                        public Map<StructureGenerator<?>, StructureStart<?>> h() {
++                            return null;
++                        }
++
++                        @Override
++                        public void a(Map<StructureGenerator<?>, StructureStart<?>> map) {
++
++                        }
++
++                        @Nullable
++                        @Override
++                        public BiomeStorage getBiomeIndex() {
++                            return null;
++                        }
++
++                        @Override
++                        public void setNeedsSaving(boolean flag) {
++
++                        }
++
++                        @Override
++                        public boolean isNeedsSaving() {
++                            return false;
++                        }
++
++                        @Override
++                        public ChunkStatus getChunkStatus() {
++                            return null;
++                        }
++
++                        @Override
++                        public void removeTileEntity(net.minecraft.server.BlockPosition blockposition) {
++
++                        }
++
++                        @Override
++                        public ShortList[] l() {
++                            return new ShortList[0];
++                        }
++
++                        @Nullable
++                        @Override
++                        public NBTTagCompound i(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Nullable
++                        @Override
++                        public NBTTagCompound j(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Override
++                        public Stream<net.minecraft.server.BlockPosition> m() {
++                            return null;
++                        }
++
++                        @Override
++                        public TickList<Block> n() {
++                            return null;
++                        }
++
++                        @Override
++                        public TickList<FluidType> o() {
++                            return null;
++                        }
++
++                        @Override
++                        public ChunkConverter p() {
++                            return null;
++                        }
++
++                        @Override
++                        public void setInhabitedTime(long i) {
++
++                        }
++
++                        @Override
++                        public long getInhabitedTime() {
++                            return 0;
++                        }
++
++                        @Override
++                        public boolean r() {
++                            return false;
++                        }
++
++                        @Override
++                        public void b(boolean flag) {
++
++                        }
++
++                        @Nullable
++                        @Override
++                        public TileEntity getTileEntity(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Override
++                        public IBlockData getType(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Override
++                        public IBlockData getTypeIfLoaded(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Override
++                        public Fluid getFluidIfLoaded(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Override
++                        public Fluid getFluid(net.minecraft.server.BlockPosition blockposition) {
++                            return null;
++                        }
++
++                        @Nullable
++                        @Override
++                        public StructureStart<?> a(StructureGenerator<?> structureGenerator) {
++                            return null;
++                        }
++
++                        @Override
++                        public void a(StructureGenerator<?> structureGenerator, StructureStart<?> structureStart) {
++
++                        }
++
++                        @Override
++                        public LongSet b(StructureGenerator<?> structureGenerator) {
++                            return null;
++                        }
++
++                        @Override
++                        public void a(StructureGenerator<?> structureGenerator, long l) {
++
++                        }
++
++                        @Override
++                        public Map<StructureGenerator<?>, LongSet> v() {
++                            return null;
++                        }
++
++                        @Override
++                        public void b(Map<StructureGenerator<?>, LongSet> map) {
++
++                        }
++                    });
++                } else throw new IllegalArgumentException();
++            }
++            final String name = method.getName();
++            try {
++                method.invoke(impl, parameters);
++            } catch (InvocationTargetException e) {
++                if(!(e.getTargetException() instanceof TestingLightEngineImpl.InvocationResult)) throw e;
++                Assert.assertEquals(((TestingLightEngineImpl.InvocationResult)e.getTargetException()).invokedMethod, name);
++                Assert.assertArrayEquals(((TestingLightEngineImpl.InvocationResult)e.getTargetException()).invokedObjects, parameters);
++            }
++        }
++    }
++
++    private byte[] generateNibble() {
++        final byte[] bytes = new byte[2048];
++        Random random = new Random();
++        random.nextBytes(bytes);
++        return bytes;
++    }
++
++}
+diff --git a/src/test/java/net/yatopia/server/hwaccel/structure/TestingLightEngineImpl.java b/src/test/java/net/yatopia/server/hwaccel/structure/TestingLightEngineImpl.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4cf4318531f1d5926e054e96665559308cd51943
+--- /dev/null
++++ b/src/test/java/net/yatopia/server/hwaccel/structure/TestingLightEngineImpl.java
+@@ -0,0 +1,87 @@
++package net.yatopia.server.hwaccel.structure;
++
++import net.yatopia.hwaccel.lighting.LightEngineImpl;
++import net.yatopia.hwaccel.lighting.structures.BlockPosition;
++import net.yatopia.hwaccel.lighting.structures.Chunk;
++import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
++import net.yatopia.hwaccel.lighting.structures.LightAccessor;
++import net.yatopia.hwaccel.lighting.structures.LightType;
++
++import javax.annotation.Nullable;
++import java.util.concurrent.CompletableFuture;
++
++public class TestingLightEngineImpl implements LightEngineImpl {
++
++    @Override
++    public int doLightUpdates(int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
++        throw new InvocationResult("doLightUpdates", maxUpdateCount, doSkylight, skipEdgeLightPropagation);
++    }
++
++    @Override
++    public void addLightSource(BlockPosition pos, int level) {
++        throw new InvocationResult("addLightSource", pos, level);
++    }
++
++    @Override
++    public void checkBlock(BlockPosition pos) {
++        throw new InvocationResult("checkBlock", pos);
++    }
++
++    @Override
++    public void updateChunkStatus(ChunkPosition pos) {
++        throw new InvocationResult("updateChunkStatus", pos);
++    }
++
++    @Override
++    public void setSectionStatus(ChunkSectionPosition pos, boolean notReady) {
++        throw new InvocationResult("setSectionStatus", pos, notReady);
++    }
++
++    @Override
++    public void setColumnEnabled(ChunkPosition pos, boolean lightEnabled) {
++        throw new InvocationResult("setColumnEnabled", pos, lightEnabled);
++    }
++
++    @Override
++    public void enqueueSectionData(LightType lightType, ChunkSectionPosition pos, @Nullable byte[] nibbles, boolean flag) {
++        throw new InvocationResult("enqueueSectionData", lightType, pos, nibbles, flag);
++    }
++
++    @Override
++    public void setRetainData(ChunkPosition pos, boolean retainData) {
++        throw new InvocationResult("setRetainData", pos, retainData);
++    }
++
++    @Override
++    public CompletableFuture<Void> lightChunk(Chunk chunk, boolean excludeBlocks) {
++        throw new InvocationResult("lightChunk", chunk, excludeBlocks);
++    }
++
++    @Override
++    public LightAccessor get(LightType lightType) {
++        throw new InvocationResult("get", lightType);
++    }
++
++    @Override
++    public int getLight(BlockPosition pos, int ambientDarkness) {
++        throw new InvocationResult("getLight", pos, ambientDarkness);
++    }
++
++    @Override
++    public void close() {
++        throw new InvocationResult("close");
++    }
++
++    public static class InvocationResult extends RuntimeException {
++
++        public final String invokedMethod;
++        public final Object[] invokedObjects;
++
++        public InvocationResult(String invokedMethod, Object... invokedObjects) {
++            this.invokedMethod = invokedMethod;
++            this.invokedObjects = invokedObjects;
++        }
++    }
++
++}
