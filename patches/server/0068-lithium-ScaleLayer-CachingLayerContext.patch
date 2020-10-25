@@ -23,31 +23,31 @@ index 0000000000000000000000000000000000000000..d1932a66fa30bd80f29933ac23670e7d
 +    void skipInt();
 +}
 diff --git a/src/main/java/net/minecraft/server/GenLayerZoom.java b/src/main/java/net/minecraft/server/GenLayerZoom.java
-index 08e85d98a5cdd017b6f4de588c93de7aa45ef1e1..62e5c94b198bd21c061e021d0c58df8d377396ef 100644
+index 08e85d98a5cdd017b6f4de588c93de7aa45ef1e1..5a619b25b33a12ded427a34bb59297f7a2263c2a 100644
 --- a/src/main/java/net/minecraft/server/GenLayerZoom.java
 +++ b/src/main/java/net/minecraft/server/GenLayerZoom.java
 @@ -1,5 +1,7 @@
  package net.minecraft.server;
  
-+import me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended;
++import me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended; // Yatopia
 +
  public enum GenLayerZoom implements AreaTransformer2 {
  
      NORMAL, FUZZY {
-@@ -21,7 +23,8 @@ public enum GenLayerZoom implements AreaTransformer2 {
+@@ -21,6 +23,8 @@ public enum GenLayerZoom implements AreaTransformer2 {
          return i >> 1;
      }
  
--    @Override
 +    // Yatopia Replace Logic
 +    /*
+     @Override
      public int a(AreaContextTransformed<?> areacontexttransformed, Area area, int i, int j) {
          int k = area.a(this.a(i), this.b(j));
- 
-@@ -50,6 +53,42 @@ public enum GenLayerZoom implements AreaTransformer2 {
+@@ -50,8 +54,44 @@ public enum GenLayerZoom implements AreaTransformer2 {
                  }
              }
          }
+-    }
 +     */
 +    @Override
 +    public int a(AreaContextTransformed<?> ctx, Area parent, int x, int z) {
@@ -56,7 +56,7 @@ index 08e85d98a5cdd017b6f4de588c93de7aa45ef1e1..62e5c94b198bd21c061e021d0c58df8d
 +        int tl = parent.a(this.a(x), this.b(z));
 +        int ix = x & 1;
 +        int iz = z & 1;
-+
+ 
 +        if (ix == 0 && iz == 0) {
 +            return tl;
 +        }
@@ -84,18 +84,20 @@ index 08e85d98a5cdd017b6f4de588c93de7aa45ef1e1..62e5c94b198bd21c061e021d0c58df8d
 +        int br = parent.a(this.a(x + 1), this.b(z + 1));
 +
 +        return this.a(ctx, tl, tr, bl, br);
-     }
- 
++    }
++    // Yatopia End
      protected int a(AreaContextTransformed<?> areacontexttransformed, int i, int j, int k, int l) {
+         return j == k && k == l ? j : (i == j && i == k ? i : (i == j && i == l ? i : (i == k && i == l ? i : (i == j && k != l ? i : (i == k && j != l ? i : (i == l && j != k ? i : (j == k && i != l ? j : (j == l && i != k ? j : (k == l && i != j ? k : areacontexttransformed.a(i, j, k, l))))))))));
+     }
 diff --git a/src/main/java/net/minecraft/server/WorldGenContextArea.java b/src/main/java/net/minecraft/server/WorldGenContextArea.java
-index b67d88d32a73b3a51809b91db11d54bc99169fe1..06a1b61635423d83a7e52f112f724a69e5ee2cad 100644
+index b67d88d32a73b3a51809b91db11d54bc99169fe1..174e1265d1fc7b6a20d446b859da53150072eed7 100644
 --- a/src/main/java/net/minecraft/server/WorldGenContextArea.java
 +++ b/src/main/java/net/minecraft/server/WorldGenContextArea.java
 @@ -1,9 +1,11 @@
  package net.minecraft.server;
  
  import it.unimi.dsi.fastutil.longs.Long2IntLinkedOpenHashMap;
-+import me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended;
++import me.jellysquid.mods.lithium.common.world.layer.CachingLayerContextExtended; // Yatopia
 +
  import java.util.Random;
  

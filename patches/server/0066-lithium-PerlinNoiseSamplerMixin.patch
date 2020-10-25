@@ -10,20 +10,21 @@ you can find the original code on https://github.com/jellysquid3/lithium-fabric/
 Co-authored-by:  Bud Gidiere <sgidiere@gmail.com>
 
 diff --git a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
-index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..385a2ff68c7001aba9593c3cadb53935d415ec95 100644
+index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..2ab96439a92a33a5a8bbbd50595295de6c717b49 100644
 --- a/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
 +++ b/src/main/java/net/minecraft/server/NoiseGeneratorPerlin.java
-@@ -1,6 +1,9 @@
+@@ -1,6 +1,10 @@
  package net.minecraft.server;
  
  import java.util.Random;
++// Yatopia Start - Imports
 +import io.netty.util.internal.ThreadLocalRandom;
-+
-+import org.apache.commons.math3.util.FastMath; // Yatopia
++import org.apache.commons.math3.util.FastMath; 
++// Yatopia End
  
  public final class NoiseGeneratorPerlin {
  
-@@ -8,11 +11,17 @@ public final class NoiseGeneratorPerlin {
+@@ -8,11 +12,24 @@ public final class NoiseGeneratorPerlin {
      public final double a;
      public final double b;
      public final double c;
@@ -35,16 +36,20 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..385a2ff68c7001aba9593c3cadb53935
 +    // Yatopia end
  
      public NoiseGeneratorPerlin(Random random) {
--        this.a = random.nextDouble() * 256.0D;
--        this.b = random.nextDouble() * 256.0D;
--        this.c = random.nextDouble() * 256.0D;
++        // Yatopia Start - Better Random
++        /*
+         this.a = random.nextDouble() * 256.0D;
+         this.b = random.nextDouble() * 256.0D;
+         this.c = random.nextDouble() * 256.0D;
++        */
 +        this.a = ThreadLocalRandom.current().nextDouble() * 256.0D;
 +        this.b = ThreadLocalRandom.current().nextDouble() * 256.0D;
 +        this.c = ThreadLocalRandom.current().nextDouble() * 256.0D;
++        // Yatopia End - Better Random
          this.d = new byte[256];
  
          int i;
-@@ -29,8 +38,19 @@ public final class NoiseGeneratorPerlin {
+@@ -29,8 +46,19 @@ public final class NoiseGeneratorPerlin {
              this.d[i + j] = b0;
          }
  
@@ -56,15 +61,15 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..385a2ff68c7001aba9593c3cadb53935
 +                this.gradientTable[(i * GRADIENT_STRIDE) + j] = (byte) NoiseGenerator3Handler.a[hash][j];
 +            }
 +        }
-+        // Yatopia end
      }
++    // Yatopia end
  
 +    // Yatopia start - replaced logic
 +    /*
      public double a(double d0, double d1, double d2, double d3, double d4) {
          double d5 = d0 + this.a;
          double d6 = d1 + this.b;
-@@ -55,6 +75,125 @@ public final class NoiseGeneratorPerlin {
+@@ -55,6 +83,125 @@ public final class NoiseGeneratorPerlin {
          }
  
          return this.a(i, j, k, d8, d9 - d14, d10, d11, d12, d13);
@@ -190,17 +195,18 @@ index d7ca619b228e2a5a461085e0c5222e6a36a66fe0..385a2ff68c7001aba9593c3cadb53935
      }
  
      private static double a(int i, double d0, double d1, double d2) {
-@@ -66,7 +205,8 @@ public final class NoiseGeneratorPerlin {
+@@ -66,7 +213,9 @@ public final class NoiseGeneratorPerlin {
      private int a(int i) {
          return this.d[i & 255] & 255;
      }
 -
++    
 +    // Yatopia start - replaced logic
 +    /*
      public double a(int i, int j, int k, double d0, double d1, double d2, double d3, double d4, double d5) {
          int l = this.a(i) + j;
          int i1 = this.a(l) + k;
-@@ -85,4 +225,6 @@ public final class NoiseGeneratorPerlin {
+@@ -85,4 +234,6 @@ public final class NoiseGeneratorPerlin {
  
          return MathHelper.a(d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13);
      }

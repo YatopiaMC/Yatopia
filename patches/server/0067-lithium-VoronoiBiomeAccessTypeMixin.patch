@@ -7,14 +7,14 @@ Original code by JellySquid, licensed under LGPLv3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/ (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java b/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
-index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..6888efc480105f5702dbad7270d59a5c908b4122 100644
+index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..9547fe1e7a8333bad83a8fbc1bb16e2b37d2324b 100644
 --- a/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
 +++ b/src/main/java/net/minecraft/server/GenLayerZoomVoronoi.java
 @@ -6,6 +6,80 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
  
      private GenLayerZoomVoronoi() {}
  
-+
++    // Yatopia Start
 +    // Disable constant condition warnings due to IDEA not being able to see that a method will be replaced at runtime
 +    @SuppressWarnings("ConstantConditions")
 +    @Override
@@ -99,16 +99,21 @@ index 70ea171edc419f8614004b6e50fc34b8fd9b4a20..6888efc480105f5702dbad7270d59a5c
  
      private static double a(long i, int j, int k, int l, double d0, double d1, double d2) {
          long i1 = LinearCongruentialGenerator.a(i, (long) j);
-@@ -75,10 +150,8 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+@@ -75,11 +150,17 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
          return a(d2 + d5) + a(d1 + d4) + a(d0 + d3);
      }
  
--    private static double a(long i) {
--        double d0 = (double) ((int) Math.floorMod(i >> 24, 1024L)) / 1024.0D;
--
--        return (d0 - 0.5D) * 0.9D;
-+    private static double a(long seed) {
++    // Yatopia Start - Replace Logic
++    /*   
+     private static double a(long i) {
+         double d0 = (double) ((int) Math.floorMod(i >> 24, 1024L)) / 1024.0D;
+ 
+         return (d0 - 0.5D) * 0.9D;
++    */
++    private static double a(long i) {
 +        return (((seed >> 24) & 1023L) - 512) * 0.00087890625; // * 0.9 / 1024.0d
      }
++    // Yatopia End
  
      private static double a(double d0) {
+         return d0 * d0;
