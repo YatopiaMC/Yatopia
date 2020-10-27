@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Sat, 24 Oct 2020 21:03:53 -0500
+Subject: [PATCH] Smarter statistics ticking
+
+In vanilla, statistics that count time spent for an action (i.e. time played or sneak time) are incremented every tick. This is retarded. With this patch and a configured interval of 20, the statistics are only ticked every 20th tick and are incremented by 20 ticks at a time. This means a lot less ticking with the same accurate counting.
+
+With an interval of 20, this patch saves roughly 3ms per tick on a server w/ 80 players online.
+
+diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
+index ff6a8473027d82db1fbf3ab18fd0cfe08e2d9d78..1c46e9eaedfd8214d998845a07fd8f88eec711ae 100644
+--- a/src/main/java/net/minecraft/server/EntityHuman.java
++++ b/src/main/java/net/minecraft/server/EntityHuman.java
+@@ -163,18 +163,23 @@ public abstract class EntityHuman extends EntityLiving {
+         this.p();
+         if (!this.world.isClientSide) {
+             this.foodData.a(this);
+-            this.a(StatisticList.PLAY_ONE_MINUTE);
++            // Yatopia start
++            int interval = net.yatopia.server.YatopiaConfig.playerTimeStatisticsInterval;
++            if (net.yatopia.server.util.MathUtils.fastMod(ticksLived, interval) == 0) {
++            this.a(StatisticList.PLAY_ONE_MINUTE, interval);
++            // Yatopia end
+             if (this.isAlive()) {
+-                this.a(StatisticList.TIME_SINCE_DEATH);
++                this.a(StatisticList.TIME_SINCE_DEATH, interval); // Yatopia
+             }
+ 
+             if (this.bw()) {
+-                this.a(StatisticList.SNEAK_TIME);
++                this.a(StatisticList.SNEAK_TIME, interval); // Yatopia
+             }
+ 
+             if (!this.isSleeping()) {
+-                this.a(StatisticList.TIME_SINCE_REST);
++                this.a(StatisticList.TIME_SINCE_REST, interval); // Yatopia
+             }
++            } // Yatopia
+         }
+ 
+         int i = 29999999;
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index f0e7684304cab9cea05fa266a66a2ad8172c55b6..9df9f316ac2ec2567435ad33e7d4cdfff384381f 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -253,4 +253,9 @@ public class YatopiaConfig {
+         checkFlying = getBoolean("settings.checks.flight", checkFlying);
+         checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);
+     }
++
++    public static int playerTimeStatisticsInterval = 1;
++    private static void intervals() {
++        playerTimeStatisticsInterval = Math.max(1, getInt("settings.intervals.player-time-statistics", 1));
++    }
+ }

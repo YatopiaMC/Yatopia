@@ -29,39 +29,6 @@ index 662a005becd1d2642ae50c25fdf3bfadf7ae6ae2..21a0656ce8a44acf45a1756add556a5c
                      //this.methodProfiler.exitEnter("nextTickWait"); // Akarin - remove caller
                      this.X = true;
                      this.W = Math.max(SystemUtils.getMonotonicMillis() + 50L, this.nextTick);
-diff --git a/src/main/java/net/yatopia/server/TimeUtils.java b/src/main/java/net/yatopia/server/TimeUtils.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..b506aaeab4ad997b83d3aa6daaab6eea52a08568
---- /dev/null
-+++ b/src/main/java/net/yatopia/server/TimeUtils.java
-@@ -0,0 +1,27 @@
-+package net.yatopia.server;
-+
-+import java.util.concurrent.TimeUnit;
-+
-+public class TimeUtils {
-+
-+    public static String getFriendlyName(TimeUnit unit) {
-+        switch (unit) {
-+            case NANOSECONDS:
-+                return "ns";
-+            case MILLISECONDS:
-+                return "ms";
-+            case MICROSECONDS:
-+                return "micros";
-+            case SECONDS:
-+                return "s";
-+            case MINUTES:
-+                return "m";
-+            case DAYS:
-+                return "d";
-+            case HOURS:
-+                return "h";
-+            default:
-+                throw new AssertionError();
-+        }
-+    }
-+}
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 index 7277919e1cc5ee8f8fead434a1a33c9008c1618e..0645185e2d73f7001a07a9f5c8461da71b1327d5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
@@ -74,7 +41,7 @@ index 7277919e1cc5ee8f8fead434a1a33c9008c1618e..0645185e2d73f7001a07a9f5c8461da7
 +    @Override public java.time.Duration getLastTickTime() { return net.minecraft.server.MinecraftServer.lastTickTime; } // Yatopia
  }
 diff --git a/src/main/java/org/spigotmc/TicksPerSecondCommand.java b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
-index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..8e930bdd6a88806b8857bc73f93ec296f47bd4c3 100644
+index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..a7b97660ac147dffbbb4ec83e6a2753732d7c041 100644
 --- a/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 +++ b/src/main/java/org/spigotmc/TicksPerSecondCommand.java
 @@ -34,6 +34,11 @@ public class TicksPerSecondCommand extends Command
@@ -102,7 +69,7 @@ index 3c7b9a6d24e064f9c1ec5fb6d52f42627944d7fa..8e930bdd6a88806b8857bc73f93ec296
 +        long toAskedUnit = unit.convert( nanos, nanosUnit );
 +        long ms = nanosUnit.toMillis( nanos );
 +        ChatColor startingColor = ms < 40 ? ChatColor.GREEN : ( ms < 50 ) ? ChatColor.YELLOW : ChatColor.RED;
-+        return startingColor.toString() + toAskedUnit + ChatColor.GOLD + net.yatopia.server.TimeUtils.getFriendlyName( unit );
++        return startingColor.toString() + toAskedUnit + ChatColor.GOLD + net.yatopia.server.util.TimeUtils.getFriendlyName( unit );
 +    }
 +    // Yatopia end
  }
