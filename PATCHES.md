@@ -38,7 +38,7 @@ This is an overview over all patches that are currently used.
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
-| server |  Brandings      | tr7zw |  |
+| server |  Brandings      | YatopiaMC |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
 | server |  Configurable flight checks      | epserv |  |
@@ -76,8 +76,8 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
-| api |  Modify POM      | tr7zw |  |
-| server |  Modify POM      | tr7zw |  |
+| api |  Modify POM      | YatopiaMC |  |
+| server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
@@ -122,10 +122,10 @@ This is an overview over all patches that are currently used.
 | server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
 | server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
-| server |  Utilities      | Mykyta Komarnytskyy |  |
-| api |  Yatopia API Bundle      | Bud Gidiere |  |
+| server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
+| api |  Yatopia API Bundle      | YatopiaMC |  |
 | server |  Yatopia configuration      | tr7zw |  |
-| server |  Yatopia-Server-Fixes      | Bud Gidiere |  |
+| server |  Yatopia-Server-Fixes      | YatopiaMC |  |
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium MixinBiome      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
