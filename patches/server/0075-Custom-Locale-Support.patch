@@ -6,7 +6,7 @@ Subject: [PATCH] Custom Locale Support
 All Server Jars Come with a pre-baked, usually English, locale file. This patch allows you to change the locale file by creating a locale.json file in the root directory of your server. Note that while custom locale files are supported by the server no support will be given for non-official Mojang locale files.
 
 diff --git a/src/main/java/net/minecraft/server/LocaleLanguage.java b/src/main/java/net/minecraft/server/LocaleLanguage.java
-index 29d55483510d3644a1edd3a01d7314232c358ac6..92b7728288cc5fc233aae190ef3e1f1ca3cf6896 100644
+index 29d55483510d3644a1edd3a01d7314232c358ac6..9909dd07d47ec86b71b74f66ab0e252de3441e23 100644
 --- a/src/main/java/net/minecraft/server/LocaleLanguage.java
 +++ b/src/main/java/net/minecraft/server/LocaleLanguage.java
 @@ -30,9 +30,19 @@ public abstract class LocaleLanguage {
@@ -30,18 +30,15 @@ index 29d55483510d3644a1edd3a01d7314232c358ac6..92b7728288cc5fc233aae190ef3e1f1c
              Throwable throwable = null;
  
              try {
-@@ -55,7 +65,13 @@ public abstract class LocaleLanguage {
+@@ -55,7 +65,11 @@ public abstract class LocaleLanguage {
  
              }
          } catch (JsonParseException | IOException ioexception) {
--            LocaleLanguage.LOGGER.error("Couldn't read strings from /assets/minecraft/lang/en_us.json", ioexception);
-+            // Yatopia Start - Custom Locale
-+            if (usingCustomLocale) {
-+                LocaleLanguage.LOGGER.error("Couldn't read strings from custom locale file. Please check that your custom Locale File is formatted correctly");
-+            } else {
-+                LocaleLanguage.LOGGER.error("Couldn't read strings from /assets/minecraft/lang/en_us.json File", ioexception);
-+            }
-+            // Yatopia End
++            if (!usingCustomLocale) { // Yatopia
+             LocaleLanguage.LOGGER.error("Couldn't read strings from /assets/minecraft/lang/en_us.json", ioexception);
++            } else { // Yatopia start
++                LocaleLanguage.LOGGER.error("Couldn't read strings from custom locale file. Please check that your custom Locale File is formatted correctly", ioexception);
++            } // Yatopia end
          }
  
          final Map<String, String> map = builder.build();
