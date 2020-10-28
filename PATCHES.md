@@ -37,6 +37,7 @@ This is an overview over all patches that are currently used.
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Bandaid fix 272      | Ivan Pekov |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | YatopiaMC |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
@@ -135,7 +136,6 @@ This is an overview over all patches that are currently used.
 | server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
-| server |  lithium ScaleLayer CachingLayerContext      | JellySquid |  |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
 | server |  lithium collision optimizations      | JellySquid | Ivan Pekov |

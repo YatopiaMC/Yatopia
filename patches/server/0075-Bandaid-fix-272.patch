@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Wed, 28 Oct 2020 18:23:49 +0200
+Subject: [PATCH] Bandaid fix 272
+
+
+diff --git a/src/main/java/net/minecraft/server/BlockCauldron.java b/src/main/java/net/minecraft/server/BlockCauldron.java
+index 9fed3883828e7d6ca917a5eca7a7a3e37582f983..b3656e21fa20700c6e29571c8bc5cbfe624e581d 100644
+--- a/src/main/java/net/minecraft/server/BlockCauldron.java
++++ b/src/main/java/net/minecraft/server/BlockCauldron.java
+@@ -235,6 +235,7 @@ public class BlockCauldron extends Block {
+             if (f >= 0.15F) {
+                 IBlockData iblockdata = world.getType(blockposition);
+ 
++                if (iblockdata.isAir()) return; // Yatopia
+                 if ((Integer) iblockdata.get(BlockCauldron.LEVEL) < 3) {
+                     this.a(world, blockposition, (IBlockData) iblockdata.a((IBlockState) BlockCauldron.LEVEL), 2); // CraftBukkit
+                 }
