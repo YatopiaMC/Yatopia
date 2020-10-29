@@ -880,7 +880,7 @@ index e0381ed6945f734f8802d07b8cbd6b27852db449..220d5273543ea0b143cf9c894c89cabe
      // Paper end
  
 diff --git a/src/main/java/net/minecraft/server/EntitySlice.java b/src/main/java/net/minecraft/server/EntitySlice.java
-index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b533b184c36 100644
+index 1250c3cbe915815939627701c153ba6254fc05f0..cdf54580a8275f40730f9cbdc1c0c4b4a3999a90 100644
 --- a/src/main/java/net/minecraft/server/EntitySlice.java
 +++ b/src/main/java/net/minecraft/server/EntitySlice.java
 @@ -14,18 +14,35 @@ import java.util.Map.Entry;
@@ -889,8 +889,8 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b53
  
 -public class EntitySlice<T> extends AbstractCollection<T> {
 +// Yatopia start
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 +import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceArrayMap;
 +import me.jellysquid.mods.lithium.common.entity.EntityClassGroup;
 +// Yatopia end
 +
@@ -901,12 +901,12 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b53
 -    private final List<T> c = Lists.newArrayList();
 +    private final List<T> c = new net.yatopia.server.list.GlueList<>(); // Yatopia
 +
-+    private Reference2ReferenceOpenHashMap<EntityClassGroup, ReferenceLinkedOpenHashSet<T>> entitiesByGroup; // Yatopia
++    private final Reference2ReferenceArrayMap<EntityClassGroup, ReferenceLinkedOpenHashSet<T>> entitiesByGroup; // Yatopia
  
      public EntitySlice(Class<T> oclass) {
          this.b = oclass;
          this.a.put(oclass, this.c);
-+        this.entitiesByGroup = new Reference2ReferenceOpenHashMap<>(); // Yatopia
++        this.entitiesByGroup = new Reference2ReferenceArrayMap<>(); // Yatopia
      }
  
      public boolean add(T t0) {
@@ -933,29 +933,47 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b53
          boolean flag = false;
          Iterator iterator = this.a.entrySet().iterator();
  
-@@ -65,11 +87,16 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+@@ -61,10 +83,13 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+         return this.a(object.getClass()).contains(object);
+     }
+ 
++    @SuppressWarnings("unchecked") // Yatopia
+     public <S> Collection<S> a(Class<S> oclass) {
          if (!this.b.isAssignableFrom(oclass)) {
              throw new IllegalArgumentException("Don't know how to search for " + oclass);
          } else {
--            List<T> list = (List) this.a.computeIfAbsent(oclass, (oclass1) -> {
--                Stream stream = this.c.stream();
--
--                oclass1.getClass();
--                return (List) stream.filter(oclass1::isInstance).collect(Collectors.toList());
-+            List<S> list = (List<S>) this.a.computeIfAbsent(oclass, (oclass1) -> { // Yatopia - decompile fix
-+                // Yatopia start - how about we nuke stream?
-+                List<T> ret = new net.yatopia.server.list.GlueList<>();
-+                for (T t : c) {
-+                    if (oclass1.isInstance(t)) {
-+                        ret.add(t);
-+                    }
-+                }
-+                return ret;
-+                // Yatopia end
++            // Yatopia start - replace this
++            /*
+             List<T> list = (List) this.a.computeIfAbsent(oclass, (oclass1) -> {
+                 Stream stream = this.c.stream();
+ 
+@@ -73,6 +98,18 @@ public class EntitySlice<T> extends AbstractCollection<T> {
              });
  
              return Collections.unmodifiableCollection(list);
-@@ -87,4 +114,38 @@ public class EntitySlice<T> extends AbstractCollection<T> {
++             */
++            if (a.containsKey(oclass)) {
++                return (Collection<S>) Collections.unmodifiableCollection(a.get(oclass));
++            }
++            List<T> list = new net.yatopia.server.list.GlueList<>();
++            for (T allElement : this.c) {
++                if (oclass.isInstance(allElement)) {
++                    list.add(allElement);
++                }
++            }
++            a.put(oclass, list);
++            return (Collection<S>) Collections.unmodifiableCollection(list);
+         }
+     }
+ 
+@@ -81,10 +118,44 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+     }
+ 
+     public List<T> a() {
+-        return ImmutableList.copyOf(this.c);
++        return Collections.unmodifiableList(this.c); // Yatopia - avoid copying
+     }
+ 
      public int size() {
          return this.c.size();
      }
