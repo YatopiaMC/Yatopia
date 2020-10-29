@@ -10,25 +10,6 @@ Portions of this patch that were sourced from Lithium were remapped from Yarn ma
 
 Co-authored-by: Mykyta Komarnytskyy <nkomarn@hotmail.com>
 
-diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/ChunkRandomSource.java b/src/main/java/me/jellysquid/mods/lithium/common/world/ChunkRandomSource.java
-new file mode 100644
-index 0000000000000000000000000000000000000000..7a71b7ea50fc528864961582f9230f2b8654bf12
---- /dev/null
-+++ b/src/main/java/me/jellysquid/mods/lithium/common/world/ChunkRandomSource.java
-@@ -0,0 +1,12 @@
-+package me.jellysquid.mods.lithium.common.world;
-+
-+import net.minecraft.server.BlockPosition;
-+import net.minecraft.server.World;
-+
-+public interface ChunkRandomSource {
-+    /**
-+     * Alternative implementation of {@link World#a(int, int, int, int)} which does not allocate
-+     * a new {@link BlockPosition}.
-+     */
-+    void getRandomPosInChunk(int x, int y, int z, int mask, BlockPosition.MutableBlockPosition out);
-+}
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/BlockComposter.java b/src/main/java/net/minecraft/server/BlockComposter.java
 index 55a5999080b831217b88ed3657e95218fe982c18..f30587b0c455d5159084020719bca7ded535b4c1 100644
 --- a/src/main/java/net/minecraft/server/BlockComposter.java
@@ -60,73 +41,3 @@ index 55a5999080b831217b88ed3657e95218fe982c18..f30587b0c455d5159084020719bca7de
          }
  
          @Override
-diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index b356686a963e6f5367f39735967b1fb43ad075dc..989cc3d8ca161be0307ce8b43a56c1770fb10c88 100644
---- a/src/main/java/net/minecraft/server/World.java
-+++ b/src/main/java/net/minecraft/server/World.java
-@@ -33,7 +33,7 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
- import org.bukkit.event.block.BlockPhysicsEvent;
- // CraftBukkit end
- 
--public abstract class World implements GeneratorAccess, AutoCloseable {
-+public abstract class World implements GeneratorAccess, AutoCloseable, me.jellysquid.mods.lithium.common.world.ChunkRandomSource {
- 
-     protected static final Logger LOGGER = LogManager.getLogger();
-     public static final Codec<ResourceKey<World>> f = MinecraftKey.a.xmap(ResourceKey.b(IRegistry.L), ResourceKey::a);
-@@ -1509,4 +1509,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
-     public final boolean isDebugWorld() {
-         return this.debugWorld;
-     }
-+
-+    // Yatopia start
-+    @Override
-+    public void getRandomPosInChunk(int x, int y, int z, int mask, BlockPosition.MutableBlockPosition out) {
-+        n = this.n * 3 + 1013904223;
-+        int rand = n >> 2;
-+        out.setValues(x + (rand & 15), y + (rand >> 16 & mask), z + (rand >> 8 & 15));
-+    }
-+    // Yatopia end
- }
-diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 11cb25dca79d2db50170252397e9a63223b2e2a5..9e869d2e402c8f2177dd4083b4f3bc4b8fbb4b5c 100644
---- a/src/main/java/net/minecraft/server/WorldServer.java
-+++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -90,6 +90,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-     private final EnderDragonBattle dragonBattle;
-     private final StructureManager structureManager;
-     private final boolean Q;
-+    private final BlockPosition.MutableBlockPosition randomPosInChunkCachedPos = new BlockPosition.MutableBlockPosition(); // Yatopia
- 
- 
-     // CraftBukkit start
-@@ -1074,7 +1075,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-         //gameprofilerfiller.exitEnter("iceandsnow"); // Akarin - remove caller
-         if (!this.paperConfig.disableIceAndSnow && this.randomTickRandom.nextInt(16) == 0) { // Paper - Disable ice and snow // Paper - optimise random ticking
-             // Paper start - optimise chunk ticking
--            this.getRandomBlockPosition(j, 0, k, 15, blockposition);
-+            this.redirectTickGetRandomPosInChunk(this, j, 0, k, 15); // Yatopia
-             int normalY = chunk.getHighestBlockY(HeightMap.Type.MOTION_BLOCKING, blockposition.getX() & 15, blockposition.getZ() & 15);
-             int downY = normalY - 1;
-             blockposition.setY(normalY);
-@@ -1133,7 +1134,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-                     BlockPosition blockposition2 = blockposition.setValues(j + randomX, randomY, k + randomZ);
-                     IBlockData iblockdata = com.destroystokyo.paper.util.maplist.IBlockDataList.getBlockDataFromRaw(raw);
- 
--                    iblockdata.b(this, blockposition2, this.randomTickRandom);
-+                    iblockdata.b(this, blockposition2.immutableCopy(), this.randomTickRandom); // Yatopia
- 
-                     // We drop the fluid tick since LAVA is ALREADY TICKED by the above method.
-                     // TODO CHECK ON UPDATE
-@@ -1145,6 +1146,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-             // Paper end
-         }
-     }
-+    // Yatopia start - reduce blockposition allocations
-+    private BlockPosition redirectTickGetRandomPosInChunk(WorldServer serverWorld, int x, int y, int z, int mask) {
-+        ((me.jellysquid.mods.lithium.common.world.ChunkRandomSource) serverWorld).getRandomPosInChunk(x, y, z, mask, this.randomPosInChunkCachedPos);
-+        return this.randomPosInChunkCachedPos;
-+   }
-+   // Yatopia end
- 
-     protected BlockPosition a(BlockPosition blockposition) {
-         BlockPosition blockposition1 = this.getHighestBlockYAt(HeightMap.Type.MOTION_BLOCKING, blockposition);
