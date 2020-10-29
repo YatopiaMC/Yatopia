@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Sat, 24 Oct 2020 21:12:45 -0500
+Subject: [PATCH] Configurable BlockPhysicsEvent
+
+Bukkit's BlockPhysicsEvent is *ridiculously* spammy and can easily rack in 1,600 calls/sec on a server with just one player. This hogs a ton of CPU time.
+Paper does alleviate this quite well by only firing if plugins are listening, but a lot of common world protection plugins use this event do not offer toggles for their listeners, which makes Paper's change ineffective for most servers.
+This patch implements a hard toggle for the event.
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 6d62aa2b08f40479997f8bcc841cfb704b18e1b9..0faf368c145a3230f2890302020ee39ead1d2916 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1408,7 +1408,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+ 
+         while (iterator.hasNext()) {
+             WorldServer worldserver = (WorldServer) iterator.next();
+-            worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
++            worldserver.hasPhysicsEvent = net.yatopia.server.YatopiaConfig.fireBlockPhysicsEvent && org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper // Yatopia
+             TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
+ 
+             this.methodProfiler.a(() -> {
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index b92ef7f84755b1de4726c993601ec134a1e7ce9c..366b1c0f7e55c954a6a2d84e4aaa857764ce1f5a 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -268,4 +268,8 @@ public class YatopiaConfig {
+         criterionTriggerTick = getBoolean("settings.criterion-triggers.tick", true);
+     }
+ 
++    public static boolean fireBlockPhysicsEvent = true;
++    private static void fireBlockPhysicsEvent() {
++        fireBlockPhysicsEvent = getBoolean("settings.fire-block-physics-event", true);
++    }
+ }

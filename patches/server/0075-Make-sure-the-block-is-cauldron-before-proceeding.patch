@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Thu, 29 Oct 2020 09:19:32 +0200
+Subject: [PATCH] Make sure the block is cauldron before proceeding
+
+Bandaid fixes 272. We need a proper solution for that tho
+
+diff --git a/src/main/java/net/minecraft/server/BlockCauldron.java b/src/main/java/net/minecraft/server/BlockCauldron.java
+index 9fed3883828e7d6ca917a5eca7a7a3e37582f983..0183efdcbdad89d24b658e0e72392cb29ea119ad 100644
+--- a/src/main/java/net/minecraft/server/BlockCauldron.java
++++ b/src/main/java/net/minecraft/server/BlockCauldron.java
+@@ -235,6 +235,7 @@ public class BlockCauldron extends Block {
+             if (f >= 0.15F) {
+                 IBlockData iblockdata = world.getType(blockposition);
+ 
++                if (!iblockdata.isBlock(Blocks.CAULDRON)) return; // Yatopia - bandaid issue until we find what's actually going wrong
+                 if ((Integer) iblockdata.get(BlockCauldron.LEVEL) < 3) {
+                     this.a(world, blockposition, (IBlockData) iblockdata.a((IBlockState) BlockCauldron.LEVEL), 2); // CraftBukkit
+                 }
