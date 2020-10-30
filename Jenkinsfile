@@ -4,6 +4,7 @@ pipeline {
     stages {
         stage('Cleanup') {
             steps {
+                scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
                 sh 'rm -rf ./target'
                 sh 'rm -rf ./Tuinity/Paper/Paper-API ./Tuinity/Paper/Paper-Server ./Tuinity/Paper/work/Spigot/Spigot-API ./Tuinity/Paper/work/Spigot/Spigot-Server'
                 sh 'rm -rf ./Tuinity/Tuinity-API ./Tuinity/Tuinity-Server ./Tuinity/mc-dev'
