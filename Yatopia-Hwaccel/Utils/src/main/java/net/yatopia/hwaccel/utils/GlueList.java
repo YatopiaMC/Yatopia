@@ -429,7 +429,6 @@ public class GlueList<T> extends AbstractList<T> implements List<T>, Cloneable, 
         return indexOf(o) != -1;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T remove(int index) {
 

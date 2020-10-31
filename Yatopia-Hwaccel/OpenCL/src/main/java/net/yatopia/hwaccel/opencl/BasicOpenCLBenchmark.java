@@ -20,7 +20,7 @@ public class BasicOpenCLBenchmark {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static int WORK_SIZE = OpenCLConfiguration.openCLTestSize;
+    private static final int WORK_SIZE = OpenCLConfiguration.openCLTestSize;
 
 
     public static CompletableFuture<OpenCLBenchmarkResult> benchmark(OpenCompute openCompute) {
@@ -28,9 +28,9 @@ public class BasicOpenCLBenchmark {
         GlueList<Long> gpuTimingList = new GlueList<>();
         GlueList<Long> cpuTimingList = new GlueList<>();
         GlueList<Long> latencyTimingList = new GlueList<>();
-        final CLBuffer<LongBuffer>[] longBuffer1 = new CLBuffer[]{null};
-        final CLBuffer<LongBuffer>[] longBuffer2 = new CLBuffer[]{null};
-        final CLBuffer<LongBuffer>[] longBuffer3 = new CLBuffer[]{null};
+        @SuppressWarnings("unchecked") final CLBuffer<LongBuffer>[] longBuffer1 = new CLBuffer[]{null};
+        @SuppressWarnings("unchecked") final CLBuffer<LongBuffer>[] longBuffer2 = new CLBuffer[]{null};
+        @SuppressWarnings("unchecked") final CLBuffer<LongBuffer>[] longBuffer3 = new CLBuffer[]{null};
         try {
             OpenCompute.OPENCL_EXECUTOR.execute(() -> {
                 final long[] testData1 = new long[WORK_SIZE];

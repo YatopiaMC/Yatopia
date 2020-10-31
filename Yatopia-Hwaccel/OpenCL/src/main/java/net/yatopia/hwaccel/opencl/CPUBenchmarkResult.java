@@ -5,7 +5,7 @@ import net.yatopia.hwaccel.utils.GlueList;
 public class CPUBenchmarkResult extends BenchmarkResult{
     private final long timing;
 
-    CPUBenchmarkResult(GlueList timing) {
+    CPUBenchmarkResult(GlueList<Long> timing) {
         this.timing = CalculateAverage(timing);
     }
 

@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -35,10 +36,10 @@ public class OpenCompute implements Closeable {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final ClassLoader CLASS_LOADER = OpenCompute.class.getClassLoader();
     static final ExecutorService OPENCL_EXECUTOR = Executors.newCachedThreadPool(new ThreadFactory() {
-        private AtomicLong serial = new AtomicLong(0);
+        private final AtomicLong serial = new AtomicLong(0);
 
         @Override
-        public Thread newThread(Runnable r) {
+        public Thread newThread(@Nonnull Runnable r) {
             Thread thread = new Thread(r);
             thread.setName("YatopiaCL-" + serial.getAndIncrement());
             thread.setPriority(Thread.NORM_PRIORITY - 1);

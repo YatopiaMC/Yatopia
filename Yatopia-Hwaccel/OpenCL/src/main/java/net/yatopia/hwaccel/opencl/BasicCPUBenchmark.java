@@ -60,7 +60,6 @@ public class BasicCPUBenchmark {
         for (int h = 0; h < WORK_SIZE; h++) {
             result[h] = (((testData1[h] * h) << 2) + (testData2[h] % 2) / (h + 1) + (h >> 2) / ((h + 1) << 4));
         }
-        long duration = System.nanoTime() - startTime;
-        return duration;
+        return System.nanoTime() - startTime;
     }
 }

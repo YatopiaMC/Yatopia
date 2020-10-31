@@ -8,7 +8,7 @@ public class OpenCLBenchmarkResult extends BenchmarkResult{
     private final long latencyTiming;
     public final OpenCompute openCompute;
 
-    OpenCLBenchmarkResult(GlueList gpuTiming, GlueList cpuTiming, GlueList latencyTiming, OpenCompute openCompute) {
+    OpenCLBenchmarkResult(GlueList<Long> gpuTiming, GlueList<Long> cpuTiming, GlueList<Long> latencyTiming, OpenCompute openCompute) {
         this.gpuTiming = CalculateAverage(gpuTiming);
         this.cpuTiming = CalculateAverage(cpuTiming);
         this.latencyTiming = CalculateAverage(latencyTiming);
