@@ -146,6 +146,19 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899
 +        }
      }
  }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
+index 135ee97605d74be3a3dba4a3d973843b73c658e8..54d71c164e5f4e403b683bc739b056e26f90b172 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunk.java
++++ b/src/main/java/net/minecraft/server/PlayerChunk.java
+@@ -749,7 +749,7 @@ public class PlayerChunk {
+                 ioPriority = com.destroystokyo.paper.io.PrioritizedTaskQueue.HIGH_PRIORITY;
+             }
+             chunkMap.world.asyncChunkTaskManager.raisePriority(location.x, location.z, ioPriority);
+-            chunkMap.world.getChunkProvider().getLightEngine().queue.changePriority(location.pair(), getCurrentPriority(), priority);
++            // chunkMap.world.getChunkProvider().getLightEngine().queue.changePriority(location.pair(), getCurrentPriority(), priority); TODO RIP priority
+         }
+         if (getCurrentPriority() != priority) {
+             this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 index 841dd0cbd771d878d53292adbd590a1ecffc367e..49a279a64d8f94f3b24ff533b8805a9619e0ecdf 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
@@ -754,7 +767,7 @@ index 0000000000000000000000000000000000000000..ddd2108cc989243ee94bb7295ac5c9b1
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a4fc6d9c5623fb7f7ed9d642ce792efb9a42292a
+index 0000000000000000000000000000000000000000..dfd852a39c9ee192fc8537356f3d2c160f1f3fa0
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
 @@ -0,0 +1,35 @@
@@ -780,7 +793,7 @@ index 0000000000000000000000000000000000000000..a4fc6d9c5623fb7f7ed9d642ce792efb
 +    @Nullable
 +    @Override
 +    public NibbleArray a(SectionPosition sectionposition) {
-+        return new NibbleArray(delegate.getLightStorage(new ChunkPosition(sectionposition.getX(), sectionposition.getZ())).getSectionCopy(sectionposition.getY()));
++        return new NibbleArray(delegate.getLightStorage(new ChunkPosition(sectionposition.getX(), sectionposition.getZ())).getSection(sectionposition.getY()));
 +    }
 +
 +    @Override
@@ -830,10 +843,10 @@ index 0000000000000000000000000000000000000000..f3bd6235c54187e52dfe174b379274c8
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a0ff1ceb2f09c9d139432ba68af2a74729db7f66
+index 0000000000000000000000000000000000000000..10f8e92e4e750847207660123e5e5c9c9f5e4695
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,77 @@
 +package net.yatopia.server.hwaccel.adapter.lightaccessor.storage;
 +
 +import net.minecraft.server.ChunkCoordIntPair;
@@ -868,6 +881,23 @@ index 0000000000000000000000000000000000000000..a0ff1ceb2f09c9d139432ba68af2a747
 +
 +    @Override
 +    public byte[] getSectionCopy(int index) {
++        NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, index));
++        if (nibbleArray != null)
++            return nibbleArray.asBytes().clone();
++        else {
++            byte[] bytes = new byte[2048];
++            Arrays.fill(bytes, (byte) 0x00);
++            return bytes;
++        }
++    }
++
++    @Override
++    public byte[] getArray() {
++        return getArrayCopy();
++    }
++
++    @Override
++    public byte[] getSection(int index) {
 +        NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, index));
 +        if (nibbleArray != null)
 +            return nibbleArray.asBytes();
@@ -922,10 +952,10 @@ index ed16c260699eed86f6f52ee7bd83ea553f81453c..bd9f6b28447cc0dc4b8db21781c46d43
                  t.printStackTrace();
 diff --git a/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0869d53de62aafdc8a8e90c030e18a08150d353c
+index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7ff302a60a
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
-@@ -0,0 +1,335 @@
+@@ -0,0 +1,347 @@
 +package net.yatopia.server.hwaccel;
 +
 +import it.unimi.dsi.fastutil.longs.LongSet;
@@ -1004,7 +1034,11 @@ index 0000000000000000000000000000000000000000..0869d53de62aafdc8a8e90c030e18a08
 +    @Test
 +    public void testLightEngineThreadedDelegate() throws IllegalAccessException, InvocationTargetException {
 +        Random random = new Random();
-+        LightEngineImpl impl = new LightEngineImplDelegate(new LightEngineThreadedDelegate(new TestingLightEngineImpl()));
++        LightEngineImpl impl = new TestingLightEngineImpl();
++        int rDepth = Math.max(recursiveDepth(0) / 8 - 16, 1);
++        System.out.println("Using " + rDepth + " depth");
++        for(int i = 0; i < rDepth; i ++)
++            impl = new LightEngineImplDelegate(new LightEngineThreadedDelegate(impl));
 +        Class<LightEngineImpl> clazz = LightEngineImpl.class;
 +        Method[] methods = clazz.getMethods();
 +        for(Method method: methods){
@@ -1251,6 +1285,14 @@ index 0000000000000000000000000000000000000000..0869d53de62aafdc8a8e90c030e18a08
 +                Assert.assertArrayEquals(((TestingLightEngineImpl.InvocationResult)e.getTargetException()).invokedObjects, parameters);
 +            }
 +        }
++    }
++
++    private int recursiveDepth(int depth){
++        try {
++            return recursiveDepth(depth + 1);
++        } catch (StackOverflowError ignored) {
++        }
++        return depth;
 +    }
 +
 +    private byte[] generateNibble() {
