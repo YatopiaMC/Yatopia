@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sun, 9 Aug 2020 16:58:18 -0500
+Subject: [PATCH] Optimize some stuff in WorldServer ticking
+
+Replaced some streams and some array lists with glue lists
+
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 7c60ad59e7dbb2fd4089f762c9bbe1cb5f7b6054..57b1152cdedce9a2c566ca59dfbf52a20bbabe70 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -60,11 +60,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     public final Int2ObjectMap<Entity> entitiesById = new Int2ObjectLinkedOpenHashMap(); final com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet<Entity> entitiesForIteration = new com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet<>(2048, 0.5f, 2048, 0.2, true); // Tuinity - make removing entities while ticking safe
+     private final Map<UUID, Entity> entitiesByUUID = Maps.newHashMap();
+     private final Queue<Entity> entitiesToAdd = Queues.newArrayDeque();
+-    public final List<EntityPlayer> players = Lists.newArrayList(); // Paper - private -> public
++    public final List<EntityPlayer> players = new net.yatopia.server.list.GlueList<>(); // Paper - private -> public // Yatopia
+     public final ChunkProviderServer chunkProvider; // Paper - public
+     boolean tickingEntities;
+     // Paper start
+-    List<java.lang.Runnable> afterEntityTickingTasks = Lists.newArrayList();
++    List<java.lang.Runnable> afterEntityTickingTasks = new net.yatopia.server.list.GlueList<>(); // Yatopia
+     public void doIfNotEntityTicking(java.lang.Runnable run) {
+         if (tickingEntities) {
+             afterEntityTickingTasks.add(run);
+@@ -821,12 +821,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+             this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
+         }
+         // */
+-        for (int idx = 0; idx < this.players.size(); ++idx) {
+-            if (((EntityPlayer) this.players.get(idx)).world == this) {
+-                ((EntityPlayer) this.players.get(idx)).tickWeather();
++        // Yatopia start
++        boolean sleepyMatch = true;
++        for (EntityPlayer player : players) {
++            if (player.world == this) {
++                player.tickWeather();
++                if (flag != this.isRaining()) player.setPlayerWeather((!flag ? WeatherType.DOWNFALL : WeatherType.CLEAR), false);
++                player.updateWeather(this.lastRainLevel, this.rainLevel, this.lastThunderLevel, this.thunderLevel);
+             }
++            if (sleepyMatch && !player.isSpectator() && !player.isDeeplySleeping() && !player.fauxSleeping) {
++                sleepyMatch = false;
++            }
++            // Yatopia end
+         }
+ 
++        /* // Yatopia start - moved up
+         if (flag != this.isRaining()) {
+             // Only send weather packets to those affected
+             for (int idx = 0; idx < this.players.size(); ++idx) {
+@@ -841,10 +850,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+             }
+         }
+         // CraftBukkit end
++         */ // Yatopia end
+ 
+-        if (this.everyoneSleeping && this.players.stream().noneMatch((entityplayer) -> {
+-            return !entityplayer.isSpectator() && !entityplayer.isDeeplySleeping() && !entityplayer.fauxSleeping; // CraftBukkit
+-        })) {
++        if (this.everyoneSleeping && sleepyMatch) { // Yatopia
+             // CraftBukkit start
+             long l = this.worldData.getDayTime() + 24000L;
+             TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
+@@ -1014,9 +1022,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     }
+ 
+     private void wakeupPlayers() {
+-        (this.players.stream().filter(EntityLiving::isSleeping).collect(Collectors.toList())).forEach((entityplayer) -> { // CraftBukkit - decompile error
++        for (EntityPlayer entityplayer : players) { if (entityplayer.isSleeping()) { // Yatopia
+             entityplayer.wakeup(false, false);
+-        });
++        }} // Yatopia
+     }
+ 
+     // Paper start - optimise random block ticking
+@@ -1781,8 +1789,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         // Spigot start
+         if ( entity instanceof EntityHuman )
+         {
+-            this.getMinecraftServer().worldServer.values().stream().map( WorldServer::getWorldPersistentData ).forEach( (worldData) ->
++            for ( WorldServer worldServer : getMinecraftServer().worldServer.values() ) // Yatopia
+             {
++                WorldPersistentData worldData = worldServer.getWorldPersistentData(); // Yatopia
+                 for (Object o : worldData.data.values() )
+                 {
+                     if ( o instanceof WorldMap )
+@@ -1799,7 +1808,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                         }
+                     }
+                 }
+-            } );
++            } // Yatopia
+         }
+         // Spigot end
+         // Spigot Start

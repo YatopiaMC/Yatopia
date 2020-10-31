@@ -5,20 +5,8 @@ Subject: [PATCH] Hardware acceleration
 
 This patch integrates Yatopia-Hwaccel into the server
 
-diff --git a/.run/Yatopia.run.xml b/.run/Yatopia.run.xml
-index ebba87ca805d8e57ce7aeb57d7f0b11abda0cc1c..8d5f0428c761f7e0f08122986b517e5012b8922f 100644
---- a/.run/Yatopia.run.xml
-+++ b/.run/Yatopia.run.xml
-@@ -1,5 +1,7 @@
- <component name="ProjectRunConfigurationManager">
-   <configuration default="false" name="Yatopia" type="Application" factoryName="Application">
-+    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../theresaserv/graalvm/graalvm-ee-java11-20.2.0" />
-+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-     <option name="MAIN_CLASS_NAME" value="org.bukkit.craftbukkit.Main" />
-     <module name="yatopia" />
-     <option name="PROGRAM_PARAMETERS" value="nogui" />
 diff --git a/pom.xml b/pom.xml
-index fd15e54ea87581c61566b7ed4620435fac579bab..30855332311cd2d5ab8a908d363a8b55f23f98c8 100644
+index 69e8253419cb30a975bbf4849d4065a5b696604d..9f5c82cff5da168c9eff0a6507310cc72249bca5 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -111,6 +111,13 @@
@@ -262,7 +250,7 @@ index a3ac883500eaebb353ad3108a17b5c740e384b03..2227c46cd2d553b651c0d98dcde3a605
      // Paper start - Anti-Xray - Add world
      @Deprecated public ProtoChunk(ChunkCoordIntPair chunkcoordintpair, ChunkConverter chunkconverter) { this(chunkcoordintpair, chunkconverter, null); } // Notice for updates: Please make sure this constructor isn't used anywhere
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index f0e7684304cab9cea05fa266a66a2ad8172c55b6..ea5687969da7da8201a4600d15e0be777fb6415b 100644
+index 366b1c0f7e55c954a6a2d84e4aaa857764ce1f5a..eea493b52d15fa35d47ba804ff71cc772e36e66c 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
 @@ -1,6 +1,16 @@
@@ -302,12 +290,12 @@ index f0e7684304cab9cea05fa266a66a2ad8172c55b6..ea5687969da7da8201a4600d15e0be77
  
          version = getInt("config-version", 1);
          set("config-version", 1);
-@@ -253,4 +259,13 @@ public class YatopiaConfig {
-         checkFlying = getBoolean("settings.checks.flight", checkFlying);
-         checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);
+@@ -272,4 +278,13 @@ public class YatopiaConfig {
+     private static void fireBlockPhysicsEvent() {
+         fireBlockPhysicsEvent = getBoolean("settings.fire-block-physics-event", true);
      }
 +
-+    private static void hwaccelConfig(){
++    private static void hwaccelConfig() {
 +        ConfigSuppliers.stringConfigSupplier = YatopiaConfig::getString;
 +        ConfigSuppliers.integerConfigSupplier = YatopiaConfig::getInt;
 +        ConfigSuppliers.doubleConfigSupplier = YatopiaConfig::getDouble;
@@ -907,7 +895,7 @@ index 0000000000000000000000000000000000000000..a0ff1ceb2f09c9d139432ba68af2a747
 +    }
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..6e9e24b8db6f6fc3a130cf0fc590982d9e54ed61 100644
+index ed16c260699eed86f6f52ee7bd83ea553f81453c..bd9f6b28447cc0dc4b8db21781c46d43cb71ce57 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -7,12 +7,12 @@ import java.util.Arrays;

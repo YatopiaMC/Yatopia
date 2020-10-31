@@ -880,7 +880,7 @@ index e0381ed6945f734f8802d07b8cbd6b27852db449..220d5273543ea0b143cf9c894c89cabe
      // Paper end
  
 diff --git a/src/main/java/net/minecraft/server/EntitySlice.java b/src/main/java/net/minecraft/server/EntitySlice.java
-index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b533b184c36 100644
+index 1250c3cbe915815939627701c153ba6254fc05f0..cdf54580a8275f40730f9cbdc1c0c4b4a3999a90 100644
 --- a/src/main/java/net/minecraft/server/EntitySlice.java
 +++ b/src/main/java/net/minecraft/server/EntitySlice.java
 @@ -14,18 +14,35 @@ import java.util.Map.Entry;
@@ -889,8 +889,8 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b53
  
 -public class EntitySlice<T> extends AbstractCollection<T> {
 +// Yatopia start
-+import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
 +import it.unimi.dsi.fastutil.objects.ReferenceLinkedOpenHashSet;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceArrayMap;
 +import me.jellysquid.mods.lithium.common.entity.EntityClassGroup;
 +// Yatopia end
 +
@@ -901,12 +901,12 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b53
 -    private final List<T> c = Lists.newArrayList();
 +    private final List<T> c = new net.yatopia.server.list.GlueList<>(); // Yatopia
 +
-+    private Reference2ReferenceOpenHashMap<EntityClassGroup, ReferenceLinkedOpenHashSet<T>> entitiesByGroup; // Yatopia
++    private final Reference2ReferenceArrayMap<EntityClassGroup, ReferenceLinkedOpenHashSet<T>> entitiesByGroup; // Yatopia
  
      public EntitySlice(Class<T> oclass) {
          this.b = oclass;
          this.a.put(oclass, this.c);
-+        this.entitiesByGroup = new Reference2ReferenceOpenHashMap<>(); // Yatopia
++        this.entitiesByGroup = new Reference2ReferenceArrayMap<>(); // Yatopia
      }
  
      public boolean add(T t0) {
@@ -933,29 +933,47 @@ index 1250c3cbe915815939627701c153ba6254fc05f0..06a51ca13d484dd319aa96364b2f1b53
          boolean flag = false;
          Iterator iterator = this.a.entrySet().iterator();
  
-@@ -65,11 +87,16 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+@@ -61,10 +83,13 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+         return this.a(object.getClass()).contains(object);
+     }
+ 
++    @SuppressWarnings("unchecked") // Yatopia
+     public <S> Collection<S> a(Class<S> oclass) {
          if (!this.b.isAssignableFrom(oclass)) {
              throw new IllegalArgumentException("Don't know how to search for " + oclass);
          } else {
--            List<T> list = (List) this.a.computeIfAbsent(oclass, (oclass1) -> {
--                Stream stream = this.c.stream();
--
--                oclass1.getClass();
--                return (List) stream.filter(oclass1::isInstance).collect(Collectors.toList());
-+            List<S> list = (List<S>) this.a.computeIfAbsent(oclass, (oclass1) -> { // Yatopia - decompile fix
-+                // Yatopia start - how about we nuke stream?
-+                List<T> ret = new net.yatopia.server.list.GlueList<>();
-+                for (T t : c) {
-+                    if (oclass1.isInstance(t)) {
-+                        ret.add(t);
-+                    }
-+                }
-+                return ret;
-+                // Yatopia end
++            // Yatopia start - replace this
++            /*
+             List<T> list = (List) this.a.computeIfAbsent(oclass, (oclass1) -> {
+                 Stream stream = this.c.stream();
+ 
+@@ -73,6 +98,18 @@ public class EntitySlice<T> extends AbstractCollection<T> {
              });
  
              return Collections.unmodifiableCollection(list);
-@@ -87,4 +114,38 @@ public class EntitySlice<T> extends AbstractCollection<T> {
++             */
++            if (a.containsKey(oclass)) {
++                return (Collection<S>) Collections.unmodifiableCollection(a.get(oclass));
++            }
++            List<T> list = new net.yatopia.server.list.GlueList<>();
++            for (T allElement : this.c) {
++                if (oclass.isInstance(allElement)) {
++                    list.add(allElement);
++                }
++            }
++            a.put(oclass, list);
++            return (Collection<S>) Collections.unmodifiableCollection(list);
+         }
+     }
+ 
+@@ -81,10 +118,44 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+     }
+ 
+     public List<T> a() {
+-        return ImmutableList.copyOf(this.c);
++        return Collections.unmodifiableList(this.c); // Yatopia - avoid copying
+     }
+ 
      public int size() {
          return this.c.size();
      }
@@ -1073,8 +1091,21 @@ index 1f7a8694f69345288c53df0f3a1845f2721f6c7b..841dd0cbd771d878d53292adbd590a1e
              }).orElse(0), optional1.map((chunk) -> {
                  return chunk.getTileEntities().size();
              }).orElse(0));
+diff --git a/src/main/java/net/minecraft/server/VoxelShape.java b/src/main/java/net/minecraft/server/VoxelShape.java
+index 700660dd93b3090334bb3033d5f5fdd6ab684744..98f9ded42264cb88cff701a85d22d99e203ef7cf 100644
+--- a/src/main/java/net/minecraft/server/VoxelShape.java
++++ b/src/main/java/net/minecraft/server/VoxelShape.java
+@@ -78,7 +78,7 @@ public abstract class VoxelShape {
+ 
+     public final List<AxisAlignedBB> getBoundingBoxesRepresentation() { return this.d(); } // Tuinity - OBFHELPER
+     public List<AxisAlignedBB> d() {
+-        List<AxisAlignedBB> list = Lists.newArrayList();
++        List<AxisAlignedBB> list = new net.yatopia.server.list.GlueList<>(); // Yatopia
+ 
+         this.b((d0, d1, d2, d3, d4, d5) -> {
+             list.add(new AxisAlignedBB(d0, d1, d2, d3, d4, d5));
 diff --git a/src/main/java/net/minecraft/server/VoxelShapes.java b/src/main/java/net/minecraft/server/VoxelShapes.java
-index 4bdadffee07c54f6f538ba09db72d562d05cb337..eb358d4453fce1de7f15f38b32e594fa63e4deb5 100644
+index 4bdadffee07c54f6f538ba09db72d562d05cb337..8091ec2edc3336f50034960ff7dc24cfeaf308e7 100644
 --- a/src/main/java/net/minecraft/server/VoxelShapes.java
 +++ b/src/main/java/net/minecraft/server/VoxelShapes.java
 @@ -40,7 +40,9 @@ public final class VoxelShapes {
@@ -1087,8 +1118,30 @@ index 4bdadffee07c54f6f538ba09db72d562d05cb337..eb358d4453fce1de7f15f38b32e594fa
              }
          } else if (shape instanceof VoxelShapeArray) {
              VoxelShapeArray shapeCasted = (VoxelShapeArray)shape;
+@@ -54,14 +56,19 @@ public final class VoxelShapes {
+                 double minX, minY, minZ, maxX, maxY, maxZ;
+                 if (aabb.voxelShapeIntersect(minX = boundingBox.minX + offX, minY = boundingBox.minY + offY, minZ = boundingBox.minZ + offZ,
+                         maxX = boundingBox.maxX + offX, maxY = boundingBox.maxY + offY, maxZ = boundingBox.maxZ + offZ)) {
+-                    list.add(new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ, false));
++                    // Yatopia start - make sure it doesn't contain already
++                    AxisAlignedBB addedBox = new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ, false);
++                    if (!list.contains(addedBox)) {
++                        list.add(addedBox);
++                    }
++                    // Yatopia end
+                 }
+             }
+         } else {
+             java.util.List<AxisAlignedBB> boxes = shape.getBoundingBoxesRepresentation();
+             for (int i = 0, len = boxes.size(); i < len; ++i) {
+                 AxisAlignedBB box = boxes.get(i);
+-                if (box.voxelShapeIntersect(aabb)) {
++                if (box.voxelShapeIntersect(aabb) && !list.contains(box)) { // Yatopia - make sure it doesn't contain already
+                     list.add(box);
+                 }
+             }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 274b7e04ff09e459cd63040b1c29e3d197aafe72..97db7999968bceb2f069eb449c64e7da874d787f 100644
+index 57b1152cdedce9a2c566ca59dfbf52a20bbabe70..1c9368951044fe92a284bd94a743178613100028 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -656,8 +656,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -1106,7 +1159,7 @@ index 274b7e04ff09e459cd63040b1c29e3d197aafe72..97db7999968bceb2f069eb449c64e7da
      }
  
      @Override
-@@ -1730,12 +1736,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1732,12 +1738,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Spigot End
          this.tileEntityListUnload.addAll(chunk.getTileEntities().values());
