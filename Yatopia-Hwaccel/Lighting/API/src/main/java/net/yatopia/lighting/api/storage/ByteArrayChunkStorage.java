@@ -29,6 +29,16 @@ public class ByteArrayChunkStorage implements ChunkLightStorage {
     }
 
     @Override
+    public byte[] getArray() {
+        return array;
+    }
+
+    @Override
+    public byte[] getSection(int index) {
+        return getSectionCopy(index);
+    }
+
+    @Override
     public void setByte(int index, byte value) {
         array[index] = value;
     }

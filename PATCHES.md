@@ -10,17 +10,17 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
-| api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
+| api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
-| api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| api |  Add StructureLocateEvent      | dfsek |  |
+| api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add StructureLocateEvent      | dfsek |  |
-| api |  Add last tick time API      | Ivan Pekov | tr7zw |
+| api |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
+| api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
@@ -64,6 +64,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
+| server |  Hardware acceleration      | ishland |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
@@ -77,8 +78,8 @@ This is an overview over all patches that are currently used.
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | server |  Make sure the block is cauldron before proceeding      | Ivan Pekov |  |
-| api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
+| api |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
@@ -98,12 +99,13 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR: Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
-| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
+| api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |

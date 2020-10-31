@@ -6,6 +6,10 @@ public interface ChunkLightStorage {
 
     byte[] getSectionCopy(int index);
 
+    byte[] getArray();
+
+    byte[] getSection(int index);
+
     void setByte(int index, byte value);
 
     byte getByte(int index);
