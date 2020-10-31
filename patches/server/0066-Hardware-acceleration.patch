@@ -5,25 +5,38 @@ Subject: [PATCH] Hardware acceleration
 
 This patch integrates Yatopia-Hwaccel into the server
 
+diff --git a/.run/Yatopia.run.xml b/.run/Yatopia.run.xml
+index ebba87ca805d8e57ce7aeb57d7f0b11abda0cc1c..8d5f0428c761f7e0f08122986b517e5012b8922f 100644
+--- a/.run/Yatopia.run.xml
++++ b/.run/Yatopia.run.xml
+@@ -1,5 +1,7 @@
+ <component name="ProjectRunConfigurationManager">
+   <configuration default="false" name="Yatopia" type="Application" factoryName="Application">
++    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../theresaserv/graalvm/graalvm-ee-java11-20.2.0" />
++    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+     <option name="MAIN_CLASS_NAME" value="org.bukkit.craftbukkit.Main" />
+     <module name="yatopia" />
+     <option name="PROGRAM_PARAMETERS" value="nogui" />
 diff --git a/pom.xml b/pom.xml
-index fd15e54ea87581c61566b7ed4620435fac579bab..75a6e56b6ec35bde11cdc76756ad1d9575bc535d 100644
+index fd15e54ea87581c61566b7ed4620435fac579bab..30855332311cd2d5ab8a908d363a8b55f23f98c8 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -111,6 +111,12 @@
+@@ -111,6 +111,13 @@
              <artifactId>netty-all</artifactId>
              <version>4.1.50.Final</version>
          </dependency>
 +        <!-- Hardware aceleration -->
 +        <dependency>
 +            <groupId>net.yatopia</groupId>
-+            <artifactId>Yatopia-Hwaccel</artifactId>
++            <artifactId>Yatopia-Hwaccel-All</artifactId>
 +            <version>0.0.1-SNAPSHOT</version>
++            <scope>compile</scope>
 +        </dependency>
          <!-- deprecated API depend -->
          <dependency>
              <groupId>com.googlecode.json-simple</groupId>
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index f3494ac1ad659352ca5595adf9e6919bdb4018d0..bfca0c025956296fe0f5b97dfe951216917e1bc7 100644
+index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899ff1bd574 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 @@ -1,18 +1,27 @@
@@ -40,12 +53,12 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..bfca0c025956296fe0f5b97dfe951216
  import java.util.function.IntSupplier;
  import javax.annotation.Nullable;
 +
-+import net.yatopia.hwaccel.lighting.LightEngineImpl;
-+import net.yatopia.hwaccel.lighting.structures.Chunk;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
-+import net.yatopia.hwaccel.lighting.structures.LightAccessor;
-+import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.structures.Chunk;
++import net.yatopia.lighting.api.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.ChunkSectionPosition;
++import net.yatopia.lighting.api.structures.LightAccessor;
++import net.yatopia.lighting.api.structures.LightType;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
@@ -79,12 +92,12 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..bfca0c025956296fe0f5b97dfe951216
 +    }
 +
 +    @Override
-+    public void addLightSource(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int level) {
++    public void addLightSource(net.yatopia.lighting.api.structures.BlockPosition pos, int level) {
 +        this.a(BlockPositionAdapter.toNMS(pos), level);
 +    }
 +
 +    @Override
-+    public void checkBlock(net.yatopia.hwaccel.lighting.structures.BlockPosition pos) {
++    public void checkBlock(net.yatopia.lighting.api.structures.BlockPosition pos) {
 +        this.a(BlockPositionAdapter.toNMS(pos));
 +    }
 +
@@ -128,7 +141,7 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..bfca0c025956296fe0f5b97dfe951216
 +    }
 +
 +    @Override
-+    public int getLight(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int ambientDarkness) {
++    public int getLight(net.yatopia.lighting.api.structures.BlockPosition pos, int ambientDarkness) {
 +        return super.b(BlockPositionAdapter.toNMS(pos), ambientDarkness);
 +    }
 +    // Yatopia end
@@ -146,10 +159,33 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..bfca0c025956296fe0f5b97dfe951216
      }
  }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 841dd0cbd771d878d53292adbd590a1ecffc367e..d7d926b641ef211077bb825be29be9cb782953ee 100644
+index 841dd0cbd771d878d53292adbd590a1ecffc367e..49a279a64d8f94f3b24ff533b8805a9619e0ecdf 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -39,6 +39,7 @@ import java.util.UUID; // Paper
+@@ -4,10 +4,7 @@ import co.aikar.timings.Timing; // Paper
+ import com.destroystokyo.paper.PaperWorldConfig; // Paper
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.Iterables;
+-import com.google.common.collect.ComparisonChain; // Paper
+ import com.google.common.collect.Lists;
+-import com.google.common.collect.Queues;
+-import com.google.common.collect.Sets;
+ import com.mojang.datafixers.DataFixer;
+ import com.mojang.datafixers.util.Either;
+ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+@@ -25,11 +22,9 @@ import it.unimi.dsi.fastutil.objects.ObjectIterator;
+ import java.io.File;
+ import java.io.IOException;
+ import java.io.Writer;
+-import java.util.HashMap; // Paper
+ import java.util.Collection;
+ import java.util.Iterator;
+ import java.util.List;
+-import java.util.Map; // Paper
+ import java.util.Objects;
+ import java.util.Optional;
+ import java.util.Queue;
+@@ -39,6 +34,7 @@ import java.util.UUID; // Paper
  import java.util.concurrent.CompletableFuture;
  import java.util.concurrent.CompletionException;
  import java.util.concurrent.Executor;
@@ -157,22 +193,22 @@ index 841dd0cbd771d878d53292adbd590a1ecffc367e..d7d926b641ef211077bb825be29be9cb
  import java.util.concurrent.atomic.AtomicInteger;
  import java.util.function.BooleanSupplier;
  import java.util.function.Consumer;
-@@ -48,7 +49,14 @@ import java.util.function.Supplier;
+@@ -48,7 +44,14 @@ import java.util.function.Supplier;
  import java.util.stream.Collectors;
  import java.util.stream.Stream;
  import javax.annotation.Nullable;
 +
  import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet; // Paper
-+import net.yatopia.hwaccel.lighting.LightEngineImpl;
-+import net.yatopia.hwaccel.lighting.LightEngineManager;
-+import net.yatopia.hwaccel.lighting.VanillaLightingHook;
-+import net.yatopia.hwaccel.lighting.structures.ChunkProvider;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.LightEngineManager;
++import net.yatopia.lighting.api.VanillaLightingHook;
++import net.yatopia.lighting.api.structures.ChunkProvider;
 +import net.yatopia.server.hwaccel.LightEngineThreadedDelegate;
 +import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunkProvider;
  import org.apache.commons.lang3.mutable.MutableBoolean;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -90,6 +98,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -90,6 +93,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      final LongSet loadedChunks; // Paper - private -> package
      public final WorldServer world;
      private final LightEngineThreaded lightEngine;
@@ -180,7 +216,7 @@ index 841dd0cbd771d878d53292adbd590a1ecffc367e..d7d926b641ef211077bb825be29be9cb
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
-@@ -329,7 +338,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -329,7 +333,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              Thread thread = new Thread(r);
              thread.setName(((WorldDataServer)world.getWorldData()).getName() + " - Light");
              thread.setDaemon(true);
@@ -189,7 +225,7 @@ index 841dd0cbd771d878d53292adbd590a1ecffc367e..d7d926b641ef211077bb825be29be9cb
              return thread;
          }), "light");
          // Paper end
-@@ -338,8 +347,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -338,8 +342,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.mailboxWorldGen = this.p.a(threadedmailbox, false);
          this.mailboxMain = this.p.a(mailbox, false);
          this.mailboxLight = this.p.a(lightthreaded, false);// Paper
@@ -226,21 +262,38 @@ index a3ac883500eaebb353ad3108a17b5c740e384b03..2227c46cd2d553b651c0d98dcde3a605
      // Paper start - Anti-Xray - Add world
      @Deprecated public ProtoChunk(ChunkCoordIntPair chunkcoordintpair, ChunkConverter chunkconverter) { this(chunkcoordintpair, chunkconverter, null); } // Notice for updates: Please make sure this constructor isn't used anywhere
 diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index f0e7684304cab9cea05fa266a66a2ad8172c55b6..f42808d0c0b62a5475d051518d4439f52adc760f 100644
+index f0e7684304cab9cea05fa266a66a2ad8172c55b6..ea5687969da7da8201a4600d15e0be777fb6415b 100644
 --- a/src/main/java/net/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
-@@ -13,6 +13,11 @@ import java.util.concurrent.TimeUnit;
+@@ -1,6 +1,16 @@
+ package net.yatopia.server;
+ 
+ import com.google.common.base.Throwables;
++import net.minecraft.server.MinecraftServer;
++import net.yatopia.hwaccel.opencl.OpenCLConfiguration;
++import net.yatopia.hwaccel.utils.ConfigSuppliers;
++import net.yatopia.lighting.api.LightingConfiguration;
++import net.yatopia.server.hwaccel.OpenCLCommand;
++import org.bukkit.Bukkit;
++import org.bukkit.command.Command;
++import org.bukkit.configuration.InvalidConfigurationException;
++import org.bukkit.configuration.file.YamlConfiguration;
++
+ import java.io.File;
+ import java.io.IOException;
+ import java.lang.reflect.InvocationTargetException;
+@@ -12,11 +22,6 @@ import java.util.Map;
+ import java.util.concurrent.TimeUnit;
  import java.util.logging.Level;
  import java.util.regex.Pattern;
- import net.minecraft.server.MinecraftServer;
-+import net.yatopia.hwaccel.configuration.LightingConfiguration;
-+import net.yatopia.hwaccel.configuration.OpenCLConfiguration;
-+import net.yatopia.hwaccel.lighting.LightEngineType;
-+import net.yatopia.hwaccel.utils.ConfigSuppliers;
-+import net.yatopia.server.hwaccel.OpenCLCommand;
- import org.bukkit.Bukkit;
- import org.bukkit.command.Command;
- import org.bukkit.configuration.InvalidConfigurationException;
+-import net.minecraft.server.MinecraftServer;
+-import org.bukkit.Bukkit;
+-import org.bukkit.command.Command;
+-import org.bukkit.configuration.InvalidConfigurationException;
+-import org.bukkit.configuration.file.YamlConfiguration;
+ 
+ public class YatopiaConfig {
+ 
 @@ -46,6 +51,7 @@ public class YatopiaConfig {
          verbose = getBoolean("verbose", false);
          commands = new HashMap<>();
@@ -265,21 +318,21 @@ index f0e7684304cab9cea05fa266a66a2ad8172c55b6..f42808d0c0b62a5475d051518d4439f5
  }
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f152ae13870c8570c22851b2f2cff11db5c6d6cb
+index 0000000000000000000000000000000000000000..6b4adcb201dde1bd4d7994d115d585d968b631e9
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,92 @@
 +package net.yatopia.server.hwaccel;
 +
 +import net.minecraft.server.EnumSkyBlock;
 +import net.minecraft.server.LightEngineThreaded;
 +import net.minecraft.server.NibbleArray;
-+import net.yatopia.hwaccel.lighting.LightEngineImpl;
-+import net.yatopia.hwaccel.lighting.structures.Chunk;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
-+import net.yatopia.hwaccel.lighting.structures.LightAccessor;
-+import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.structures.Chunk;
++import net.yatopia.lighting.api.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.ChunkSectionPosition;
++import net.yatopia.lighting.api.structures.LightAccessor;
++import net.yatopia.lighting.api.structures.LightType;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
@@ -287,7 +340,6 @@ index 0000000000000000000000000000000000000000..f152ae13870c8570c22851b2f2cff11d
 +import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaLightingAccessor;
 +
 +import javax.annotation.Nullable;
-+import java.io.IOException;
 +import java.util.concurrent.CompletableFuture;
 +
 +public class LightEngineImplDelegate implements LightEngineImpl {
@@ -304,12 +356,12 @@ index 0000000000000000000000000000000000000000..f152ae13870c8570c22851b2f2cff11d
 +    }
 +
 +    @Override
-+    public void addLightSource(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int level) {
++    public void addLightSource(net.yatopia.lighting.api.structures.BlockPosition pos, int level) {
 +        delegate.a(BlockPositionAdapter.toNMS(pos), level);
 +    }
 +
 +    @Override
-+    public void checkBlock(net.yatopia.hwaccel.lighting.structures.BlockPosition pos) {
++    public void checkBlock(net.yatopia.lighting.api.structures.BlockPosition pos) {
 +        delegate.a(BlockPositionAdapter.toNMS(pos));
 +    }
 +
@@ -353,7 +405,7 @@ index 0000000000000000000000000000000000000000..f152ae13870c8570c22851b2f2cff11d
 +    }
 +
 +    @Override
-+    public int getLight(net.yatopia.hwaccel.lighting.structures.BlockPosition pos, int ambientDarkness) {
++    public int getLight(net.yatopia.lighting.api.structures.BlockPosition pos, int ambientDarkness) {
 +        return delegate.b(BlockPositionAdapter.toNMS(pos), ambientDarkness);
 +    }
 +
@@ -364,29 +416,22 @@ index 0000000000000000000000000000000000000000..f152ae13870c8570c22851b2f2cff11d
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6b0a6440b6ab7f12e9f5354fc16d7f69013a2a12
+index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d38745ba78baf
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,122 @@
 +package net.yatopia.server.hwaccel;
 +
 +import net.minecraft.server.BlockPosition;
-+import net.minecraft.server.Chunk;
 +import net.minecraft.server.ChunkCoordIntPair;
-+import net.minecraft.server.ChunkTaskQueueSorter;
 +import net.minecraft.server.EnumSkyBlock;
 +import net.minecraft.server.IChunkAccess;
-+import net.minecraft.server.ILightAccess;
-+import net.minecraft.server.LightEngine;
 +import net.minecraft.server.LightEngineLayerEventListener;
 +import net.minecraft.server.LightEngineThreaded;
-+import net.minecraft.server.Mailbox;
 +import net.minecraft.server.NibbleArray;
-+import net.minecraft.server.PlayerChunkMap;
 +import net.minecraft.server.SectionPosition;
-+import net.minecraft.server.ThreadedMailbox;
-+import net.yatopia.hwaccel.lighting.LightEngineImpl;
-+import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.structures.LightType;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
@@ -395,7 +440,6 @@ index 0000000000000000000000000000000000000000..6b0a6440b6ab7f12e9f5354fc16d7f69
 +
 +import javax.annotation.Nullable;
 +import java.util.concurrent.CompletableFuture;
-+import java.util.function.BiFunction;
 +
 +public class LightEngineThreadedDelegate extends LightEngineThreaded {
 +
@@ -500,14 +544,14 @@ index 0000000000000000000000000000000000000000..6b0a6440b6ab7f12e9f5354fc16d7f69
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/OpenCLCommand.java b/src/main/java/net/yatopia/server/hwaccel/OpenCLCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..668f94459e4a861d4416232a8279b621e8f4e817
+index 0000000000000000000000000000000000000000..c08a02bde20e5e57d7228a7a261435eb78eb05ac
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/OpenCLCommand.java
 @@ -0,0 +1,72 @@
 +package net.yatopia.server.hwaccel;
 +
 +import com.destroystokyo.paper.PaperCommand;
-+import net.yatopia.hwaccel.configuration.OpenCLConfiguration;
++import net.yatopia.hwaccel.opencl.OpenCLConfiguration;
 +import net.yatopia.hwaccel.opencl.OpenCompute;
 +import org.apache.logging.log4j.LogManager;
 +import org.bukkit.Location;
@@ -578,13 +622,13 @@ index 0000000000000000000000000000000000000000..668f94459e4a861d4416232a8279b621
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/BlockPositionAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/BlockPositionAdapter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4d4eb2365b3b3c70635c064da54263dad67438dc
+index 0000000000000000000000000000000000000000..5f057572cfd199677c957c1c89539d5c72db8886
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/BlockPositionAdapter.java
 @@ -0,0 +1,15 @@
 +package net.yatopia.server.hwaccel.adapter;
 +
-+import net.yatopia.hwaccel.lighting.structures.BlockPosition;
++import net.yatopia.lighting.api.structures.BlockPosition;
 +
 +public class BlockPositionAdapter {
 +
@@ -599,14 +643,14 @@ index 0000000000000000000000000000000000000000..4d4eb2365b3b3c70635c064da54263da
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkPositionAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkPositionAdapter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..3fb1ee0ffdf351863ee674b6ea19c23bca0205f4
+index 0000000000000000000000000000000000000000..32d51ed9a42c91d57fcbafab71c5fb490a07c0c7
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkPositionAdapter.java
 @@ -0,0 +1,16 @@
 +package net.yatopia.server.hwaccel.adapter;
 +
 +import net.minecraft.server.ChunkCoordIntPair;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.ChunkPosition;
 +
 +public class ChunkPositionAdapter {
 +
@@ -621,14 +665,14 @@ index 0000000000000000000000000000000000000000..3fb1ee0ffdf351863ee674b6ea19c23b
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkSectionPositionAdapter.java b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkSectionPositionAdapter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..00fd5fcfd4cd6554e17c4902942be9659cf12c53
+index 0000000000000000000000000000000000000000..5df3b88770d276558866c3e20d2cfb3f1f8c5f2d
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/ChunkSectionPositionAdapter.java
 @@ -0,0 +1,16 @@
 +package net.yatopia.server.hwaccel.adapter;
 +
 +import net.minecraft.server.SectionPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
++import net.yatopia.lighting.api.structures.ChunkSectionPosition;
 +
 +public class ChunkSectionPositionAdapter {
 +
@@ -658,18 +702,15 @@ index 0000000000000000000000000000000000000000..b5cf730fd7b15586b24f681a5ca78894
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..645b70e9a37c8c64d3bc29f8b73d7a9b4f4acd1f
+index 0000000000000000000000000000000000000000..f2403ec94c786a4819a5c6dab3b762fd47d1b75d
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunk.java
-@@ -0,0 +1,32 @@
+@@ -0,0 +1,30 @@
 +package net.yatopia.server.hwaccel.adapter.chunkprovider;
 +
 +import net.minecraft.server.IChunkAccess;
-+import net.yatopia.hwaccel.lighting.structures.Chunk;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.Chunk;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
-+
-+import java.util.Objects;
 +
 +public class MinecraftChunk extends Chunk {
 +
@@ -685,6 +726,7 @@ index 0000000000000000000000000000000000000000..645b70e9a37c8c64d3bc29f8b73d7a9b
 +    }
 +
 +    public boolean equals(Object that) {
++        if(!(that instanceof MinecraftChunk)) return false;
 +        return chunkPosition.equals(((Chunk)that).chunkPosition);
 +    }
 +
@@ -696,7 +738,7 @@ index 0000000000000000000000000000000000000000..645b70e9a37c8c64d3bc29f8b73d7a9b
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..13a4d54d2e539f0a0372a617859c635a2f765e10
+index 0000000000000000000000000000000000000000..ddd2108cc989243ee94bb7295ac5c9b143b6ceed
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/chunkprovider/MinecraftChunkProvider.java
 @@ -0,0 +1,22 @@
@@ -704,7 +746,7 @@ index 0000000000000000000000000000000000000000..13a4d54d2e539f0a0372a617859c635a
 +
 +import net.minecraft.server.ChunkProviderServer;
 +import net.minecraft.server.WorldDataServer;
-+import net.yatopia.hwaccel.lighting.structures.ChunkProvider;
++import net.yatopia.lighting.api.structures.ChunkProvider;
 +
 +import javax.annotation.Nonnull;
 +
@@ -724,7 +766,7 @@ index 0000000000000000000000000000000000000000..13a4d54d2e539f0a0372a617859c635a
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..b4403d9948a596a96ef9142acff257caaf5f499a
+index 0000000000000000000000000000000000000000..a4fc6d9c5623fb7f7ed9d642ce792efb9a42292a
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
 @@ -0,0 +1,35 @@
@@ -734,8 +776,8 @@ index 0000000000000000000000000000000000000000..b4403d9948a596a96ef9142acff257ca
 +import net.minecraft.server.LightEngineLayerEventListener;
 +import net.minecraft.server.NibbleArray;
 +import net.minecraft.server.SectionPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
-+import net.yatopia.hwaccel.lighting.structures.LightAccessor;
++import net.yatopia.lighting.api.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.LightAccessor;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
 +
 +import javax.annotation.Nullable;
@@ -765,19 +807,17 @@ index 0000000000000000000000000000000000000000..b4403d9948a596a96ef9142acff257ca
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaLightingAccessor.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaLightingAccessor.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..35597f59081d7b11ae391c809ee17b1d090204ff
+index 0000000000000000000000000000000000000000..f3bd6235c54187e52dfe174b379274c823176051
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaLightingAccessor.java
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,29 @@
 +package net.yatopia.server.hwaccel.adapter.lightaccessor;
 +
-+import net.minecraft.server.ChunkCoordIntPair;
 +import net.minecraft.server.LightEngineLayerEventListener;
-+import net.yatopia.hwaccel.lighting.storage.ChunkLightStorage;
-+import net.yatopia.hwaccel.lighting.structures.BlockPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
-+import net.yatopia.hwaccel.lighting.structures.LightAccessor;
-+import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.lighting.api.storage.ChunkLightStorage;
++import net.yatopia.lighting.api.structures.BlockPosition;
++import net.yatopia.lighting.api.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.LightAccessor;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.lightaccessor.storage.NibbleArrayChunkStorage;
 +
@@ -802,7 +842,7 @@ index 0000000000000000000000000000000000000000..35597f59081d7b11ae391c809ee17b1d
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4020db328dd41d479e721359d62bdbc53b0f9f4d
+index 0000000000000000000000000000000000000000..a0ff1ceb2f09c9d139432ba68af2a74729db7f66
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
 @@ -0,0 +1,60 @@
@@ -812,7 +852,7 @@ index 0000000000000000000000000000000000000000..4020db328dd41d479e721359d62bdbc5
 +import net.minecraft.server.LightEngineLayerEventListener;
 +import net.minecraft.server.NibbleArray;
 +import net.minecraft.server.SectionPosition;
-+import net.yatopia.hwaccel.lighting.storage.ChunkLightStorage;
++import net.yatopia.lighting.api.storage.ChunkLightStorage;
 +
 +import java.util.Arrays;
 +
@@ -894,7 +934,7 @@ index e3104fd23de7fc1dec6ee471377d86bb10cf95a5..6e9e24b8db6f6fc3a130cf0fc590982d
                  t.printStackTrace();
 diff --git a/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..774870fdde4737b2ba554554fc03fa118a0d6078
+index 0000000000000000000000000000000000000000..0869d53de62aafdc8a8e90c030e18a08150d353c
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
 @@ -0,0 +1,335 @@
@@ -919,12 +959,12 @@ index 0000000000000000000000000000000000000000..774870fdde4737b2ba554554fc03fa11
 +import net.minecraft.server.StructureStart;
 +import net.minecraft.server.TickList;
 +import net.minecraft.server.TileEntity;
-+import net.yatopia.hwaccel.lighting.LightEngineImpl;
-+import net.yatopia.hwaccel.lighting.structures.BlockPosition;
-+import net.yatopia.hwaccel.lighting.structures.Chunk;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
-+import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.structures.BlockPosition;
++import net.yatopia.lighting.api.structures.Chunk;
++import net.yatopia.lighting.api.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.ChunkSectionPosition;
++import net.yatopia.lighting.api.structures.LightType;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
@@ -1235,19 +1275,19 @@ index 0000000000000000000000000000000000000000..774870fdde4737b2ba554554fc03fa11
 +}
 diff --git a/src/test/java/net/yatopia/server/hwaccel/structure/TestingLightEngineImpl.java b/src/test/java/net/yatopia/server/hwaccel/structure/TestingLightEngineImpl.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4cf4318531f1d5926e054e96665559308cd51943
+index 0000000000000000000000000000000000000000..d603c78ac75bf7ce40674db6f74ceeea79a84445
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/hwaccel/structure/TestingLightEngineImpl.java
 @@ -0,0 +1,87 @@
 +package net.yatopia.server.hwaccel.structure;
 +
-+import net.yatopia.hwaccel.lighting.LightEngineImpl;
-+import net.yatopia.hwaccel.lighting.structures.BlockPosition;
-+import net.yatopia.hwaccel.lighting.structures.Chunk;
-+import net.yatopia.hwaccel.lighting.structures.ChunkPosition;
-+import net.yatopia.hwaccel.lighting.structures.ChunkSectionPosition;
-+import net.yatopia.hwaccel.lighting.structures.LightAccessor;
-+import net.yatopia.hwaccel.lighting.structures.LightType;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.structures.BlockPosition;
++import net.yatopia.lighting.api.structures.Chunk;
++import net.yatopia.lighting.api.structures.ChunkPosition;
++import net.yatopia.lighting.api.structures.ChunkSectionPosition;
++import net.yatopia.lighting.api.structures.LightAccessor;
++import net.yatopia.lighting.api.structures.LightType;
 +
 +import javax.annotation.Nullable;
 +import java.util.concurrent.CompletableFuture;

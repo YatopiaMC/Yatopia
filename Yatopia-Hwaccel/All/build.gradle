@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group 'net.yatopia'
+version '0.0.1-SNAPSHOT'
+
+afterEvaluate {
+    dependencies {
+        rootProject.subprojects.forEach { project ->
+            if (project.path != ":All")
+                api project
+        }
+    }
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                artifactId = 'Yatopia-Hwaccel-All'
+                from(components.java)
+            }
+        }
+    }
+}

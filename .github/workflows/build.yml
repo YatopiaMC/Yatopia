@@ -45,8 +45,17 @@ jobs:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
+    - name: Pull Gradle Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
     - uses: s4u/maven-settings-action@v2.1.0
-      name: Use ${{ matrix.java }} as the java target
+      name: Use ${{ matrix.java }} as maven java target
       with:
         properties: '[{"maven.compiler.target": "${{ matrix.java }}"}]'
     - name: Setup opencl
@@ -67,7 +76,7 @@ jobs:
         key: ${{ runner.os }}-minecraft-decomp
     - name: Build Yatopia
       run: |
-        ./yatopia full
+        JAVA_COMPILE_TARGET=${{ matrix.java }} ./yatopia full
     - name: Upload Artifact
       if: github.ref != 'refs/heads/ver/1.16.3'
       uses: actions/upload-artifact@v2

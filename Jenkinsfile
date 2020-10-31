@@ -58,13 +58,7 @@ pipeline {
                 jdk "OpenJDK 8"
             }
             steps {
-                withMaven(
-                    maven: '3',
-                    mavenLocalRepo: '.repository',
-                    publisherStrategy: 'EXPLICIT'
-                ) {
-                    sh 'cd ./Yatopia-Hwaccel && mvn install'
-                }
+                sh 'cd ./Yatopia-Hwaccel && bash gradlew clean build publishToMavenLocal'
             }
         }
         stage('Build Server') {
