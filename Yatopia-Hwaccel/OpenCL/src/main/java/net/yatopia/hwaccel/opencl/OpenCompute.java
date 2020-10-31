@@ -6,6 +6,7 @@
 
 package net.yatopia.hwaccel.opencl;
 
+import com.google.common.base.Preconditions;
 import com.jogamp.opencl.CLCommandQueue;
 import com.jogamp.opencl.CLContext;
 import com.jogamp.opencl.CLDevice;
@@ -92,23 +93,23 @@ public class OpenCompute implements Closeable {
     }
 
     private OpenCompute(CLDevice device, boolean profilingEnabled) {
-        CLCommandQueue queue1;
-
-        programs = new ConcurrentHashMap<>();
-        platform = device.getPlatform();
-        context = CLContext.create(device);
-        CLCommandQueue tmpqueue = null;
-        this.device = device;
+        Preconditions.checkNotNull(device);
         try {
+            this.programs = new ConcurrentHashMap<>();
+            this.platform = device.getPlatform();
+            this.device = device;
+            this.context = CLContext.create(this.device);
             if (profilingEnabled)
-                tmpqueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
+                this.queue = this.device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE, CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
             else
-                tmpqueue = device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
+                this.queue = this.device.createCommandQueue(CLCommandQueue.Mode.OUT_OF_ORDER_MODE);
         } catch (Exception e) {
-            LOGGER.warn("Failed to initialize {}", device.getName());
+            throw new IllegalArgumentException(String.format("Failed to initialize %s", device.getName()), e);
         }
+        Preconditions.checkState(this.programs != null);
+        Preconditions.checkState(this.platform != null);
+        Preconditions.checkState(this.queue != null);
 
-        queue = tmpqueue;
     }
 
     /**
@@ -209,7 +210,13 @@ public class OpenCompute implements Closeable {
             } else {
                 LOGGER.info("No overrides defined, sorting devices by benchmark results...");
                 for (CLDevice device : devices) {
-                    OpenCompute openCompute = new OpenCompute(device, true);
+                    OpenCompute openCompute;
+                    try {
+                        openCompute = new OpenCompute(device, true);
+                    } catch (Throwable t) {
+                        LOGGER.warn("Failed to initialize {}", device, t);
+                        continue;
+                    }
                     deviceBenchmarks.add(BasicOpenCLBenchmark.benchmark(openCompute).handle((openCLBenchmarkResult, throwable) -> {
                         if (throwable != null)
                             LOGGER.info("A device failed to benchmark, device information unavailable", throwable);
