@@ -146,6 +146,19 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899
 +        }
      }
  }
+diff --git a/src/main/java/net/minecraft/server/NibbleArray.java b/src/main/java/net/minecraft/server/NibbleArray.java
+index 4085426af03f032cf405bdfd1e40a8e5dc27c1d1..820274bc97f55a12b4db7786b5cbd3789f0ebc6b 100644
+--- a/src/main/java/net/minecraft/server/NibbleArray.java
++++ b/src/main/java/net/minecraft/server/NibbleArray.java
+@@ -63,7 +63,7 @@ public class NibbleArray {
+         }
+     }
+     // Paper end
+-    @Nullable protected byte[] a;
++    @Nullable protected byte[] a = null;
+ 
+ 
+     public NibbleArray() {}
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
 index 135ee97605d74be3a3dba4a3d973843b73c658e8..54d71c164e5f4e403b683bc739b056e26f90b172 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
@@ -767,10 +780,10 @@ index 0000000000000000000000000000000000000000..ddd2108cc989243ee94bb7295ac5c9b1
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..dfd852a39c9ee192fc8537356f3d2c160f1f3fa0
+index 0000000000000000000000000000000000000000..19e0b7e0bfee233622544c07a6c6f055c06afa5d
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,36 @@
 +package net.yatopia.server.hwaccel.adapter.lightaccessor;
 +
 +import net.minecraft.server.BlockPosition;
@@ -780,6 +793,7 @@ index 0000000000000000000000000000000000000000..dfd852a39c9ee192fc8537356f3d2c16
 +import net.yatopia.lighting.api.structures.ChunkPosition;
 +import net.yatopia.lighting.api.structures.LightAccessor;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.storage.UnpooledNibbleArray;
 +
 +import javax.annotation.Nullable;
 +
@@ -793,7 +807,7 @@ index 0000000000000000000000000000000000000000..dfd852a39c9ee192fc8537356f3d2c16
 +    @Nullable
 +    @Override
 +    public NibbleArray a(SectionPosition sectionposition) {
-+        return new NibbleArray(delegate.getLightStorage(new ChunkPosition(sectionposition.getX(), sectionposition.getZ())).getSection(sectionposition.getY()));
++        return new UnpooledNibbleArray(delegate.getLightStorage(new ChunkPosition(sectionposition.getX(), sectionposition.getZ())).getSection(sectionposition.getY()));
 +    }
 +
 +    @Override
@@ -924,6 +938,158 @@ index 0000000000000000000000000000000000000000..10f8e92e4e750847207660123e5e5c9c
 +        return nibbleArray.asBytes()[index % 2048];
 +    }
 +}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/UnpooledNibbleArray.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/UnpooledNibbleArray.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9fa493079e7183ea5c8aba081eb88bb72862d8f5
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/UnpooledNibbleArray.java
+@@ -0,0 +1,146 @@
++package net.yatopia.server.hwaccel.adapter.lightaccessor.storage;
++
++import net.minecraft.server.NibbleArray;
++import net.minecraft.server.SystemUtils;
++
++import javax.annotation.Nonnull;
++
++public class UnpooledNibbleArray extends NibbleArray {
++
++    {
++        cleaner = () -> {
++        };
++    }
++
++    public UnpooledNibbleArray() {
++    }
++
++    public UnpooledNibbleArray(byte[] abyte) {
++        this.a = abyte;
++        if (abyte.length != 2048) {
++            throw (IllegalArgumentException) SystemUtils.c((Throwable) (new IllegalArgumentException("ChunkNibbleArrays should be 2048 bytes not: " + abyte.length)));
++        }
++    }
++
++    protected UnpooledNibbleArray(int i) {
++        this.a = new byte[i];
++    }
++
++    public int a(int i, int j, int k) {
++        return this.b(this.b(i, j, k));
++    }
++
++    public void a(int i, int j, int k, int l) {
++        this.a(this.b(i, j, k), l);
++    }
++
++    protected int b(int i, int j, int k) {
++        return j << 8 | k << 4 | i;
++    }
++
++    public int b(int i) {
++        if (this.a == null) {
++            return 0;
++        } else {
++            int j = this.d(i);
++
++            return this.a[j] >> ((i & 1) << 2) & 15;
++        }
++    }
++
++    public void a(int i, int j) {
++        if (this.a == null) {
++            this.a = new byte[2048];
++        }
++
++        int k = this.d(i);
++
++        int shift = (i & 1) << 2;
++        this.a[k] = (byte) (this.a[k] & ~(15 << shift) | (j & 15) << shift);
++
++    }
++
++    private boolean c(int i) {
++        return (i & 1) == 0;
++    }
++
++    private int d(int i) {
++        return i >> 1;
++    }
++
++    public byte[] asBytes() {
++        if (this.a == null) {
++            this.a = new byte[2048];
++        }
++
++        return this.a;
++    }
++
++    public NibbleArray b() {
++        return this.a == null ? new UnpooledNibbleArray() : new UnpooledNibbleArray((byte[]) this.a.clone());
++    }
++
++    public String toString() {
++        StringBuilder stringbuilder = new StringBuilder();
++
++        for (int i = 0; i < 4096; ++i) {
++            stringbuilder.append(Integer.toHexString(this.b(i)));
++            if ((i & 15) == 15) {
++                stringbuilder.append("\n");
++            }
++
++            if ((i & 255) == 255) {
++                stringbuilder.append("\n");
++            }
++        }
++
++        return stringbuilder.toString();
++    }
++
++    public boolean c() {
++        return this.a == null;
++    }
++
++    @Override
++    public NibbleArray markPoolSafe() {
++        return this;
++    }
++
++    @Override
++    public byte[] getCloneIfSet() {
++        if (a == null) {
++            return EMPTY_NIBBLE;
++        }
++        byte[] ret = new byte[2048];
++        System.arraycopy(getIfSet(), 0, ret, 0, 2048);
++        return ret;
++    }
++
++    @Override
++    public NibbleArray cloneAndSet(byte[] bytes) {
++        if (bytes != null && bytes != EMPTY_NIBBLE) {
++            this.a = new byte[2048];
++            System.arraycopy(bytes, 0, this.a, 0, 2048);
++        }
++        return this;
++    }
++
++    public UnpooledNibbleArray(byte[] abyte, boolean isSafe) {
++        this(abyte);
++    }
++
++    @Nonnull
++    @Override
++    public byte[] asBytesPoolSafe() {
++        return this.a != null ? this.a : EMPTY_NIBBLE;
++    }
++
++    @Override
++    public NibbleArray copy() {
++        return super.copy();
++    }
++
++    @Override
++    protected void finalize() {
++    }
++}
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
 index ed16c260699eed86f6f52ee7bd83ea553f81453c..bd9f6b28447cc0dc4b8db21781c46d43cb71ce57 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
@@ -952,10 +1118,10 @@ index ed16c260699eed86f6f52ee7bd83ea553f81453c..bd9f6b28447cc0dc4b8db21781c46d43
                  t.printStackTrace();
 diff --git a/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7ff302a60a
+index 0000000000000000000000000000000000000000..91e4e9e47bf8b4daea4e352c037b4a7717a4e68f
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,337 @@
 +package net.yatopia.server.hwaccel;
 +
 +import it.unimi.dsi.fastutil.longs.LongSet;
@@ -1035,9 +1201,7 @@ index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7f
 +    public void testLightEngineThreadedDelegate() throws IllegalAccessException, InvocationTargetException {
 +        Random random = new Random();
 +        LightEngineImpl impl = new TestingLightEngineImpl();
-+        int rDepth = Math.max(recursiveDepth(0) / 8 - 16, 1);
-+        System.out.println("Using " + rDepth + " depth");
-+        for(int i = 0; i < rDepth; i ++)
++        for(int i = 0; i < 16; i ++)
 +            impl = new LightEngineImplDelegate(new LightEngineThreadedDelegate(impl));
 +        Class<LightEngineImpl> clazz = LightEngineImpl.class;
 +        Method[] methods = clazz.getMethods();
@@ -1285,14 +1449,6 @@ index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7f
 +                Assert.assertArrayEquals(((TestingLightEngineImpl.InvocationResult)e.getTargetException()).invokedObjects, parameters);
 +            }
 +        }
-+    }
-+
-+    private int recursiveDepth(int depth){
-+        try {
-+            return recursiveDepth(depth + 1);
-+        } catch (StackOverflowError ignored) {
-+        }
-+        return depth;
 +    }
 +
 +    private byte[] generateNibble() {
