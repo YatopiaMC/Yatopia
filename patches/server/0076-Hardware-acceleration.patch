@@ -146,6 +146,40 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899
 +        }
      }
  }
+diff --git a/src/main/java/net/minecraft/server/MCUtil.java b/src/main/java/net/minecraft/server/MCUtil.java
+index 748742fb03c6066a72ac6046a96e8d9f8fad2694..aaebe5ff84181391aeb7485ea93c529f23162986 100644
+--- a/src/main/java/net/minecraft/server/MCUtil.java
++++ b/src/main/java/net/minecraft/server/MCUtil.java
+@@ -264,7 +264,9 @@ public final class MCUtil {
+     }
+ 
+     public static org.bukkit.scheduler.BukkitTask scheduleTask(int ticks, Runnable runnable, String taskName) {
+-        return MinecraftServer.getServer().server.getScheduler().scheduleInternalTask(runnable, ticks, taskName);
++        if (MinecraftServer.getServer() != null)
++            return MinecraftServer.getServer().server.getScheduler().scheduleInternalTask(runnable, ticks, taskName);
++        else return null;
+     }
+ 
+     public static void processQueue() {
+diff --git a/src/main/java/net/minecraft/server/NibbleArray.java b/src/main/java/net/minecraft/server/NibbleArray.java
+index 4085426af03f032cf405bdfd1e40a8e5dc27c1d1..d65c5ec9c6e767bcfc92c895d69348319a7bf2b9 100644
+--- a/src/main/java/net/minecraft/server/NibbleArray.java
++++ b/src/main/java/net/minecraft/server/NibbleArray.java
+@@ -185,4 +185,14 @@ public class NibbleArray {
+     public boolean c() {
+         return this.a == null;
+     }
++
++    @Override
++    protected void finalize() throws Throwable {
++        try {
++            if (this.cleaner != null)
++                this.cleaner.run();
++        } finally {
++            super.finalize();
++        }
++    }
+ }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
 index 135ee97605d74be3a3dba4a3d973843b73c658e8..54d71c164e5f4e403b683bc739b056e26f90b172 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
@@ -417,18 +451,22 @@ index 0000000000000000000000000000000000000000..6b4adcb201dde1bd4d7994d115d585d9
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d38745ba78baf
+index 0000000000000000000000000000000000000000..936517361e021f828a0b9ffbaa70c388dd5618ae
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
-@@ -0,0 +1,122 @@
+@@ -0,0 +1,147 @@
 +package net.yatopia.server.hwaccel;
 +
++import com.google.common.cache.CacheBuilder;
++import com.google.common.cache.CacheLoader;
++import com.google.common.cache.LoadingCache;
 +import net.minecraft.server.BlockPosition;
 +import net.minecraft.server.ChunkCoordIntPair;
 +import net.minecraft.server.EnumSkyBlock;
 +import net.minecraft.server.IChunkAccess;
 +import net.minecraft.server.LightEngineLayerEventListener;
 +import net.minecraft.server.LightEngineThreaded;
++import net.minecraft.server.MCUtil;
 +import net.minecraft.server.NibbleArray;
 +import net.minecraft.server.SectionPosition;
 +import net.yatopia.lighting.api.LightEngineImpl;
@@ -439,12 +477,27 @@ index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d3874
 +import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
 +import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaChunkLightingViewDelegate;
 +
++import javax.annotation.Nonnull;
 +import javax.annotation.Nullable;
 +import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
 +
 +public class LightEngineThreadedDelegate extends LightEngineThreaded {
 +
 +    final LightEngineImpl delegate;
++    LoadingCache<EnumSkyBlock, LightEngineLayerEventListener> lightingViewCache =
++            CacheBuilder.newBuilder()
++                    .maximumSize(3)
++                    .expireAfterAccess(1, TimeUnit.MINUTES)
++                    .build(
++                            new CacheLoader<EnumSkyBlock, LightEngineLayerEventListener>() {
++                                @Override
++                                public LightEngineLayerEventListener load(@Nonnull EnumSkyBlock key) {
++                                    return new VanillaChunkLightingViewDelegate(delegate.get(LightType.valueOf(key.name())));
++                                }
++                            }
++                    );
 +
 +    public LightEngineThreadedDelegate(LightEngineImpl delegate) {
 +        super(null, null, false, null, null);
@@ -483,12 +536,18 @@ index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d3874
 +
 +    @Override
 +    public LightEngineLayerEventListener a(EnumSkyBlock var0) {
-+        return new VanillaChunkLightingViewDelegate(delegate.get(LightType.valueOf(var0.name())));
++        try {
++            return lightingViewCache.get(var0);
++        } catch (ExecutionException e) {
++            throw new RuntimeException(e);
++        }
 +    }
 +
 +    @Override
 +    public void a(EnumSkyBlock var0, SectionPosition var1, @Nullable NibbleArray var2, boolean var3) {
-+        delegate.enqueueSectionData(LightType.valueOf(var0.name()), ChunkSectionPositionAdapter.fromNMS(var1), var2 != null ? var2.asBytes() : null, var3);
++        if (var2 != null)
++            MCUtil.scheduleTask(5, var2.cleaner, "Lighting API Unused NibbleArray Release");
++        delegate.enqueueSectionData(LightType.valueOf(var0.name()), ChunkSectionPositionAdapter.fromNMS(var1), var2 != null ? var2.asBytesPoolSafe() : null, var3);
 +    }
 +
 +    @Override
@@ -767,24 +826,50 @@ index 0000000000000000000000000000000000000000..ddd2108cc989243ee94bb7295ac5c9b1
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..dfd852a39c9ee192fc8537356f3d2c160f1f3fa0
+index 0000000000000000000000000000000000000000..d67f4fb4dc7a5170076dd97c38278c3eb625b820
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/VanillaChunkLightingViewDelegate.java
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,65 @@
 +package net.yatopia.server.hwaccel.adapter.lightaccessor;
 +
++import com.google.common.cache.CacheBuilder;
++import com.google.common.cache.CacheLoader;
++import com.google.common.cache.LoadingCache;
++import com.google.common.cache.RemovalListener;
++import com.google.common.cache.RemovalNotification;
 +import net.minecraft.server.BlockPosition;
 +import net.minecraft.server.LightEngineLayerEventListener;
++import net.minecraft.server.MCUtil;
 +import net.minecraft.server.NibbleArray;
 +import net.minecraft.server.SectionPosition;
 +import net.yatopia.lighting.api.structures.ChunkPosition;
 +import net.yatopia.lighting.api.structures.LightAccessor;
 +import net.yatopia.server.hwaccel.adapter.BlockPositionAdapter;
 +
++import javax.annotation.Nonnull;
 +import javax.annotation.Nullable;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
 +
 +public class VanillaChunkLightingViewDelegate implements LightEngineLayerEventListener {
 +    private final LightAccessor delegate;
++    LoadingCache<SectionPosition, NibbleArray> nibbleArrayCache =
++            CacheBuilder.newBuilder()
++                    .maximumSize(8192)
++                    .expireAfterAccess(5, TimeUnit.SECONDS)
++                    .removalListener((RemovalListener<SectionPosition, NibbleArray>) notification -> {
++                                if (notification.getValue().cleaner != null)
++                                    notification.getValue().cleaner.run();
++                            }
++                    )
++                    .build(
++                            new CacheLoader<SectionPosition, NibbleArray>() {
++                                @Override
++                                public NibbleArray load(@Nonnull SectionPosition key) throws Exception {
++                                    return new NibbleArray(delegate.getLightStorage(new ChunkPosition(key.getX(), key.getZ())).getSection(key.getY()));
++                                }
++                            }
++                    );
 +
 +    public VanillaChunkLightingViewDelegate(LightAccessor delegate) {
 +        this.delegate = delegate;
@@ -793,7 +878,11 @@ index 0000000000000000000000000000000000000000..dfd852a39c9ee192fc8537356f3d2c16
 +    @Nullable
 +    @Override
 +    public NibbleArray a(SectionPosition sectionposition) {
-+        return new NibbleArray(delegate.getLightStorage(new ChunkPosition(sectionposition.getX(), sectionposition.getZ())).getSection(sectionposition.getY()));
++        try {
++            return nibbleArrayCache.get(sectionposition);
++        } catch (ExecutionException e) {
++            throw new RuntimeException(e);
++        }
 +    }
 +
 +    @Override
@@ -843,7 +932,7 @@ index 0000000000000000000000000000000000000000..f3bd6235c54187e52dfe174b379274c8
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..10f8e92e4e750847207660123e5e5c9c9f5e4695
+index 0000000000000000000000000000000000000000..f61a2369e3c511908f8fb407a1a8470ada2a56ea
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/NibbleArrayChunkStorage.java
 @@ -0,0 +1,77 @@
@@ -900,7 +989,7 @@ index 0000000000000000000000000000000000000000..10f8e92e4e750847207660123e5e5c9c
 +    public byte[] getSection(int index) {
 +        NibbleArray nibbleArray = lightAccessor.a(SectionPosition.a(chunkPos, index));
 +        if (nibbleArray != null)
-+            return nibbleArray.asBytes();
++            return nibbleArray.asBytesPoolSafe();
 +        else {
 +            byte[] bytes = new byte[2048];
 +            Arrays.fill(bytes, (byte) 0x00);
@@ -952,10 +1041,10 @@ index ed16c260699eed86f6f52ee7bd83ea553f81453c..bd9f6b28447cc0dc4b8db21781c46d43
                  t.printStackTrace();
 diff --git a/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7ff302a60a
+index 0000000000000000000000000000000000000000..6579b6cbe0992758a61920310a654d24f443760f
 --- /dev/null
 +++ b/src/test/java/net/yatopia/server/hwaccel/AdapterTest.java
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,345 @@
 +package net.yatopia.server.hwaccel;
 +
 +import it.unimi.dsi.fastutil.longs.LongSet;
@@ -1035,9 +1124,7 @@ index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7f
 +    public void testLightEngineThreadedDelegate() throws IllegalAccessException, InvocationTargetException {
 +        Random random = new Random();
 +        LightEngineImpl impl = new TestingLightEngineImpl();
-+        int rDepth = Math.max(recursiveDepth(0) / 8 - 16, 1);
-+        System.out.println("Using " + rDepth + " depth");
-+        for(int i = 0; i < rDepth; i ++)
++        for(int i = 0; i < 16; i ++)
 +            impl = new LightEngineImplDelegate(new LightEngineThreadedDelegate(impl));
 +        Class<LightEngineImpl> clazz = LightEngineImpl.class;
 +        Method[] methods = clazz.getMethods();
@@ -1280,19 +1367,19 @@ index 0000000000000000000000000000000000000000..2093dc285eea1994224151ffd0e5ae7f
 +            try {
 +                method.invoke(impl, parameters);
 +            } catch (InvocationTargetException e) {
-+                if(!(e.getTargetException() instanceof TestingLightEngineImpl.InvocationResult)) throw e;
-+                Assert.assertEquals(((TestingLightEngineImpl.InvocationResult)e.getTargetException()).invokedMethod, name);
-+                Assert.assertArrayEquals(((TestingLightEngineImpl.InvocationResult)e.getTargetException()).invokedObjects, parameters);
++                Throwable cause = e;
++                while (!((cause = cause.getCause()) instanceof TestingLightEngineImpl.InvocationResult))
++                    if(cause == null)
++                        throw e;
++                try {
++                    Assert.assertEquals(((TestingLightEngineImpl.InvocationResult)cause).invokedMethod, name);
++                    Assert.assertArrayEquals(((TestingLightEngineImpl.InvocationResult)cause).invokedObjects, parameters);
++                } catch (AssertionError error) {
++                    System.err.println("Assertion Error when invoking " + name);
++                    throw error;
++                }
 +            }
 +        }
-+    }
-+
-+    private int recursiveDepth(int depth){
-+        try {
-+            return recursiveDepth(depth + 1);
-+        } catch (StackOverflowError ignored) {
-+        }
-+        return depth;
 +    }
 +
 +    private byte[] generateNibble() {
