@@ -5,7 +5,7 @@ Subject: [PATCH] Add NBT API as a first-class lib
 
 
 diff --git a/pom.xml b/pom.xml
-index 55d9aed1b3fb893efa2afb0a0f5f73929f31c2f5..c5a87f5058dc43cd1523a023a4b1099ac6b8e0fd 100644
+index 55d9aed1b3fb893efa2afb0a0f5f73929f31c2f5..1990888ac34d535851a4d943be8638ad0a4adeba 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -56,6 +56,11 @@
@@ -27,7 +27,7 @@ index 55d9aed1b3fb893efa2afb0a0f5f73929f31c2f5..c5a87f5058dc43cd1523a023a4b1099a
 +        <dependency>
 +            <groupId>de.tr7zw</groupId>
 +            <artifactId>item-nbt-api</artifactId>
-+            <version>2.5.0</version>
++            <version>2.6.0</version>
 +        </dependency>
      </dependencies>
  
@@ -108,23 +108,36 @@ index 4d1970bec04c5a3cf01d214f583efb0e1d08380d..97fad9d83badb0aff15189f62cc065da
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
-index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..b93df6bea4af1b2d4123be031adecf030bcc3893 100644
+index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..5ad9dfb7856b2f86947b12b5444b2f8147f72bbf 100644
 --- a/src/main/java/org/bukkit/inventory/ItemStack.java
 +++ b/src/main/java/org/bukkit/inventory/ItemStack.java
-@@ -791,4 +791,29 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+@@ -791,4 +791,42 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
          return itemMeta.hasItemFlag(flag);
      }
      // Paper end
 +
 +    // Yatopia start
 +    /**
-+     * Returns NBT representation of this item.
++     * Returns NBT representation of this item. The ItemStack will be cloned!
 +     *
 +     * @return item's NBT tags container
 +     */
 +    @NotNull
 +    public de.tr7zw.changeme.nbtapi.NBTItem getNBT() {
-+        return new de.tr7zw.changeme.nbtapi.NBTItem(this);
++        return getNBT(false);
++    }
++
++    /**
++     * Returns NBT representation of this item. If directApply is true,
++     * all changes will be mapped to the original item. Changes to the NBTItem will
++     * overwrite changes done to the original item in that case.
++     *
++     * @param directApply if true, changes to NBTItem will affect this ItemStack
++     * @return item's NBT tags container
++     */
++    @NotNull
++    public de.tr7zw.changeme.nbtapi.NBTItem getNBT(boolean directApply) {
++        return new de.tr7zw.changeme.nbtapi.NBTItem(this, directApply);
 +    }
 +
 +    /**
