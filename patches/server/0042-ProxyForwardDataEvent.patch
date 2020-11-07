@@ -5,7 +5,7 @@ Subject: [PATCH] ProxyForwardDataEvent
 
 
 diff --git a/src/main/java/net/minecraft/server/HandshakeListener.java b/src/main/java/net/minecraft/server/HandshakeListener.java
-index 5dde738b7499fbf432dc3dbae295eb96d5b90347..0fc3b46df54d40133c059d819b1a198e4e65dc23 100644
+index 1d60def8fa7041b3383c287153cbb9c6cec3d0f9..4b7caf04981e811c937f44b27662a9c220ba62f5 100644
 --- a/src/main/java/net/minecraft/server/HandshakeListener.java
 +++ b/src/main/java/net/minecraft/server/HandshakeListener.java
 @@ -92,6 +92,7 @@ public class HandshakeListener implements PacketHandshakingInListener {
@@ -23,12 +23,12 @@ index 5dde738b7499fbf432dc3dbae295eb96d5b90347..0fc3b46df54d40133c059d819b1a198e
 +                            c.proxyProfileSpoof = true; // Yatopia
                          } else
                          {
-                             chatmessage = new ChatMessage("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
+                             ChatMessage chatmessage = new ChatMessage("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
 diff --git a/src/main/java/net/minecraft/server/LoginListener.java b/src/main/java/net/minecraft/server/LoginListener.java
-index 57a3a8d09427012e5c8aba5085d187c6be047652..fa0a8a7e00a64df4d3ba09407193d984e1ff0952 100644
+index d987483255195c0bde713a92676baced1eaff2b3..2fa0f21cfa81670f6c3f18f76e7fa8d0bb541f11 100644
 --- a/src/main/java/net/minecraft/server/LoginListener.java
 +++ b/src/main/java/net/minecraft/server/LoginListener.java
-@@ -124,6 +124,23 @@ public class LoginListener implements PacketLoginInListener {
+@@ -125,6 +125,23 @@ public class LoginListener implements PacketLoginInListener {
  
          this.i = new GameProfile( uuid, this.i.getName() );
  
@@ -52,7 +52,7 @@ index 57a3a8d09427012e5c8aba5085d187c6be047652..fa0a8a7e00a64df4d3ba09407193d984
          if (networkManager.spoofedProfile != null)
          {
              for ( com.mojang.authlib.properties.Property property : networkManager.spoofedProfile )
-@@ -131,6 +148,7 @@ public class LoginListener implements PacketLoginInListener {
+@@ -132,6 +149,7 @@ public class LoginListener implements PacketLoginInListener {
                  this.i.getProperties().put( property.getName(), property );
              }
          }
@@ -60,7 +60,7 @@ index 57a3a8d09427012e5c8aba5085d187c6be047652..fa0a8a7e00a64df4d3ba09407193d984
      }
      // Spigot end
  
-@@ -355,11 +373,20 @@ public class LoginListener implements PacketLoginInListener {
+@@ -365,11 +383,20 @@ public class LoginListener implements PacketLoginInListener {
  
              this.networkManager.socketAddress = new java.net.InetSocketAddress(com.destroystokyo.paper.proxy.VelocityProxy.readAddress(buf), ((java.net.InetSocketAddress) this.networkManager.getSocketAddress()).getPort());
  
@@ -83,10 +83,10 @@ index 57a3a8d09427012e5c8aba5085d187c6be047652..fa0a8a7e00a64df4d3ba09407193d984
                  } catch (Exception ex) {
                      disconnect("Failed to verify username!");
 diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index 332f8ec16f48fb158b8cd058d3115b006ba34134..57de1f541107ec3c53abb5a2c02ba579bc03f7ab 100644
+index f4ed4cbf57446f1008c2234c5ad40d2677756150..5029dec16cd0f509767f69af1967873ef69884c0 100644
 --- a/src/main/java/net/minecraft/server/NetworkManager.java
 +++ b/src/main/java/net/minecraft/server/NetworkManager.java
-@@ -49,6 +49,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -51,6 +51,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
      // Spigot Start
      public java.util.UUID spoofedUUID;
      public com.mojang.authlib.properties.Property[] spoofedProfile;

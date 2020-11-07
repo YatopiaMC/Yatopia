@@ -772,7 +772,7 @@ index 0000000000000000000000000000000000000000..493103d755c222f2c6031ffb8f5c0b7a
 +    Collection<T> getAllOfGroupType(EntityClassGroup type);
 +}
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 018972007c7c36f96102ff22423dc7c45369eaa0..450d5fabba6cbcc3443f049b2e980b316a2598c0 100644
+index f3702ed75ebcd78075da947acf9bdc2ec0379180..cee9bd91d679a867610a88bec5b8180423d52c1e 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -36,7 +36,7 @@ public class Chunk implements IChunkAccess {
@@ -784,7 +784,7 @@ index 018972007c7c36f96102ff22423dc7c45369eaa0..450d5fabba6cbcc3443f049b2e980b31
      private final Map<StructureGenerator<?>, StructureStart<?>> l;
      private final Map<StructureGenerator<?>, LongSet> m;
      private final ShortList[] n;
-@@ -149,7 +149,7 @@ public class Chunk implements IChunkAccess {
+@@ -244,7 +244,7 @@ public class Chunk implements IChunkAccess {
          this.l = Maps.newHashMap();
          this.m = Maps.newHashMap();
          this.n = new ShortList[16];
@@ -793,7 +793,7 @@ index 018972007c7c36f96102ff22423dc7c45369eaa0..450d5fabba6cbcc3443f049b2e980b31
          this.world = (WorldServer) world; // CraftBukkit - type
          this.loc = chunkcoordintpair; this.coordinateKey = MCUtil.getCoordinateKey(chunkcoordintpair); // Paper - cache coordinate key
          this.i = chunkconverter;
-@@ -165,7 +165,7 @@ public class Chunk implements IChunkAccess {
+@@ -260,7 +260,7 @@ public class Chunk implements IChunkAccess {
          }
  
          for (int l = 0; l < this.entitySlices.length; ++l) {
@@ -802,7 +802,7 @@ index 018972007c7c36f96102ff22423dc7c45369eaa0..450d5fabba6cbcc3443f049b2e980b31
          }
  
          this.d = biomestorage;
-@@ -618,8 +618,8 @@ public class Chunk implements IChunkAccess {
+@@ -713,8 +713,8 @@ public class Chunk implements IChunkAccess {
              k = this.entitySlices.length - 1;
          }
          // Paper - remove from any old list if its in one
@@ -813,7 +813,7 @@ index 018972007c7c36f96102ff22423dc7c45369eaa0..450d5fabba6cbcc3443f049b2e980b31
          if (nextSlice == currentSlice) {
              if (World.DEBUG_ENTITIES) MinecraftServer.LOGGER.warn("Entity was already in this chunk!" + entity, new Throwable());
              return; // ??? silly plugins
-@@ -933,12 +933,12 @@ public class Chunk implements IChunkAccess {
+@@ -1028,12 +1028,12 @@ public class Chunk implements IChunkAccess {
          j = MathHelper.clamp(j, 0, this.entitySlices.length - 1);
  
          for (int k = i; k <= j; ++k) {
@@ -830,7 +830,7 @@ index 018972007c7c36f96102ff22423dc7c45369eaa0..450d5fabba6cbcc3443f049b2e980b31
                  if (entity1.shouldBeRemoved) continue; // Paper
  
                  if (entity1.getBoundingBox().c(axisalignedbb) && entity1 != entity) {
-@@ -1070,8 +1070,16 @@ public class Chunk implements IChunkAccess {
+@@ -1166,8 +1166,16 @@ public class Chunk implements IChunkAccess {
      }
  
      public List<Entity>[] getEntitySlices() { // Spigot
@@ -867,7 +867,7 @@ index 1bc8b11d999e9af16a44fe1cb62f5785afa82462..30d4589c9cdad11809fc09cb51235d6d
                  while (iterator1.hasNext()) {
                      Entity entity = (Entity) iterator1.next();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index e0381ed6945f734f8802d07b8cbd6b27852db449..220d5273543ea0b143cf9c894c89cabea25c29d6 100644
+index 5beca7e82b3f2a44c376ab2fedac27ce8b7fbd3a..6b96c392fb3eadd20f87675b797337d6d30cc7be 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -73,7 +73,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -1042,7 +1042,7 @@ index b66c802d5e27518069bf42e577bcc9a26c4d873e..22728e5ba8b2dd6efc3164d06ea79169
  
      default Stream<VoxelShape> b(@Nullable Entity entity, AxisAlignedBB axisalignedbb, BiPredicate<IBlockData, BlockPosition> bipredicate) {
 diff --git a/src/main/java/net/minecraft/server/IEntityAccess.java b/src/main/java/net/minecraft/server/IEntityAccess.java
-index 882b82d8952d34f6e3c639404d1a1521dedf1bb0..ccf1416000354b78ccef78b072062ce081826e1a 100644
+index 40ca3364d462dc7b5a4c1f8f353c758a421656bf..7657d13dd7556e4c32088bbe5735df525c0b2922 100644
 --- a/src/main/java/net/minecraft/server/IEntityAccess.java
 +++ b/src/main/java/net/minecraft/server/IEntityAccess.java
 @@ -62,6 +62,10 @@ public interface IEntityAccess {
@@ -1065,10 +1065,10 @@ index 882b82d8952d34f6e3c639404d1a1521dedf1bb0..ccf1416000354b78ccef78b072062ce0
  
      default EntityHuman findNearbyPlayer(Entity entity, double d0, @Nullable Predicate<Entity> predicate) { return this.findNearbyPlayer(entity.locX(), entity.locY(), entity.locZ(), d0, predicate); } // Paper
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 1f7a8694f69345288c53df0f3a1845f2721f6c7b..841dd0cbd771d878d53292adbd590a1ecffc367e 100644
+index 2c7ee012a7ae9ee8c269bb469282202f2a846ebf..51a19bce92c801912030699def8534213d77d310 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1334,11 +1334,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1363,11 +1363,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                      chunk.setLoaded(true);
                      this.world.a(chunk.getTileEntities().values());
                      List<Entity> list = null;
@@ -1082,7 +1082,7 @@ index 1f7a8694f69345288c53df0f3a1845f2721f6c7b..841dd0cbd771d878d53292adbd590a1e
                          Iterator iterator = entityslice.iterator();
  
                          while (iterator.hasNext()) {
-@@ -1619,7 +1619,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1648,7 +1648,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
  
              // CraftBukkit - decompile error
              csvwriter.a(chunkcoordintpair.x, chunkcoordintpair.z, playerchunk.getTicketLevel(), optional.isPresent(), optional.map(IChunkAccess::getChunkStatus).orElse(null), optional1.map(Chunk::getState).orElse(null), a(playerchunk.c()), a(playerchunk.a()), a(playerchunk.b()), this.chunkDistanceManager.c(entry.getLongKey()), !this.isOutsideOfRange(chunkcoordintpair), optional1.map((chunk) -> {
@@ -1105,7 +1105,7 @@ index 700660dd93b3090334bb3033d5f5fdd6ab684744..98f9ded42264cb88cff701a85d22d99e
          this.b((d0, d1, d2, d3, d4, d5) -> {
              list.add(new AxisAlignedBB(d0, d1, d2, d3, d4, d5));
 diff --git a/src/main/java/net/minecraft/server/VoxelShapes.java b/src/main/java/net/minecraft/server/VoxelShapes.java
-index 4bdadffee07c54f6f538ba09db72d562d05cb337..8091ec2edc3336f50034960ff7dc24cfeaf308e7 100644
+index db735e29d427cc8f4bd4ba54c7a44daf9fed9e61..877ef81bd8285167ce11c116b8ad803fda63c6c9 100644
 --- a/src/main/java/net/minecraft/server/VoxelShapes.java
 +++ b/src/main/java/net/minecraft/server/VoxelShapes.java
 @@ -40,7 +40,9 @@ public final class VoxelShapes {
@@ -1141,10 +1141,10 @@ index 4bdadffee07c54f6f538ba09db72d562d05cb337..8091ec2edc3336f50034960ff7dc24cf
                  }
              }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 57b1152cdedce9a2c566ca59dfbf52a20bbabe70..1c9368951044fe92a284bd94a743178613100028 100644
+index 77cdfae804f9a3a5452dc70adc7da09d53f51998..e643043398756971571a6cba8237b74385ded898 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -656,8 +656,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -787,8 +787,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      public final void getCollisions(@Nullable Entity entity, AxisAlignedBB axisalignedbb, List<AxisAlignedBB> list, boolean loadChunks) {
@@ -1159,7 +1159,7 @@ index 57b1152cdedce9a2c566ca59dfbf52a20bbabe70..1c9368951044fe92a284bd94a7431786
      }
  
      @Override
-@@ -1732,12 +1738,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1871,12 +1877,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Spigot End
          this.tileEntityListUnload.addAll(chunk.getTileEntities().values());

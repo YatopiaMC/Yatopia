@@ -52,16 +52,18 @@ index 7ed343cfb3130446c85dab2ca04d60f91e2c94fb..194d2f177b05c594c7a27b6191860a3f
  
                  if (collisionShape != VoxelShapes.empty()) {
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 220d5273543ea0b143cf9c894c89cabea25c29d6..3be9be2df7623ec1068f5782261d70fb34b2aa54 100644
+index 6b96c392fb3eadd20f87675b797337d6d30cc7be..52d5f11edccd936eea85dc3610b91558e1409117 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -2156,9 +2156,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2186,9 +2186,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
              float f1 = this.size.width * 0.8F;
              AxisAlignedBB axisalignedbb = AxisAlignedBB.g((double) f1, 0.10000000149011612D, (double) f1).d(this.locX(), this.getHeadY(), this.locZ());
  
--            return this.world.b(this, axisalignedbb, (iblockdata, blockposition) -> {
--                return iblockdata.o(this.world, blockposition);
--            }).findAny().isPresent();
++            /* TODO Tuinity optimized method overridden
+             return ((WorldServer)this.world).collidesWithAnyBlockOrWorldBorder(this, axisalignedbb, false, false, (iblockdata, blockposition) -> { // Tuinity - use optimised method
+                 return iblockdata.o(this.world, blockposition);
+             }); // Tuinity - use optimised method
++             */
 +            return new me.jellysquid.mods.lithium.common.entity.movement.ChunkAwareBlockCollisionSweeper(this.world, this, axisalignedbb, true).getNextCollidedShape() != null; // Yatopia - fast suffocation check
          }
      }

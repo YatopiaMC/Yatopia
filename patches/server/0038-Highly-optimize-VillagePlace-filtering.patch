@@ -70,7 +70,7 @@ index dcaf9f8574a9c913b64ba3a1d8b02220db720225..3df4ae0f0921670c19abe17a115da428
          int i = Math.abs(chunkcoordintpair.x - chunkcoordintpair1.x) + 1;
          int j = Math.abs(chunkcoordintpair.z - chunkcoordintpair1.z) + 1;
 diff --git a/src/main/java/net/minecraft/server/EntityBee.java b/src/main/java/net/minecraft/server/EntityBee.java
-index b1ff30fb1569ddf59f46240266ce32f0aa96da1a..25e35d7b88cd93f70a3dbef86995b0bb2b69dc81 100644
+index f73641ddb3e82bc653732105ef0a3d41a28e845f..f1d6239b834498dc12c1674b3e776d0c15215568 100644
 --- a/src/main/java/net/minecraft/server/EntityBee.java
 +++ b/src/main/java/net/minecraft/server/EntityBee.java
 @@ -720,15 +720,24 @@ public class EntityBee extends EntityAnimal implements IEntityAngerable, EntityB
@@ -101,7 +101,7 @@ index b1ff30fb1569ddf59f46240266ce32f0aa96da1a..25e35d7b88cd93f70a3dbef86995b0bb
      }
  
 diff --git a/src/main/java/net/minecraft/server/PersistentRaid.java b/src/main/java/net/minecraft/server/PersistentRaid.java
-index 2193fecab4406f49548c0952b2754269f91e2515..0785bfe1c28b63b492e25c678ebad89d4ed309eb 100644
+index 826dcf9f7eedc3664d66170b97b2a19552a0dc60..81f9b2ec160a015ce7e82ba33dd684e0b3932877 100644
 --- a/src/main/java/net/minecraft/server/PersistentRaid.java
 +++ b/src/main/java/net/minecraft/server/PersistentRaid.java
 @@ -68,7 +68,7 @@ public class PersistentRaid extends PersistentBase {
@@ -171,7 +171,7 @@ index f95925f1c5d091f1a129d0437bb6e175c6ac080f..6796b1a832779b65d337c63d6b600e2a
          return StreamSupport.stream(new AbstractSpliterator<SectionPosition>((long) ((l - i + 1) * (i1 - j + 1) * (j1 - k + 1)), 64) {
              final CursorPosition a = new CursorPosition(i, j, k, l, i1, j1);
 diff --git a/src/main/java/net/minecraft/server/VillagePlace.java b/src/main/java/net/minecraft/server/VillagePlace.java
-index adacfce6f3b6067e54fc1a95bab7d42796950cd6..2ddf3e0c5efe0e2b5a1a18de1a055ec427924672 100644
+index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..70337f6eb2b868e0c05be12a90471a86664ac3df 100644
 --- a/src/main/java/net/minecraft/server/VillagePlace.java
 +++ b/src/main/java/net/minecraft/server/VillagePlace.java
 @@ -46,7 +46,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
@@ -348,18 +348,9 @@ index adacfce6f3b6067e54fc1a95bab7d42796950cd6..2ddf3e0c5efe0e2b5a1a18de1a055ec4
  
      final class a extends LightEngineGraphSection {
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index 77c66bc9952542d2444b402896a3d9f622ca2ff9..c4571e8a78396cc0c1554183258f1b4928f401eb 100644
+index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..5e8297d096c2f2eae449801848422287051f146f 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-@@ -28,7 +28,7 @@ public class VillagePlaceSection {
-     private boolean e;
- 
-     public static Codec<VillagePlaceSection> a(Runnable runnable) {
--        Codec codec = RecordCodecBuilder.create((instance) -> {
-+        Codec<VillagePlaceSection> codec = RecordCodecBuilder.create((instance) -> { // Yatopia - decompile fix
-             return instance.group(RecordCodecBuilder.point(runnable), Codec.BOOL.optionalFieldOf("Valid", false).forGetter((villageplacesection) -> {
-                 return villageplacesection.e;
-             }), VillagePlaceRecord.a(runnable).listOf().fieldOf("Records").forGetter((villageplacesection) -> {
 @@ -55,6 +55,17 @@ public class VillagePlaceSection {
          list.forEach(this::a);
      }
