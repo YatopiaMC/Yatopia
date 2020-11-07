@@ -10,7 +10,7 @@
 </div>
 
 ## So what is Yatopia?
-Yatopia combines the best patches from many Paper forks and optimization mods, as well as many unique optimizations. We borrow some of our patches from the following repos:
+Yatopia combines the best patches from many [Paper](https://github.com/PaperMC/Paper) forks and optimization mods, as well as many unique optimizations. We borrow some of our patches from the following repos:
 
 * [Akarin](https://github.com/Akarin-project/Akarin)
 * [EMC](https://github.com/starlis/empirecraft)
