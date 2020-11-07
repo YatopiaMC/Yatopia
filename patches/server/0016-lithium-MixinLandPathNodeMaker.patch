@@ -7,7 +7,7 @@ Original code by JellySquid, licensed under GNU Lesser General Public License v3
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
 
 diff --git a/src/main/java/net/minecraft/server/PathfinderNormal.java b/src/main/java/net/minecraft/server/PathfinderNormal.java
-index 7341b5afd31eb771b3a7dc883d6540f575d37b4b..c58a9f26175582062ce3a0a38656778f910ae270 100644
+index 33804e68931e8b4145b896eedeab79bde78779f2..5954fa5e2b1d4f18df13f6de738d4f3662d7f028 100644
 --- a/src/main/java/net/minecraft/server/PathfinderNormal.java
 +++ b/src/main/java/net/minecraft/server/PathfinderNormal.java
 @@ -7,9 +7,15 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
@@ -26,10 +26,10 @@ index 7341b5afd31eb771b3a7dc883d6540f575d37b4b..c58a9f26175582062ce3a0a38656778f
      protected float j;
      private final Long2ObjectMap<PathType> k = new Long2ObjectOpenHashMap();
      private final Object2BooleanMap<AxisAlignedBB> l = new Object2BooleanOpenHashMap();
-@@ -490,9 +496,22 @@ public class PathfinderNormal extends PathfinderAbstract {
-     protected static PathType b(IBlockAccess iblockaccess, BlockPosition blockposition) {
-         IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition); // Paper
-         if (iblockdata == null) return PathType.BLOCKED; // Paper
+@@ -518,8 +524,22 @@ public class PathfinderNormal extends PathfinderAbstract {
+     }
+     protected static PathType getStaticTypeSlow(IBlockAccess iblockaccess, BlockPosition blockposition, IBlockData iblockdata) {
+         // Tuinity end - reduce pathfinder branches
 -        Block block = iblockdata.getBlock();
 -        Material material = iblockdata.getMaterial();
 +        // Yatopia start - replaced logic
@@ -46,12 +46,12 @@ index 7341b5afd31eb771b3a7dc883d6540f575d37b4b..c58a9f26175582062ce3a0a38656778f
 +                return PathType.BLOCKED;
 +            }
 +        }
- 
++
 +        /*
+ 
          if (iblockdata.isAir()) {
              return PathType.OPEN;
-         } else if (!iblockdata.a((Tag) TagsBlock.TRAPDOORS) && !iblockdata.a(Blocks.LILY_PAD)) {
-@@ -512,7 +531,38 @@ public class PathfinderNormal extends PathfinderAbstract {
+@@ -540,7 +560,38 @@ public class PathfinderNormal extends PathfinderAbstract {
          } else {
              return PathType.TRAPDOOR;
          }

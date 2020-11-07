@@ -6,12 +6,12 @@ Subject: [PATCH] Hardware acceleration
 This patch integrates Yatopia-Hwaccel into the server
 
 diff --git a/pom.xml b/pom.xml
-index 69e8253419cb30a975bbf4849d4065a5b696604d..9f5c82cff5da168c9eff0a6507310cc72249bca5 100644
+index 47ad4c9a021b35fdb9e020571df7f5c0262e6313..d4dbdaf4c35159a38fd1970fee6e28a52075f765 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -111,6 +111,13 @@
-             <artifactId>netty-all</artifactId>
-             <version>4.1.50.Final</version>
+@@ -166,6 +166,13 @@
+             <artifactId>commons-math3</artifactId>
+             <version>3.6.1</version>
          </dependency>
 +        <!-- Hardware aceleration -->
 +        <dependency>
@@ -20,9 +20,9 @@ index 69e8253419cb30a975bbf4849d4065a5b696604d..9f5c82cff5da168c9eff0a6507310cc7
 +            <version>0.0.1-SNAPSHOT</version>
 +            <scope>compile</scope>
 +        </dependency>
-         <!-- deprecated API depend -->
-         <dependency>
-             <groupId>com.googlecode.json-simple</groupId>
+     </dependencies>
+ 
+     <repositories>
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899ff1bd574 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
@@ -160,10 +160,10 @@ index 4085426af03f032cf405bdfd1e40a8e5dc27c1d1..820274bc97f55a12b4db7786b5cbd378
  
      public NibbleArray() {}
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index 135ee97605d74be3a3dba4a3d973843b73c658e8..54d71c164e5f4e403b683bc739b056e26f90b172 100644
+index 80cc96a4de5a5af964dfc6e77911426e8536fbce..1e77a0b502dc443726576d4f41e2aab51a613c1b 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunk.java
-@@ -749,7 +749,7 @@ public class PlayerChunk {
+@@ -755,7 +755,7 @@ public class PlayerChunk {
                  ioPriority = com.destroystokyo.paper.io.PrioritizedTaskQueue.HIGH_PRIORITY;
              }
              chunkMap.world.asyncChunkTaskManager.raisePriority(location.x, location.z, ioPriority);
@@ -173,7 +173,7 @@ index 135ee97605d74be3a3dba4a3d973843b73c658e8..54d71c164e5f4e403b683bc739b056e2
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 841dd0cbd771d878d53292adbd590a1ecffc367e..49a279a64d8f94f3b24ff533b8805a9619e0ecdf 100644
+index 51a19bce92c801912030699def8534213d77d310..33bd25751fad513e0ae8257d4a7ccaa468148301 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -4,10 +4,7 @@ import co.aikar.timings.Timing; // Paper
@@ -230,7 +230,7 @@ index 841dd0cbd771d878d53292adbd590a1ecffc367e..49a279a64d8f94f3b24ff533b8805a96
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
-@@ -329,7 +333,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -341,7 +345,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              Thread thread = new Thread(r);
              thread.setName(((WorldDataServer)world.getWorldData()).getName() + " - Light");
              thread.setDaemon(true);
@@ -239,7 +239,7 @@ index 841dd0cbd771d878d53292adbd590a1ecffc367e..49a279a64d8f94f3b24ff533b8805a96
              return thread;
          }), "light");
          // Paper end
-@@ -338,8 +342,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -350,8 +354,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.mailboxWorldGen = this.p.a(threadedmailbox, false);
          this.mailboxMain = this.p.a(mailbox, false);
          this.mailboxLight = this.p.a(lightthreaded, false);// Paper
@@ -1091,7 +1091,7 @@ index 0000000000000000000000000000000000000000..9fa493079e7183ea5c8aba081eb88bb7
 +    }
 +}
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index ed16c260699eed86f6f52ee7bd83ea553f81453c..bd9f6b28447cc0dc4b8db21781c46d43cb71ce57 100644
+index b189c4011000106631b98a7ca87bd9d114aaf350..f1b0d5d9f635abd8736f78954c358af15bf11617 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -7,12 +7,12 @@ import java.util.Arrays;

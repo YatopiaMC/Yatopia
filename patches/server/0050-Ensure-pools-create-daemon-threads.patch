@@ -7,10 +7,10 @@ If only 1 non-daemon thread is left to run when the server is shutting down, the
 This patche ensures that executors make daemon threads.
 
 diff --git a/src/main/java/net/minecraft/server/LoginListener.java b/src/main/java/net/minecraft/server/LoginListener.java
-index fa0a8a7e00a64df4d3ba09407193d984e1ff0952..a747d75e3da17c077ccf2cf16be0b7f35b8a4c4b 100644
+index 2fa0f21cfa81670f6c3f18f76e7fa8d0bb541f11..9190caed195b9987e3af545f4de63b8d956788a6 100644
 --- a/src/main/java/net/minecraft/server/LoginListener.java
 +++ b/src/main/java/net/minecraft/server/LoginListener.java
-@@ -107,7 +107,11 @@ public class LoginListener implements PacketLoginInListener {
+@@ -108,7 +108,11 @@ public class LoginListener implements PacketLoginInListener {
      // Paper start - Cache authenticator threads
      private static final AtomicInteger threadId = new AtomicInteger(0);
      private static final java.util.concurrent.ExecutorService authenticatorPool = java.util.concurrent.Executors.newCachedThreadPool(

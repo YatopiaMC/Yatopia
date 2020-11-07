@@ -44,7 +44,7 @@ You can find a full explanation of the Yatopia configuration file on the [wiki](
 Run the following commands in the root directory:
 
 ```shell
-./yatopia in
+./yatopia init
 ./yatopia full
 ```
 
@@ -69,7 +69,7 @@ And then add the Yatopia-API dependency:
     <dependency>
         <groupId>net.yatopia</groupId>
         <artifactId>yatopia-api</artifactId>
-        <version>1.16.3-R0.1-SNAPSHOT</version>
+        <version>1.16.4-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
