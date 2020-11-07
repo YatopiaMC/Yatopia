@@ -5,8 +5,9 @@ Versions of the project currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.16.4   | :white_check_mark: |
 | 1.16.3   | :white_check_mark: |
-| 1.16.2   | :white_check_mark: |
+| 1.16.2   | :x: |
 | 1.16.1   | :x: |
 | 1.15.2   | :x: |
 | 1.15.2WPT   | :x:                |
