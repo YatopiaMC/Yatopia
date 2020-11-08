@@ -21,7 +21,7 @@ Yatopia combines the best patches from many [Paper](https://github.com/PaperMC/P
 
 
 ## Try it out 
-The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.3).
+The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.4).
 
 ## Documentation
 
