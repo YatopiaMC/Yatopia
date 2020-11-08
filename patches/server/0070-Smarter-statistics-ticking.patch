@@ -8,7 +8,7 @@ In vanilla, statistics that count time spent for an action (i.e. time played or 
 With an interval of 20, this patch saves roughly 3ms per tick on a server w/ 80 players online.
 
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 1bfa1500b942905c3918f0715da0a9d534909edb..d855cd77ae0ce67aef1b6d7335e21695f9e30e4d 100644
+index 1bfa1500b942905c3918f0715da0a9d534909edb..21074d369b9f7c7f101ba85a9d350627b98217d2 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -163,18 +163,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -18,7 +18,7 @@ index 1bfa1500b942905c3918f0715da0a9d534909edb..d855cd77ae0ce67aef1b6d7335e21695
 -            this.a(StatisticList.PLAY_ONE_MINUTE);
 +            // Yatopia start
 +            int interval = net.yatopia.server.YatopiaConfig.playerTimeStatisticsInterval;
-+            if (net.yatopia.server.util.MathUtils.fastMod(ticksLived, interval) == 0) {
++            if (ticksLived % interval == 0) {
 +            this.a(StatisticList.PLAY_ONE_MINUTE, interval);
 +            // Yatopia end
              if (this.isAlive()) {
