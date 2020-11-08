@@ -41,7 +41,8 @@ This is an overview over all patches that are currently used.
 | server |  Brandings      | YatopiaMC |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
-| server |  Configurable flight checks      | epserv |  |
+| server |  Configurable flight checks      | l_MrBoom_l |  |
+| server |  Configurable movement checks      | l_MrBoom_l |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Bud Gidiere |  |
