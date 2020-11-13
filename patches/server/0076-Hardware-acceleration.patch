@@ -23,11 +23,46 @@ index 47ad4c9a021b35fdb9e020571df7f5c0262e6313..d4dbdaf4c35159a38fd1970fee6e28a5
      </dependencies>
  
      <repositories>
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 6e4e183c3169a484f482d96ba3441eb16c2053d9..02f309d00b6687c16a31f43386b915afcc40538d 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -19,6 +19,9 @@ import java.util.function.Supplier;
+ import javax.annotation.Nullable;
+ import com.destroystokyo.paper.exception.ServerInternalException;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap; // Paper
++import net.yatopia.lighting.api.LightEngineManager;
++import net.yatopia.server.hwaccel.LightEngineThreadedDelegate;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunkProvider;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -386,6 +389,8 @@ public class ChunkProviderServer extends IChunkProvider {
+         file1.mkdirs();
+         this.worldPersistentData = new WorldPersistentData(file1, datafixer);
+         this.playerChunkMap = new PlayerChunkMap(worldserver, convertable_conversionsession, datafixer, definedstructuremanager, executor, this.serverThreadQueue, this, this.getChunkGenerator(), worldloadlistener, supplier, i, flag);
++        this.playerChunkMap.lightEngineImpl = LightEngineManager.create(new MinecraftChunkProvider(this), this.world.getDimensionManager().hasSkyLight(), this.playerChunkMap.lightThread);
++        this.playerChunkMap.lightEngine = new LightEngineThreadedDelegate(this.playerChunkMap.lightEngineImpl);
+         this.lightEngine = this.playerChunkMap.a();
+         this.chunkMapDistance = this.playerChunkMap.e();
+         this.clearCache();
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index e5eb34da6994519b81bafab8241d680568cfcc84..46abbe16b6d2aca576948b2ba9f0780a4d7e40fd 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -188,6 +188,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+             return false;
+         }
+         net.yatopia.server.YatopiaConfig.registerCommands();
++        net.yatopia.server.hwaccel.LightEngineRegistryHook.register();
+         // Yatopia end
+         de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
+         this.setPVP(dedicatedserverproperties.pvp);
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899ff1bd574 100644
+index f3494ac1ad659352ca5595adf9e6919bdb4018d0..e7dd3b1453c41e1b93d840ae7281a551ea0da793 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -1,18 +1,27 @@
+@@ -1,14 +1,24 @@
  package net.minecraft.server;
  
 -import com.mojang.datafixers.util.Pair;
@@ -52,15 +87,11 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899
 +import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
 +import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaLightingAccessor;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.storage.UnpooledNibbleArray;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
--public class LightEngineThreaded extends LightEngine implements AutoCloseable {
-+public class LightEngineThreaded extends LightEngine implements AutoCloseable, LightEngineImpl {
- 
-     private static final Logger LOGGER = LogManager.getLogger();
-     private final ThreadedMailbox<Runnable> b;
-@@ -188,7 +197,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -188,7 +198,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
          }));
      }
  
@@ -69,75 +100,16 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..f82cd5b99758d5336e20168b2387d899
          this.a(chunkcoordintpair.x, chunkcoordintpair.z, () -> {
              return 0;
          }, LightEngineThreaded.Update.PRE_UPDATE, SystemUtils.a(() -> {
-@@ -340,6 +349,67 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
-         // Paper end
-     }
- 
-+    // Yatopia start - OBFHELPER and implement methods
-+    @Override
-+    public int doLightUpdates(int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
-+        return this.a(maxUpdateCount, doSkylight, skipEdgeLightPropagation);
-+    }
-+
-+    @Override
-+    public void addLightSource(net.yatopia.lighting.api.structures.BlockPosition pos, int level) {
-+        this.a(BlockPositionAdapter.toNMS(pos), level);
-+    }
-+
-+    @Override
-+    public void checkBlock(net.yatopia.lighting.api.structures.BlockPosition pos) {
-+        this.a(BlockPositionAdapter.toNMS(pos));
-+    }
-+
-+    @Override
-+    public void updateChunkStatus(ChunkPosition pos) {
-+        this.a(ChunkPositionAdapter.toNMS(pos));
-+    }
-+
-+    @Override
-+    public void setSectionStatus(ChunkSectionPosition pos, boolean notReady) {
-+        this.a(ChunkSectionPositionAdapter.toNMS(pos), notReady);
-+    }
-+
-+    @Override
-+    public void setColumnEnabled(ChunkPosition pos, boolean lightEnabled) {
-+        this.a(ChunkPositionAdapter.toNMS(pos), lightEnabled);
-+    }
-+
-+    @Override
-+    public void enqueueSectionData(LightType lightType, ChunkSectionPosition pos, @Nullable byte[] nibbles, boolean flag) {
-+        this.a(EnumSkyBlock.valueOf(lightType.name()), ChunkSectionPositionAdapter.toNMS(pos), new NibbleArray(nibbles), flag);
-+    }
-+
-+    @Override
-+    public void setRetainData(ChunkPosition pos, boolean retainData) {
-+        this.b(ChunkPositionAdapter.toNMS(pos), retainData);
-+    }
-+
-+    @Override
-+    public CompletableFuture<Void> lightChunk(Chunk chunk, boolean excludeBlocks) {
-+        return this.a(((MinecraftChunk)chunk).handle, excludeBlocks).handle((iChunkAccess, throwable) -> {
-+            if(throwable != null)
-+                throwable.printStackTrace();
-+            return null;
-+        });
-+    }
-+
-+    @Override
-+    public LightAccessor get(LightType lightType) {
-+        return new VanillaLightingAccessor(super.a(EnumSkyBlock.valueOf(lightType.name())));
-+    }
-+
-+    @Override
-+    public int getLight(net.yatopia.lighting.api.structures.BlockPosition pos, int ambientDarkness) {
-+        return super.b(BlockPositionAdapter.toNMS(pos), ambientDarkness);
-+    }
-+    // Yatopia end
-+
-     public void a(int i) {
-         this.f = i;
-     }
-@@ -348,6 +418,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -236,7 +246,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+         this.a(sectionposition.a(), sectionposition.c(), () -> {
+             return 0;
+         }, LightEngineThreaded.Update.PRE_UPDATE, SystemUtils.a(() -> {
+-            super.a(enumskyblock, sectionposition, nibblearray, flag);
++            super.a(enumskyblock, sectionposition, nibblearray instanceof UnpooledNibbleArray ? new NibbleArray(nibblearray.asBytes()) : nibblearray, flag);
+         }, () -> {
+             return "queueData " + sectionposition;
+         }));
+@@ -348,6 +358,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
  
          PRE_UPDATE, POST_UPDATE;
  
@@ -173,7 +145,7 @@ index 80cc96a4de5a5af964dfc6e77911426e8536fbce..1e77a0b502dc443726576d4f41e2aab5
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 51a19bce92c801912030699def8534213d77d310..33bd25751fad513e0ae8257d4a7ccaa468148301 100644
+index 51a19bce92c801912030699def8534213d77d310..10149176ddacb5815ec0fa56e3e292ca19acf5ca 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -4,10 +4,7 @@ import co.aikar.timings.Timing; // Paper
@@ -207,7 +179,7 @@ index 51a19bce92c801912030699def8534213d77d310..33bd25751fad513e0ae8257d4a7ccaa4
  import java.util.concurrent.atomic.AtomicInteger;
  import java.util.function.BooleanSupplier;
  import java.util.function.Consumer;
-@@ -48,7 +44,14 @@ import java.util.function.Supplier;
+@@ -48,7 +44,13 @@ import java.util.function.Supplier;
  import java.util.stream.Collectors;
  import java.util.stream.Stream;
  import javax.annotation.Nullable;
@@ -215,22 +187,32 @@ index 51a19bce92c801912030699def8534213d77d310..33bd25751fad513e0ae8257d4a7ccaa4
  import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet; // Paper
 +import net.yatopia.lighting.api.LightEngineImpl;
 +import net.yatopia.lighting.api.LightEngineManager;
-+import net.yatopia.lighting.api.VanillaLightingHook;
 +import net.yatopia.lighting.api.structures.ChunkProvider;
 +import net.yatopia.server.hwaccel.LightEngineThreadedDelegate;
 +import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunkProvider;
  import org.apache.commons.lang3.mutable.MutableBoolean;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -90,6 +93,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -89,7 +91,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     private final Long2ObjectLinkedOpenHashMap<PlayerChunk> pendingUnload;
      final LongSet loadedChunks; // Paper - private -> package
      public final WorldServer world;
-     private final LightEngineThreaded lightEngine;
-+    private final LightEngineImpl lightEngineImpl;
+-    private final LightEngineThreaded lightEngine;
++    LightEngineThreaded lightEngine;
++    LightEngineImpl lightEngineImpl;
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
-@@ -341,7 +345,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -304,7 +307,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     public final com.tuinity.tuinity.chunk.SingleThreadChunkRegionManager<RegionData> dataRegionManager;
+     // Tuiniy end
+ 
+-    private final java.util.concurrent.ExecutorService lightThread;
++    final java.util.concurrent.ExecutorService lightThread;
+     public PlayerChunkMap(WorldServer worldserver, Convertable.ConversionSession convertable_conversionsession, DataFixer datafixer, DefinedStructureManager definedstructuremanager, Executor executor, IAsyncTaskHandler<Runnable> iasynctaskhandler, ILightAccess ilightaccess, ChunkGenerator chunkgenerator, WorldLoadListener worldloadlistener, Supplier<WorldPersistentData> supplier, int i, boolean flag) {
+         super(new File(convertable_conversionsession.a(worldserver.getDimensionKey()), "region"), datafixer, flag);
+         //this.visibleChunks = this.updatingChunks.clone(); // Paper - no more cloning
+@@ -341,7 +344,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              Thread thread = new Thread(r);
              thread.setName(((WorldDataServer)world.getWorldData()).getName() + " - Light");
              thread.setDaemon(true);
@@ -239,25 +221,14 @@ index 51a19bce92c801912030699def8534213d77d310..33bd25751fad513e0ae8257d4a7ccaa4
              return thread;
          }), "light");
          // Paper end
-@@ -350,8 +354,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -350,8 +353,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          this.mailboxWorldGen = this.p.a(threadedmailbox, false);
          this.mailboxMain = this.p.a(mailbox, false);
          this.mailboxLight = this.p.a(lightthreaded, false);// Paper
 -        this.lightEngine = new LightEngineThreaded(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
 -        this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler); this.chunkDistanceManager.chunkMap = this; // Paper
++        // Yatopia - moved
 +        // this.lightEngineImpl = new LightEngineThreaded(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
-+        synchronized (VanillaLightingHook.class){
-+            VanillaLightingHook.constructor = new VanillaLightingHook.LightEngineConstructor() {
-+                @Override
-+                public LightEngineImpl create(ChunkProvider chunkProvider, boolean hasSkylight, ExecutorService lightThread) {
-+                    final ChunkProviderServer handle = ((MinecraftChunkProvider) chunkProvider).handle;
-+                    return new LightEngineThreaded(handle, PlayerChunkMap.this, hasSkylight, threadedmailbox1, PlayerChunkMap.this.p.a(threadedmailbox1, false));
-+                }
-+            };
-+            this.lightEngineImpl = LightEngineManager.create(new MinecraftChunkProvider((ChunkProviderServer) ilightaccess), this.world.getDimensionManager().hasSkyLight(), lightThread);
-+            this.lightEngine = new LightEngineThreadedDelegate(lightEngineImpl);
-+            VanillaLightingHook.constructor = new VanillaLightingHook.DefaultConstructor();
-+        }
 +        this.chunkDistanceManager = new PlayerChunkMap.a(executor, iasynctaskhandler);
 +        this.chunkDistanceManager.chunkMap = this; // Paper
          this.l = supplier;
@@ -332,10 +303,10 @@ index 366b1c0f7e55c954a6a2d84e4aaa857764ce1f5a..eea493b52d15fa35d47ba804ff71cc77
  }
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6b4adcb201dde1bd4d7994d115d585d968b631e9
+index 0000000000000000000000000000000000000000..797d56a8d74d61c1abb6a5d0b9d6712751718dc9
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineImplDelegate.java
-@@ -0,0 +1,92 @@
+@@ -0,0 +1,93 @@
 +package net.yatopia.server.hwaccel;
 +
 +import net.minecraft.server.EnumSkyBlock;
@@ -352,6 +323,7 @@ index 0000000000000000000000000000000000000000..6b4adcb201dde1bd4d7994d115d585d9
 +import net.yatopia.server.hwaccel.adapter.ChunkSectionPositionAdapter;
 +import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunk;
 +import net.yatopia.server.hwaccel.adapter.lightaccessor.VanillaLightingAccessor;
++import net.yatopia.server.hwaccel.adapter.lightaccessor.storage.UnpooledNibbleArray;
 +
 +import javax.annotation.Nullable;
 +import java.util.concurrent.CompletableFuture;
@@ -396,7 +368,7 @@ index 0000000000000000000000000000000000000000..6b4adcb201dde1bd4d7994d115d585d9
 +
 +    @Override
 +    public void enqueueSectionData(LightType lightType, ChunkSectionPosition pos, @Nullable byte[] nibbles, boolean flag) {
-+        delegate.a(EnumSkyBlock.valueOf(lightType.name()), ChunkSectionPositionAdapter.toNMS(pos), new NibbleArray(nibbles), flag);
++        delegate.a(EnumSkyBlock.valueOf(lightType.name()), ChunkSectionPositionAdapter.toNMS(pos), new UnpooledNibbleArray(nibbles), flag);
 +    }
 +
 +    @Override
@@ -427,6 +399,37 @@ index 0000000000000000000000000000000000000000..6b4adcb201dde1bd4d7994d115d585d9
 +    public void close() {
 +        delegate.close();
 +    }
++}
+diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineRegistryHook.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineRegistryHook.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..abb4ad7f19d5734bebc315962583ac22b689b1f0
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineRegistryHook.java
+@@ -0,0 +1,25 @@
++package net.yatopia.server.hwaccel;
++
++import net.minecraft.server.LightEngineThreaded;
++import net.minecraft.server.ThreadedMailbox;
++import net.yatopia.hwaccel.utils.registry.Identifier;
++import net.yatopia.lighting.api.LightEngineImpl;
++import net.yatopia.lighting.api.registry.LightEngineImplProvider;
++import net.yatopia.lighting.api.registry.LightEngineRegistry;
++import net.yatopia.lighting.api.structures.ChunkProvider;
++import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunkProvider;
++
++import java.util.concurrent.ExecutorService;
++
++public class LightEngineRegistryHook {
++
++    public static void register() {
++        LightEngineRegistry.LIGHT_ENGINE_IMPL_PROVIDERS.register(new Identifier("minecraft", "vanilla"), new LightEngineImplProvider() {
++            @Override
++            public LightEngineImpl create(ChunkProvider chunkProvider, boolean hasSkylight, ExecutorService lightThread) {
++                return new LightEngineImplDelegate(new LightEngineThreaded(((MinecraftChunkProvider)chunkProvider).handle, ((MinecraftChunkProvider)chunkProvider).handle.playerChunkMap, hasSkylight, ThreadedMailbox.a(lightThread, "light"), null));
++            }
++        });
++    }
++
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
 new file mode 100644
@@ -940,10 +943,10 @@ index 0000000000000000000000000000000000000000..10f8e92e4e750847207660123e5e5c9c
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/UnpooledNibbleArray.java b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/UnpooledNibbleArray.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..9fa493079e7183ea5c8aba081eb88bb72862d8f5
+index 0000000000000000000000000000000000000000..488430d7f06adc15cef632930fb081e08bca9034
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/adapter/lightaccessor/storage/UnpooledNibbleArray.java
-@@ -0,0 +1,146 @@
+@@ -0,0 +1,147 @@
 +package net.yatopia.server.hwaccel.adapter.lightaccessor.storage;
 +
 +import net.minecraft.server.NibbleArray;
@@ -962,6 +965,7 @@ index 0000000000000000000000000000000000000000..9fa493079e7183ea5c8aba081eb88bb7
 +    }
 +
 +    public UnpooledNibbleArray(byte[] abyte) {
++        if(abyte == null) return;
 +        this.a = abyte;
 +        if (abyte.length != 2048) {
 +            throw (IllegalArgumentException) SystemUtils.c((Throwable) (new IllegalArgumentException("ChunkNibbleArrays should be 2048 bytes not: " + abyte.length)));
