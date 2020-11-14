@@ -59,7 +59,7 @@ index e5eb34da6994519b81bafab8241d680568cfcc84..46abbe16b6d2aca576948b2ba9f0780a
          de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
          this.setPVP(dedicatedserverproperties.pvp);
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index f3494ac1ad659352ca5595adf9e6919bdb4018d0..e7dd3b1453c41e1b93d840ae7281a551ea0da793 100644
+index f3494ac1ad659352ca5595adf9e6919bdb4018d0..aac3a3083764509992e008ac29bde8ea3d080b3f 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
 @@ -1,14 +1,24 @@
@@ -100,16 +100,29 @@ index f3494ac1ad659352ca5595adf9e6919bdb4018d0..e7dd3b1453c41e1b93d840ae7281a551
          this.a(chunkcoordintpair.x, chunkcoordintpair.z, () -> {
              return 0;
          }, LightEngineThreaded.Update.PRE_UPDATE, SystemUtils.a(() -> {
-@@ -236,7 +246,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -233,10 +243,11 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+ 
+     @Override
+     public void a(EnumSkyBlock enumskyblock, SectionPosition sectionposition, @Nullable NibbleArray nibblearray, boolean flag) {
++        NibbleArray nArray = nibblearray instanceof UnpooledNibbleArray ? new NibbleArray(nibblearray.asBytes()) : nibblearray;
          this.a(sectionposition.a(), sectionposition.c(), () -> {
              return 0;
          }, LightEngineThreaded.Update.PRE_UPDATE, SystemUtils.a(() -> {
 -            super.a(enumskyblock, sectionposition, nibblearray, flag);
-+            super.a(enumskyblock, sectionposition, nibblearray instanceof UnpooledNibbleArray ? new NibbleArray(nibblearray.asBytes()) : nibblearray, flag);
++            super.a(enumskyblock, sectionposition, nArray, flag);
          }, () -> {
              return "queueData " + sectionposition;
          }));
-@@ -348,6 +358,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -335,7 +346,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             post.clear();
+         } else {
+             // might have level updates to go still
+-            super.a(Integer.MAX_VALUE, true, true);
++            super.a(4, true, true);
+         }
+         // Paper end
+     }
+@@ -348,6 +359,7 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
  
          PRE_UPDATE, POST_UPDATE;
  
@@ -145,7 +158,7 @@ index 80cc96a4de5a5af964dfc6e77911426e8536fbce..1e77a0b502dc443726576d4f41e2aab5
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 52e064b67d984930d778333c5e8977b5d17c3cab..e933e22950e379c1af9df8b47ab0e0bebad1e855 100644
+index de0950327d156056d150ad0b59893fa97fb069d6..886c8620f532fe1232e2f56319918ef936f7768a 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -4,10 +4,7 @@ import co.aikar.timings.Timing; // Paper
