@@ -3,14 +3,14 @@
 <h1>Yatopia</h1>
 
 [![Github-CI](https://github.com/YatopiaMC/Yatopia/workflows/CI/badge.svg)](https://github.com/YatopiaMC/Yatopia/actions?query=workflow%3ACI)
-[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.3)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.3/)
+[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.3)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.4/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.io/YatopiaMC)
-[![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopia.net%2F)](https://api.yatopia.net/v2/latestBuild?branch=ver/1.16.3)
+[![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopia.net%2F)](https://api.yatopia.net/v2/latestBuild?branch=ver/1.16.4)
 <h3>Blazing fast <a href="https://github.com/Spottedleaf/Tuinity">Tuinity</a> fork with no-compromises performance.</h3>
 </div>
 
 ## So what is Yatopia?
-Yatopia combines the best patches from many Paper forks and optimization mods, as well as many unique optimizations. We borrow some of our patches from the following repos:
+Yatopia combines the best patches from many [Paper](https://github.com/PaperMC/Paper) forks and optimization mods, as well as many unique optimizations. We borrow some of our patches from the following repos:
 
 * [Akarin](https://github.com/Akarin-project/Akarin)
 * [EMC](https://github.com/starlis/empirecraft)
@@ -21,7 +21,7 @@ Yatopia combines the best patches from many Paper forks and optimization mods, a
 
 
 ## Try it out 
-The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.3).
+The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopia.net/download.html). You can also download the latest development build [here](https://api.yatopia.net/v2/latestBuild/download?branch=ver/1.16.4).
 
 ## Documentation
 

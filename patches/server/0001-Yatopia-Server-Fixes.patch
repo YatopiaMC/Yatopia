@@ -976,7 +976,7 @@ index 9f3608357280a269c655b00feed22ebc29922d52..00000000000000000000000000000000
 -         if (this.eO()) {
 -             ++this.bA;
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 56677b8bf45af217c0a4a50fc7aea76ca012cbd7..5ba8313c196bf4ffed6c22e1461a8219fbe2f2d9 100644
+index 59d47a9f75450573b26b82b6f432af7bdc46a783..5a940fe2cbe81c89007fe768196cac3b37be8e8a 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -919,7 +919,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -1045,7 +1045,7 @@ index f5c0ccfcbfeda191e3a077bb4313a8c8b8b4178d..00000000000000000000000000000000
 -             PlayerTeleportEvent tpEvent = new PlayerTeleportEvent(this.getBukkitEntity(), enter, exit, cause);
 -             Bukkit.getServer().getPluginManager().callEvent(tpEvent);
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 7f75be31cba2e3c97afad94c3c7d8196bb468040..559edd9df30c700806b829aa0e09453e0e289319 100644
+index a02f54ab3ac721a5697f8efea474d2999a0fd7bd..9dc054e2e189f8c65a9d12f70e180e7ded79a997 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -92,6 +92,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
@@ -1180,10 +1180,10 @@ index 963c90c065a9e362c8c3030bb36ac6bf0c14a8e2..00000000000000000000000000000000
 - 
 -     public boolean checkIfLeftOwner() { return this.h(); } // Purpur - OBFHELPER
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 87dd140189a34770afe22e54014c1d069f6621b2..81f7fec0a382a0003c4b243271ea205faccec32b 100644
+index 21fec686282d2d2190e26e541d5b2b4d3d03c730..12922030c7ab0267018158d3fccb0eeedc370b7c 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1298,7 +1298,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1299,7 +1299,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                  playerSaveInterval = autosavePeriod;
              }
              // Paper end
@@ -1343,7 +1343,7 @@ index 313aa8f7d47c53a6a0130994c9d61d7c073c95c6..00000000000000000000000000000000
 -         this.generator = gen;
 -         this.world = new CraftWorld((WorldServer) this, gen, env);
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index d627a25830646d8808950238f451fa0adbab4ec6..a959672f5857b987001252c3fd7ace9e83e07c9b 100644
+index 2efe5db22422b25d0237744fa384f8974a52fbc2..1f77b251d7e7b0f023793cbf0876fc067caa75c1 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -61,7 +61,7 @@ public class WorldNBTStorage {
@@ -1372,9 +1372,21 @@ index 3a35169eaf680c45fe42922eb5f0014fa422c31c..00000000000000000000000000000000
 -             }
 -             // Spigot Start
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 78dc3c38def9cadd5fe504b1c66470e444a433c4..81c54b547c0930b186557045906dbc6baa79ef5b 100644
+index 78dc3c38def9cadd5fe504b1c66470e444a433c4..fbe1d388fa721e09ab63bed618bc20b958c652fe 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -872,9 +872,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         // Tuinity end - optimise checkDespawn
+ 
+         this.ticking = true;
+-        gameprofilerfiller.enter("world border");
++        //gameprofilerfiller.enter("world border"); // Akarin - remove caller
+         this.getWorldBorder().s();
+-        gameprofilerfiller.exitEnter("weather");
++        //gameprofilerfiller.exitEnter("weather"); // Akarin - remove caller
+         boolean flag = this.isRaining();
+ 
+         if (this.getDimensionManager().hasSkyLight()) {
 @@ -1007,11 +1007,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
  
          this.Q();
@@ -1453,6 +1465,15 @@ index 78dc3c38def9cadd5fe504b1c66470e444a433c4..81c54b547c0930b186557045906dbc6b
                  }
  
                  this.chunkCheck(entity1);
+@@ -1491,7 +1491,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+     public void chunkCheck(Entity entity) {
+         if (entity.cl()) {
+-            this.getMethodProfiler().enter("chunkCheck");
++            //this.getMethodProfiler().enter("chunkCheck"); // Akarin - remove caller
+             int i = MathHelper.floor(entity.locX() / 16.0D);
+             int j =  Math.min(15, Math.max(0, MathHelper.floor(entity.locY() / 16.0D))); // Paper - stay consistent with chunk add/remove behavior
+             int k = MathHelper.floor(entity.locZ() / 16.0D);
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java.rej b/src/main/java/net/minecraft/server/WorldServer.java.rej
 deleted file mode 100644
 index 8aa3dd3a0a0db575292be8d9c73bb3083849622b..0000000000000000000000000000000000000000
@@ -1817,6 +1838,24 @@ index 1ed00fb04c8c8b5a823894a4c3df8f2eca4dd5ad..6c7eabe57ade13d9ac2a2bbfc406fcf7
 +    }
 +    // Purpur end
  }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej b/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
+deleted file mode 100644
+index 1f7601aede1b8460f48ebaae18b9c5b68bc044c8..0000000000000000000000000000000000000000
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java.rej
++++ /dev/null
+@@ -1,12 +0,0 @@
+-diff a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java	(rejected hunks)
+-@@ -2443,5 +2443,10 @@ public final class CraftServer implements Server {
+-     public String getServerName() {
+-         return getProperties().serverName;
+-     }
+-+
+-+    @Override
+-+    public boolean isLagging() {
+-+        return getServer().lagging;
+-+    }
+-     // Purpur end
+- }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
 index 210cb10ea75b99d3b5d7b5bce5cea44e3cc0fc20..62012d2b780d3399bd641ca3ca4a4ac127e3bcb5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
