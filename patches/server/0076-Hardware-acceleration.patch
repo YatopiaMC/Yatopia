@@ -433,10 +433,10 @@ index 0000000000000000000000000000000000000000..abb4ad7f19d5734bebc315962583ac22
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d38745ba78baf
+index 0000000000000000000000000000000000000000..654c4361d41b8b6d39eaa8a8cab7abae0dfc4459
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineThreadedDelegate.java
-@@ -0,0 +1,122 @@
+@@ -0,0 +1,128 @@
 +package net.yatopia.server.hwaccel;
 +
 +import net.minecraft.server.BlockPosition;
@@ -505,6 +505,7 @@ index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d3874
 +    @Override
 +    public void a(EnumSkyBlock var0, SectionPosition var1, @Nullable NibbleArray var2, boolean var3) {
 +        delegate.enqueueSectionData(LightType.valueOf(var0.name()), ChunkSectionPositionAdapter.fromNMS(var1), var2 != null ? var2.asBytes() : null, var3);
++        // if(var2 != null && var2.cleaner != null) var2.cleaner.run();
 +    }
 +
 +    @Override
@@ -549,6 +550,11 @@ index 0000000000000000000000000000000000000000..4081fcc4c9180e5db3e2b901de8d3874
 +                throwable.printStackTrace();
 +            return ichunkaccess;
 +        });
++    }
++
++    @Override
++    public void a(ChunkCoordIntPair chunkcoordintpair) {
++        delegate.updateChunkStatus(ChunkPositionAdapter.fromNMS(chunkcoordintpair));
 +    }
 +
 +    @Override
