@@ -8,9 +8,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 
-public class    LightEngineManager {
+public class LightEngineManager {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public static LightEngineImpl create(ChunkProvider chunkProvider,
                                          boolean hasSkylight,

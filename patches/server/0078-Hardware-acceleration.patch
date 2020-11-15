@@ -6,7 +6,7 @@ Subject: [PATCH] Hardware acceleration
 This patch integrates Yatopia-Hwaccel into the server
 
 diff --git a/pom.xml b/pom.xml
-index 47ad4c9a021b35fdb9e020571df7f5c0262e6313..d4dbdaf4c35159a38fd1970fee6e28a52075f765 100644
+index 47ad4c9a021b35fdb9e020571df7f5c0262e6313..a8987cc8c8660080fa4ea3525ba801741898e5d0 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -166,6 +166,13 @@
@@ -23,26 +23,53 @@ index 47ad4c9a021b35fdb9e020571df7f5c0262e6313..d4dbdaf4c35159a38fd1970fee6e28a5
      </dependencies>
  
      <repositories>
+@@ -331,6 +338,7 @@
+                                     <pattern>org.objectweb.asm</pattern>
+                                     <shadedPattern>org.bukkit.craftbukkit.libs.org.objectweb.asm</shadedPattern>
+                                 </relocation>
++                                <!--
+                                 <relocation>
+                                     <pattern>org.bukkit.craftbukkit</pattern>
+                                     <shadedPattern>org.bukkit.craftbukkit.v${minecraft_version}</shadedPattern>
+@@ -342,6 +350,7 @@
+                                     <pattern>net.minecraft.server</pattern>
+                                     <shadedPattern>net.minecraft.server.v${minecraft_version}</shadedPattern>
+                                 </relocation>
++                                -->
+ 		                        <relocation>
+ 		                            <pattern>de.tr7zw.changeme.nbtapi</pattern>
+ 		                            <shadedPattern>de.tr7zw.nbtapi</shadedPattern>
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index 6e4e183c3169a484f482d96ba3441eb16c2053d9..02f309d00b6687c16a31f43386b915afcc40538d 100644
+index 6e4e183c3169a484f482d96ba3441eb16c2053d9..435f5ca732a90b7c276e6a936dabe165411978fc 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-@@ -19,6 +19,9 @@ import java.util.function.Supplier;
+@@ -19,6 +19,12 @@ import java.util.function.Supplier;
  import javax.annotation.Nullable;
  import com.destroystokyo.paper.exception.ServerInternalException;
  import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap; // Paper
++import net.yatopia.hwaccel.utils.registry.Identifier;
 +import net.yatopia.lighting.api.LightEngineManager;
++import net.yatopia.lighting.api.LightingConfiguration;
++import net.yatopia.server.hwaccel.LightEngineImplDelegate;
 +import net.yatopia.server.hwaccel.LightEngineThreadedDelegate;
 +import net.yatopia.server.hwaccel.adapter.chunkprovider.MinecraftChunkProvider;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
-@@ -386,6 +389,8 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -386,6 +392,16 @@ public class ChunkProviderServer extends IChunkProvider {
          file1.mkdirs();
          this.worldPersistentData = new WorldPersistentData(file1, datafixer);
          this.playerChunkMap = new PlayerChunkMap(worldserver, convertable_conversionsession, datafixer, definedstructuremanager, executor, this.serverThreadQueue, this, this.getChunkGenerator(), worldloadlistener, supplier, i, flag);
-+        this.playerChunkMap.lightEngineImpl = LightEngineManager.create(new MinecraftChunkProvider(this), this.world.getDimensionManager().hasSkyLight(), this.playerChunkMap.lightThread);
-+        this.playerChunkMap.lightEngine = new LightEngineThreadedDelegate(this.playerChunkMap.lightEngineImpl);
++        if(LightingConfiguration.lightEngineImplRegistryKey.equals(new Identifier("minecraft", "vanilla"))) {
++            LightEngineManager.LOGGER.info("Initializing vanilla light engine for world " + ((WorldDataServer) this.getWorld().getWorldData()).getName() + "...");
++            final ThreadedMailbox<Runnable> threadedmailbox = ThreadedMailbox.a(this.playerChunkMap.lightThread, "light");
++            this.playerChunkMap.lightEngine = new LightEngineThreaded(this, this.playerChunkMap, this.world.getDimensionManager().hasSkyLight(), threadedmailbox, null);
++            this.playerChunkMap.lightEngineImpl = new LightEngineImplDelegate(this.playerChunkMap.lightEngine);
++            LightEngineManager.LOGGER.info("Light engine initialized. ");
++        } else {
++            this.playerChunkMap.lightEngineImpl = LightEngineManager.create(new MinecraftChunkProvider(this), this.world.getDimensionManager().hasSkyLight(), this.playerChunkMap.lightThread);
++            this.playerChunkMap.lightEngine = new LightEngineThreadedDelegate(this.playerChunkMap.lightEngineImpl);
++        }
          this.lightEngine = this.playerChunkMap.a();
          this.chunkMapDistance = this.playerChunkMap.e();
          this.clearCache();
@@ -158,7 +185,7 @@ index 80cc96a4de5a5af964dfc6e77911426e8536fbce..1e77a0b502dc443726576d4f41e2aab5
          if (getCurrentPriority() != priority) {
              this.u.a(this.location, this::getCurrentPriority, priority, this::setPriority); // use preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index de0950327d156056d150ad0b59893fa97fb069d6..886c8620f532fe1232e2f56319918ef936f7768a 100644
+index de0950327d156056d150ad0b59893fa97fb069d6..9951d722fff6fa30ddc344ce076492579da2bd06 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -4,10 +4,7 @@ import co.aikar.timings.Timing; // Paper
@@ -216,6 +243,15 @@ index de0950327d156056d150ad0b59893fa97fb069d6..886c8620f532fe1232e2f56319918ef9
      private final IAsyncTaskHandler<Runnable> executor;
      final java.util.concurrent.Executor mainInvokingExecutor; // Paper
      public final ChunkGenerator chunkGenerator;
+@@ -97,7 +100,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     private final VillagePlace m;
+     public final LongSet unloadQueue;
+     private boolean updatingChunksModified;
+-    private final ChunkTaskQueueSorter p;
++    final ChunkTaskQueueSorter p;
+     private final Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailboxWorldGen;
+     final Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailboxMain; // Paper - private -> package private
+     // Paper start
 @@ -304,7 +307,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      public final com.tuinity.tuinity.chunk.SingleThreadChunkRegionManager<RegionData> dataRegionManager;
      // Tuiniy end
@@ -406,10 +442,10 @@ index 0000000000000000000000000000000000000000..797d56a8d74d61c1abb6a5d0b9d67127
 +}
 diff --git a/src/main/java/net/yatopia/server/hwaccel/LightEngineRegistryHook.java b/src/main/java/net/yatopia/server/hwaccel/LightEngineRegistryHook.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..abb4ad7f19d5734bebc315962583ac22b689b1f0
+index 0000000000000000000000000000000000000000..6130ba50f9ec4d5c5d220bd4bac2bdc294ed4e14
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/hwaccel/LightEngineRegistryHook.java
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,29 @@
 +package net.yatopia.server.hwaccel;
 +
 +import net.minecraft.server.LightEngineThreaded;
@@ -426,12 +462,16 @@ index 0000000000000000000000000000000000000000..abb4ad7f19d5734bebc315962583ac22
 +public class LightEngineRegistryHook {
 +
 +    public static void register() {
-+        LightEngineRegistry.LIGHT_ENGINE_IMPL_PROVIDERS.register(new Identifier("minecraft", "vanilla"), new LightEngineImplProvider() {
-+            @Override
-+            public LightEngineImpl create(ChunkProvider chunkProvider, boolean hasSkylight, ExecutorService lightThread) {
-+                return new LightEngineImplDelegate(new LightEngineThreaded(((MinecraftChunkProvider)chunkProvider).handle, ((MinecraftChunkProvider)chunkProvider).handle.playerChunkMap, hasSkylight, ThreadedMailbox.a(lightThread, "light"), null));
-+            }
-+        });
++        LightEngineRegistry.LIGHT_ENGINE_IMPL_PROVIDERS.register(new Identifier("yatopia", "vanilla"),
++                (chunkProvider, hasSkylight, lightThread) ->
++                        new LightEngineImplDelegate(
++                                new LightEngineThreaded(((MinecraftChunkProvider) chunkProvider).handle,
++                                        ((MinecraftChunkProvider) chunkProvider).handle.playerChunkMap,
++                                        hasSkylight,
++                                        ThreadedMailbox.a(lightThread, "light"),
++                                        null)
++                        )
++        );
 +    }
 +
 +}
