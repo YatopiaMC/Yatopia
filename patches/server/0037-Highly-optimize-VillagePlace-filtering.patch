@@ -158,7 +158,7 @@ index f95925f1c5d091f1a129d0437bb6e175c6ac080f..6796b1a832779b65d337c63d6b600e2a
          return StreamSupport.stream(new AbstractSpliterator<SectionPosition>((long) ((l - i + 1) * (i1 - j + 1) * (j1 - k + 1)), 64) {
              final CursorPosition a = new CursorPosition(i, j, k, l, i1, j1);
 diff --git a/src/main/java/net/minecraft/server/VillagePlace.java b/src/main/java/net/minecraft/server/VillagePlace.java
-index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..427311eb33389af98fc2b5f6e9c7a58876e51f2f 100644
+index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16ab07d7079 100644
 --- a/src/main/java/net/minecraft/server/VillagePlace.java
 +++ b/src/main/java/net/minecraft/server/VillagePlace.java
 @@ -46,7 +46,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
@@ -176,7 +176,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..427311eb33389af98fc2b5f6e9c7a588
  
 +    // Yatopia start
 +    public java.util.List<VillagePlaceRecord> bList(Predicate<VillagePlaceType> filter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
-+        int j = Math.floorDiv(i, 16) + 1;
++        int j = org.apache.commons.math3.util.FastMath.floorDiv(i, 16) + 1;
 +
 +        java.util.List<ChunkCoordIntPair> list = ChunkCoordIntPair.streamList(new ChunkCoordIntPair(pos), j);
 +        java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
@@ -296,7 +296,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..427311eb33389af98fc2b5f6e9c7a588
          return list.stream().filter((villageplacerecord) -> {
              return predicate1.test(villageplacerecord.f());
          }).findFirst().map(VillagePlaceRecord::f);
-+         */
++         */ // Yatopia end
      }
  
      public boolean b(BlockPosition blockposition) {
