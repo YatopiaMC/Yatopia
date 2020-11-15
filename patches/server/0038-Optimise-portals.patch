@@ -6,24 +6,8 @@ Subject: [PATCH] Optimise portals
 Chunk preloading is being done asynchronously and the code around stuff getting filtered has been
 optimised.
 
-diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 4230872de3551393a35c567d07a570dd07976fb8..3223ed8f8bfeace55d3cf7d196449b89bf342900 100644
---- a/src/main/java/de/minebench/origami/OrigamiConfig.java
-+++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -172,6 +172,11 @@ public final class OrigamiConfig {
-                             && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
-                             && waterCreatureCollisions && waterAmbientCollisions;
-         }
-+
-+        public boolean useBlockDistanceInPortalSearchRadius = false;
-+        private void useBlockDistanceInPortalSearchRadius() {
-+             useBlockDistanceInPortalSearchRadius = getBoolean("use-block-distance-in-portal-search-radius", false);
-+        }
-         // Yatopia end
-     }
- 
 diff --git a/src/main/java/net/minecraft/server/PortalTravelAgent.java b/src/main/java/net/minecraft/server/PortalTravelAgent.java
-index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..6182b36a34eed505a36a9ef9973ddb9ba73cacf8 100644
+index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..18d9e512c8093cdef937c89fa7ef346bdc2f39a1 100644
 --- a/src/main/java/net/minecraft/server/PortalTravelAgent.java
 +++ b/src/main/java/net/minecraft/server/PortalTravelAgent.java
 @@ -22,6 +22,8 @@ public class PortalTravelAgent {
@@ -35,7 +19,7 @@ index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..6182b36a34eed505a36a9ef9973ddb9b
          villageplace.a(this.world, blockposition, i);
          Optional<VillagePlaceRecord> optional = villageplace.b((villageplacetype) -> {
              return villageplacetype == VillagePlaceType.v;
-@@ -32,6 +34,32 @@ public class PortalTravelAgent {
+@@ -32,6 +34,22 @@ public class PortalTravelAgent {
          })).filter((villageplacerecord) -> {
              return this.world.getType(villageplacerecord.f()).b(BlockProperties.E);
          }).findFirst();
@@ -43,17 +27,7 @@ index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..6182b36a34eed505a36a9ef9973ddb9b
 +        villageplace.preloadChunks(world.getChunkProvider(), blockposition, i);
 +        java.util.List<VillagePlaceRecord> poiList = villageplace.getFilteredPoiList(
 +                (placeType) -> placeType == VillagePlaceType.v,
-+                (record) -> {
-+                    BlockPosition recordPosition = record.getPosition();
-+                    boolean propertyContains = world.getType(recordPosition).contains(BlockProperties.E);
-+                    if (world.origamiConfig.useBlockDistanceInPortalSearchRadius) {
-+                        // contributed by Patrick Hemmer <patrick.hemmer@gmail.com> in a Paper PR
-+                        return propertyContains && (org.apache.commons.math3.util.FastMath.abs(recordPosition.getX() - blockposition.getX()) > i
-+                                || org.apache.commons.math3.util.FastMath.abs(recordPosition.getZ() - blockposition.getZ()) > i);
-+                    } else {
-+                        return propertyContains;
-+                    }
-+                },
++                (record) -> world.getType(record.getPosition()).contains(BlockProperties.E),
 +                blockposition, i, VillagePlace.Occupancy.ANY);
 +        Optional<VillagePlaceRecord> optional = Optional.empty();
 +        if (!poiList.isEmpty()) {
