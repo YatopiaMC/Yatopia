@@ -976,10 +976,10 @@ index 9f3608357280a269c655b00feed22ebc29922d52..00000000000000000000000000000000
 -         if (this.eO()) {
 -             ++this.bA;
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 59d47a9f75450573b26b82b6f432af7bdc46a783..5a940fe2cbe81c89007fe768196cac3b37be8e8a 100644
+index 976c44c8eeecc513fa11de55b80317550f621407..5bb47279fdeeeef04f35115c916d24ddb8a098bb 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -919,7 +919,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -920,7 +920,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              ShapeDetectorShape shapedetectorshape = this.a(worldserver);
  
              if (shapedetectorshape != null) {
@@ -988,7 +988,7 @@ index 59d47a9f75450573b26b82b6f432af7bdc46a783..5a940fe2cbe81c89007fe768196cac3b
                  worldserver = shapedetectorshape.world; // CraftBukkit
                  if (worldserver == null) { } else // CraftBukkit - empty to fall through to null to event
                  if (resourcekey == DimensionManager.OVERWORLD && worldserver.getTypeKey() == DimensionManager.THE_NETHER) { // CraftBukkit
-@@ -942,8 +942,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -943,8 +943,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
              worldserver = ((CraftWorld) exit.getWorld()).getHandle();
              // CraftBukkit end
  
@@ -999,7 +999,7 @@ index 59d47a9f75450573b26b82b6f432af7bdc46a783..5a940fe2cbe81c89007fe768196cac3b
              if (true) { // CraftBukkit
                  this.worldChangeInvuln = true; // CraftBukkit - Set teleport invulnerability only if player changing worlds
  
-@@ -960,7 +960,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -961,7 +961,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
                  worldserver.addPlayerPortal(this);
                  this.playerConnection.teleport(exit); // CraftBukkit - use internal teleport without event
                  this.playerConnection.syncPosition(); // CraftBukkit - sync position after changing it (from PortalTravelAgent#findAndteleport)
@@ -1252,13 +1252,13 @@ index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..f6ffefd7e356c9c68cb6591cab55de93
          // CraftBukkit start
          return this.createPortal(blockposition, enumdirection_enumaxis, null, 16);
 diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java
-index c3bd58069d8dbdf36f70f1dafd7c24000f31708b..f915cb4e1110e39178527903ae93508f9459d7ca 100644
+index a62c87bceab2c9700a7b3925f208b0ffa2b9b393..1a6c593f5f20fb3a8e87ccb70cd3de7f0dcb0327 100644
 --- a/src/main/java/net/minecraft/server/StructureGenerator.java
 +++ b/src/main/java/net/minecraft/server/StructureGenerator.java
-@@ -143,6 +143,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
-                             int j2 = i1 + k * l1;
-                             ChunkCoordIntPair chunkcoordintpair = this.a(structuresettingsfeature, j, seededrandom, i2, j2);
-                             if (!iworldreader.getWorldBorder().isChunkInBounds(chunkcoordintpair.x, chunkcoordintpair.z)) { continue; } // Paper
+@@ -151,6 +151,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
+                                 }
+                             }
+                             // Paper end
 +                            // Origami start - seed based feature search doesn't load
 +                            if (iworldreader instanceof World && ((World) iworldreader).origamiConfig.fastFeatureSearchDontLoad) {
 +                                return chunkcoordintpair.l();
@@ -1269,15 +1269,15 @@ index c3bd58069d8dbdf36f70f1dafd7c24000f31708b..f915cb4e1110e39178527903ae93508f
  
 diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java.rej b/src/main/java/net/minecraft/server/StructureGenerator.java.rej
 deleted file mode 100644
-index 2ae4a20ca763c60c9661661d2ae558bd5b6f79a1..0000000000000000000000000000000000000000
+index dd52a8fe4fd46e57a5d1af49ba1965a483cf4fcc..0000000000000000000000000000000000000000
 --- a/src/main/java/net/minecraft/server/StructureGenerator.java.rej
 +++ /dev/null
 @@ -1,13 +0,0 @@
 -diff a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java	(rejected hunks)
--@@ -143,6 +143,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
--                             int j2 = i1 + k * l1;
--                             ChunkCoordIntPair chunkcoordintpair = this.a(structuresettingsfeature, j, seededrandom, i2, j2);
--                             if (!iworldreader.getWorldBorder().isChunkInBounds(chunkcoordintpair.x, chunkcoordintpair.z)) { continue; } // Paper
+-@@ -151,6 +151,11 @@ public abstract class StructureGenerator<C extends WorldGenFeatureConfiguration>
+-                                 }
+-                             }
+-                             // Paper end
 -+                            // Origami start - seed based feature search doesn't load
 -+                            if (iworldreader instanceof World && ((World) iworldreader).origamiConfig.fastFeatureSearchDontLoad) {
 -+                                return chunkcoordintpair.l();
@@ -1287,7 +1287,7 @@ index 2ae4a20ca763c60c9661661d2ae558bd5b6f79a1..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 19d98e9eaa25968b49bab6d3d26974c8ae6f56f5..86533746815701288b4dcc85a429c8bcf1b25cb5 100644
+index bb7ae7deb67172776e702b80c5f66b526a36a8e6..9626f736353249ceb219ee565efc022fd2a32a93 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
