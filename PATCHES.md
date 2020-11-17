@@ -83,6 +83,7 @@ This is an overview over all patches that are currently used.
 | server |  Modify default configs      | tr7zw |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
+| server |  Optimise portals      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
@@ -96,7 +97,6 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
 | server |  PaperPR: Fix merging spawning values      | Mariell Hoversholm |  |
-| server |  PaperPR: Use block distance in portal search radius      | Patrick Hemmer |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
