@@ -108,7 +108,6 @@ This is an overview over all patches that are currently used.
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove vanilla profiler callers      | Sotr |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
-| server |  Respect rotation when respawning      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
