@@ -8,14 +8,49 @@ major release and reimplemented again if mojang changes stuff with
 villagers again.
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-index f3224ea636fef95d368b934ed4b3e9060c4b10a2..f2d5878d235fdbfc11c74f87b95f029330c70309 100644
---- a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..18666522e08153093bc5457b2524622a4b619233
+--- /dev/null
 +++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
-@@ -46,6 +46,16 @@ public interface Producer<T> {
-         }
-     }
- 
-+    // also checks contains and is thus only 1 generic
+@@ -0,0 +1,54 @@
++package me.jellysquid.mods.lithium.common.util;
++
++import java.util.List;
++import java.util.Spliterator;
++import java.util.Spliterators;
++import java.util.function.BiConsumer;
++import java.util.function.Consumer;
++import java.util.function.Function;
++import java.util.stream.Stream;
++import java.util.stream.StreamSupport;
++import net.yatopia.server.HoldingConsumer;
++
++public interface Producer<T> {
++    /**
++     * Computes the next sequence of values in a collection. If a null value is passed for {@param consumer}, then
++     * the producer will only return whether or not elements existed.
++     *
++     * @param consumer The (nullable) consumer which will accept the computed values during this run.
++     * @return True if the producer produced any values, otherwise false
++     */
++    boolean computeNext(Consumer<? super T> consumer);
++
++    default <U> Producer<U> map(Function<T, U> mapper) {
++        return consumer -> {
++            Consumer<? super T> con = (t) -> consumer.accept(mapper.apply(t));
++            return Producer.this.computeNext(con);
++        };
++    }
++
++    static <T> Stream<T> asStream(Producer<T> producer) {
++        return StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.NONNULL) {
++            @Override
++            public boolean tryAdvance(Consumer<? super T> action) {
++                return producer.computeNext(action);
++            }
++        }, false);
++    }
++
 +    static <T> void fillList(Producer<T> producer, List<T> list) {
 +        HoldingConsumer<T> consumer = new HoldingConsumer<>();
 +        while (producer.computeNext(consumer)) {
@@ -25,9 +60,13 @@ index f3224ea636fef95d368b934ed4b3e9060c4b10a2..f2d5878d235fdbfc11c74f87b95f0293
 +        }
 +    }
 +
-     Producer<?> EMPTY_PRODUCER = consumer -> false;
- 
-     @SuppressWarnings("unchecked")
++    Producer<?> EMPTY_PRODUCER = consumer -> false;
++
++    @SuppressWarnings("unchecked")
++    static <T> Producer<T> empty() {
++        return (Producer<T>) EMPTY_PRODUCER;
++    }
++}
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
 index 6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f..dbe6f7d555e8c851faba5cafee8831c516256c09 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
@@ -383,6 +422,29 @@ index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..8b9f5797a6bee47ff16ee713777b5220
              })).add(villageplacerecord);
              return true;
          }
+diff --git a/src/main/java/net/yatopia/server/HoldingConsumer.java b/src/main/java/net/yatopia/server/HoldingConsumer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..fca24201a721f0ac6c962e79119c4613734e8108
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/HoldingConsumer.java
+@@ -0,0 +1,17 @@
++package net.yatopia.server;
++
++import java.util.function.Consumer;
++
++public class HoldingConsumer<T> implements Consumer<T> {
++
++    private T value;
++
++    @Override
++    public void accept(T t) {
++        this.value = t;
++    }
++
++    public T getValue() {
++        return value;
++    }
++}
 diff --git a/src/main/java/net/yatopia/server/YatopiaChunkPos.java b/src/main/java/net/yatopia/server/YatopiaChunkPos.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..871e305356103f87c2c1ad1487c804b60e13c076

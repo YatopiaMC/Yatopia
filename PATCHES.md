@@ -56,7 +56,6 @@ This is an overview over all patches that are currently used.
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Ensure pools create daemon threads      | Ivan Pekov |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
-| server |  Fix &quot;Unable to save chunk&quot; error      | Ivan Pekov |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
@@ -77,7 +76,6 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
-| server |  Make sure the block is cauldron before proceeding      | Ivan Pekov |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
@@ -121,7 +119,6 @@ This is an overview over all patches that are currently used.
 | server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
 | server |  Use Glue List in WeightedList      | Ivan Pekov |  |
 | server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
-| server |  Use faster block collision check for entity suffocation check      | Mykyta Komarn |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
 | api |  Yatopia API Bundle      | YatopiaMC |  |
@@ -130,16 +127,12 @@ This is an overview over all patches that are currently used.
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium MixinBiome      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
-| server |  lithium MixinChunkSection      | JellySquid |  |
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
-| server |  lithium MixinLandPathNodeMaker      | JellySquid |  |
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
-| server |  lithium collision optimizations      | JellySquid | Ivan Pekov |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
-| server |  lithium-MixinChunkGeneratorAbstract      | JellySquid | tr7zw |
 | server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |

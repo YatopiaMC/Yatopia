@@ -1044,6 +1044,19 @@ index f5c0ccfcbfeda191e3a077bb4313a8c8b8b4178d..00000000000000000000000000000000
 -             // CraftBukkit start - PlayerTeleportEvent
 -             PlayerTeleportEvent tpEvent = new PlayerTeleportEvent(this.getBukkitEntity(), enter, exit, cause);
 -             Bukkit.getServer().getPluginManager().callEvent(tpEvent);
+diff --git a/src/main/java/net/minecraft/server/EntitySlice.java b/src/main/java/net/minecraft/server/EntitySlice.java
+index 1250c3cbe915815939627701c153ba6254fc05f0..ac7b5bc179a3e174ae09b3444b3ba89b5627a174 100644
+--- a/src/main/java/net/minecraft/server/EntitySlice.java
++++ b/src/main/java/net/minecraft/server/EntitySlice.java
+@@ -65,7 +65,7 @@ public class EntitySlice<T> extends AbstractCollection<T> {
+         if (!this.b.isAssignableFrom(oclass)) {
+             throw new IllegalArgumentException("Don't know how to search for " + oclass);
+         } else {
+-            List<T> list = (List) this.a.computeIfAbsent(oclass, (oclass1) -> {
++            List<S> list = (List<S>) this.a.computeIfAbsent(oclass, (oclass1) -> { // Yatopia - decompile fix - why is this still being here?
+                 Stream stream = this.c.stream();
+ 
+                 oclass1.getClass();
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 index a02f54ab3ac721a5697f8efea474d2999a0fd7bd..9dc054e2e189f8c65a9d12f70e180e7ded79a997 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
@@ -1244,7 +1257,7 @@ index dd52a8fe4fd46e57a5d1af49ba1965a483cf4fcc..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index bb7ae7deb67172776e702b80c5f66b526a36a8e6..9626f736353249ceb219ee565efc022fd2a32a93 100644
+index cf43f47c27992b119e07d38a7a79ecc183e12844..50eedfe5a0fe897f1e3b748bcae5c1d0c53b1467 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -1256,7 +1269,7 @@ index bb7ae7deb67172776e702b80c5f66b526a36a8e6..9626f736353249ceb219ee565efc022f
      public final co.aikar.timings.WorldTimingsHandler timings; // Paper
      public static BlockPosition lastPhysicsProblem; // Spigot
 @@ -157,6 +158,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
-         this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig((((WorldDataServer)worlddatamutable).getName()), this.spigotConfig); // Paper
+         this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig(((WorldDataServer) worlddatamutable).getName(), this.spigotConfig); // Paper
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
          this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((WorldDataServer)worlddatamutable).getName())); // Purpur
 +        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami
