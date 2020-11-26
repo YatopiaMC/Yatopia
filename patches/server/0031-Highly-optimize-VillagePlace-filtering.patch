@@ -68,7 +68,7 @@ index 0000000000000000000000000000000000000000..18666522e08153093bc5457b2524622a
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
-index 6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f..dbe6f7d555e8c851faba5cafee8831c516256c09 100644
+index 6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f..e6b5a21c523c598f53207d024322301fbae74825 100644
 --- a/src/main/java/net/minecraft/server/BlockPosition.java
 +++ b/src/main/java/net/minecraft/server/BlockPosition.java
 @@ -341,6 +341,16 @@ public class BlockPosition extends BaseBlockPosition {
@@ -77,7 +77,7 @@ index 6fcc7ed7c129e6a33386d65b37cbba4a44e96f0f..dbe6f7d555e8c851faba5cafee8831c5
  
 +    // Yatopia start
 +    public static java.util.List<BlockPosition> getPositions(int i, int j, int k, int l, int i1, int j1) {
-+        java.util.List<BlockPosition> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
 +        Iterable<BlockPosition> iterable = b(i, j, k, l, i1, j1);
 +        net.yatopia.server.HoldingConsumer<BlockPosition> consumer = new net.yatopia.server.HoldingConsumer<>();
 +        java.util.Spliterator<BlockPosition> spliterator = iterable.spliterator();
@@ -109,26 +109,22 @@ index 271fddbbf73ca5c0e4e2722d7246c14b778d6072..7d5935be528a17809f778578dd2cc559
          int i = Math.abs(chunkcoordintpair.x - chunkcoordintpair1.x) + 1;
          int j = Math.abs(chunkcoordintpair.z - chunkcoordintpair1.z) + 1;
 diff --git a/src/main/java/net/minecraft/server/EntityBee.java b/src/main/java/net/minecraft/server/EntityBee.java
-index f73641ddb3e82bc653732105ef0a3d41a28e845f..f1d6239b834498dc12c1674b3e776d0c15215568 100644
+index f73641ddb3e82bc653732105ef0a3d41a28e845f..cd9b52d0233caa6ad60b90e2049c6247f6e1954b 100644
 --- a/src/main/java/net/minecraft/server/EntityBee.java
 +++ b/src/main/java/net/minecraft/server/EntityBee.java
-@@ -720,15 +720,24 @@ public class EntityBee extends EntityAnimal implements IEntityAngerable, EntityB
+@@ -720,15 +720,19 @@ public class EntityBee extends EntityAnimal implements IEntityAngerable, EntityB
          private List<BlockPosition> j() {
              BlockPosition blockposition = EntityBee.this.getChunkCoordinates();
              VillagePlace villageplace = ((WorldServer) EntityBee.this.world).y();
 -            Stream<VillagePlaceRecord> stream = villageplace.c((villageplacetype) -> {
-+            List<VillagePlaceRecord> stream = villageplace.cList((villageplacetype) -> { // Yatopia
++            List<BlockPosition> stream = villageplace.cListPositions((villageplacetype) -> { // Yatopia
                  return villageplacetype == VillagePlaceType.t || villageplacetype == VillagePlaceType.u;
-             }, blockposition, 20, VillagePlace.Occupancy.ANY);
+-            }, blockposition, 20, VillagePlace.Occupancy.ANY);
 -
++            }, (record) -> i(record.getPosition()), blockposition, 20, VillagePlace.Occupancy.ANY); // Yatopia
 +            // Yatopia start
-+            List<BlockPosition> ret = new net.yatopia.server.list.GlueList<>();
-+            for (VillagePlaceRecord record : stream) {
-+                BlockPosition pos = record.getPosition();
-+                if (i(pos)) { ret.add(pos); }
-+            }
-+            ret.sort(Comparator.comparingDouble((pos1) -> pos1.distanceSquared(blockposition)));
-+            return ret;
++            stream.sort(Comparator.comparingDouble((pos1) -> pos1.distanceSquared(blockposition)));
++            return stream;
 +            /*
              return (List) stream.map(VillagePlaceRecord::f).filter((blockposition1) -> {
                  return EntityBee.this.i(blockposition1);
@@ -197,7 +193,7 @@ index f95925f1c5d091f1a129d0437bb6e175c6ac080f..6796b1a832779b65d337c63d6b600e2a
          return StreamSupport.stream(new AbstractSpliterator<SectionPosition>((long) ((l - i + 1) * (i1 - j + 1) * (j1 - k + 1)), 64) {
              final CursorPosition a = new CursorPosition(i, j, k, l, i1, j1);
 diff --git a/src/main/java/net/minecraft/server/VillagePlace.java b/src/main/java/net/minecraft/server/VillagePlace.java
-index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16ab07d7079 100644
+index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..cd9c619dd038abafede98703946d37e53595af73 100644
 --- a/src/main/java/net/minecraft/server/VillagePlace.java
 +++ b/src/main/java/net/minecraft/server/VillagePlace.java
 @@ -46,7 +46,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
@@ -209,7 +205,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
      }
  
      public boolean a(VillagePlaceType villageplacetype, BlockPosition blockposition) {
-@@ -67,6 +67,29 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -67,6 +67,39 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          });
      }
  
@@ -218,7 +214,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
 +        int j = org.apache.commons.math3.util.FastMath.floorDiv(i, 16) + 1;
 +
 +        java.util.List<ChunkCoordIntPair> list = ChunkCoordIntPair.streamList(new ChunkCoordIntPair(pos), j);
-+        java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
 +        for (ChunkCoordIntPair chunkPos : list) {
 +            for (int k = 0; k < 16; k++) { // ITS THE LAW
 +                this.d(SectionPosition.a(chunkPos, k).asLong()).ifPresent(section -> ret.addAll(section.aList(filter, occupancy)));
@@ -228,9 +224,19 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
 +    }
 +    public java.util.List<VillagePlaceRecord> cList(Predicate<VillagePlaceType> predicate, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
 +        int j = i * i;
-+        java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
 +        for (VillagePlaceRecord record : this.bList(predicate, pos, i, occupancy)) {
 +            if (record.getPosition().distanceSquared(pos) <= j) { ret.add(record); }
++        }
++        return ret;
++    }
++
++    public java.util.List<BlockPosition> cListPositions(Predicate<VillagePlaceType> predicate, Predicate<VillagePlaceRecord> recordFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
++        int j = i * i;
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        for (VillagePlaceRecord record : this.bList(predicate, pos, i, occupancy)) {
++            BlockPosition recordPosition = record.getPosition();
++            if (recordPosition.distanceSquared(pos) <= j && recordFilter.test(record)) { ret.add(recordPosition); }
 +        }
 +        return ret;
 +    }
@@ -239,13 +245,13 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
      public Stream<VillagePlaceRecord> c(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
          int j = i * i;
  
-@@ -83,10 +106,28 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -83,10 +116,28 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          });
      }
  
 +    // Yatopia start
 +    public java.util.List<BlockPosition> aList(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> posFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
-+        java.util.List<BlockPosition> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
 +        int j = i * i;
 +        for (VillagePlaceRecord record : this.bList(predicate, pos, i, occupancy)) {
 +            BlockPosition recordPosition = record.getPosition();
@@ -268,7 +274,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
      public Stream<BlockPosition> b(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> predicate1, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
          return this.a(predicate, predicate1, blockposition, i, villageplace_occupancy).sorted(Comparator.comparingDouble((blockposition1) -> {
              return blockposition1.j(blockposition);
-@@ -94,31 +135,68 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -94,31 +145,68 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
      }
  
      public Optional<BlockPosition> c(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> predicate1, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
@@ -339,7 +345,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
      }
  
      public boolean b(BlockPosition blockposition) {
-@@ -211,7 +289,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -211,7 +299,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
      }
  
      private void a(ChunkSection chunksection, SectionPosition sectionposition, BiConsumer<BlockPosition, VillagePlaceType> biconsumer) {
@@ -348,7 +354,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
              IBlockData iblockdata = chunksection.getType(SectionPosition.b(blockposition.getX()), SectionPosition.b(blockposition.getY()), SectionPosition.b(blockposition.getZ()));
  
              VillagePlaceType.b(iblockdata).ifPresent((villageplacetype) -> {
-@@ -221,6 +299,16 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -221,6 +309,16 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
      }
  
      public void a(IWorldReader iworldreader, BlockPosition blockposition, int i) {
@@ -365,7 +371,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
          SectionPosition.b(new ChunkCoordIntPair(blockposition), Math.floorDiv(i, 16)).map((sectionposition) -> {
              return Pair.of(sectionposition, this.d(sectionposition.s()));
          }).filter((pair) -> {
-@@ -232,6 +320,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -232,6 +330,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          }).forEach((chunkcoordintpair) -> {
              iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.EMPTY);
          });
@@ -374,7 +380,7 @@ index 3c9668c9c30ea57c1608e32ece27ec56d580fc62..0473972ae760096ac541c87f8b10f16a
  
      final class a extends LightEngineGraphSection {
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..8b9f5797a6bee47ff16ee713777b5220dbb0afc6 100644
+index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..15d2b2c21e61369b5c7897914ccf0aa950f44668 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
 @@ -5,6 +5,10 @@ import com.google.common.collect.Maps;
@@ -401,7 +407,7 @@ index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..8b9f5797a6bee47ff16ee713777b5220
  
 +    // Yatopia start
 +    public java.util.List<VillagePlaceRecord> aList(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy occupancy) {
-+        java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
 +        for (Map.Entry<VillagePlaceType, Set<VillagePlaceRecord>> entry : c.entrySet()) {
 +            if (predicate.test(entry.getKey())) {
 +                for (VillagePlaceRecord record : entry.getValue()) { if (occupancy.a().test(record)) ret.add(record); }
@@ -447,22 +453,22 @@ index 0000000000000000000000000000000000000000..438adad46014043591f41d037d130a85
 +}
 diff --git a/src/main/java/net/yatopia/server/YatopiaChunkPos.java b/src/main/java/net/yatopia/server/YatopiaChunkPos.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..871e305356103f87c2c1ad1487c804b60e13c076
+index 0000000000000000000000000000000000000000..757c459668837aa36e21f90265f08fbbb4bdead8
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/YatopiaChunkPos.java
 @@ -0,0 +1,54 @@
 +package net.yatopia.server;
 +
++import java.util.ArrayList;
 +import java.util.List;
 +import java.util.function.Consumer;
 +import me.jellysquid.mods.lithium.common.util.Producer;
 +import net.minecraft.server.ChunkCoordIntPair;
-+import net.yatopia.server.list.GlueList;
 +
 +public class YatopiaChunkPos {
 +
 +    public static List<ChunkCoordIntPair> asList(ChunkCoordIntPair pos1, ChunkCoordIntPair pos2) {
-+        List<ChunkCoordIntPair> list = new GlueList<>();
++        List<ChunkCoordIntPair> list = new ArrayList<>();
 +        Producer.fillList(getStreamProducer(pos1, pos2), list);
 +        return list;
 +    }
@@ -507,23 +513,23 @@ index 0000000000000000000000000000000000000000..871e305356103f87c2c1ad1487c804b6
 +}
 diff --git a/src/main/java/net/yatopia/server/YatopiaChunkSectionPos.java b/src/main/java/net/yatopia/server/YatopiaChunkSectionPos.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..134c761c7897f37c20b5209866374dd79dc5b0e4
+index 0000000000000000000000000000000000000000..4466c4c3afe875106a8dd0818718ce71e1d00eb3
 --- /dev/null
 +++ b/src/main/java/net/yatopia/server/YatopiaChunkSectionPos.java
 @@ -0,0 +1,32 @@
 +package net.yatopia.server;
 +
++import java.util.ArrayList;
 +import java.util.List;
 +import java.util.function.Consumer;
 +import me.jellysquid.mods.lithium.common.util.Producer;
 +import net.minecraft.server.CursorPosition;
 +import net.minecraft.server.SectionPosition;
-+import net.yatopia.server.list.GlueList;
 +
 +public class YatopiaChunkSectionPos {
 +
 +    public static List<SectionPosition> getChunkSectionPosList(int i, int j, int k, int l, int i1, int j1) {
-+        List<SectionPosition> list = new GlueList<>();
++        List<SectionPosition> list = new ArrayList<>();
 +        Producer.fillList(getChunkSectionPosProducer(i, j, k, l, i1, j1), list);
 +        return list;
 +    }

@@ -1,7 +1,7 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: JellySquid <jellysquid+atwork@protonmail.com>
 Date: Fri, 31 Jul 2020 21:46:32 -0500
-Subject: [PATCH] lithium MixinBiome
+Subject: [PATCH] lithium HashedList
 
 Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
 you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
@@ -292,16 +292,3 @@ index 0000000000000000000000000000000000000000..2d79932dbd1fc386a94b8d6ea3526934
 +        return new HashedList<>(list);
 +    }
 +}
-diff --git a/src/main/java/net/minecraft/server/BiomeSettingsMobs.java b/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
-index a18ca3f0001a771f21012bd39711f581efb2fef0..0f88b7b38b6191c3adbebdee82427275640c4197 100644
---- a/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
-+++ b/src/main/java/net/minecraft/server/BiomeSettingsMobs.java
-@@ -113,7 +113,7 @@ public class BiomeSettingsMobs {
-         private final Map<EnumCreatureType, List<BiomeSettingsMobs.c>> a = (Map) Stream.of(EnumCreatureType.values()).collect(Maps.toImmutableEnumMap((enumcreaturetype) -> {
-             return enumcreaturetype;
-         }, (enumcreaturetype) -> {
--            return new MobList(); // Use MobList instead of ArrayList
-+            return me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new MobList()); // Use MobList instead of ArrayList // Yatopia - hashedlist
-         }));
-         // Paper end
-         private final Map<EntityTypes<?>, BiomeSettingsMobs.b> b = Maps.newLinkedHashMap();

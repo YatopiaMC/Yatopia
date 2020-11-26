@@ -12,7 +12,6 @@ This is an overview over all patches that are currently used.
 | api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
-| server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
@@ -119,23 +118,19 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
-| server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
-| server |  Use Glue List in WeightedList      | Ivan Pekov |  |
-| server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
 | api |  Yatopia API Bundle      | YatopiaMC |  |
 | server |  Yatopia configuration      | tr7zw |  |
 | server |  Yatopia-Server-Fixes      | YatopiaMC |  |
 | server |  dont load chunks for physics      | Aikar |  |
-| server |  lithium MixinBiome      | JellySquid |  |
+| server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
+| server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
-| server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
-| server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |
