@@ -6,7 +6,7 @@ Subject: [PATCH] Optimize some stuff in WorldServer ticking
 Replaced some streams and some array lists with glue lists
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index ec86f278af15ec115d09135b75179e00dd013c11..58d05ee4432bb2ec58ed31d6cd07ccbd89f9eac3 100644
+index 1c1730d299f150cf757f24639340b8878561b2c1..debc82608521d0d44da3e5a4c4dd8525b7e48109 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -64,11 +64,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -23,7 +23,7 @@ index ec86f278af15ec115d09135b75179e00dd013c11..58d05ee4432bb2ec58ed31d6cd07ccbd
      public void doIfNotEntityTicking(java.lang.Runnable run) {
          if (tickingEntities) {
              afterEntityTickingTasks.add(run);
-@@ -960,12 +960,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -812,12 +812,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
          }
          // */
@@ -48,7 +48,7 @@ index ec86f278af15ec115d09135b75179e00dd013c11..58d05ee4432bb2ec58ed31d6cd07ccbd
          if (flag != this.isRaining()) {
              // Only send weather packets to those affected
              for (int idx = 0; idx < this.players.size(); ++idx) {
-@@ -980,10 +989,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -832,10 +841,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              }
          }
          // CraftBukkit end
@@ -61,7 +61,7 @@ index ec86f278af15ec115d09135b75179e00dd013c11..58d05ee4432bb2ec58ed31d6cd07ccbd
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
              TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
-@@ -1153,9 +1161,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1021,9 +1029,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      private void wakeupPlayers() {
@@ -73,7 +73,7 @@ index ec86f278af15ec115d09135b75179e00dd013c11..58d05ee4432bb2ec58ed31d6cd07ccbd
      }
  
      // Paper start - optimise random block ticking
-@@ -1918,8 +1926,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1803,8 +1811,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // Spigot start
          if ( entity instanceof EntityHuman )
          {
@@ -84,7 +84,7 @@ index ec86f278af15ec115d09135b75179e00dd013c11..58d05ee4432bb2ec58ed31d6cd07ccbd
                  for (Object o : worldData.data.values() )
                  {
                      if ( o instanceof WorldMap )
-@@ -1936,7 +1945,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1821,7 +1830,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          }
                      }
                  }
