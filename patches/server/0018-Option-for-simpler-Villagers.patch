@@ -5,7 +5,7 @@ Subject: [PATCH] Option for simpler Villagers
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 9dc054e2e189f8c65a9d12f70e180e7ded79a997..d009c30e47e5419ae20af1a628d01a94942af758 100644
+index 2faaf483cca26586226a2e08ac01285a62a68f6f..ce0d773d1c338ecf082573a219d8bfe024780a23 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -31,6 +31,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
@@ -109,7 +109,7 @@ index 9dc054e2e189f8c65a9d12f70e180e7ded79a997..d009c30e47e5419ae20af1a628d01a94
      @Override
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
-         //this.world.getMethodProfiler().enter("villagerBrain"); // Akarin - remove caller
+         this.world.getMethodProfiler().enter("villagerBrain");
 +        // Yatopia start
 +        if (simplerVillagerBehavior && this.getVillagerData().getProfession() == VillagerProfession.NONE) {
 +            this.setVillagerData(this.getVillagerData().withProfession(getRandomProfession()));
