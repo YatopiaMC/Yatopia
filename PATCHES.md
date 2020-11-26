@@ -19,6 +19,7 @@ This is an overview over all patches that are currently used.
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add component util      | William Blake Galbreath |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
@@ -74,6 +75,7 @@ This is an overview over all patches that are currently used.
 | server |  Item stuck sleep config      | tr7zw |  |
 | api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
+| server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | YatopiaMC |  |
@@ -107,6 +109,8 @@ This is an overview over all patches that are currently used.
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
+| server |  Signs allow color codes      | William Blake Galbreath |  |
+| server |  Signs editable on right click      | William Blake Galbreath |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
