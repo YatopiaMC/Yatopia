@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Fri, 27 Nov 2020 10:33:59 -0600
+Subject: [PATCH] Use faster random implementation
+
+Replace usages of random in world and entity classes with FastRandom, an adapter for XoRoShiRo128PlusPlus. This nearly doubles random performance across the board.
+
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 094b4be4ef0e7c47696575158d3d0208542576ca..3b3081d1135ae52cbb12f9473a99f3a2d6526ecf 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -61,7 +61,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+ 
+     // Paper start
+     boolean isQueuedForRegister = false;
+-    public static Random SHARED_RANDOM = new Random() {
++    public static Random SHARED_RANDOM = new net.yatopia.server.util.FastRandom() { //Yatopia Faster Random
+         private boolean locked = false;
+         @Override
+         public synchronized void setSeed(long seed) {
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index e14df9a6ba26ba209d1a6446a0711a52360c48bf..a583b7486502929b7d1ea1fec9d59e2e7b177159 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -54,7 +54,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     protected float rainLevel;
+     protected float lastThunderLevel;
+     protected float thunderLevel;
+-    public final Random random = new Random();
++    public final Random random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
+     private final DimensionManager x;
+     public final WorldDataMutable worldData;
+     private final Supplier<GameProfilerFiller> methodProfiler;
