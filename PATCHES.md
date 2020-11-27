@@ -117,7 +117,9 @@ This is an overview over all patches that are currently used.
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Tile Entity optimizations      | Mykyta Komarnytskyy |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
+| server |  Use faster random implementation      | Mykyta Komarnytskyy |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
 | api |  Yatopia API Bundle      | YatopiaMC |  |
