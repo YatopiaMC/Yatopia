@@ -6,19 +6,19 @@ Subject: [PATCH] Tile Entity optimizations
 This patch includes various tile entity optimizations. Normally, these aren't going to improve performance much, but can be useful if you have loads of tile entities or they are being used as building blocks.
 
 diff --git a/src/main/java/net/minecraft/server/TileEntityBeehive.java b/src/main/java/net/minecraft/server/TileEntityBeehive.java
-index a60e0872d51aeb330bd5334e35f18ad0ed63834e..40bde90306106534e73d6845caf956514e5dcf88 100644
+index a60e0872d51aeb330bd5334e35f18ad0ed63834e..0262dfe3e3dc9fbd0c2d4754a28b9603672685b6 100644
 --- a/src/main/java/net/minecraft/server/TileEntityBeehive.java
 +++ b/src/main/java/net/minecraft/server/TileEntityBeehive.java
 @@ -286,6 +286,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
  
      @Override
      public void tick() {
-+        if (this.bees.size() == 0) return; // Yatopia - TE optimizations
++        if (this.bees.size() == 0) return; // Hydrinity - TE optimizations
          if (!this.world.isClientSide) {
              this.y();
              BlockPosition blockposition = this.getPosition();
 diff --git a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-index de597d053fcdb983b9b08f0628e4708e6149ffab..d58e83e13c92be82966d1ba78977c18d17e0e57a 100644
+index de597d053fcdb983b9b08f0628e4708e6149ffab..b7d0caeb8065495c0ccee25c04d576fdbf4e99df 100644
 --- a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
 +++ b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
 @@ -3,7 +3,7 @@ package net.minecraft.server;
@@ -26,7 +26,7 @@ index de597d053fcdb983b9b08f0628e4708e6149ffab..d58e83e13c92be82966d1ba78977c18d
  import javax.annotation.Nullable;
  
 -public class TileEntityEnchantTable extends TileEntity implements INamableTileEntity, ITickable {
-+public class TileEntityEnchantTable extends TileEntity implements INamableTileEntity { // Yatopia - don't tick enchanting tables
++public class TileEntityEnchantTable extends TileEntity implements INamableTileEntity { // Hydrinity - don't tick enchanting tables
  
      public int a;
      public float b;
@@ -40,7 +40,7 @@ index de597d053fcdb983b9b08f0628e4708e6149ffab..d58e83e13c92be82966d1ba78977c18d
          this.j = this.i;
          this.l = this.k;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index a583b7486502929b7d1ea1fec9d59e2e7b177159..331b2fa924200109afb78dd0d07b25e2932b0ce5 100644
+index a583b7486502929b7d1ea1fec9d59e2e7b177159..8255a0d426cbc3469e4f5a5638a749f20d1f7596 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -840,13 +840,18 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -48,9 +48,9 @@ index a583b7486502929b7d1ea1fec9d59e2e7b177159..331b2fa924200109afb78dd0d07b25e2
                  BlockPosition blockposition = tileentity.getPosition();
  
 -                if (this.getChunkProvider().a(blockposition) && this.getWorldBorder().a(blockposition)) {
-+                // Yatopia start - TE optimizations
-+                var chunk = tileentity.getCurrentChunk();
-+                var playerchunk = chunk == null ? null : chunk.playerChunk;
++                // Hydrinity start - TE optimizations
++                Chunk chunk = tileentity.getCurrentChunk();
++                PlayerChunk playerchunk = chunk == null ? null : chunk.playerChunk;
 +                if (playerchunk == null) continue;
 +                if (playerchunk.isTickingReady() && this.getWorldBorder().a(blockposition)) {
                      try {
@@ -60,7 +60,7 @@ index a583b7486502929b7d1ea1fec9d59e2e7b177159..331b2fa924200109afb78dd0d07b25e2
                          tileentity.tickTimer.startTiming(); // Spigot
 -                        if (tileentity.getTileType().isValidBlock(this.getType(blockposition).getBlock())) {
 +                        if (tileentity.getTileType().isValidBlock(chunk.getType(blockposition).getBlock())) {
-+                            // Yatopia end
++                            // Hydrinity end
                              ((ITickable) tileentity).tick();
                          } else {
                              tileentity.w();
@@ -71,12 +71,12 @@ index a583b7486502929b7d1ea1fec9d59e2e7b177159..331b2fa924200109afb78dd0d07b25e2
 -                if (this.isLoaded(tileentity.getPosition())) {
 -                    this.getChunkAtWorldCoords(tileentity.getPosition()).removeTileEntity(tileentity.getPosition());
 -                }
-+                // Yatopia start - TE optimizations
-+                var chunk = tileentity.getCurrentChunk();
++                // Hydrinity start - TE optimizations
++                Chunk chunk = tileentity.getCurrentChunk();
 +                if (chunk == null) continue;
 +                // if (this.isLoaded(tileentity.getPosition())) {
 +                    chunk.removeTileEntity(tileentity.getPosition());
-+                // } // Yatopia end
++                // } // Hydrinity end
              }
          }
  
@@ -87,7 +87,7 @@ index a583b7486502929b7d1ea1fec9d59e2e7b177159..331b2fa924200109afb78dd0d07b25e2
 -                    if (this.isLoaded(tileentity1.getPosition())) {
 -                        Chunk chunk = this.getChunkAtWorldCoords(tileentity1.getPosition());
 +                    // Hydrinity start - TE optimizations
-+                    var chunk = tileentity1.getCurrentChunk();
++                    Chunk chunk = tileentity1.getCurrentChunk();
 +                    if (chunk == null) continue;
 +                    // if (this.isLoaded(tileentity1.getPosition())) {
 +                        // Chunk chunk = this.getChunkAtWorldCoords(tileentity1.getPosition());
