@@ -44,6 +44,19 @@ index 73bff2ca1f09cf6f33479f175cae72e456e8db4b..a481a2f05b701c85cf863cd3dadc22c3
          this.i = ContainerProperty.a();
          this.costs = new int[3];
          this.enchantments = new int[]{-1, -1, -1};
+diff --git a/src/main/java/net/minecraft/server/EnderDragonBattle.java b/src/main/java/net/minecraft/server/EnderDragonBattle.java
+index 38dc6086d18951e065d4048d1d8eee288c5c5fd1..08c83c8a226b6b38250aba2fab86d4685228797b 100644
+--- a/src/main/java/net/minecraft/server/EnderDragonBattle.java
++++ b/src/main/java/net/minecraft/server/EnderDragonBattle.java
+@@ -73,7 +73,7 @@ public class EnderDragonBattle {
+             }
+         } else {
+             this.gateways.addAll(ContiguousSet.create(Range.closedOpen(0, 20), DiscreteDomain.integers()));
+-            Collections.shuffle(this.gateways, new Random(i));
++            Collections.shuffle(this.gateways, new net.yatopia.server.util.FastRandom(i)); // Yatopia - fast random
+         }
+ 
+         this.f = ShapeDetectorBuilder.a().a("       ", "       ", "       ", "   #   ", "       ", "       ", "       ").a("       ", "       ", "       ", "   #   ", "       ", "       ", "       ").a("       ", "       ", "       ", "   #   ", "       ", "       ", "       ").a("  ###  ", " #   # ", "#     #", "#  #  #", "#     #", " #   # ", "  ###  ").a("       ", "  ###  ", " ##### ", " ##### ", " ##### ", "  ###  ", "       ").a('#', ShapeDetectorBlock.a(BlockPredicate.a(Blocks.BEDROCK))).b();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
 index 094b4be4ef0e7c47696575158d3d0208542576ca..3b3081d1135ae52cbb12f9473a99f3a2d6526ecf 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
@@ -70,6 +83,28 @@ index 6891e61bcfea82958e100abaef94865bf36a32c2..37172d3def389f3510e05b8e63e94b5e
          this.ak = true;
          this.am = EntityFishingHook.HookState.FLYING;
          this.Y = true;
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index 151c1eb0be3099a0512caadeedc1354bb07db5c7..436055024ed498613a32e555a2201d2bad40df4c 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -186,7 +186,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             long l = k * k;
+             int i1 = l > 2147483647L ? Integer.MAX_VALUE : (int) l;
+             int j1 = this.u(i1);
+-            int k1 = (new Random()).nextInt(i1);
++            int k1 = worldserver.random.nextInt(i1); // Yatopia - don't create new random instance
+ 
+             for (int l1 = 0; l1 < i1; ++l1) {
+                 int i2 = (k1 + j1 * l1) % i1;
+@@ -224,7 +224,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+             long l = k * k;
+             int i1 = l > 2147483647L ? Integer.MAX_VALUE : (int) l;
+             int j1 = this.u(i1);
+-            int k1 = (new Random()).nextInt(i1);
++            int k1 = worldserver.random.nextInt(i1); // Yatopia - don't create new random instance
+ 
+             for (int l1 = 0; l1 < i1; ++l1) {
+                 int i2 = (k1 + j1 * l1) % i1;
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
 index fe513a9470a0c474ca436ede4a5a7da476cf6c8d..8c2381f8108a28aa2a627e5356439050c3983fb8 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
@@ -135,6 +170,19 @@ index 8d89f51182444852062d549d23c00a93e601eb38..b207839f4d8ff00252187083e787526b
      private final IWorldDataServer b;
      private int c; public final int getMinuteTimer() { return this.c; } public final void setMinuteTimer(int x) { this.c = x; } // Paper - OBFHELPER
      private int d; public final int getDayTimer() { return this.d; } public final void setDayTimer(int x) { this.d = x; } // Paper - OBFHELPER
+diff --git a/src/main/java/net/minecraft/server/PiglinAI.java b/src/main/java/net/minecraft/server/PiglinAI.java
+index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..09a5ea308a8d0dc3c8a38fce115e62d9b2e0b8aa 100644
+--- a/src/main/java/net/minecraft/server/PiglinAI.java
++++ b/src/main/java/net/minecraft/server/PiglinAI.java
+@@ -273,7 +273,7 @@ public class PiglinAI {
+     }
+ 
+     private static boolean a(EntityLiving entityliving, EntityLiving entityliving1) {
+-        return entityliving1.getEntityType() != EntityTypes.HOGLIN ? false : (new Random(entityliving.world.getTime())).nextFloat() < 0.1F;
++        return entityliving1.getEntityType() != EntityTypes.HOGLIN ? false : (new net.yatopia.server.util.FastRandom(entityliving.world.getTime())).nextFloat() < 0.1F; // Yatopia - fast random
+     }
+ 
+     protected static boolean a(EntityPiglin entitypiglin, ItemStack itemstack) {
 diff --git a/src/main/java/net/minecraft/server/Raid.java b/src/main/java/net/minecraft/server/Raid.java
 index 11f768e04d71b96350fdb586a280c52e062dfcf2..71e64250214b27c215d30d6c6d5fe51b7a7c43a1 100644
 --- a/src/main/java/net/minecraft/server/Raid.java
@@ -197,10 +245,17 @@ index f0fdfd6891e59891e7370a2d682b65c647b28e9e..964f7a4cda578c2d91d8150217da2fe0
      }
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index de7ca87e74084c5cca109a6eff071da351dec91b..6a03dcff390b17ad3d42a2fe5f6c4430687c373d 100644
+index de7ca87e74084c5cca109a6eff071da351dec91b..7431bfc335dadfb5f5f83ccba6d8923c15756dc1 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -54,7 +54,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -48,13 +48,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public final Thread serverThread;
+     private final boolean debugWorld;
+     private int d;
+-    protected int n = (new Random()).nextInt();
++    protected int n = (new net.yatopia.server.util.FastRandom()).nextInt(); // Yatopia - wtf ? why doesn't this use the already initiated random!?
+     protected final int o = 1013904223;
+     protected float lastRainLevel;
      protected float rainLevel;
      protected float lastThunderLevel;
      protected float thunderLevel;
