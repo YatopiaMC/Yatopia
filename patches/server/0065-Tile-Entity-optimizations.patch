@@ -6,41 +6,31 @@ Subject: [PATCH] Tile Entity optimizations
 This patch includes various tile entity optimizations. Normally, these aren't going to improve performance much, but can be useful if you have loads of tile entities or they are being used as building blocks.
 
 diff --git a/src/main/java/net/minecraft/server/TileEntityBeehive.java b/src/main/java/net/minecraft/server/TileEntityBeehive.java
-index a60e0872d51aeb330bd5334e35f18ad0ed63834e..0262dfe3e3dc9fbd0c2d4754a28b9603672685b6 100644
+index a60e0872d51aeb330bd5334e35f18ad0ed63834e..40bde90306106534e73d6845caf956514e5dcf88 100644
 --- a/src/main/java/net/minecraft/server/TileEntityBeehive.java
 +++ b/src/main/java/net/minecraft/server/TileEntityBeehive.java
 @@ -286,6 +286,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
  
      @Override
      public void tick() {
-+        if (this.bees.size() == 0) return; // Hydrinity - TE optimizations
++        if (this.bees.size() == 0) return; // Yatopia - TE optimizations
          if (!this.world.isClientSide) {
              this.y();
              BlockPosition blockposition = this.getPosition();
 diff --git a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-index de597d053fcdb983b9b08f0628e4708e6149ffab..b7d0caeb8065495c0ccee25c04d576fdbf4e99df 100644
+index de597d053fcdb983b9b08f0628e4708e6149ffab..2400860b70cec7e1c875c0c6abd589f67b8f8146 100644
 --- a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
 +++ b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-@@ -3,7 +3,7 @@ package net.minecraft.server;
- import java.util.Random;
- import javax.annotation.Nullable;
+@@ -43,6 +43,7 @@ public class TileEntityEnchantTable extends TileEntity implements INamableTileEn
  
--public class TileEntityEnchantTable extends TileEntity implements INamableTileEntity, ITickable {
-+public class TileEntityEnchantTable extends TileEntity implements INamableTileEntity { // Hydrinity - don't tick enchanting tables
- 
-     public int a;
-     public float b;
-@@ -41,7 +41,7 @@ public class TileEntityEnchantTable extends TileEntity implements INamableTileEn
- 
-     }
- 
--    @Override
-+    // @Override // Hydrinity - don't tick enchanting tables
+     @Override
      public void tick() {
++        if (!net.yatopia.server.YatopiaConfig.shouldTickEnchantingTables) { return; } // Yatopia - TE optimizations
          this.j = this.i;
          this.l = this.k;
+         EntityHuman entityhuman = this.world.a((double) this.position.getX() + 0.5D, (double) this.position.getY() + 0.5D, (double) this.position.getZ() + 0.5D, 3.0D, false);
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..46ce8c92a8ebe04b473d0351f6c575592c2e3090 100644
+index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..d23342b6f3f757e87a7f5118ae359efddda65353 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -917,13 +917,18 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -48,7 +38,7 @@ index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..46ce8c92a8ebe04b473d0351f6c57559
                  BlockPosition blockposition = tileentity.getPosition();
  
 -                if (this.getChunkProvider().a(blockposition) && this.getWorldBorder().a(blockposition)) {
-+                // Hydrinity start - TE optimizations
++                // Yatopia start - TE optimizations
 +                Chunk chunk = tileentity.getCurrentChunk();
 +                PlayerChunk playerchunk = chunk == null ? null : chunk.playerChunk;
 +                if (playerchunk == null) continue;
@@ -60,7 +50,7 @@ index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..46ce8c92a8ebe04b473d0351f6c57559
                          tileentity.tickTimer.startTiming(); // Spigot
 -                        if (tileentity.getTileType().isValidBlock(this.getType(blockposition).getBlock())) {
 +                        if (tileentity.getTileType().isValidBlock(chunk.getType(blockposition).getBlock())) {
-+                            // Hydrinity end
++                            // Yatopia end
                              ((ITickable) tileentity).tick();
                          } else {
                              tileentity.w();
@@ -71,12 +61,12 @@ index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..46ce8c92a8ebe04b473d0351f6c57559
 -                if (this.isLoaded(tileentity.getPosition())) {
 -                    this.getChunkAtWorldCoords(tileentity.getPosition()).removeTileEntity(tileentity.getPosition());
 -                }
-+                // Hydrinity start - TE optimizations
++                // Yatopia start - TE optimizations
 +                Chunk chunk = tileentity.getCurrentChunk();
 +                if (chunk == null) continue;
 +                // if (this.isLoaded(tileentity.getPosition())) {
 +                    chunk.removeTileEntity(tileentity.getPosition());
-+                // } // Hydrinity end
++                // } // Yatopia end
              }
          }
  
@@ -86,7 +76,7 @@ index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..46ce8c92a8ebe04b473d0351f6c57559
  
 -                    if (this.isLoaded(tileentity1.getPosition())) {
 -                        Chunk chunk = this.getChunkAtWorldCoords(tileentity1.getPosition());
-+                    // Hydrinity start - TE optimizations
++                    // Yatopia start - TE optimizations
 +                    Chunk chunk = tileentity1.getCurrentChunk();
 +                    if (chunk == null) continue;
 +                    // if (this.isLoaded(tileentity1.getPosition())) {
@@ -99,7 +89,21 @@ index 6a03dcff390b17ad3d42a2fe5f6c4430687c373d..46ce8c92a8ebe04b473d0351f6c57559
                          }
                          // CraftBukkit end
 -                    }
-+                    // } // Hydrinity end
++                    // } // Yatopia end
                  }
              }
  
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index 5139279822b1fdc4a60de5abc76e81c75fe2e6bb..d33dd43747afc17dd80472c87e99b5cb409b40e9 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -283,4 +283,9 @@ public class YatopiaConfig {
+         checkVehicleMovedQuickly = getBoolean("settings.checks.vehicle-moved-quickly", checkVehicleMovedQuickly);
+         checkVehicleMovedWrongly = getBoolean("settings.checks.vehicle-moved-wrongly", checkVehicleMovedWrongly);
+     }
++
++    public static boolean shouldTickEnchantingTables = false;
++    private static void tickEnchantingTables() {
++        shouldTickEnchantingTables = getBoolean("settings.tick.enchanting-tables", shouldTickEnchantingTables);
++    }
+ }
