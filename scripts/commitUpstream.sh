@@ -12,6 +12,7 @@ akarin=$(changeLog Akarin)
 empirecraft=$(changeLog Empirecraft)
 origami=$(changeLog Origami)
 purpur=$(changeLog Purpur)
+airplaneL=$(changeLog AirplaneLite)
 
 updated=""
 logsuffix=""
@@ -34,6 +35,10 @@ fi
 if [ ! -z "$purpur" ]; then
   logsuffix="$logsuffix\n\nPurpur Changes:\n$purpur"
   if [ -z "$updated" ]; then updated="Purpur"; else updated="$updated/Purpur"; fi
+fi
+if [ ! -z "$airplaneL" ]; then
+  logsuffix="$logsuffix\n\nAirplaneLite Changes:\n$airplaneL"
+  if [ -z "$updated" ]; then updated="AirplaneLite"; else updated="$updated/AirplaneLite"; fi
 fi
 disclaimer="Upstream/An Sidestream has released updates that appears to apply and compile correctly\nThis update has NOT been tested by YatopiaMC and as with ANY update, please do your own testing."
 
