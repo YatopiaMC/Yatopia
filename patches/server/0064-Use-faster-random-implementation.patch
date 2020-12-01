@@ -6,7 +6,7 @@ Subject: [PATCH] Use faster random implementation
 Replace usages of random in world and entity classes with FastRandom, an adapter for XoRoShiRo128PlusPlus. This nearly doubles random performance across the board.
 
 diff --git a/src/main/java/com/destroystokyo/paper/loottable/PaperLootableInventoryData.java b/src/main/java/com/destroystokyo/paper/loottable/PaperLootableInventoryData.java
-index b5401eaf974857455c17c3f9cfdedf2eb4bde321..bcc01ea8a07deb3f437ebadd90d02e20e91889a0 100644
+index b5401eaf974857455c17c3f9cfdedf2eb4bde321..ec7ce458159e04b4d2bfda8fbb9b6974595747a6 100644
 --- a/src/main/java/com/destroystokyo/paper/loottable/PaperLootableInventoryData.java
 +++ b/src/main/java/com/destroystokyo/paper/loottable/PaperLootableInventoryData.java
 @@ -13,7 +13,7 @@ import java.util.UUID;
@@ -14,12 +14,12 @@ index b5401eaf974857455c17c3f9cfdedf2eb4bde321..bcc01ea8a07deb3f437ebadd90d02e20
  public class PaperLootableInventoryData {
  
 -    private static final Random RANDOM = new Random();
-+    private static final Random RANDOM = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private static final Random RANDOM = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
  
      private long lastFill = -1;
      private long nextRefill = -1;
 diff --git a/src/main/java/net/minecraft/server/CommandSpreadPlayers.java b/src/main/java/net/minecraft/server/CommandSpreadPlayers.java
-index c9f4b69874e693c8e5c3346f09db7b5014dcfb63..b5047b0b6de4c737f52dcb4d109c610d8451260d 100644
+index c9f4b69874e693c8e5c3346f09db7b5014dcfb63..e0101b688337d863ee873301368dcaced630d127 100644
 --- a/src/main/java/net/minecraft/server/CommandSpreadPlayers.java
 +++ b/src/main/java/net/minecraft/server/CommandSpreadPlayers.java
 @@ -37,7 +37,7 @@ public class CommandSpreadPlayers {
@@ -27,12 +27,12 @@ index c9f4b69874e693c8e5c3346f09db7b5014dcfb63..b5047b0b6de4c737f52dcb4d109c610d
  
      private static int a(CommandListenerWrapper commandlistenerwrapper, Vec2F vec2f, float f, float f1, int i, boolean flag, Collection<? extends Entity> collection) throws CommandSyntaxException {
 -        Random random = new Random();
-+        Random random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        Random random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          double d0 = (double) (vec2f.i - f1);
          double d1 = (double) (vec2f.j - f1);
          double d2 = (double) (vec2f.i + f1);
 diff --git a/src/main/java/net/minecraft/server/ContainerEnchantTable.java b/src/main/java/net/minecraft/server/ContainerEnchantTable.java
-index 73bff2ca1f09cf6f33479f175cae72e456e8db4b..a481a2f05b701c85cf863cd3dadc22c31403942d 100644
+index 73bff2ca1f09cf6f33479f175cae72e456e8db4b..8a09aa82d97b5096e62995bc3903e15a623c15ad 100644
 --- a/src/main/java/net/minecraft/server/ContainerEnchantTable.java
 +++ b/src/main/java/net/minecraft/server/ContainerEnchantTable.java
 @@ -52,7 +52,7 @@ public class ContainerEnchantTable extends Container {
@@ -40,12 +40,12 @@ index 73bff2ca1f09cf6f33479f175cae72e456e8db4b..a481a2f05b701c85cf863cd3dadc22c3
              // CraftBukkit end
          };
 -        this.h = new Random();
-+        this.h = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        this.h = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          this.i = ContainerProperty.a();
          this.costs = new int[3];
          this.enchantments = new int[]{-1, -1, -1};
 diff --git a/src/main/java/net/minecraft/server/EnderDragonBattle.java b/src/main/java/net/minecraft/server/EnderDragonBattle.java
-index 38dc6086d18951e065d4048d1d8eee288c5c5fd1..08c83c8a226b6b38250aba2fab86d4685228797b 100644
+index 38dc6086d18951e065d4048d1d8eee288c5c5fd1..4e094f0e1117cecbd39be645997eb9d3080c666f 100644
 --- a/src/main/java/net/minecraft/server/EnderDragonBattle.java
 +++ b/src/main/java/net/minecraft/server/EnderDragonBattle.java
 @@ -73,7 +73,7 @@ public class EnderDragonBattle {
@@ -53,12 +53,12 @@ index 38dc6086d18951e065d4048d1d8eee288c5c5fd1..08c83c8a226b6b38250aba2fab86d468
          } else {
              this.gateways.addAll(ContiguousSet.create(Range.closedOpen(0, 20), DiscreteDomain.integers()));
 -            Collections.shuffle(this.gateways, new Random(i));
-+            Collections.shuffle(this.gateways, new net.yatopia.server.util.FastRandom(i)); // Yatopia - fast random
++            Collections.shuffle(this.gateways, new org.yatopiamc.yatopia.server.util.FastRandom(i)); // Yatopia - fast random
          }
  
          this.f = ShapeDetectorBuilder.a().a("       ", "       ", "       ", "   #   ", "       ", "       ", "       ").a("       ", "       ", "       ", "   #   ", "       ", "       ", "       ").a("       ", "       ", "       ", "   #   ", "       ", "       ", "       ").a("  ###  ", " #   # ", "#     #", "#  #  #", "#     #", " #   # ", "  ###  ").a("       ", "  ###  ", " ##### ", " ##### ", " ##### ", "  ###  ", "       ").a('#', ShapeDetectorBlock.a(BlockPredicate.a(Blocks.BEDROCK))).b();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 05353636bee54f3874fd243059d1c2c96e735d8b..d72832863a67bc8666e21d007a6236ff5f5f9ec3 100644
+index 2d6c0235879ef2b9024d6b881048bb8b73d18abe..07b8331ee44f5fc87e7b9140141ba8ffef94b4d8 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -61,7 +61,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -66,12 +66,12 @@ index 05353636bee54f3874fd243059d1c2c96e735d8b..d72832863a67bc8666e21d007a6236ff
      // Paper start
      boolean isQueuedForRegister = false;
 -    public static Random SHARED_RANDOM = new Random() {
-+    public static Random SHARED_RANDOM = new net.yatopia.server.util.FastRandom() { //Yatopia Faster Random
++    public static Random SHARED_RANDOM = new org.yatopiamc.yatopia.server.util.FastRandom() { //Yatopia Faster Random
          private boolean locked = false;
          @Override
          public synchronized void setSeed(long seed) {
 diff --git a/src/main/java/net/minecraft/server/EntityFishingHook.java b/src/main/java/net/minecraft/server/EntityFishingHook.java
-index 6891e61bcfea82958e100abaef94865bf36a32c2..37172d3def389f3510e05b8e63e94b5ec045e3c5 100644
+index 6891e61bcfea82958e100abaef94865bf36a32c2..32ccc08455a88c510fe05713c8de7a5eed85e70b 100644
 --- a/src/main/java/net/minecraft/server/EntityFishingHook.java
 +++ b/src/main/java/net/minecraft/server/EntityFishingHook.java
 @@ -38,7 +38,7 @@ public class EntityFishingHook extends IProjectile {
@@ -79,12 +79,12 @@ index 6891e61bcfea82958e100abaef94865bf36a32c2..37172d3def389f3510e05b8e63e94b5e
      private EntityFishingHook(World world, EntityHuman entityhuman, int i, int j) {
          super(EntityTypes.FISHING_BOBBER, world);
 -        this.b = new Random();
-+        this.b = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        this.b = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          this.ak = true;
          this.am = EntityFishingHook.HookState.FLYING;
          this.Y = true;
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 151c1eb0be3099a0512caadeedc1354bb07db5c7..436055024ed498613a32e555a2201d2bad40df4c 100644
+index 1f54ce29006749e59cb4088b260b70596884a45d..6fe7151ba7d8ad105bf21aa89be5a7ab2f2aa0ca 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -186,7 +186,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -106,7 +106,7 @@ index 151c1eb0be3099a0512caadeedc1354bb07db5c7..436055024ed498613a32e555a2201d2b
              for (int l1 = 0; l1 < i1; ++l1) {
                  int i2 = (k1 + j1 * l1) % i1;
 diff --git a/src/main/java/net/minecraft/server/Explosion.java b/src/main/java/net/minecraft/server/Explosion.java
-index 5ca4d03215c979a4d122a32178a1859b4d9c3334..3b56226e2b314724294bddc3236b8c2d16c8ccc1 100644
+index 5ca4d03215c979a4d122a32178a1859b4d9c3334..a9006f3c8ccc3e46252343baa5104a5d0b48dc8b 100644
 --- a/src/main/java/net/minecraft/server/Explosion.java
 +++ b/src/main/java/net/minecraft/server/Explosion.java
 @@ -27,7 +27,7 @@ public class Explosion {
@@ -114,12 +114,12 @@ index 5ca4d03215c979a4d122a32178a1859b4d9c3334..3b56226e2b314724294bddc3236b8c2d
      private final boolean b;
      private final Explosion.Effect c;
 -    private final Random d = new Random();
-+    private final Random d = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private final Random d = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private final World world;
      private final double posX;
      private final double posY;
 diff --git a/src/main/java/net/minecraft/server/Item.java b/src/main/java/net/minecraft/server/Item.java
-index c3b57e8d572d13ec74d6df5544072cdc55756690..6b15fc26f3ce629666efd4b46c2d62b29a62c263 100644
+index c3b57e8d572d13ec74d6df5544072cdc55756690..99e5e2c6fe12e0deda1f5aeb3f8922efa5fa8cae 100644
 --- a/src/main/java/net/minecraft/server/Item.java
 +++ b/src/main/java/net/minecraft/server/Item.java
 @@ -13,7 +13,7 @@ public class Item implements IMaterial {
@@ -127,12 +127,12 @@ index c3b57e8d572d13ec74d6df5544072cdc55756690..6b15fc26f3ce629666efd4b46c2d62b2
      protected static final UUID f = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
      protected static final UUID g = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
 -    protected static final Random RANDOM = new Random();
-+    protected static final Random RANDOM = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    protected static final Random RANDOM = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      protected final CreativeModeTab i;
      private final EnumItemRarity a;
      private final int maxStackSize;
 diff --git a/src/main/java/net/minecraft/server/LoginListener.java b/src/main/java/net/minecraft/server/LoginListener.java
-index 9190caed195b9987e3af545f4de63b8d956788a6..00e9ebe7ce698f523e08d5ed6e48e41fe3bfe85d 100644
+index 9190caed195b9987e3af545f4de63b8d956788a6..178386cfb44152b50757234a624afef0d61e00d8 100644
 --- a/src/main/java/net/minecraft/server/LoginListener.java
 +++ b/src/main/java/net/minecraft/server/LoginListener.java
 @@ -32,7 +32,7 @@ public class LoginListener implements PacketLoginInListener {
@@ -140,12 +140,12 @@ index 9190caed195b9987e3af545f4de63b8d956788a6..00e9ebe7ce698f523e08d5ed6e48e41f
      private static final AtomicInteger b = new AtomicInteger(0);
      private static final Logger LOGGER = LogManager.getLogger();
 -    private static final Random random = new Random();
-+    private static final Random random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private static final Random random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private final byte[] e = new byte[4];
      private final MinecraftServer server;
      public final NetworkManager networkManager;
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 94c20ad7fb8872f763953e0991a72a075700a024..a28bca93e1ebb2b2427947aebd53b6cdcc5f7806 100644
+index 76d3c208e60385f842471128e4591f757cc2138c..bdbbb6ea881fccbfc753dfb6a401dafb6a056a03 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -196,7 +196,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -153,12 +153,12 @@ index 94c20ad7fb8872f763953e0991a72a075700a024..a28bca93e1ebb2b2427947aebd53b6cd
          this.methodProfiler = GameProfilerDisabled.a;
          this.serverPing = new ServerPing();
 -        this.r = new Random();
-+        this.r = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        this.r = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          this.serverPort = -1;
          this.worldServer = Maps.newLinkedHashMap(); // CraftBukkit - keep order, k+v already use identity methods
          this.isRunning = true;
 diff --git a/src/main/java/net/minecraft/server/MobSpawnerTrader.java b/src/main/java/net/minecraft/server/MobSpawnerTrader.java
-index 8d89f51182444852062d549d23c00a93e601eb38..b207839f4d8ff00252187083e787526b6eba08e2 100644
+index 8d89f51182444852062d549d23c00a93e601eb38..3d07f8770d618ea03b2ee0838a86c5c545fe2b73 100644
 --- a/src/main/java/net/minecraft/server/MobSpawnerTrader.java
 +++ b/src/main/java/net/minecraft/server/MobSpawnerTrader.java
 @@ -7,7 +7,7 @@ import javax.annotation.Nullable;
@@ -166,12 +166,12 @@ index 8d89f51182444852062d549d23c00a93e601eb38..b207839f4d8ff00252187083e787526b
  public class MobSpawnerTrader implements MobSpawner {
  
 -    private final Random a = new Random();
-+    private final Random a = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private final Random a = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private final IWorldDataServer b;
      private int c; public final int getMinuteTimer() { return this.c; } public final void setMinuteTimer(int x) { this.c = x; } // Paper - OBFHELPER
      private int d; public final int getDayTimer() { return this.d; } public final void setDayTimer(int x) { this.d = x; } // Paper - OBFHELPER
 diff --git a/src/main/java/net/minecraft/server/PiglinAI.java b/src/main/java/net/minecraft/server/PiglinAI.java
-index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..09a5ea308a8d0dc3c8a38fce115e62d9b2e0b8aa 100644
+index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..c7bd1b7eff2de3ce51e096652998e1a44dfc514a 100644
 --- a/src/main/java/net/minecraft/server/PiglinAI.java
 +++ b/src/main/java/net/minecraft/server/PiglinAI.java
 @@ -273,7 +273,7 @@ public class PiglinAI {
@@ -179,12 +179,12 @@ index 0407fa1751d89a037da8cb01f5ceef9b9833dd18..09a5ea308a8d0dc3c8a38fce115e62d9
  
      private static boolean a(EntityLiving entityliving, EntityLiving entityliving1) {
 -        return entityliving1.getEntityType() != EntityTypes.HOGLIN ? false : (new Random(entityliving.world.getTime())).nextFloat() < 0.1F;
-+        return entityliving1.getEntityType() != EntityTypes.HOGLIN ? false : (new net.yatopia.server.util.FastRandom(entityliving.world.getTime())).nextFloat() < 0.1F; // Yatopia - fast random
++        return entityliving1.getEntityType() != EntityTypes.HOGLIN ? false : (new org.yatopiamc.yatopia.server.util.FastRandom(entityliving.world.getTime())).nextFloat() < 0.1F; // Yatopia - fast random
      }
  
      protected static boolean a(EntityPiglin entitypiglin, ItemStack itemstack) {
 diff --git a/src/main/java/net/minecraft/server/Raid.java b/src/main/java/net/minecraft/server/Raid.java
-index 11f768e04d71b96350fdb586a280c52e062dfcf2..71e64250214b27c215d30d6c6d5fe51b7a7c43a1 100644
+index 11f768e04d71b96350fdb586a280c52e062dfcf2..b1890e936696bdd04a1eaad65f77e4dc6ef1a664 100644
 --- a/src/main/java/net/minecraft/server/Raid.java
 +++ b/src/main/java/net/minecraft/server/Raid.java
 @@ -47,7 +47,7 @@ public class Raid {
@@ -192,7 +192,7 @@ index 11f768e04d71b96350fdb586a280c52e062dfcf2..71e64250214b27c215d30d6c6d5fe51b
      public Raid(int i, WorldServer worldserver, BlockPosition blockposition) {
          this.bossBattle = new BossBattleServer(Raid.a, BossBattle.BarColor.RED, BossBattle.BarStyle.NOTCHED_10);
 -        this.random = new Random();
-+        this.random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        this.random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          this.y = Optional.empty();
          this.id = i;
          this.world = worldserver;
@@ -201,12 +201,12 @@ index 11f768e04d71b96350fdb586a280c52e062dfcf2..71e64250214b27c215d30d6c6d5fe51b
      public Raid(WorldServer worldserver, NBTTagCompound nbttagcompound) {
          this.bossBattle = new BossBattleServer(Raid.a, BossBattle.BarColor.RED, BossBattle.BarStyle.NOTCHED_10);
 -        this.random = new Random();
-+        this.random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        this.random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          this.y = Optional.empty();
          this.world = worldserver;
          this.id = nbttagcompound.getInt("Id");
 diff --git a/src/main/java/net/minecraft/server/TileEntityDispenser.java b/src/main/java/net/minecraft/server/TileEntityDispenser.java
-index 6ea4bc31151bce2bdd3376a889029c4b999befac..bcd36fd3ad56897eb9968a96cb8cf3b0c1f93e8d 100644
+index 6ea4bc31151bce2bdd3376a889029c4b999befac..22e8730adaa5fd489116a9730c82e90fd830514b 100644
 --- a/src/main/java/net/minecraft/server/TileEntityDispenser.java
 +++ b/src/main/java/net/minecraft/server/TileEntityDispenser.java
 @@ -10,7 +10,7 @@ import org.bukkit.entity.HumanEntity;
@@ -214,12 +214,12 @@ index 6ea4bc31151bce2bdd3376a889029c4b999befac..bcd36fd3ad56897eb9968a96cb8cf3b0
  public class TileEntityDispenser extends TileEntityLootable {
  
 -    private static final Random a = new Random();
-+    private static final Random a = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private static final Random a = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private NonNullList<ItemStack> items;
  
      // CraftBukkit start - add fields and methods
 diff --git a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-index 9b0c75332d9815657d96183e51e40cf14ee3ed75..de597d053fcdb983b9b08f0628e4708e6149ffab 100644
+index 9b0c75332d9815657d96183e51e40cf14ee3ed75..c9066cb5f51cb2ad078aca3019e1df557062d286 100644
 --- a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
 +++ b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
 @@ -15,7 +15,7 @@ public class TileEntityEnchantTable extends TileEntity implements INamableTileEn
@@ -227,12 +227,12 @@ index 9b0c75332d9815657d96183e51e40cf14ee3ed75..de597d053fcdb983b9b08f0628e4708e
      public float l;
      public float m;
 -    private static final Random n = new Random();
-+    private static final Random n = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private static final Random n = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private IChatBaseComponent o;
  
      public TileEntityEnchantTable() {
 diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
-index f0fdfd6891e59891e7370a2d682b65c647b28e9e..964f7a4cda578c2d91d8150217da2fe0aabd6197 100644
+index f0fdfd6891e59891e7370a2d682b65c647b28e9e..8d5fe0880f4f2bffe14dc1c7163cde69869422e7 100644
 --- a/src/main/java/net/minecraft/server/WeightedList.java
 +++ b/src/main/java/net/minecraft/server/WeightedList.java
 @@ -28,7 +28,7 @@ public class WeightedList<U> {
@@ -240,12 +240,12 @@ index f0fdfd6891e59891e7370a2d682b65c647b28e9e..964f7a4cda578c2d91d8150217da2fe0
          this.isUnsafe = isUnsafe;
          // Paper end
 -        this.b = new Random();
-+        this.b = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        this.b = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          this.list = Lists.newArrayList(list); // Paper - decompile conflict
      }
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index de7ca87e74084c5cca109a6eff071da351dec91b..7431bfc335dadfb5f5f83ccba6d8923c15756dc1 100644
+index de7ca87e74084c5cca109a6eff071da351dec91b..84fb0492abca5a2443e89adc18b3fa17c636054f 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -48,13 +48,13 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -253,19 +253,19 @@ index de7ca87e74084c5cca109a6eff071da351dec91b..7431bfc335dadfb5f5f83ccba6d8923c
      private final boolean debugWorld;
      private int d;
 -    protected int n = (new Random()).nextInt();
-+    protected int n = (new net.yatopia.server.util.FastRandom()).nextInt(); // Yatopia - wtf ? why doesn't this use the already initiated random!?
++    protected int n = (new org.yatopiamc.yatopia.server.util.FastRandom()).nextInt(); // Yatopia - wtf ? why doesn't this use the already initiated random!?
      protected final int o = 1013904223;
      protected float lastRainLevel;
      protected float rainLevel;
      protected float lastThunderLevel;
      protected float thunderLevel;
 -    public final Random random = new Random();
-+    public final Random random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    public final Random random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private final DimensionManager x;
      public final WorldDataMutable worldData;
      private final Supplier<GameProfilerFiller> methodProfiler;
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index ae2cc01c10d2884da67ff0953e6ded8ba76c844f..a13f7453a9ea5f56da9644f7d397aa376799891f 100644
+index ae2cc01c10d2884da67ff0953e6ded8ba76c844f..957a7374a1f4feadc6ed7e897be189c00d1f4de6 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 @@ -334,7 +334,7 @@ public class CraftWorld implements World {
@@ -273,12 +273,12 @@ index ae2cc01c10d2884da67ff0953e6ded8ba76c844f..a13f7453a9ea5f56da9644f7d397aa37
      // Paper end
  
 -    private static final Random rand = new Random();
-+    private static final Random rand = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private static final Random rand = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
  
      public CraftWorld(WorldServer world, ChunkGenerator gen, Environment env) {
          this.world = world;
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftFirework.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftFirework.java
-index f3066e6c781bcee72c235abcef5060fb080892d5..defeba5372bbd870e82d436c4bff8de1c0c7a0c5 100644
+index f3066e6c781bcee72c235abcef5060fb080892d5..d002ec28a186939636652b98e5f0b77b5c1bed5c 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftFirework.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftFirework.java
 @@ -13,7 +13,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
@@ -286,12 +286,12 @@ index f3066e6c781bcee72c235abcef5060fb080892d5..defeba5372bbd870e82d436c4bff8de1
  public class CraftFirework extends CraftProjectile implements Firework {
  
 -    private final Random random = new Random();
-+    private final Random random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++    private final Random random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
      private final CraftItemStack item;
  
      public CraftFirework(CraftServer server, EntityFireworks entity) {
 diff --git a/src/test/java/org/bukkit/NibbleArrayTest.java b/src/test/java/org/bukkit/NibbleArrayTest.java
-index 40ba97fb77dddafe7c792249ca343d5abee3e5d0..86f9b00dd860c62fc783dbee0857854c22a1d06a 100644
+index 40ba97fb77dddafe7c792249ca343d5abee3e5d0..be5761e76abf6f9fbe5b0e047dac02fa605ecc30 100644
 --- a/src/test/java/org/bukkit/NibbleArrayTest.java
 +++ b/src/test/java/org/bukkit/NibbleArrayTest.java
 @@ -11,7 +11,7 @@ public class NibbleArrayTest {
@@ -299,7 +299,7 @@ index 40ba97fb77dddafe7c792249ca343d5abee3e5d0..86f9b00dd860c62fc783dbee0857854c
      @Test
      public void testNibble() {
 -        Random random = new Random();
-+        Random random = new net.yatopia.server.util.FastRandom(); //Yatopia Faster Random
++        Random random = new org.yatopiamc.yatopia.server.util.FastRandom(); //Yatopia Faster Random
          byte[] classic = new byte[NIBBLE_SIZE];
          NibbleArray nibble = new NibbleArray();
  

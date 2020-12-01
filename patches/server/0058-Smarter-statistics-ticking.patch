@@ -8,7 +8,7 @@ In vanilla, statistics that count time spent for an action (i.e. time played or 
 With an interval of 20, this patch saves roughly 3ms per tick on a server w/ 80 players online.
 
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 1bfa1500b942905c3918f0715da0a9d534909edb..21074d369b9f7c7f101ba85a9d350627b98217d2 100644
+index 08c1e85e1fcc55f647d238729870e84b7c55f598..4b19f01c891b23a8da7a39d6ae63f229bcb8e198 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -163,18 +163,23 @@ public abstract class EntityHuman extends EntityLiving {
@@ -17,7 +17,7 @@ index 1bfa1500b942905c3918f0715da0a9d534909edb..21074d369b9f7c7f101ba85a9d350627
              this.foodData.a(this);
 -            this.a(StatisticList.PLAY_ONE_MINUTE);
 +            // Yatopia start
-+            int interval = net.yatopia.server.YatopiaConfig.playerTimeStatisticsInterval;
++            int interval = org.yatopiamc.yatopia.server.YatopiaConfig.playerTimeStatisticsInterval;
 +            if (ticksLived % interval == 0) {
 +            this.a(StatisticList.PLAY_ONE_MINUTE, interval);
 +            // Yatopia end
@@ -39,10 +39,10 @@ index 1bfa1500b942905c3918f0715da0a9d534909edb..21074d369b9f7c7f101ba85a9d350627
          }
  
          int i = 29999999;
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index f0e7684304cab9cea05fa266a66a2ad8172c55b6..9df9f316ac2ec2567435ad33e7d4cdfff384381f 100644
---- a/src/main/java/net/yatopia/server/YatopiaConfig.java
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 26bd1fc5b348cc16ca29f66eead2ca42bd4258a8..2e08558eef23d40b3a704250dfe12bb7f4b660f3 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -253,4 +253,9 @@ public class YatopiaConfig {
          checkFlying = getBoolean("settings.checks.flight", checkFlying);
          checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);

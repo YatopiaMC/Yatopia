@@ -5,7 +5,7 @@ Subject: [PATCH] Configurable flight checks
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 292eef68b8d71236c845dd5c42c5366b5b55efc0..9d896d0bd7feda493a3aecd7959c287cd84ecb7f 100644
+index 292eef68b8d71236c845dd5c42c5366b5b55efc0..793be022028be7557cfd6d96f408c7039e5f9ca5 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -177,7 +177,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -13,7 +13,7 @@ index 292eef68b8d71236c845dd5c42c5366b5b55efc0..9d896d0bd7feda493a3aecd7959c287c
          this.processedMovePackets = this.receivedMovePackets;
          if (this.B && !this.player.isSleeping()) {
 -            if (++this.C > 80) {
-+            if (net.yatopia.server.YatopiaConfig.checkFlying && ++this.C > 80) { // Yatopia
++            if (org.yatopiamc.yatopia.server.YatopiaConfig.checkFlying && ++this.C > 80) { // Yatopia
                  PlayerConnection.LOGGER.warn("{} was kicked for floating too long!", this.player.getDisplayName().getString());
                  this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage); // Paper - use configurable kick message
                  return;
@@ -22,14 +22,14 @@ index 292eef68b8d71236c845dd5c42c5366b5b55efc0..9d896d0bd7feda493a3aecd7959c287c
              this.x = this.r.locZ();
              if (this.D && this.player.getRootVehicle().getRidingPassenger() == this.player) {
 -                if (++this.E > 80) {
-+                if (net.yatopia.server.YatopiaConfig.checkVehicleFlying && ++this.E > 80) { // Yatopia
++                if (org.yatopiamc.yatopia.server.YatopiaConfig.checkVehicleFlying && ++this.E > 80) { // Yatopia
                      PlayerConnection.LOGGER.warn("{} was kicked for floating a vehicle too long!", this.player.getDisplayName().getString());
                      this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickVehicleMessage); // Paper - use configurable kick message
                      return;
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index e4c5a485caa9e97388aefd9dc5a3ce40efeca738..f0e7684304cab9cea05fa266a66a2ad8172c55b6 100644
---- a/src/main/java/net/yatopia/server/YatopiaConfig.java
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index b358aacce7b8e1282d721ae1077b888239ec6b39..26bd1fc5b348cc16ca29f66eead2ca42bd4258a8 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -246,4 +246,11 @@ public class YatopiaConfig {
      public static boolean isProxy() {
          return org.spigotmc.SpigotConfig.bungee || com.destroystokyo.paper.PaperConfig.velocitySupport;
