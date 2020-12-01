@@ -12,7 +12,7 @@ These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd02594d2071fe 100644
+index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696eaf6525a 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -31,6 +31,10 @@ public class CraftingManager extends ResourceDataJson {
@@ -20,7 +20,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd0259
      public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
      private boolean d;
 +    // Yatopia start
-+    private static final List<IRecipe<?>> ALL_RECIPES_CACHE = new net.yatopia.server.list.GlueList<>();
++    private static final List<IRecipe<?>> ALL_RECIPES_CACHE = new java.util.ArrayList<>();
 +    private static final Map<Recipes<?>, List<IRecipe<?>>> TYPES_CACHE = new Object2ObjectLinkedOpenHashMap<>();
 +    // Yatopia end
  
@@ -44,7 +44,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd0259
          CraftingManager.LOGGER.info("Loaded {} recipes", map1.size());
      }
  
-@@ -79,23 +91,44 @@ public class CraftingManager extends ResourceDataJson {
+@@ -79,33 +91,65 @@ public class CraftingManager extends ResourceDataJson {
          } else {
              map.putAndMoveToFirst(irecipe.getKey(), irecipe); // CraftBukkit - SPIGOT-4638: last recipe gets priority
          }
@@ -84,20 +84,33 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd0259
              return irecipe;
          }).collect(Collectors.toList());
 +         */
-+        return (List) TYPES_CACHE.computeIfAbsent(recipes, recipes1 -> new net.yatopia.server.list.GlueList<>(getRecipesMap(recipes).values()));
++        return (List) TYPES_CACHE.computeIfAbsent(recipes, recipes1 -> new me.jellysquid.mods.lithium.common.util.collections.HashedList<>(new java.util.ArrayList<>(getRecipesMap(recipes).values())));
 +        // Yatopia end
      }
  
      public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
-@@ -106,6 +139,7 @@ public class CraftingManager extends ResourceDataJson {
++        // Yatopia start - replace stream
++        /*
+         return (List) this.b(recipes).values().stream().flatMap((irecipe) -> {
+             return SystemUtils.a(recipes.a(irecipe, world, c0));
+         }).sorted(Comparator.comparing((irecipe) -> {
+             return irecipe.getResult().j();
          })).collect(Collectors.toList());
++         */
++        List<T> ret = new java.util.ArrayList<>();
++        for (IRecipe<C> recipe : this.b(recipes).values()) {
++            recipes.a(recipe, world, c0).ifPresent(ret::add);
++        }
++        ret.sort(Comparator.comparing(recipe -> recipe.getResult().getTranslationKey()));
++        return ret;
++        // Yatopia end
      }
  
 +    private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> getRecipesMap(Recipes<T> recipes) { return b(recipes); } // Yatopia - OBFHELPER
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
          return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
      }
-@@ -127,15 +161,26 @@ public class CraftingManager extends ResourceDataJson {
+@@ -127,15 +171,26 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
@@ -127,7 +140,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd0259
      }
  
      public Stream<MinecraftKey> d() {
-@@ -155,6 +200,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -155,6 +210,10 @@ public class CraftingManager extends ResourceDataJson {
      // CraftBukkit start
      public void clearRecipes() {
          this.recipes = Maps.newHashMap();
@@ -138,3 +151,15 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..ddd3a071dde9daeebc3d512dd8fd0259
  
          for (Recipes<?> recipeType : IRegistry.RECIPE_TYPE) {
              this.recipes.put(recipeType, new Object2ObjectLinkedOpenHashMap<>());
+diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
+index 3adb29f004d2fee36f3ee9b21ee5417e84b64837..376ab1d4c4f729639714b5eeedec514a2176531a 100644
+--- a/src/main/java/net/minecraft/server/ItemStack.java
++++ b/src/main/java/net/minecraft/server/ItemStack.java
+@@ -570,6 +570,7 @@ public final class ItemStack {
+         return !this.e() ? this.doMaterialsMatch(itemstack) : !itemstack.isEmpty() && this.getItem() == itemstack.getItem();
+     }
+ 
++    public final String getTranslationKey() { return j(); } // Yatopia - OBFHELPER
+     public String j() {
+         return this.getItem().f(this);
+     }

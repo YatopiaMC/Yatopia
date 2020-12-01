@@ -45,7 +45,7 @@ index e10995ec30dd9a10d781b3c1709fd2db5a9becdd..456af55b5908f7192a63c6b15fb93a34
          return optional.map((villageplacerecord) -> {
              BlockPosition blockposition1 = villageplacerecord.f();
 diff --git a/src/main/java/net/minecraft/server/VillagePlace.java b/src/main/java/net/minecraft/server/VillagePlace.java
-index dbd50062d02e306444bb9dc22472a16bfd7d0fbb..ae8b23f09ea332e89430985eee42a6ceab6556eb 100644
+index bc1f5a554593889dfd44739c014180d1a0cb983e..84d67444d6f3948fb2e8c0fd7cc99844a2cbb7f9 100644
 --- a/src/main/java/net/minecraft/server/VillagePlace.java
 +++ b/src/main/java/net/minecraft/server/VillagePlace.java
 @@ -212,6 +212,18 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
@@ -56,7 +56,7 @@ index dbd50062d02e306444bb9dc22472a16bfd7d0fbb..ae8b23f09ea332e89430985eee42a6ce
 +        int j = org.apache.commons.math3.util.FastMath.floorDiv(i, 16) + 1;
 +
 +        java.util.List<ChunkCoordIntPair> list = ChunkCoordIntPair.streamList(new ChunkCoordIntPair(pos), j);
-+        java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
 +        for (ChunkCoordIntPair chunkPos : list) {
 +            for (int k = 0; k < 16; k++) {
 +                this.d(SectionPosition.a(chunkPos, k).asLong()).ifPresent(section -> ret.addAll(section.getFilteredList(filter, filterRecords, occupancy)));
@@ -66,8 +66,8 @@ index dbd50062d02e306444bb9dc22472a16bfd7d0fbb..ae8b23f09ea332e89430985eee42a6ce
 +    }
      public java.util.List<VillagePlaceRecord> cList(Predicate<VillagePlaceType> predicate, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
          int j = i * i;
-         java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
-@@ -461,6 +473,18 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
+@@ -471,6 +483,18 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
           */ // Yatopia end
      }
  
@@ -87,7 +87,7 @@ index dbd50062d02e306444bb9dc22472a16bfd7d0fbb..ae8b23f09ea332e89430985eee42a6ce
  
          private final Long2ByteMap b = new Long2ByteOpenHashMap();
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index 8b9f5797a6bee47ff16ee713777b5220dbb0afc6..1a0a30a1e7a231d05109428b2f57ae91841f3579 100644
+index 15d2b2c21e61369b5c7897914ccf0aa950f44668..5bc361c60bdf58122513fef267f60bd385d4af24 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
 @@ -69,6 +69,19 @@ public class VillagePlaceSection {
@@ -95,7 +95,7 @@ index 8b9f5797a6bee47ff16ee713777b5220dbb0afc6..1a0a30a1e7a231d05109428b2f57ae91
          return ret;
      }
 +    public java.util.List<VillagePlaceRecord> getFilteredList(Predicate<VillagePlaceType> predicate, Predicate<VillagePlaceRecord> recordFilter, VillagePlace.Occupancy occupancy) {
-+        java.util.List<VillagePlaceRecord> ret = new net.yatopia.server.list.GlueList<>();
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
 +        for (Map.Entry<VillagePlaceType, Set<VillagePlaceRecord>> entry : c.entrySet()) {
 +            if (predicate.test(entry.getKey())) {
 +                for (VillagePlaceRecord record : entry.getValue()) {

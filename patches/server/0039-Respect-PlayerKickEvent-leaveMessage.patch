@@ -5,7 +5,7 @@ Subject: [PATCH] Respect PlayerKickEvent leaveMessage
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index a7373681b8442b302a5f9cf5a7408443defc6f8c..9ca2bb896a17312614b08d5717a7713908a45845 100644
+index a7373681b8442b302a5f9cf5a7408443defc6f8c..292eef68b8d71236c845dd5c42c5366b5b55efc0 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -320,7 +320,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -13,7 +13,7 @@ index a7373681b8442b302a5f9cf5a7408443defc6f8c..9ca2bb896a17312614b08d5717a77139
              this.networkManager.close(ichatbasecomponent);
          });
 -        this.a(ichatbasecomponent); // CraftBukkit - fire quit instantly
-+        this.a(ichatbasecomponent, event.getLeaveMessage().equalsIgnoreCase(leaveMessage) ? null : event.getLeaveMessage()); // CraftBukkit - fire quit instantly // Yatopia
++        this.a(ichatbasecomponent, event.getLeaveMessage() == null || event.getLeaveMessage().equalsIgnoreCase(leaveMessage) ? null : event.getLeaveMessage()); // CraftBukkit - fire quit instantly // Yatopia
          this.networkManager.stopReading();
          MinecraftServer minecraftserver = this.minecraftServer;
          NetworkManager networkmanager = this.networkManager;

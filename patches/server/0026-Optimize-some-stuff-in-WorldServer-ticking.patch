@@ -6,23 +6,9 @@ Subject: [PATCH] Optimize some stuff in WorldServer ticking
 Replaced some streams and some array lists with glue lists
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 1c1730d299f150cf757f24639340b8878561b2c1..debc82608521d0d44da3e5a4c4dd8525b7e48109 100644
+index d2450f121ecf8f527cb1e32e66fdbe070e30a339..e918deebdad39f743cfc538ada05c68d6c522fc2 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -64,11 +64,11 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-     public final Int2ObjectMap<Entity> entitiesById = new Int2ObjectLinkedOpenHashMap(); final com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet<Entity> entitiesForIteration = new com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet<>(2048, 0.5f, 2048, 0.2, true); // Tuinity - make removing entities while ticking safe
-     private final Map<UUID, Entity> entitiesByUUID = Maps.newHashMap();
-     private final Queue<Entity> entitiesToAdd = Queues.newArrayDeque();
--    public final List<EntityPlayer> players = Lists.newArrayList(); // Paper - private -> public
-+    public final List<EntityPlayer> players = new net.yatopia.server.list.GlueList<>(); // Paper - private -> public // Yatopia
-     public final ChunkProviderServer chunkProvider; // Paper - public
-     boolean tickingEntities;
-     // Paper start
--    List<java.lang.Runnable> afterEntityTickingTasks = Lists.newArrayList();
-+    List<java.lang.Runnable> afterEntityTickingTasks = new net.yatopia.server.list.GlueList<>(); // Yatopia
-     public void doIfNotEntityTicking(java.lang.Runnable run) {
-         if (tickingEntities) {
-             afterEntityTickingTasks.add(run);
 @@ -812,12 +812,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
          }

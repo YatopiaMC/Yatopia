@@ -14,6 +14,7 @@ function update {
 }
 
 function updateAll {
+  update AirplaneLite master
   update Akarin 1.16.3
   update Empirecraft master
   update Origami 1.16
