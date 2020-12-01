@@ -10,7 +10,7 @@ added.
 These changes aim to reduce that load whenever you are using the /whitelist command.
 
 diff --git a/src/main/java/net/minecraft/server/CommandWhitelist.java b/src/main/java/net/minecraft/server/CommandWhitelist.java
-index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..f9e97d28ab182ff1b9e216b2c451642855d52738 100644
+index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab891a90d9 100644
 --- a/src/main/java/net/minecraft/server/CommandWhitelist.java
 +++ b/src/main/java/net/minecraft/server/CommandWhitelist.java
 @@ -12,8 +12,8 @@ public class CommandWhitelist {
@@ -64,7 +64,7 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..f9e97d28ab182ff1b9e216b2c4516428
              return i;
          }
 +         */
-+        java.util.List<WhiteListEntry> toAdd = new net.yatopia.server.list.GlueList<>();
++        java.util.List<WhiteListEntry> toAdd = new java.util.ArrayList<>();
 +        for (GameProfile profile : collection) {
 +            if (!whitelist.isWhitelisted(profile)) {
 +                toAdd.add(new WhiteListEntry(profile));
@@ -92,7 +92,7 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..f9e97d28ab182ff1b9e216b2c4516428
              return i;
          }
 +         */
-+        java.util.List<JsonListEntry<GameProfile>> toRemove = new net.yatopia.server.list.GlueList<>();
++        java.util.List<JsonListEntry<GameProfile>> toRemove = new java.util.ArrayList<>();
 +        for (GameProfile profile : collection) {
 +            if (whitelist.isWhitelisted(profile)) {
 +                toRemove.add(new WhiteListEntry(profile));

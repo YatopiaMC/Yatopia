@@ -349,6 +349,41 @@ index 963c90c065a9e362c8c3030bb36ac6bf0c14a8e2..00000000000000000000000000000000
 -     }
 - 
 -     public boolean checkIfLeftOwner() { return this.h(); } // Purpur - OBFHELPER
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 07b76471e29dc18f336604d635a325786e0dd73c..57b1381c31395b4233cbb6a5dbb5bd296a664ef4 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -853,7 +853,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                     //this.dataRegionManager.addChunk(playerchunk.location.x, playerchunk.location.z); // Tuinity
+                 }
+ 
+-                this.updatingChunks.put(i, playerchunk);
++                // AirplaneL start
++                this.internalMap.addUpdatingChunk(i, playerchunk);
++                //this.updatingChunks.put(i, playerchunk);
++                // AirplaneL end
+                 this.updatingChunksModified = true;
+             }
+ 
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej b/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej
+deleted file mode 100644
+index 8f76beb966ee37af62e4360704cf11ac84892dde..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java.rej
++++ /dev/null
+@@ -1,13 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java	(rejected hunks)
+-@@ -840,7 +862,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+-                 }
+-                 this.getVillagePlace().dequeueUnload(playerchunk.location.pair()); // Tuinity - unload POI data
+- 
+--                this.updatingChunks.put(i, playerchunk);
+-+                // AirplaneL start
+-+                this.internalMap.addUpdatingChunk(i, playerchunk);
+-+                //this.updatingChunks.put(i, playerchunk);
+-+                // AirplaneL end
+-                 this.updatingChunksModified = true;
+-             }
+- 
 diff --git a/src/main/java/net/minecraft/server/StructureGenerator.java b/src/main/java/net/minecraft/server/StructureGenerator.java
 index a62c87bceab2c9700a7b3925f208b0ffa2b9b393..1a6c593f5f20fb3a8e87ccb70cd3de7f0dcb0327 100644
 --- a/src/main/java/net/minecraft/server/StructureGenerator.java
@@ -385,7 +420,7 @@ index dd52a8fe4fd46e57a5d1af49ba1965a483cf4fcc..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 9c92f7e7f51c7438a6d4f74b26f4965cdff538b0..55f12f104515e73e7f282bfbd21cb372ad5c3832 100644
+index 6f243d1f8e99f66a29e3af689c2bdbdd5597b868..5b45051af00b823e7bbfd9407f2ff66539583863 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

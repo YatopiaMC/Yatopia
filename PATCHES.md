@@ -12,7 +12,6 @@ This is an overview over all patches that are currently used.
 | api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
-| server |  Add GlueList      | Mykyta Komarn |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
@@ -30,6 +29,8 @@ This is an overview over all patches that are currently used.
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
+| server |  AirplaneLite Data Structs      | Paul Sauve |  |
+| server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
 | server |  Allow infinite and mending enchantments together      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
@@ -40,6 +41,8 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | YatopiaMC |  |
+| server |  Concurrent loadedChunkMap      | Paul Sauve |  |
+| server |  Concurrent visibleChunks and updatingChunks      | Paul Sauve |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
 | server |  Configurable flight checks      | l_MrBoom_l |  |
@@ -47,6 +50,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Bud Gidiere |  |
+| server |  DataBits slight optimization      | Paul Sauve |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -111,31 +115,33 @@ This is an overview over all patches that are currently used.
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Signs allow color codes      | William Blake Galbreath |  |
 | server |  Signs editable on right click      | William Blake Galbreath |  |
+| server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
+| server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
+| server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Tile Entity optimizations      | Mykyta Komarnytskyy |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
-| server |  Use Glue List as delegate for NonNullList      | Mykyta Komarn |  |
-| server |  Use Glue List in WeightedList      | Ivan Pekov |  |
-| server |  Use GlueList for some list initialisations in packets      | Ivan Pekov |  |
+| server |  Use faster random implementation      | Mykyta Komarnytskyy |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
+| server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
 | api |  Yatopia API Bundle      | YatopiaMC |  |
 | server |  Yatopia configuration      | tr7zw |  |
 | server |  Yatopia-Server-Fixes      | YatopiaMC |  |
 | server |  dont load chunks for physics      | Aikar |  |
-| server |  lithium MixinBiome      | JellySquid |  |
+| server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
+| server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
 | server |  lithium MixinDirection      | JellySquid |  |
 | server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
-| server |  lithium VoxelShapesMixin      | JellySquid | Ivan Pekov |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
-| server |  lithium-MixinDataWatcher      | JellySquid | tr7zw |

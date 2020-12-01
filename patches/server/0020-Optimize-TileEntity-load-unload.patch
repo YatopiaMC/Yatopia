@@ -5,19 +5,17 @@ Subject: [PATCH] Optimize TileEntity load/unload
 
 
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 55f12f104515e73e7f282bfbd21cb372ad5c3832..6c69cc17b11ba9de81dcf223074ecf7ce1214ccb 100644
+index 5b45051af00b823e7bbfd9407f2ff66539583863..de7ca87e74084c5cca109a6eff071da351dec91b 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -42,9 +42,9 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -42,8 +42,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      public static final ResourceKey<World> THE_END = ResourceKey.a(IRegistry.L, new MinecraftKey("the_end"));
      private static final EnumDirection[] a = EnumDirection.values();
      //public final List<TileEntity> tileEntityList = Lists.newArrayList(); // Paper - remove unused list
 -    public final List<TileEntity> tileEntityListTick = Lists.newArrayList();
 -    protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
--    protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
-+    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new net.yatopia.server.list.GlueList<>()); // Yatopia
-+    protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new net.yatopia.server.list.GlueList<>()); // Yatopia
-+    protected final List<TileEntity> tileEntityListUnload = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(new net.yatopia.server.list.GlueList<>()); // Yatopia
++    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
++    protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
+     protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
      public final Thread serverThread;
      private final boolean debugWorld;
-     private int d;
