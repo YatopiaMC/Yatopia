@@ -25,7 +25,6 @@ This is an overview over all patches that are currently used.
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
-| server |  Add option to disable saving projectiles to disk      | William Blake Galbreath |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
@@ -43,6 +42,7 @@ This is an overview over all patches that are currently used.
 | server |  Brandings      | YatopiaMC |  |
 | server |  Concurrent loadedChunkMap      | Paul Sauve |  |
 | server |  Concurrent visibleChunks and updatingChunks      | Paul Sauve |  |
+| server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
 | server |  Configurable flight checks      | l_MrBoom_l |  |
@@ -99,6 +99,7 @@ This is an overview over all patches that are currently used.
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
+| server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
 | server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
 | server |  PaperPR: Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |

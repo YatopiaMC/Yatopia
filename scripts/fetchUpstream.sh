@@ -15,7 +15,7 @@ function update {
 
 function updateAll {
   update AirplaneLite master
-  update Akarin 1.16.3
+  update Akarin ver/1.16.4
   update Empirecraft master
   update Origami 1.16
   update Purpur ver/1.16.4
