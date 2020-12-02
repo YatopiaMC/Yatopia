@@ -59,7 +59,7 @@ index 537456a7427cddd6783f5b5d8ee2d655668c4c53..004184a7c3da4f72f68a5fd9b4dd5abd
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index db73c73277a7061b2004109d060cca7ded92908f..1e1e31c218581811cf6662360c9de8ceeccade04 100644
+index 36c481852cc38f74cd202289a640426fcff04654..b280b9f657d75c7224f54daf9a426cd38d8ab57b 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -2859,7 +2859,7 @@ public abstract class EntityLiving extends Entity {
@@ -67,17 +67,17 @@ index db73c73277a7061b2004109d060cca7ded92908f..1e1e31c218581811cf6662360c9de8ce
          // Tuinity start - reduce memory allocation from collideNearby
          List<Entity> list = com.tuinity.tuinity.util.CachedLists.getTempGetEntitiesList();
 -        this.world.getEntities(this, this.getBoundingBox(), IEntitySelector.a(this), list);
-+        this.world.getEntities(this, this.getBoundingBox(), net.yatopia.server.EntityFilter.getFilter(this), list); // Yatopia
++        this.world.getEntities(this, this.getBoundingBox(), org.yatopiamc.yatopia.server.EntityFilter.getFilter(this), list); // Yatopia
          try {
          // Tuinity end - reduce memory allocation from collideNearby
  
-diff --git a/src/main/java/net/yatopia/server/EntityFilter.java b/src/main/java/net/yatopia/server/EntityFilter.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/EntityFilter.java b/src/main/java/org/yatopiamc/yatopia/server/EntityFilter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a76e8f9aa6eefd0afeeeae1d2de90037a2cb0e80
+index 0000000000000000000000000000000000000000..32a3dd7087b73dc92d518d88c7eada8ff1ec8621
 --- /dev/null
-+++ b/src/main/java/net/yatopia/server/EntityFilter.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/EntityFilter.java
 @@ -0,0 +1,145 @@
-+package net.yatopia.server;
++package org.yatopiamc.yatopia.server;
 +
 +import de.minebench.origami.OrigamiConfig;
 +import java.util.function.Predicate;

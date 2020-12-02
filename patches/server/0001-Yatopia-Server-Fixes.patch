@@ -348,10 +348,10 @@ index 538b2c92e050176a1ac0bb4c2315f5b22c7f8eac..00000000000000000000000000000000
 - 
 -     @Override
 diff --git a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java
-index 9f5ce64a60fe7c312399ee416b11b84213dd3bee..8d75457840a1a9f4a0b81741b5602934038b0f4f 100644
+index 9f5ce64a60fe7c312399ee416b11b84213dd3bee..64c08d830c358247186cf4e5fcf2010ed43f0f02 100644
 --- a/src/main/java/net/minecraft/server/IProjectile.java
 +++ b/src/main/java/net/minecraft/server/IProjectile.java
-@@ -13,11 +13,25 @@ public abstract class IProjectile extends Entity {
+@@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
      private UUID shooter;
      private int c;
      private boolean d;
@@ -359,6 +359,8 @@ index 9f5ce64a60fe7c312399ee416b11b84213dd3bee..8d75457840a1a9f4a0b81741b5602934
  
      IProjectile(EntityTypes<? extends IProjectile> entitytypes, World world) {
          super(entitytypes, world);
+@@ -27,6 +28,19 @@ public abstract class IProjectile extends Entity {
+ 
      }
  
 +    // Purpur start
@@ -374,9 +376,9 @@ index 9f5ce64a60fe7c312399ee416b11b84213dd3bee..8d75457840a1a9f4a0b81741b5602934
 +    protected abstract int getPurpurDespawnRate();
 +    // Purpur end
 +
-     public void setShooter(@Nullable Entity entity) {
-         if (entity != null) {
-             this.shooter = entity.getUniqueID();
+     @Nullable
+     public Entity getShooter() {
+         // Paper start - MC-50319 - shooter might be in another world (arrows through portals)
 @@ -72,6 +86,12 @@ public abstract class IProjectile extends Entity {
          }
  

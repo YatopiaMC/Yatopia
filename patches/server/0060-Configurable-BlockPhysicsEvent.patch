@@ -8,7 +8,7 @@ Paper does alleviate this quite well by only firing if plugins are listening, bu
 This patch implements a hard toggle for the event.
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 910f0a597a08e1c3a4a3609f836b71b7431a5e4b..aa139cf93b208697ad1aa4893b652fe2c7a61ff0 100644
+index 910f0a597a08e1c3a4a3609f836b71b7431a5e4b..d221f9814bb9feb6ed77a231f3d3aa16565a565c 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1412,7 +1412,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -16,14 +16,14 @@ index 910f0a597a08e1c3a4a3609f836b71b7431a5e4b..aa139cf93b208697ad1aa4893b652fe2
          while (iterator.hasNext()) {
              WorldServer worldserver = (WorldServer) iterator.next();
 -            worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
-+            worldserver.hasPhysicsEvent = net.yatopia.server.YatopiaConfig.fireBlockPhysicsEvent && org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper // Yatopia
++            worldserver.hasPhysicsEvent = org.yatopiamc.yatopia.server.YatopiaConfig.fireBlockPhysicsEvent && org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper // Yatopia
              TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
  
              this.methodProfiler.a(() -> {
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index b92ef7f84755b1de4726c993601ec134a1e7ce9c..366b1c0f7e55c954a6a2d84e4aaa857764ce1f5a 100644
---- a/src/main/java/net/yatopia/server/YatopiaConfig.java
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 5578f5784a87019d3f091173b25b5ec1cc059fd6..4f99aa4b578333795296da2424f38aae65a808a3 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -268,4 +268,8 @@ public class YatopiaConfig {
          criterionTriggerTick = getBoolean("settings.criterion-triggers.tick", true);
      }
