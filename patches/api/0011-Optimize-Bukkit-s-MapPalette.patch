@@ -1,91 +1,99 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: epserv <admin@epserv.ru>
-Date: Wed, 2 Dec 2020 21:47:11 +0500
-Subject: [PATCH] Optimize Bukkit's MapPalette
+Date: Wed, 2 Dec 2020 19:31:20 +0200
+Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..819362eeb8c2fd17583184730e5ed938f74d842b 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..bb8a189d9323ca9d487a60feaa47a9b88c4fa9e5 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
-@@ -6,6 +6,7 @@ import java.awt.Image;
- import java.awt.image.BufferedImage;
- import org.jetbrains.annotations.NotNull;
- import org.jetbrains.annotations.Nullable;
-+import java.util.Arrays;
- 
- /**
-  * Represents the palette that map items use.
-@@ -22,15 +23,11 @@ public final class MapPalette {
-         return new Color(r, g, b);
+@@ -23,6 +23,8 @@ public final class MapPalette {
      }
- 
--    private static double getDistance(@NotNull Color c1, @NotNull Color c2) {
--        double rmean = (c1.getRed() + c2.getRed()) / 2.0;
--        double r = c1.getRed() - c2.getRed();
--        double g = c1.getGreen() - c2.getGreen();
--        int b = c1.getBlue() - c2.getBlue();
--        double weightR = 2 + rmean / 256.0;
--        double weightG = 4.0;
--        double weightB = 2 + (255 - rmean) / 256.0;
--        return weightR * r * r + weightG * g * g + weightB * b * b;
-+    private static int getDistance(@NotNull Color c1, @NotNull Color c2) {
-+        if (c1.getRGB() == c2.getRGB())
-+            return 0;
-+        final int r = c1.getRed() - c2.getRed(), g = c1.getGreen() - c2.getGreen(), b = c1.getBlue() - c2.getBlue();
-+        return r * r + g * g + b * b;
+
+     private static double getDistance(@NotNull Color c1, @NotNull Color c2) {
++        // Yatopia start - faster method
++        /*
+         double rmean = (c1.getRed() + c2.getRed()) / 2.0;
+         double r = c1.getRed() - c2.getRed();
+         double g = c1.getGreen() - c2.getGreen();
+@@ -31,6 +33,16 @@ public final class MapPalette {
+         double weightG = 4.0;
+         double weightB = 2 + (255 - rmean) / 256.0;
+         return weightR * r * r + weightG * g * g + weightB * b * b;
++         */
++        if (c1.getRGB() == c2.getRGB()) {
++            return 0.0;
++        }
++        double r = c1.getRed() - c2.getRed(),
++                g = c1.getGreen() - c2.getGreen(),
++                b = c1.getBlue() - c2.getBlue(),
++                x = (c1.getRed() + c2.getRed()) / 512d + 2d;
++        return x * r * r + 4 * g * g + (4.99609375d - x) * b * b;
++        // Yatopia end
      }
- 
+
      @NotNull
-@@ -96,6 +93,15 @@ public final class MapPalette {
+@@ -96,6 +108,17 @@ public final class MapPalette {
          c(14, 127, 93), c(17, 155, 114), c(20, 180, 133), c(10, 95, 70)
      };
- 
+
++    // Yatopia start - all colors as rgb integers
 +    @NotNull
 +    static final int[] rgbColors = new int[colors.length];
-+
 +    static {
-+        for (int i = 0; i < colors.length; i++)
++        for (int i = 0; i < colors.length; i++) {
 +            rgbColors[i] = colors[i].getRGB();
-+        Arrays.sort(rgbColors);
++        }
++        java.util.Arrays.sort(rgbColors);
 +    }
++    // Yatopia end
 +
      // Interface
      /**
       * @deprecated Magic value
-@@ -235,19 +241,29 @@ public final class MapPalette {
+@@ -235,19 +258,43 @@ public final class MapPalette {
      public static byte matchColor(@NotNull Color color) {
          if (color.getAlpha() < 128) return 0;
- 
--        int index = 0;
--        double best = -1;
-+        short index = 0;
-+        short binaryIndex = (short) Arrays.binarySearch(rgbColors, color.getRGB());
-+        if (binaryIndex != -1)
+
++        // Yatopia start - binary search first
++        int binaryIndex = java.util.Arrays.binarySearch(rgbColors, color.getRGB());
++        if (binaryIndex != -1) {
 +            return (byte) (binaryIndex < 128 ? binaryIndex : binaryIndex - 256);
-+        int best = -1;
- 
--        for (int i = 4; i < colors.length; i++) {
--            double distance = getDistance(color, colors[i]);
--            if (distance < best || best == -1) {
-+        int distance;
-+        for (short i = 4; i < MapPalette.colors.length; i++) {
-+            if (i == 4) {
-+                if ((best = distance = getDistance(color, MapPalette.colors[i])) == 0)
-+                    return (byte) (i < 128 ? i : i - 256);
-+                best = distance;
-+                index = i;
-+            } else if ((distance = getDistance(color, MapPalette.colors[i])) < best) {
-+                if (distance == 0)
-+                    return (byte) (i < 128 ? i : i - 256);
++        }
++        // Yatopia end
++
+         int index = 0;
+         double best = -1;
+
+         for (int i = 4; i < colors.length; i++) {
+             double distance = getDistance(color, colors[i]);
++            // Yatopia start - optimise this
++            /*
+             if (distance < best || best == -1) {
                  best = distance;
                  index = i;
              }
++             */
++            if (i == 4) {
++                if (distance == 0) {
++                    return (byte) i;
++                }
++                best = distance;
++                index = i;
++            } else if (distance < best) {
++                if (distance == 0) {
++                    return (byte) i;
++                }
++                best = distance;
++                index = i;
++            }
++            // Yatopia end
          }
- 
+
          // Minecraft has 143 colors, some of which have negative byte representations
 -        return (byte) (index < 128 ? index : -129 + (index - 127));
-+        return (byte) (index < 128 ? index : index - 256);
++        return (byte) (index < 128 ? index : index - 256); // Yatopia
      }
  
      /**
