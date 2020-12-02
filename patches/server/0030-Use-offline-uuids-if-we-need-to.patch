@@ -20,7 +20,7 @@ Thanks to Gabriele C <sgdc3.mail@gmail.com> for pointing this issue to us, as he
 have any interest fixing this.
 
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index caaa01b20e5b7430b809477022f8ab35f3c5bf20..b5dd5f44dc6583559b9cb5803af15e9a040cf7ea 100644
+index caaa01b20e5b7430b809477022f8ab35f3c5bf20..dfa719716efdb93b2f4440916bef70971a2a404d 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
 @@ -1914,7 +1914,7 @@ public abstract class EntityHuman extends EntityLiving {
@@ -28,12 +28,12 @@ index caaa01b20e5b7430b809477022f8ab35f3c5bf20..b5dd5f44dc6583559b9cb5803af15e9a
          UUID uuid = gameprofile.getId();
  
 -        if (uuid == null) {
-+        if (net.yatopia.server.YatopiaConfig.shouldUseOfflineUUID() || uuid == null) { // Yatopia
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.shouldUseOfflineUUID() || uuid == null) { // Yatopia
              uuid = getOfflineUUID(gameprofile.getName());
          }
  
 diff --git a/src/main/java/net/minecraft/server/UserCache.java b/src/main/java/net/minecraft/server/UserCache.java
-index 1496c43fc9487caf6ddb3782a9d1c79ef6ca1e94..7e486c0f326449a10700efcec7ed3d9da5222615 100644
+index 1496c43fc9487caf6ddb3782a9d1c79ef6ca1e94..d3ffbd5247b3a9b2a046d6696c959e834dff7ef4 100644
 --- a/src/main/java/net/minecraft/server/UserCache.java
 +++ b/src/main/java/net/minecraft/server/UserCache.java
 @@ -82,6 +82,11 @@ public class UserCache {
@@ -41,7 +41,7 @@ index 1496c43fc9487caf6ddb3782a9d1c79ef6ca1e94..7e486c0f326449a10700efcec7ed3d9d
      @Nullable
      private static GameProfile a(GameProfileRepository gameprofilerepository, String s) {
 +        // Yatopia start
-+        if (net.yatopia.server.YatopiaConfig.shouldUseOfflineUUID() && net.yatopia.server.YatopiaConfig.isProxy()) {
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.shouldUseOfflineUUID() && org.yatopiamc.yatopia.server.YatopiaConfig.isProxy()) {
 +            return new GameProfile(EntityHuman.getOfflineUUID(s), s);
 +        }
 +        // Yatopia end
@@ -53,7 +53,7 @@ index 1496c43fc9487caf6ddb3782a9d1c79ef6ca1e94..7e486c0f326449a10700efcec7ed3d9d
          }
  
 +        // Yatopia start
-+        if (net.yatopia.server.YatopiaConfig.shouldUseOfflineUUID() && !net.yatopia.server.YatopiaConfig.isProxy()) {
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.shouldUseOfflineUUID() && !org.yatopiamc.yatopia.server.YatopiaConfig.isProxy()) {
 +            GameProfile newProfile = new GameProfile(EntityHuman.getOfflineUUID(s), s);
 +            if (gameprofile == null || gameprofile.getProperties().isEmpty()) return newProfile;
 +            newProfile.getProperties().putAll(gameprofile.getProperties());
@@ -64,11 +64,19 @@ index 1496c43fc9487caf6ddb3782a9d1c79ef6ca1e94..7e486c0f326449a10700efcec7ed3d9d
          return gameprofile;
      }
  
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index b0dac509dddd576742308b687048e432fcf0484f..0237e91512dd15dae1597f1cbb37b0fb178ae35e 100644
---- a/src/main/java/net/yatopia/server/YatopiaConfig.java
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
-@@ -212,4 +212,26 @@ public class YatopiaConfig {
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 003a024da8ab877895244ff9e4e4ff62288622ff..eb5f7172829037862c20bb7527badaa589f50cc7 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -10,6 +10,7 @@ import java.util.List;
+ import java.util.concurrent.TimeUnit;
+ import java.util.logging.Level;
+ import java.util.regex.Pattern;
++import net.minecraft.server.MinecraftServer;
+ import org.bukkit.Bukkit;
+ import org.bukkit.configuration.InvalidConfigurationException;
+ import org.bukkit.configuration.file.YamlConfiguration;
+@@ -211,4 +212,26 @@ public class YatopiaConfig {
      private static void fixFallDistance() {
          fixFallDistance = getBoolean("settings.fixFallDistance", false);
      }

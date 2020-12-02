@@ -5,14 +5,14 @@ Subject: [PATCH] Option for simpler Villagers
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 2faaf483cca26586226a2e08ac01285a62a68f6f..ce0d773d1c338ecf082573a219d8bfe024780a23 100644
+index 2faaf483cca26586226a2e08ac01285a62a68f6f..4b291174493f163260b1f92372d882a99669514c 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -31,6 +31,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
  
  public class EntityVillager extends EntityVillagerAbstract implements ReputationHandler, VillagerDataHolder {
  
-+    private boolean simplerVillagerBehavior = net.yatopia.server.YatopiaConfig.simplerVillagerBehavior; // Yatopia - so we don't make them bork upon reload
++    private boolean simplerVillagerBehavior = org.yatopiamc.yatopia.server.YatopiaConfig.simplerVillagerBehavior; // Yatopia - so we don't make them bork upon reload
      private static final DataWatcherObject<VillagerData> br = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bp = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
      private static final Set<Item> bs = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
@@ -41,7 +41,7 @@ index 2faaf483cca26586226a2e08ac01285a62a68f6f..ce0d773d1c338ecf082573a219d8bfe0
 +            return;
 +        }
 +        this.goalSelector.a(0, new PathfinderGoalFloat(this));
-+        if (net.yatopia.server.YatopiaConfig.villagersHideAtNight) {
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.villagersHideAtNight) {
 +            this.goalSelector.a(0, new PathfinderGoalUseItem<>(this, PotionUtil.a(new ItemStack(Items.POTION), Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
 +                return !this.world.isDay() && !entityvillagertrader.isInvisible();
 +            }));
@@ -152,11 +152,11 @@ index 2faaf483cca26586226a2e08ac01285a62a68f6f..ce0d773d1c338ecf082573a219d8bfe0
          if (this.world instanceof WorldServer) {
              MinecraftServer minecraftserver = ((WorldServer) this.world).getMinecraftServer();
  
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index 9357d12cd623cd3ea92e39bd9d70ee89330ad1b3..eb53176099103172961d544c0dab17cc19ef2e7f 100644
---- a/src/main/java/net/yatopia/server/YatopiaConfig.java
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
-@@ -200,4 +200,11 @@ public class YatopiaConfig {
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index a790e1e5161d956ccc1023b0d4bcac647627150a..0f3803757a81c7ecaad48637ede8a3dc95b93f13 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -199,4 +199,11 @@ public class YatopiaConfig {
      private static void itemStuckSleepTicks() {
          itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
      }

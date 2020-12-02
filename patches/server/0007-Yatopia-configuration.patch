@@ -27,7 +27,7 @@ index dae2e5d70756c5b61163d57099b65f7e415b288c..21712a6691e00ffaf523f084da6ce565
              String hostName = "BrokenHost";
              try {
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index c1eb8e8679de29cb0c18feed73b277801b4b07e5..c8e0310143e72e43832ecaebe6b9252f9cbd3c5b 100644
+index c1eb8e8679de29cb0c18feed73b277801b4b07e5..0808edf7a20ccf3eb4639543f73ac968cc25e148 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -180,6 +180,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
@@ -36,7 +36,7 @@ index c1eb8e8679de29cb0c18feed73b277801b4b07e5..c8e0310143e72e43832ecaebe6b9252f
  
 +        // Yatopia start
 +        try {
-+            net.yatopia.server.YatopiaConfig.init((java.io.File) options.valueOf("yatopia-settings"));
++            org.yatopiamc.yatopia.server.YatopiaConfig.init((java.io.File) options.valueOf("yatopia-settings"));
 +        } catch (Exception e) {
 +            DedicatedServer.LOGGER.error("Unable to load server configuration", e);
 +            return false;
@@ -47,14 +47,14 @@ index c1eb8e8679de29cb0c18feed73b277801b4b07e5..c8e0310143e72e43832ecaebe6b9252f
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.ba());
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 75b04efa0c0d03bd97508a466d5f00b33fa901fa..db73c73277a7061b2004109d060cca7ded92908f 100644
+index 75b04efa0c0d03bd97508a466d5f00b33fa901fa..36c481852cc38f74cd202289a640426fcff04654 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
 @@ -267,6 +267,7 @@ public abstract class EntityLiving extends Entity {
          this.world.getMethodProfiler().enter("livingEntityBaseTick");
          boolean flag = this instanceof EntityHuman;
  
-+        if (!net.yatopia.server.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
++        if (!org.yatopiamc.yatopia.server.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
@@ -67,7 +67,7 @@ index 75b04efa0c0d03bd97508a466d5f00b33fa901fa..db73c73277a7061b2004109d060cca7d
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 9c330ee370f120eb2d498430d799bfaf9eabdc49..f237bd8ae933af2913408bf4539526c69114226e 100644
+index 9c330ee370f120eb2d498430d799bfaf9eabdc49..b679a6ee7ee2fb00293fb02b3537eddf5580e596 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -188,7 +188,7 @@ public abstract class PlayerList {
@@ -75,17 +75,62 @@ index 9c330ee370f120eb2d498430d799bfaf9eabdc49..f237bd8ae933af2913408bf4539526c6
          playerconnection.sendPacket(new PacketPlayOutLogin(entityplayer.getId(), entityplayer.playerInteractManager.getGameMode(), entityplayer.playerInteractManager.c(), BiomeManager.a(worldserver1.getSeed()), worlddata.isHardcore(), this.server.F(), this.s, worldserver1.getDimensionManager(), worldserver1.getDimensionKey(), this.getMaxPlayers(), worldserver1.getChunkProvider().playerChunkMap.getLoadViewDistance(), flag1, !flag, worldserver1.isDebugWorld(), worldserver1.isFlatWorld())); // Paper - no-tick view distance
          entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
 -        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(this.getServer().getServerModName())));
-+        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(net.yatopia.server.YatopiaConfig.brandName))); // Yatopia
++        playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(org.yatopiamc.yatopia.server.YatopiaConfig.brandName))); // Yatopia
          playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
          playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
          playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 6b2517256ed22c7dcf942e6974e1ad13debf1da4..b4c58c8a3fd124931bdbf1f732dfc40aaae691ea 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -859,6 +859,7 @@ public final class CraftServer implements Server {
+         com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
+         de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
++        org.yatopiamc.yatopia.server.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
+         for (WorldServer world : console.getWorlds()) {
+             world.worldDataServer.setDifficulty(config.difficulty);
+             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
+@@ -2310,6 +2311,13 @@ public final class CraftServer implements Server {
+         }
+         // Origami end
+ 
++        // Yatopia start
++        @Override
++        public YamlConfiguration getYatopiaConfig() {
++            return org.yatopiamc.yatopia.server.YatopiaConfig.config;
++        }
++        // Yatopia end
++
+         @Override
+         public void restart() {
+             org.spigotmc.RestartCommand.restart();
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index 71159c8ad99e46eded68c0cebd0090d1a32787b3..da624fbeb5aaba2aa717ed3aada7633d324fb8cf 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -162,6 +162,14 @@ public class Main {
+                         .describedAs("Yml file");
+                 // Origami end
+ 
++                // Yatopia start
++                acceptsAll(asList("yatopia", "yatopia-settings"), "File for yatopia settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("yatopia.yml"))
++                        .describedAs("Yml file");
++                // Yatopia end
++
+                 // Paper start
+                 acceptsAll(asList("server-name"), "Name of the server")
+                         .withRequiredArg()
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..c4dd521d18dd60ec07bdcf0d367b5135710dca58
+index 0000000000000000000000000000000000000000..f5a43e607f9c13e07a0f5e7e139eed93f159185b
 --- /dev/null
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
-@@ -0,0 +1,193 @@
-+package net.yatopia.server;
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -0,0 +1,192 @@
++package org.yatopiamc.yatopia.server;
 +
 +import com.google.common.base.Throwables;
 +import java.io.File;
@@ -97,7 +142,6 @@ index 0000000000000000000000000000000000000000..c4dd521d18dd60ec07bdcf0d367b5135
 +import java.util.concurrent.TimeUnit;
 +import java.util.logging.Level;
 +import java.util.regex.Pattern;
-+import net.minecraft.server.MinecraftServer;
 +import org.bukkit.Bukkit;
 +import org.bukkit.configuration.InvalidConfigurationException;
 +import org.bukkit.configuration.file.YamlConfiguration;
@@ -278,48 +322,3 @@ index 0000000000000000000000000000000000000000..c4dd521d18dd60ec07bdcf0d367b5135
 +        brandName = getString("brand-name", brandName);
 +    }
 +}
-diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 6b2517256ed22c7dcf942e6974e1ad13debf1da4..200a13f619546bf10948fab496a07ba174869fd2 100644
---- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-+++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -859,6 +859,7 @@ public final class CraftServer implements Server {
-         com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
-         de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami
-+        net.yatopia.server.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
-         for (WorldServer world : console.getWorlds()) {
-             world.worldDataServer.setDifficulty(config.difficulty);
-             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -2310,6 +2311,13 @@ public final class CraftServer implements Server {
-         }
-         // Origami end
- 
-+        // Yatopia start
-+        @Override
-+        public YamlConfiguration getYatopiaConfig() {
-+            return net.yatopia.server.YatopiaConfig.config;
-+        }
-+        // Yatopia end
-+
-         @Override
-         public void restart() {
-             org.spigotmc.RestartCommand.restart();
-diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 71159c8ad99e46eded68c0cebd0090d1a32787b3..da624fbeb5aaba2aa717ed3aada7633d324fb8cf 100644
---- a/src/main/java/org/bukkit/craftbukkit/Main.java
-+++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -162,6 +162,14 @@ public class Main {
-                         .describedAs("Yml file");
-                 // Origami end
- 
-+                // Yatopia start
-+                acceptsAll(asList("yatopia", "yatopia-settings"), "File for yatopia settings")
-+                        .withRequiredArg()
-+                        .ofType(File.class)
-+                        .defaultsTo(new File("yatopia.yml"))
-+                        .describedAs("Yml file");
-+                // Yatopia end
-+
-                 // Paper start
-                 acceptsAll(asList("server-name"), "Name of the server")
-                         .withRequiredArg()

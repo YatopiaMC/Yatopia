@@ -5,17 +5,10 @@ Subject: [PATCH] Redirect Configs
 
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index 004184a7c3da4f72f68a5fd9b4dd5abd0b8f871d..4230872de3551393a35c567d07a570dd07976fb8 100644
+index 004184a7c3da4f72f68a5fd9b4dd5abd0b8f871d..a0ff3cdafbf499802600de2d2174781c45071b38 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -1,5 +1,6 @@
- package de.minebench.origami;
- 
-+import net.yatopia.server.YatopiaConfig;
- import org.bukkit.Bukkit;
- import org.bukkit.configuration.file.YamlConfiguration;
- 
-@@ -20,6 +21,8 @@ public final class OrigamiConfig {
+@@ -20,6 +20,8 @@ public final class OrigamiConfig {
      private static int configVersion;
  
      public static void init(final File file) {
@@ -24,7 +17,7 @@ index 004184a7c3da4f72f68a5fd9b4dd5abd0b8f871d..4230872de3551393a35c567d07a570dd
          OrigamiConfig.configFile = file;
          OrigamiConfig.config = new YamlConfiguration();
          config.options().header(CONFIG_HEADER);
-@@ -39,13 +42,16 @@ public final class OrigamiConfig {
+@@ -39,13 +41,16 @@ public final class OrigamiConfig {
                  System.out.println("Failure to load origami config");
                  throw new RuntimeException(ex);
              }
@@ -32,9 +25,9 @@ index 004184a7c3da4f72f68a5fd9b4dd5abd0b8f871d..4230872de3551393a35c567d07a570dd
 -
 -        OrigamiConfig.load(OrigamiConfig.class, null);
 +        }*/
-+	    config = net.yatopia.server.YatopiaConfig.config;
-+	    configFile = net.yatopia.server.YatopiaConfig.CONFIG_FILE;
-+	    configVersion = net.yatopia.server.YatopiaConfig.version;
++	    config = org.yatopiamc.yatopia.server.YatopiaConfig.config;
++	    configFile = org.yatopiamc.yatopia.server.YatopiaConfig.CONFIG_FILE;
++	    configVersion = org.yatopiamc.yatopia.server.YatopiaConfig.version;
 +	    //OrigamiConfig.load(OrigamiConfig.class, null); // todo: uncomment when config options are ported
 +        // Yatopia end
      }
@@ -46,7 +39,7 @@ index 004184a7c3da4f72f68a5fd9b4dd5abd0b8f871d..4230872de3551393a35c567d07a570dd
          for (final Method method : clazz.getDeclaredMethods()) {
              if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index c8e0310143e72e43832ecaebe6b9252f9cbd3c5b..d1cf80ce9e87fa6ec03f2e965883041acbd181d5 100644
+index 0808edf7a20ccf3eb4639543f73ac968cc25e148..21999986018b93315eea54d0c5f3bff6b7e417f7 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -188,7 +188,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer

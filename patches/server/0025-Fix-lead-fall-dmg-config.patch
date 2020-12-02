@@ -5,23 +5,23 @@ Subject: [PATCH] Fix lead fall dmg config
 
 
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 2d3a486f290ef096346b8667e696518506936eaf..05353636bee54f3874fd243059d1c2c96e735d8b 100644
+index 2d3a486f290ef096346b8667e696518506936eaf..2d6c0235879ef2b9024d6b881048bb8b73d18abe 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -1290,6 +1290,8 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
              this.fallDistance = 0.0F;
          } else if (d0 < 0.0D) {
              this.fallDistance = (float) ((double) this.fallDistance - d0);
-+        } else if (d0 > 0.0D && net.yatopia.server.YatopiaConfig.fixFallDistance) { // Yatopia
++        } else if (d0 > 0.0D && org.yatopiamc.yatopia.server.YatopiaConfig.fixFallDistance) { // Yatopia
 +            this.fallDistance = 0.0F; // Yatopia
          }
  
      }
-diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
-index eb53176099103172961d544c0dab17cc19ef2e7f..b0dac509dddd576742308b687048e432fcf0484f 100644
---- a/src/main/java/net/yatopia/server/YatopiaConfig.java
-+++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
-@@ -207,4 +207,9 @@ public class YatopiaConfig {
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 0f3803757a81c7ecaad48637ede8a3dc95b93f13..003a024da8ab877895244ff9e4e4ff62288622ff 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -206,4 +206,9 @@ public class YatopiaConfig {
          simplerVillagerBehavior = getBoolean("settings.villager.simplerVillagerBehavior", false);
          villagersHideAtNight = getBoolean("settings.villager.villagersHideAtNight", false);
      }
