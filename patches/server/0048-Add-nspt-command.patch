@@ -5,26 +5,26 @@ Subject: [PATCH] Add nspt command
 
 
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 21999986018b93315eea54d0c5f3bff6b7e417f7..b6759cd62b755f496d3c77276dfbddbc117d9f54 100644
+index 21999986018b93315eea54d0c5f3bff6b7e417f7..d8c1add8d1281d40a7aa13810ed425cc5f6f38f1 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
 @@ -187,6 +187,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
              DedicatedServer.LOGGER.error("Unable to load server configuration", e);
              return false;
          }
-+        net.yatopia.server.YatopiaConfig.registerCommands();
++        org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands();
          // Yatopia end
          de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
          this.setPVP(dedicatedserverproperties.pvp);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 20284b3a35aae6f76db663e09966b7eafb4494f8..48d8f594bca358ebd83f48e2fb6e9c859e258946 100644
+index b4c58c8a3fd124931bdbf1f732dfc40aaae691ea..8bf63976035d563a1ac5092adb4e0705a2c04c6e 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -916,6 +916,7 @@ public final class CraftServer implements Server {
          org.spigotmc.SpigotConfig.registerCommands(); // Spigot
          com.destroystokyo.paper.PaperConfig.registerCommands(); // Paper
          net.pl3x.purpur.PurpurConfig.registerCommands(); // Purpur
-+        net.yatopia.server.YatopiaConfig.registerCommands(); // Yatopia
++        org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands(); // Yatopia
          overrideAllCommandBlockCommands = commandsConfiguration.getStringList("command-block-overrides").contains("*");
          ignoreVanillaPermissions = commandsConfiguration.getBoolean("ignore-vanilla-permissions");
  
