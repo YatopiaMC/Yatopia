@@ -89,7 +89,6 @@ This is an overview over all patches that are currently used.
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | api |  Optimise Bukkit&#39;s MapPalette      | epserv |  |
-| api |  Optimise Bukkit&#39;s MapPalette      | epserv |  |
 | server |  Optimise portals      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
