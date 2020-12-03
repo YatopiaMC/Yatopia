@@ -53,6 +53,7 @@ This is an overview over all patches that are currently used.
 | server |  DataBits slight optimization      | Paul Sauve |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
+| server |  Disable MapTest      | epserv |  |
 | api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
@@ -87,6 +88,7 @@ This is an overview over all patches that are currently used.
 | server |  Modify default configs      | tr7zw |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
+| api |  Optimise Bukkit&#39;s MapPalette      | epserv |  |
 | api |  Optimise Bukkit&#39;s MapPalette      | epserv |  |
 | server |  Optimise portals      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
