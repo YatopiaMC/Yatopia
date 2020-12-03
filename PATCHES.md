@@ -55,7 +55,6 @@ This is an overview over all patches that are currently used.
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
-| server |  Don&#39;t compare colors in MapTest      | Ivan Pekov |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |

@@ -5,7 +5,7 @@ Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..c7ebce72a97791da9b61dd04b8b7bb26c3ec7bce 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..418fde209a2c4ce71dbb8e41af32cd87cfc71ed4 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
 @@ -23,6 +23,8 @@ public final class MapPalette {
@@ -17,7 +17,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..c7ebce72a97791da9b61dd04b8b7bb26
          double rmean = (c1.getRed() + c2.getRed()) / 2.0;
          double r = c1.getRed() - c2.getRed();
          double g = c1.getGreen() - c2.getGreen();
-@@ -31,10 +33,20 @@ public final class MapPalette {
+@@ -31,6 +33,16 @@ public final class MapPalette {
          double weightG = 4.0;
          double weightB = 2 + (255 - rmean) / 256.0;
          return weightR * r * r + weightG * g * g + weightB * b * b;
@@ -34,40 +34,17 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..c7ebce72a97791da9b61dd04b8b7bb26
      }
  
      @NotNull
--    static final Color[] colors = {
-+    static Color[] colors = { // Yatopia
-         c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
-         c(89, 125, 39), c(109, 153, 48), c(127, 178, 56), c(67, 94, 29),
-         c(174, 164, 115), c(213, 201, 140), c(247, 233, 163), c(130, 123, 86),
-@@ -96,6 +108,21 @@ public final class MapPalette {
-         c(14, 127, 93), c(17, 155, 114), c(20, 180, 133), c(10, 95, 70)
-     };
- 
-+    // Yatopia start - all colors as rgb integers
-+    @NotNull
-+    static final int[] rgbColors = new int[colors.length];
-+    static {
-+        for (int i = 0; i < colors.length; i++) {
-+            rgbColors[i] = colors[i].getRGB();
-+        }
-+        java.util.Arrays.sort(rgbColors);
-+        Color[] sortedColorsArray = java.util.Arrays.stream(colors)
-+                .sorted(java.util.Comparator.comparingInt(Color::getRGB))
-+                .toArray(Color[]::new);
-+        colors = sortedColorsArray;
-+    }
-+    // Yatopia end
-+
-     // Interface
-     /**
-      * @deprecated Magic value
-@@ -235,19 +262,43 @@ public final class MapPalette {
+@@ -235,19 +247,31 @@ public final class MapPalette {
      public static byte matchColor(@NotNull Color color) {
          if (color.getAlpha() < 128) return 0;
  
 -        int index = 0;
 +        // Yatopia start - binary search first
-+        int binaryIndex = java.util.Arrays.binarySearch(rgbColors, color.getRGB());
++        int binaryIndex = java.util.Arrays.binarySearch(
++                colors,
++                color,
++                java.util.Comparator.comparingDouble(o -> getDistance(color, o))
++        );
 +        if (binaryIndex != -1) {
 +            return (byte) (binaryIndex < 128 ? binaryIndex : binaryIndex - 256);
 +        }
@@ -79,27 +56,11 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..c7ebce72a97791da9b61dd04b8b7bb26
 -        for (int i = 4; i < colors.length; i++) {
 +        for (short i = 4; i < colors.length; i++) { // Yatopia
              double distance = getDistance(color, colors[i]);
-+            // Yatopia start - optimise this
-+            /*
              if (distance < best || best == -1) {
                  best = distance;
                  index = i;
++                if (distance == 0) { break; } // Yatopia
              }
-+             */
-+            if (i == 4) {
-+                if (distance == 0) {
-+                    return (byte) i;
-+                }
-+                best = distance;
-+                index = i;
-+            } else if (distance < best) {
-+                if (distance == 0) {
-+                    return (byte) (i < 128 ? i : i - 256);
-+                }
-+                best = distance;
-+                index = i;
-+            }
-+            // Yatopia end
          }
  
          // Minecraft has 143 colors, some of which have negative byte representations
