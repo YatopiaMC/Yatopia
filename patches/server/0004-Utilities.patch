@@ -25,13 +25,13 @@ index 9f2cc8fbc0bfaefd772904076e6fd4d0c78f30ee..2acc51071e968333f85959d76b86e7e6
      </dependencies>
  
      <repositories>
-diff --git a/src/main/java/net/yatopia/server/map/ConcurrentTrackerMap.java b/src/main/java/net/yatopia/server/map/ConcurrentTrackerMap.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/map/ConcurrentTrackerMap.java b/src/main/java/org/yatopiamc/yatopia/server/map/ConcurrentTrackerMap.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..75a6667bf23b097899a34b5a17ac5439d51b537b
+index 0000000000000000000000000000000000000000..bd3281d3d29af26dd8d7f6ca122c0d8dfbd22cdf
 --- /dev/null
-+++ b/src/main/java/net/yatopia/server/map/ConcurrentTrackerMap.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/map/ConcurrentTrackerMap.java
 @@ -0,0 +1,146 @@
-+package net.yatopia.server.map;
++package org.yatopiamc.yatopia.server.map;
 +
 +
 +import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -47,15 +47,15 @@ index 0000000000000000000000000000000000000000..75a6667bf23b097899a34b5a17ac5439
 +import java.util.function.Consumer;
 +
 +/**
-+  * A {@link ConcurrentHashMap} wrapper that implements {@link Int2ObjectMap}.
-+  * This is used for the entity tracker, where the expected map type is an
-+  * Int2ObjectMap. However, the asynchronous tracker implementation requires
-+  * a concurrent map. In order to not break support for plugins that make direct
-+  * calls to the maps and expect an Int2ObjectMap, such as Citizens, this wrapper
-+  * is used.
-+  *
-+  * @param <V>
-+  */
++ * A {@link ConcurrentHashMap} wrapper that implements {@link Int2ObjectMap}.
++ * This is used for the entity tracker, where the expected map type is an
++ * Int2ObjectMap. However, the asynchronous tracker implementation requires
++ * a concurrent map. In order to not break support for plugins that make direct
++ * calls to the maps and expect an Int2ObjectMap, such as Citizens, this wrapper
++ * is used.
++ *
++ * @param <V>
++ */
 +public class ConcurrentTrackerMap<V> implements Int2ObjectMap<V> {
 +
 +    protected transient Map<Integer, V> delegate;
@@ -73,7 +73,7 @@ index 0000000000000000000000000000000000000000..75a6667bf23b097899a34b5a17ac5439
 +    @Override
 +    public void defaultReturnValue(V v) {
 +        // unused
-+            }
++    }
 +
 +    @Override
 +    public V defaultReturnValue() {
@@ -93,30 +93,30 @@ index 0000000000000000000000000000000000000000..75a6667bf23b097899a34b5a17ac5439
 +    @Override
 +    public ObjectCollection<V> values() {
 +        if (this.values == null) {
-+                this.values = new AbstractObjectCollection<V>() {
++            this.values = new AbstractObjectCollection<V>() {
 +                public ObjectIterator<V> iterator() {
-+                                return new ValueIterator(delegate.values().iterator());
-+                            }
++                    return new ValueIterator(delegate.values().iterator());
++                }
 +
 +                public int size() {
-+                                return delegate.size();
-+                            }
++                    return delegate.size();
++                }
 +
 +                public boolean contains(Object v) {
-+                                return delegate.containsValue(v);
-+                            }
++                    return delegate.containsValue(v);
++                }
 +
 +                public void clear() {
-+                                delegate.clear();
-+                            }
++                    delegate.clear();
++                }
 +
 +                public void forEach(Consumer<? super V> consumer) {
-+                                delegate.forEach((integer, v) -> consumer.accept(v));
-+                            }
++                    delegate.forEach((integer, v) -> consumer.accept(v));
++                }
 +            };
-+            }
++        }
 +
-+                return this.values;
++        return this.values;
 +    }
 +
 +    @Override
@@ -164,17 +164,17 @@ index 0000000000000000000000000000000000000000..75a6667bf23b097899a34b5a17ac5439
 +        protected transient Iterator<V> iterator;
 +
 +        public ValueIterator(Iterator<V> iterator) {
-+                this.iterator = iterator;
-+            }
++            this.iterator = iterator;
++        }
 +
 +        @Override
 +        public boolean hasNext() {
-+                return iterator.hasNext();
-+            }
++            return iterator.hasNext();
++        }
 +
 +        public V next() {
-+                return iterator.next();
-+            }
++            return iterator.next();
++        }
 +    }
 +}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/Constants.java b/src/main/java/org/yatopiamc/yatopia/server/util/Constants.java
