@@ -55,7 +55,7 @@ index aea72b0db10eed151db18490c02f291c3cded92a..f9bbe1fae8f7f1dd137cb0ffd9582a82
              this.tracker.velocityChanged = false;
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 57b1381c31395b4233cbb6a5dbb5bd296a664ef4..c55365aa5714cc100f53831c940f327dff4f2832 100644
+index 57b1381c31395b4233cbb6a5dbb5bd296a664ef4..a3bbf0c1b7a391d9c6dab4ff6c6ed5817da45c0e 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -120,6 +120,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -71,7 +71,7 @@ index 57b1381c31395b4233cbb6a5dbb5bd296a664ef4..c55365aa5714cc100f53831c940f327d
          this.u = new AtomicInteger();
          this.playerMap = new PlayerMap();
 -        this.trackedEntities = new Int2ObjectOpenHashMap();
-+        this.trackedEntities = new org.yatopiamc.server.map.ConcurrentTrackerMap<>(); // Yatopia
++        this.trackedEntities = new org.yatopiamc.yatopia.server.map.ConcurrentTrackerMap<>(); // Yatopia
          this.z = new Long2ByteOpenHashMap();
          this.A = new com.destroystokyo.paper.utils.CachedSizeConcurrentLinkedQueue<>(); // Paper - need constant-time size()
          this.definedStructureManager = definedstructuremanager;
@@ -98,7 +98,7 @@ index 57b1381c31395b4233cbb6a5dbb5bd296a664ef4..c55365aa5714cc100f53831c940f327d
          // Paper start - optimized tracker
          if (true) {
 +            // Yatopia start - async entity tracker
-+            if (org.yatopiamc.server.YatopiaConfig.asyncEntityTracker) {
++            if (org.yatopiamc.yatopia.server.YatopiaConfig.asyncEntityTracker) {
 +                trackerExecutor.execute(() -> {
 +                    for (PlayerChunkMap.EntityTracker tracker : trackedEntities.values()) {
 +                        Entity entity = tracker.tracker;
