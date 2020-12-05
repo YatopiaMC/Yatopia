@@ -37,6 +37,7 @@ This is an overview over all patches that are currently used.
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
+| server |  Async entity tracker implementation      | Mykyta Komarnytskyy |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | YatopiaMC |  |

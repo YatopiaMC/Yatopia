@@ -25,6 +25,158 @@ index 9f2cc8fbc0bfaefd772904076e6fd4d0c78f30ee..2acc51071e968333f85959d76b86e7e6
      </dependencies>
  
      <repositories>
+diff --git a/src/main/java/net/yatopia/server/map/ConcurrentTrackerMap.java b/src/main/java/net/yatopia/server/map/ConcurrentTrackerMap.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..75a6667bf23b097899a34b5a17ac5439d51b537b
+--- /dev/null
++++ b/src/main/java/net/yatopia/server/map/ConcurrentTrackerMap.java
+@@ -0,0 +1,146 @@
++package net.yatopia.server.map;
++
++
++import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
++import it.unimi.dsi.fastutil.ints.IntSet;
++import it.unimi.dsi.fastutil.objects.AbstractObjectCollection;
++import it.unimi.dsi.fastutil.objects.ObjectCollection;
++import it.unimi.dsi.fastutil.objects.ObjectIterator;
++import it.unimi.dsi.fastutil.objects.ObjectSet;
++
++import java.util.Iterator;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.function.Consumer;
++
++/**
++  * A {@link ConcurrentHashMap} wrapper that implements {@link Int2ObjectMap}.
++  * This is used for the entity tracker, where the expected map type is an
++  * Int2ObjectMap. However, the asynchronous tracker implementation requires
++  * a concurrent map. In order to not break support for plugins that make direct
++  * calls to the maps and expect an Int2ObjectMap, such as Citizens, this wrapper
++  * is used.
++  *
++  * @param <V>
++  */
++public class ConcurrentTrackerMap<V> implements Int2ObjectMap<V> {
++
++    protected transient Map<Integer, V> delegate;
++    protected transient ObjectCollection<V> values;
++
++    public ConcurrentTrackerMap() {
++        this.delegate = new ConcurrentHashMap<>();
++    }
++
++    @Override
++    public int size() {
++        return delegate.size();
++    }
++
++    @Override
++    public void defaultReturnValue(V v) {
++        // unused
++            }
++
++    @Override
++    public V defaultReturnValue() {
++        return null; // unused
++    }
++
++    @Override
++    public ObjectSet<Entry<V>> int2ObjectEntrySet() {
++        return null; // unused
++    }
++
++    @Override
++    public IntSet keySet() {
++        return null; // unused
++    }
++
++    @Override
++    public ObjectCollection<V> values() {
++        if (this.values == null) {
++                this.values = new AbstractObjectCollection<V>() {
++                public ObjectIterator<V> iterator() {
++                                return new ValueIterator(delegate.values().iterator());
++                            }
++
++                public int size() {
++                                return delegate.size();
++                            }
++
++                public boolean contains(Object v) {
++                                return delegate.containsValue(v);
++                            }
++
++                public void clear() {
++                                delegate.clear();
++                            }
++
++                public void forEach(Consumer<? super V> consumer) {
++                                delegate.forEach((integer, v) -> consumer.accept(v));
++                            }
++            };
++            }
++
++                return this.values;
++    }
++
++    @Override
++    public boolean containsKey(int i) {
++        return delegate.containsKey(i);
++    }
++
++    @Override
++    public V get(int i) {
++        return delegate.get(i);
++    }
++
++    @Override
++    public V put(int key, V value) {
++        return delegate.put(key, value);
++    }
++
++    @Override
++    public boolean remove(int key, Object value) {
++        return delegate.remove(key, value);
++    }
++
++    @Override
++    public V remove(int key) {
++        return delegate.remove(key);
++    }
++
++    @Override
++    public boolean isEmpty() {
++        return delegate.isEmpty();
++    }
++
++    @Override
++    public boolean containsValue(Object value) {
++        return delegate.containsValue(value);
++    }
++
++    @Override
++    public void putAll(Map<? extends Integer, ? extends V> m) {
++        delegate.putAll(m);
++    }
++
++    private final class ValueIterator implements ObjectIterator<V> {
++
++        protected transient Iterator<V> iterator;
++
++        public ValueIterator(Iterator<V> iterator) {
++                this.iterator = iterator;
++            }
++
++        @Override
++        public boolean hasNext() {
++                return iterator.hasNext();
++            }
++
++        public V next() {
++                return iterator.next();
++            }
++    }
++}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/Constants.java b/src/main/java/org/yatopiamc/yatopia/server/util/Constants.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..ac5235155eb1b5515165fc9648b7c9d7a0713b44

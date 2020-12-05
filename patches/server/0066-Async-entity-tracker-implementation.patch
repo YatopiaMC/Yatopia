@@ -1,0 +1,167 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Tue, 27 Oct 2020 18:58:05 -0500
+Subject: [PATCH] Async entity tracker implementation
+
+This patch implements an asynchronous entity tracker. This brings a large performance improvement and safely offloads entity tracker ticking to a thread pool.
+
+The trackedEntities Int2ObjectOpenHashMap was replaced with a ConcurrentTrackerMap, which is simply a ConcurrentHashMap wrapper implementing Int2ObjectMap. This allows for concurrency, as well as ensures support for plugins like Citizens is retained. View the Javadoc comment for ConcurrentTrackerMap for more information.
+
+This patch is configurable, meaning the asynchronous tracker implementation can be disabled in the configuration if it causes any issues with plugins. Disabling this patch will revert behavior to Tuinity's tracker processing implementation.
+
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index aea72b0db10eed151db18490c02f291c3cded92a..f9bbe1fae8f7f1dd137cb0ffd9582a8205c3201e 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -74,7 +74,7 @@ public class EntityTrackerEntry {
+ 
+     public final void tick() { this.a(); } // Paper - OBFHELPER
+     public void a() {
+-        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Tracker update"); // Tuinity
++        // com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Tracker update"); // Tuinity // Yatopia
+         List<Entity> list = this.tracker.getPassengers();
+ 
+         if (!list.equals(this.p)) {
+@@ -88,6 +88,7 @@ public class EntityTrackerEntry {
+             ItemStack itemstack = entityitemframe.getItem();
+ 
+             if (this.tickCounter % 10 == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks
++                MCUtil.ensureMain(() -> { // Yatopia start - handle maps on main
+                 WorldMap worldmap = ItemWorldMap.getSavedMap(itemstack, this.b);
+                 Iterator iterator = this.trackedPlayers.iterator(); // CraftBukkit
+ 
+@@ -101,6 +102,7 @@ public class EntityTrackerEntry {
+                         entityplayer.playerConnection.sendPacket(packet);
+                     }
+                 }
++                }); // Yatopia end
+             }
+ 
+             this.c();
+@@ -240,6 +242,7 @@ public class EntityTrackerEntry {
+         ++this.tickCounter;
+         if (this.tracker.velocityChanged) {
+             // CraftBukkit start - Create PlayerVelocity event
++            MCUtil.ensureMain(() -> { // Yatopia start - fire velocity event on main
+             boolean cancelled = false;
+ 
+             if (this.tracker instanceof EntityPlayer) {
+@@ -259,6 +262,7 @@ public class EntityTrackerEntry {
+             if (!cancelled) {
+                 this.broadcastIncludingSelf(new PacketPlayOutEntityVelocity(this.tracker));
+             }
++            }); // Yatopia end
+             // CraftBukkit end
+             this.tracker.velocityChanged = false;
+         }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 841dd0cbd771d878d53292adbd590a1ecffc367e..6f61340528d91210860b321e64ca077610ce48c0 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -117,6 +117,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     private final Queue<Runnable> A; private final Queue<Runnable> getUnloadQueueTasks() { return this.A; } // Paper - OBFHELPER
+     int viewDistance; // Paper - private -> package private
+     public final com.destroystokyo.paper.util.PlayerMobDistanceMap playerMobDistanceMap; // Paper
++    private static final java.util.concurrent.ExecutorService trackerExecutor = java.util.concurrent.Executors.newCachedThreadPool(new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Entity Tracker - %d").build()); // Yatopia - async entity tracker
+ 
+     // CraftBukkit start - recursion-safe executor for Chunk loadCallback() and unloadCallback()
+     public final CallbackExecutor callbackExecutor = new CallbackExecutor();
+@@ -301,7 +302,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         this.unloadQueue = new LongOpenHashSet();
+         this.u = new AtomicInteger();
+         this.playerMap = new PlayerMap();
+-        this.trackedEntities = new Int2ObjectOpenHashMap();
++        this.trackedEntities = new net.yatopia.server.map.ConcurrentTrackerMap<>(); // Yatopia
+         this.z = new Long2ByteOpenHashMap();
+         this.A = new com.destroystokyo.paper.utils.CachedSizeConcurrentLinkedQueue<>(); // Paper - need constant-time size()
+         this.definedStructureManager = definedstructuremanager;
+@@ -2006,7 +2007,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     }
+ 
+     protected void addEntity(Entity entity) {
+-        org.spigotmc.AsyncCatcher.catchOp("entity track"); // Spigot
++        // org.spigotmc.AsyncCatcher.catchOp("entity track"); // Spigot // Hydrinity
+         // Paper start - ignore and warn about illegal addEntity calls instead of crashing server
+         if (!entity.valid || entity.world != this.world || this.trackedEntities.containsKey(entity.getId())) {
+             new Throwable("[ERROR] Illegal PlayerChunkMap::addEntity for world " + this.world.getWorld().getName()
+@@ -2050,7 +2051,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     }
+ 
+     protected void removeEntity(Entity entity) {
+-        org.spigotmc.AsyncCatcher.catchOp("entity untrack"); // Spigot
++        // org.spigotmc.AsyncCatcher.catchOp("entity untrack"); // Spigot // Yatopia
+         if (entity instanceof EntityPlayer) {
+             EntityPlayer entityplayer = (EntityPlayer) entity;
+ 
+@@ -2102,6 +2103,18 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     protected void g() {
+         // Paper start - optimized tracker
+         if (true) {
++            // Yatopia start - async entity tracker
++            if (net.yatopia.server.YatopiaConfig.asyncEntityTracker) {
++                trackerExecutor.execute(() -> {
++                    for (PlayerChunkMap.EntityTracker tracker : trackedEntities.values()) {
++                        Entity entity = tracker.tracker;
++                        if (entity == null) continue;
++                        tracker.updatePlayers(entity.getPlayersInTrackRange());
++                        tracker.trackerEntry.tick();
++                    }
++                });
++            } else
++            // Yatopia end
+             this.processTrackQueue();
+             return;
+         }
+@@ -2343,7 +2356,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         // Paper start
+         // Replace trackedPlayers Set with a Map. The value is true until the player receives
+         // their first update (which is forced to have absolute coordinates), false afterward.
+-        public java.util.Map<EntityPlayer, Boolean> trackedPlayerMap = new java.util.HashMap<>();
++        public java.util.Map<EntityPlayer, Boolean> trackedPlayerMap = new java.util.concurrent.ConcurrentHashMap<>(); // Yatopia
+         public Set<EntityPlayer> trackedPlayers = trackedPlayerMap.keySet();
+ 
+         public EntityTracker(Entity entity, int i, int j, boolean flag) {
+@@ -2428,7 +2441,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         }
+ 
+         public void clear(EntityPlayer entityplayer) {
+-            org.spigotmc.AsyncCatcher.catchOp("player tracker clear"); // Spigot
++            // org.spigotmc.AsyncCatcher.catchOp("player tracker clear"); // Spigot // Yatopia
+             if (this.trackedPlayers.remove(entityplayer)) {
+                 this.trackerEntry.a(entityplayer);
+             }
+@@ -2436,7 +2449,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         }
+ 
+         public void updatePlayer(EntityPlayer entityplayer) {
+-            org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot
++            // org.spigotmc.AsyncCatcher.catchOp("player tracker update"); // Spigot // Yatopia
+             if (entityplayer != this.tracker) {
+                 // Paper start - remove allocation of Vec3D here
+                 //Vec3D vec3d = entityplayer.getPositionVector().d(this.tracker.getPositionVector()); // MC-155077, SPIGOT-5113
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 9aae647587935ff1b9fc5e3987af77d0efcf4768..139a115e9c43547f52974a57a43644a171cd0301 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -1634,6 +1634,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+     }
+ 
+     public void sendPacket(Packet<?> packet) {
++        if (!minecraftServer.isMainThread()) minecraftServer.processQueue.add(() -> sendPacket(packet)); else // Yatopia - async entity tracker
+         this.a(packet, (GenericFutureListener) null);
+     }
+ 
+diff --git a/src/main/java/net/yatopia/server/YatopiaConfig.java b/src/main/java/net/yatopia/server/YatopiaConfig.java
+index 366b1c0f7e55c954a6a2d84e4aaa857764ce1f5a..f48db9d2eb36e6c244e9b793ed51506c57641bea 100644
+--- a/src/main/java/net/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/net/yatopia/server/YatopiaConfig.java
+@@ -272,4 +272,9 @@ public class YatopiaConfig {
+     private static void fireBlockPhysicsEvent() {
+         fireBlockPhysicsEvent = getBoolean("settings.fire-block-physics-event", true);
+     }
++
++    public static boolean asyncEntityTracker = true;
++    private static void asyncEntityTracker() {
++         asyncEntityTracker = getBoolean("settings.async-entity-tracker", true);
++    }
+ }
