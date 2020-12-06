@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: epserv <admin@epserv.ru>
-Date: Thu, 3 Dec 2020 20:36:42 +0500
+Date: Sun, 6 Dec 2020 16:57:19 +0500
 Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..91ff76a8dcac38080afa6a021797ac06fb50d97b 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..5e938a83377ddf1b952d3597c9974d0ca79afb79 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
 @@ -22,7 +22,9 @@ public final class MapPalette {
@@ -45,27 +45,32 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..91ff76a8dcac38080afa6a021797ac06
          c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
          c(89, 125, 39), c(109, 153, 48), c(127, 178, 56), c(67, 94, 29),
          c(174, 164, 115), c(213, 201, 140), c(247, 233, 163), c(130, 123, 86),
-@@ -95,6 +111,19 @@ public final class MapPalette {
+@@ -95,6 +111,24 @@ public final class MapPalette {
          c(60, 31, 43), c(74, 37, 53), c(86, 44, 62), c(45, 23, 32),
          c(14, 127, 93), c(17, 155, 114), c(20, 180, 133), c(10, 95, 70)
      };
 +    // Yatopia start
++    @NotNull
++    static Color[] sortedColors = new Color[colors.length];
++    @NotNull
++    static int[] sortedRgbColors = new int[colors.length];
 +    @NotNull
 +    static int[] rgbColors = new int[colors.length];
 +    static {
 +        for (short i = 0; i < rgbColors.length; i++) {
 +            rgbColors[i] = colors[i].getRGB();
 +        }
-+        java.util.Arrays.sort(rgbColors);
-+        for (short i = 0; i < rgbColors.length; i++) {
-+            colors[i] = new Color(rgbColors[i]);
++        sortedRgbColors = rgbColors.clone();
++        java.util.Arrays.sort(sortedRgbColors);
++        for (short i = 0; i < sortedColors.length; i++) {
++            sortedColors[i] = new Color(sortedRgbColors[i]);
 +        }
 +    }
 +    // Yatopia end
  
      // Interface
      /**
-@@ -235,6 +264,8 @@ public final class MapPalette {
+@@ -235,6 +269,8 @@ public final class MapPalette {
      public static byte matchColor(@NotNull Color color) {
          if (color.getAlpha() < 128) return 0;
  
@@ -74,31 +79,30 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..91ff76a8dcac38080afa6a021797ac06
          int index = 0;
          double best = -1;
  
-@@ -245,9 +276,31 @@ public final class MapPalette {
+@@ -245,9 +281,30 @@ public final class MapPalette {
                  index = i;
              }
          }
 +         */
-+        int index;
-+        int binaryIndex = java.util.Arrays.binarySearch(rgbColors, color.getRGB());
++        int index = 0;
++        int binaryIndex = java.util.Arrays.binarySearch(sortedRgbColors, color.getRGB());
 +        if (binaryIndex >= 0) {
 +            return (byte) (binaryIndex < 128 ? binaryIndex : binaryIndex - 256);
 +        }
-+        int insertionPoint = binaryIndex * -1 - 1;
-+        if (insertionPoint == 0) {
-+            index = 0;
-+        } else if (insertionPoint == colors.length - 1) {
-+            index = colors.length - 1;
++        int insertionPoint = (-binaryIndex) - 1;
++        if (insertionPoint == sortedColors.length - 1) {
++            index = sortedColors.length - 1;
 +        } else {
 +            // now don't loop over all the colors, just select one of neighbor colors
 +            // we don't need a distance itself, so we can use distance squared
-+            int d1 = getDistanceSquared(color, colors[insertionPoint - 1]), d2 = getDistanceSquared(color, colors[insertionPoint + 1]);
++            int d1 = getDistanceSquared(color, sortedColors[insertionPoint - 1]), d2 = getDistanceSquared(color, sortedColors[insertionPoint]);
 +            if (d1 > d2) {
-+                index = insertionPoint + 1;
++                index = insertionPoint;
 +            } else {
 +                index = insertionPoint - 1;
 +            }
 +        }
++        index = com.google.common.primitives.Ints.indexOf(rgbColors, sortedRgbColors[index]);
 +        // Yatopia end
  
          // Minecraft has 143 colors, some of which have negative byte representations
@@ -107,10 +111,3 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..91ff76a8dcac38080afa6a021797ac06
      }
  
      /**
-@@ -267,4 +320,4 @@ public final class MapPalette {
-             return colors[index >= 0 ? index : index + 256];
-         }
-     }
--}
-+}
-\ No newline at end of file
