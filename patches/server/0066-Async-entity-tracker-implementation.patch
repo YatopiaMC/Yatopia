@@ -10,7 +10,7 @@ The trackedEntities Int2ObjectOpenHashMap was replaced with a ConcurrentTrackerM
 This patch is configurable, meaning the asynchronous tracker implementation can be disabled in the configuration if it causes any issues with plugins. Disabling this patch will revert behavior to Tuinity's tracker processing implementation.
 
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 6fe7151ba7d8ad105bf21aa89be5a7ab2f2aa0ca..59f273c9131c62d1f523529293a80652d31b567c 100644
+index 6fe7151ba7d8ad105bf21aa89be5a7ab2f2aa0ca..22119eb2a46680d41f9fe2ebfc364134b427a2a6 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -48,7 +48,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -18,7 +18,7 @@ index 6fe7151ba7d8ad105bf21aa89be5a7ab2f2aa0ca..59f273c9131c62d1f523529293a80652
      public final MinecraftServer server;
      public final PlayerInteractManager playerInteractManager;
 -    public final Deque<Integer> removeQueue = new ArrayDeque<>(); // Paper
-+    public final Deque<Integer> removeQueue = new java.util.concurrent.ConcurrentLinkedDeque<>(); // Paper // Hydrinity
++    public final Deque<Integer> removeQueue = new java.util.concurrent.ConcurrentLinkedDeque<>(); // Paper // Yatopia
      private final AdvancementDataPlayer advancementDataPlayer;
      private final ServerStatisticManager serverStatisticManager;
      private float lastHealthScored = Float.MIN_VALUE;
