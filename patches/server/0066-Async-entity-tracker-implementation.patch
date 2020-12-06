@@ -9,6 +9,19 @@ The trackedEntities Int2ObjectOpenHashMap was replaced with a ConcurrentTrackerM
 
 This patch is configurable, meaning the asynchronous tracker implementation can be disabled in the configuration if it causes any issues with plugins. Disabling this patch will revert behavior to Tuinity's tracker processing implementation.
 
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index 6fe7151ba7d8ad105bf21aa89be5a7ab2f2aa0ca..59f273c9131c62d1f523529293a80652d31b567c 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -48,7 +48,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     public NetworkManager networkManager; // Paper
+     public final MinecraftServer server;
+     public final PlayerInteractManager playerInteractManager;
+-    public final Deque<Integer> removeQueue = new ArrayDeque<>(); // Paper
++    public final Deque<Integer> removeQueue = new java.util.concurrent.ConcurrentLinkedDeque<>(); // Paper // Hydrinity
+     private final AdvancementDataPlayer advancementDataPlayer;
+     private final ServerStatisticManager serverStatisticManager;
+     private float lastHealthScored = Float.MIN_VALUE;
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 index aea72b0db10eed151db18490c02f291c3cded92a..f9bbe1fae8f7f1dd137cb0ffd9582a8205c3201e 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
@@ -140,14 +153,14 @@ index 57b1381c31395b4233cbb6a5dbb5bd296a664ef4..a3bbf0c1b7a391d9c6dab4ff6c6ed581
                  // Paper start - remove allocation of Vec3D here
                  //Vec3D vec3d = entityplayer.getPositionVector().d(this.tracker.getPositionVector()); // MC-155077, SPIGOT-5113
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 612719e1363e05af7e80d6cafd24fbdbcf78fbe0..c7144c850d52ebe3d0daad948753036f18492d7b 100644
+index 612719e1363e05af7e80d6cafd24fbdbcf78fbe0..f102e77fe4991364589b25fc2fdf269cad6ee974 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -1717,6 +1717,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
      }
  
      public void sendPacket(Packet<?> packet) {
-+        if (!minecraftServer.isMainThread()) minecraftServer.processQueue.add(() -> sendPacket(packet)); else // Yatopia - async entity tracker
++        if (!minecraftServer.isMainThread()) minecraftServer.processQueue.add(() -> this.a(packet, null)); else // Yatopia - async entity tracker
          this.a(packet, (GenericFutureListener) null);
      }
  
