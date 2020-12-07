@@ -101,7 +101,6 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
 | server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
-| server |  PaperPR: Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
