@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Beech Horn <beechhorn@gmail.com>
+Date: Mon, 7 Dec 2020 21:16:51 +0200
+Subject: [PATCH] Do not update distance map when animal and mob spawning is
+ disabled in the particular world
+
+Original author: Beech Horn <beechhorn@gmail.com>
+Licensed under Bukkit and CraftBukkit's original license, GPLv3
+The following patch should be treated as it is licensed in GPLv3
+
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 7e9da788bc6d2ca0047f09cffed84ceffccb31fb..9612e572971b816476b23255dc3e2c8f967ff791 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -1028,7 +1028,7 @@ public class ChunkProviderServer extends IChunkProvider {
+             int l = this.chunkMapDistance.b();
+             // Paper start - per player mob spawning
+             SpawnerCreature.d spawnercreature_d; // moved down
+-            if (this.playerChunkMap.playerMobDistanceMap != null) {
++            if ((this.allowAnimals || this.allowMonsters) && this.playerChunkMap.playerMobDistanceMap != null) { // Yatopia
+                 // update distance map
+                 this.world.timings.playerMobDistanceMapUpdate.startTiming();
+                 this.playerChunkMap.playerMobDistanceMap.update(this.world.players, this.playerChunkMap.viewDistance);
