@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Fox2Code <fox2code@gmail.com>
+Date: Tue, 8 Dec 2020 17:03:28 +0100
+Subject: [PATCH] KibblePatcher Plugin Rewrite
+
+Import KibblePatcher plugin rewrite feature directly to Yatopia (With configuration)
+
+Signed-off-by: Fox2Code <fox2code@gmail.com>
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/util/Commodore.java b/src/main/java/org/bukkit/craftbukkit/util/Commodore.java
+index 1d78086cb94d24372f9fbe21463e21277e25eab7..ee441898d995bac3ebdb7d2a7883aab0af581572 100644
+--- a/src/main/java/org/bukkit/craftbukkit/util/Commodore.java
++++ b/src/main/java/org/bukkit/craftbukkit/util/Commodore.java
+@@ -359,6 +359,24 @@ public class Commodore
+                     @Override
+                     public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf)
+                     {
++                        // Yatopia start - KibblePatcher Plugin Rewrite
++                        if (org.yatopiamc.yatopia.server.YatopiaConfig.enablePluginRewrite) {
++                            if (opcode == Opcodes.INVOKESTATIC &&
++                                    (owner.equals("java/lang/Math") || owner.equals("java/lang/StrictMath"))) {
++                                if (name.equals("sin") || name.equals("cos") || name.equals("tan")) {
++                                    owner = "org/yatopiamc/yatopia/server/util/FastMath";
++                                } else {
++                                    owner = "org/apache/commons/math3/util/FastMath";
++                                }
++                            } else if (opcode == Opcodes.INVOKEVIRTUAL && owner.equals("java/lang/String")
++                                    && name.equals("replace") && desc.contains("CharSequence")) {
++                                opcode = Opcodes.INVOKESTATIC;
++                                owner = "org/yatopiamc/yatopia/server/util/FastReplace";
++                                desc = "(Ljava/lang/String;Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;";
++                            }
++                        }
++                        // Yatopia end
++
+                         // SPIGOT-4496
+                         if ( owner.equals( "org/bukkit/map/MapView" ) && name.equals( "getId" ) && desc.equals( "()S" ) )
+                         {
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 2d4fb0a4664578f8d5c23db854eb8f2764724940..6222113a0bb0b52562013861b45c2f60772d35e6 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -288,4 +288,9 @@ public class YatopiaConfig {
+     private static void tickEnchantingTables() {
+         shouldTickEnchantingTables = getBoolean("settings.tick.enchanting-tables", shouldTickEnchantingTables);
+     }
++
++    public static boolean enablePluginRewrite = true;
++    private static void pluginRewrite() {
++        enablePluginRewrite = getBoolean("settings.plugin-rewrite", enablePluginRewrite);
++    }
+ }
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/FastMath.java b/src/main/java/org/yatopiamc/yatopia/server/util/FastMath.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..826b2d00cba5d5fd9747143b7d996b42542a8459
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/util/FastMath.java
+@@ -0,0 +1,33 @@
++package org.yatopiamc.yatopia.server.util;
++
++import net.minecraft.server.MathHelper;
++
++public class FastMath {
++    private FastMath() {}
++
++    public static double sin(double value) {
++        return MathHelper.sin((float)value);
++    }
++
++    public static float sin(float value) {
++        return MathHelper.sin(value);
++    }
++
++    public static double cos(double value) {
++        return MathHelper.cos((float)value);
++    }
++
++    public static float cos(float value) {
++        return MathHelper.cos(value);
++    }
++
++    public static double tan(double value) {
++        return MathHelper.sin((float)value) /
++                MathHelper.cos((float)value);
++    }
++
++    public static float tan(float value) {
++        return MathHelper.sin(value) /
++                MathHelper.cos(value);
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/FastReplace.java b/src/main/java/org/yatopiamc/yatopia/server/util/FastReplace.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..60c310ad2147e18c4227ea2b4d3a73ec2ace41cd
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/util/FastReplace.java
+@@ -0,0 +1,15 @@
++package org.yatopiamc.yatopia.server.util;
++
++import org.apache.commons.lang.StringUtils;
++
++public class FastReplace {
++    private FastReplace() {}
++
++    public static String replace(String string, CharSequence from, CharSequence to) {
++        return StringUtils.replace(string, from.toString(), to.toString());
++    }
++
++    public static String replace(String string, String from, String to) {
++        return StringUtils.replace(string, from, to);
++    }
++}
