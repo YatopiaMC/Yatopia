@@ -68,6 +68,12 @@ pipeline {
                 }
             }
         }
+        
+        stage('Apply KibblePatcher') {
+            steps {
+                sh './yatopia applyKibblePatcher'
+            }
+        }
         stage('Build Launcher') {
             tools {
                 jdk "OpenJDK 8"
