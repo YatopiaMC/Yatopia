@@ -5,10 +5,10 @@ Subject: [PATCH] Respect PlayerKickEvent leaveMessage
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index a7373681b8442b302a5f9cf5a7408443defc6f8c..292eef68b8d71236c845dd5c42c5366b5b55efc0 100644
+index 4856247662012b6bdfe192d1b91167c91afead74..3c6ad3d5802f66d60e0087a16aedcd12254da420 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -320,7 +320,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -318,7 +318,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          this.networkManager.sendPacket(new PacketPlayOutKickDisconnect(ichatbasecomponent), (future) -> {
              this.networkManager.close(ichatbasecomponent);
          });
@@ -17,7 +17,7 @@ index a7373681b8442b302a5f9cf5a7408443defc6f8c..292eef68b8d71236c845dd5c42c5366b
          this.networkManager.stopReading();
          MinecraftServer minecraftserver = this.minecraftServer;
          NetworkManager networkmanager = this.networkManager;
-@@ -1678,6 +1678,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1676,6 +1676,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
      @Override
      public void a(IChatBaseComponent ichatbasecomponent) {
@@ -29,7 +29,7 @@ index a7373681b8442b302a5f9cf5a7408443defc6f8c..292eef68b8d71236c845dd5c42c5366b
          // CraftBukkit start - Rarely it would send a disconnect line twice
          if (this.processedDisconnect) {
              return;
-@@ -1693,7 +1698,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1691,7 +1696,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          */
  
          this.player.p();
@@ -39,7 +39,7 @@ index a7373681b8442b302a5f9cf5a7408443defc6f8c..292eef68b8d71236c845dd5c42c5366b
              this.minecraftServer.getPlayerList().sendMessage(CraftChatMessage.fromString(quitMessage));
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index e54706b9c65f0a15bd5ff0e0f227bb881fc172b3..1ef3df97c5af937a342a9e2c18e51e707e9bd203 100644
+index 1a61ff4c7d532c39883aedba90f17ef81b1a9409..0b7dc3d88a34c32e36ebb14f1e8b463664860f95 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -499,6 +499,11 @@ public abstract class PlayerList {
