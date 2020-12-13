@@ -55,6 +55,7 @@ This is an overview over all patches that are currently used.
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
+| server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
@@ -119,6 +120,7 @@ This is an overview over all patches that are currently used.
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
+| server |  Spread out and optimise player list ticks      | James Lyne |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
