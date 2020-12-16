@@ -40,8 +40,6 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | YatopiaMC |  |
-| server |  Concurrent loadedChunkMap      | Paul Sauve |  |
-| server |  Concurrent visibleChunks and updatingChunks      | Paul Sauve |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
@@ -110,6 +108,7 @@ This is an overview over all patches that are currently used.
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
+| server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Send more packets immediately      | MrIvanPlays |  |
