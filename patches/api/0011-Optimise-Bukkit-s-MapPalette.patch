@@ -5,7 +5,7 @@ Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..5e938a83377ddf1b952d3597c9974d0ca79afb79 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..beef3860f9f3bdd8c1924663fe5042501bcc6898 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
 @@ -22,7 +22,9 @@ public final class MapPalette {
@@ -19,7 +19,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..5e938a83377ddf1b952d3597c9974d0c
          double rmean = (c1.getRed() + c2.getRed()) / 2.0;
          double r = c1.getRed() - c2.getRed();
          double g = c1.getGreen() - c2.getGreen();
-@@ -31,10 +33,24 @@ public final class MapPalette {
+@@ -31,7 +33,21 @@ public final class MapPalette {
          double weightG = 4.0;
          double weightB = 2 + (255 - rmean) / 256.0;
          return weightR * r * r + weightG * g * g + weightB * b * b;
@@ -40,11 +40,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..5e938a83377ddf1b952d3597c9974d0c
 +    // Yatopia end
  
      @NotNull
--    static final Color[] colors = {
-+    static Color[] colors = { // Yatopia
-         c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
-         c(89, 125, 39), c(109, 153, 48), c(127, 178, 56), c(67, 94, 29),
-         c(174, 164, 115), c(213, 201, 140), c(247, 233, 163), c(130, 123, 86),
+     static final Color[] colors = {
 @@ -95,6 +111,24 @@ public final class MapPalette {
          c(60, 31, 43), c(74, 37, 53), c(86, 44, 62), c(45, 23, 32),
          c(14, 127, 93), c(17, 155, 114), c(20, 180, 133), c(10, 95, 70)

@@ -51,7 +51,6 @@ This is an overview over all patches that are currently used.
 | server |  DataBits slight optimization      | Paul Sauve |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
-| server |  Disable MapTest      | epserv |  |
 | api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
 | server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
