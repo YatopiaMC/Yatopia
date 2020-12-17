@@ -40,8 +40,6 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Brandings      | YatopiaMC |  |
-| server |  Concurrent loadedChunkMap      | Paul Sauve |  |
-| server |  Concurrent visibleChunks and updatingChunks      | Paul Sauve |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
@@ -56,6 +54,7 @@ This is an overview over all patches that are currently used.
 | server |  Disable MapTest      | epserv |  |
 | api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
+| server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
@@ -82,7 +81,6 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
-| server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
@@ -103,7 +101,6 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
 | server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
-| server |  PaperPR: Fix merging spawning values      | Mariell Hoversholm |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
@@ -112,9 +109,9 @@ This is an overview over all patches that are currently used.
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
+| server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
-| server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Signs allow color codes      | William Blake Galbreath |  |
 | server |  Signs editable on right click      | William Blake Galbreath |  |
@@ -122,6 +119,7 @@ This is an overview over all patches that are currently used.
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
+| server |  Spread out and optimise player list ticks      | James Lyne |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |

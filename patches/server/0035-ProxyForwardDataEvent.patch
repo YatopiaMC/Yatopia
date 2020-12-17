@@ -5,11 +5,11 @@ Subject: [PATCH] ProxyForwardDataEvent
 
 
 diff --git a/src/main/java/net/minecraft/server/HandshakeListener.java b/src/main/java/net/minecraft/server/HandshakeListener.java
-index 1d60def8fa7041b3383c287153cbb9c6cec3d0f9..4b7caf04981e811c937f44b27662a9c220ba62f5 100644
+index 79f726ef43e70b8882890007146df199824d14e3..edb7a9de55718d9c860c82580aca78c3d254ad57 100644
 --- a/src/main/java/net/minecraft/server/HandshakeListener.java
 +++ b/src/main/java/net/minecraft/server/HandshakeListener.java
 @@ -92,6 +92,7 @@ public class HandshakeListener implements PacketHandshakingInListener {
-                         this.getNetworkManager().socketAddress = new java.net.InetSocketAddress(event.getSocketAddressHostname(), ((java.net.InetSocketAddress) this.getNetworkManager().getSocketAddress()).getPort());
+                         if (event.getSocketAddressHostname() != null) this.getNetworkManager().socketAddress = new java.net.InetSocketAddress(event.getSocketAddressHostname(), ((java.net.InetSocketAddress) this.getNetworkManager().getSocketAddress()).getPort());
                          this.getNetworkManager().spoofedUUID = event.getUniqueId();
                          this.getNetworkManager().spoofedProfile = gson.fromJson(event.getPropertiesJson(), com.mojang.authlib.properties.Property[].class);
 +                        if (proxyLogicEnabled) c.proxyProfileSpoof = true; // Yatopia
@@ -83,7 +83,7 @@ index d987483255195c0bde713a92676baced1eaff2b3..2fa0f21cfa81670f6c3f18f76e7fa8d0
                  } catch (Exception ex) {
                      disconnect("Failed to verify username!");
 diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index d346ecbd67f9ed48a343fdbc7e8b81b0e7dda3d9..837056fdd8b8125bcfe39a1d49fa6e1797bba708 100644
+index 6a0ec0105399066dede622b45c9471b32c162cf6..8ae1378e4cb5694130630943a84884dddecb9b3b 100644
 --- a/src/main/java/net/minecraft/server/NetworkManager.java
 +++ b/src/main/java/net/minecraft/server/NetworkManager.java
 @@ -51,6 +51,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
