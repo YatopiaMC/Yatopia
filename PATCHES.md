@@ -80,7 +80,6 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
-| server |  MC-4 Fix - Item position desync      | William Blake Galbreath |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
@@ -111,7 +110,6 @@ This is an overview over all patches that are currently used.
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
-| server |  Send more packets immediately      | MrIvanPlays |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Signs allow color codes      | William Blake Galbreath |  |
 | server |  Signs editable on right click      | William Blake Galbreath |  |
