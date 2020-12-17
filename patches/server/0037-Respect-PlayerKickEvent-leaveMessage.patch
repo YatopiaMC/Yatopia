@@ -5,10 +5,10 @@ Subject: [PATCH] Respect PlayerKickEvent leaveMessage
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 4856247662012b6bdfe192d1b91167c91afead74..3c6ad3d5802f66d60e0087a16aedcd12254da420 100644
+index 81ac7dae3b51c67a1a279fdb96cd1d50dd901f0b..c0fa18179cdd5367a5b346d7f795f969c0a6e2b7 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -318,7 +318,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -323,7 +323,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          this.networkManager.sendPacket(new PacketPlayOutKickDisconnect(ichatbasecomponent), (future) -> {
              this.networkManager.close(ichatbasecomponent);
          });
@@ -17,7 +17,7 @@ index 4856247662012b6bdfe192d1b91167c91afead74..3c6ad3d5802f66d60e0087a16aedcd12
          this.networkManager.stopReading();
          MinecraftServer minecraftserver = this.minecraftServer;
          NetworkManager networkmanager = this.networkManager;
-@@ -1676,6 +1676,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1681,6 +1681,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
      @Override
      public void a(IChatBaseComponent ichatbasecomponent) {
@@ -29,7 +29,7 @@ index 4856247662012b6bdfe192d1b91167c91afead74..3c6ad3d5802f66d60e0087a16aedcd12
          // CraftBukkit start - Rarely it would send a disconnect line twice
          if (this.processedDisconnect) {
              return;
-@@ -1691,7 +1696,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1696,7 +1701,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          */
  
          this.player.p();
