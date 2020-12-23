@@ -28,6 +28,7 @@ This is an overview over all patches that are currently used.
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
+| server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
 | server |  AirplaneLite Data Structs      | Paul Sauve |  |
 | server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
@@ -43,6 +44,7 @@ This is an overview over all patches that are currently used.
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
+| server |  Configurable enchanting table tick      | Ivan Pekov |  |
 | server |  Configurable flight checks      | l_MrBoom_l |  |
 | server |  Configurable movement checks      | l_MrBoom_l |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
@@ -56,6 +58,7 @@ This is an overview over all patches that are currently used.
 | server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
+| server |  Don&#39;t unnecessarily copy the passenger list      | Ivan Pekov |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Ensure pools create daemon threads      | Ivan Pekov |  |
@@ -67,11 +70,14 @@ This is an overview over all patches that are currently used.
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
+| server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
+| server |  Implement TPSBar      | BillyGalbreath |  |
+| server |  Implement bamboo growth settings      | William Blake Galbreath |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Infinity No Arrows      | Bud Gidiere |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
@@ -80,6 +86,7 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
+| server |  Make lava flow speed configurable      | William Blake Galbreath |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
@@ -124,7 +131,6 @@ This is an overview over all patches that are currently used.
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
-| server |  Tile Entity optimizations      | Mykyta Komarnytskyy |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Use faster random implementation      | Mykyta Komarnytskyy |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |

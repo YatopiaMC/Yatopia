@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Wed, 23 Dec 2020 09:55:43 +0200
+Subject: [PATCH] Don't unnecessarily copy the passenger list
+
+It is only copied if it's needed, and that is in EntityTrackerEntry, when we've detected a change.
+
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index d1dff3d3bd51b3bcaaea609221ad92be8d307c06..6a89033a04334139ab30a99e75eb84bcd4374f49 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -3273,7 +3273,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+     }
+ 
+     public List<Entity> getPassengers() {
++        // Yatopia start - don't copy passengers list
++        /*
+         return (List) (this.passengers.isEmpty() ? Collections.emptyList() : Lists.newArrayList(this.passengers));
++         */
++        return this.passengers.isEmpty() ? Collections.emptyList() : this.passengers;
++        // Yatopia end
+     }
+ 
+     public boolean w(Entity entity) {
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 228236bce14bfdf930570b453862dcfaae9e4823..0be11d1263d84b270c25ec8249832164dc75409d 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -78,7 +78,7 @@ public class EntityTrackerEntry {
+         List<Entity> list = this.tracker.getPassengers();
+ 
+         if (!list.equals(this.p)) {
+-            this.p = list;
++            this.p = com.google.common.collect.ImmutableList.copyOf(list); // Yatopia - only copy list if something has changed
+             this.broadcastIncludingSelf(new PacketPlayOutMount(this.tracker)); // CraftBukkit
+         }
+ 
