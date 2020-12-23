@@ -58,6 +58,7 @@ This is an overview over all patches that are currently used.
 | server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
+| server |  Don&#39;t unnecessarily copy the passenger list      | Ivan Pekov |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Ensure pools create daemon threads      | Ivan Pekov |  |
