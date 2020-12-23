@@ -28,6 +28,7 @@ This is an overview over all patches that are currently used.
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
+| server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
 | server |  AirplaneLite Data Structs      | Paul Sauve |  |
 | server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
@@ -68,11 +69,14 @@ This is an overview over all patches that are currently used.
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
+| server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
+| server |  Implement TPSBar      | BillyGalbreath |  |
+| server |  Implement bamboo growth settings      | William Blake Galbreath |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Infinity No Arrows      | Bud Gidiere |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
@@ -81,6 +85,7 @@ This is an overview over all patches that are currently used.
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
+| server |  Make lava flow speed configurable      | William Blake Galbreath |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
