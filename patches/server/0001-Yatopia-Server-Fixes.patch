@@ -142,10 +142,18 @@ index 2291135eaef64c403183724cb6e413cd7e472672..6fcc7ed7c129e6a33386d65b37cbba4a
      public static long a(long i, EnumDirection enumdirection) {
          return a(i, enumdirection.getAdjacentX(), enumdirection.getAdjacentY(), enumdirection.getAdjacentZ());
 diff --git a/src/main/java/net/minecraft/server/CommandDispatcher.java b/src/main/java/net/minecraft/server/CommandDispatcher.java
-index cabce1a8ba5db56495628edd9bc796aee7a53356..6cf74a3a036e6551cb1400fa68592a19cd0f5a71 100644
+index cabce1a8ba5db56495628edd9bc796aee7a53356..9754a9eac48c50efdefdceefbb4386bf0df583dd 100644
 --- a/src/main/java/net/minecraft/server/CommandDispatcher.java
 +++ b/src/main/java/net/minecraft/server/CommandDispatcher.java
-@@ -337,6 +337,7 @@ public class CommandDispatcher {
+@@ -107,6 +107,7 @@ public class CommandDispatcher {
+             CommandIdleTimeout.a(this.b);
+             CommandStop.a(this.b);
+             CommandWhitelist.a(this.b);
++            net.pl3x.purpur.command.TPSBarCommand.register(getDispatcher()); // Purpur
+         }
+ 
+         if (commanddispatcher_servertype.d) {
+@@ -337,6 +338,7 @@ public class CommandDispatcher {
  
      }
  
@@ -153,6 +161,29 @@ index cabce1a8ba5db56495628edd9bc796aee7a53356..6cf74a3a036e6551cb1400fa68592a19
      public static LiteralArgumentBuilder<CommandListenerWrapper> a(String s) {
          return LiteralArgumentBuilder.literal(s);
      }
+@@ -356,6 +358,7 @@ public class CommandDispatcher {
+         };
+     }
+ 
++    public com.mojang.brigadier.CommandDispatcher<CommandListenerWrapper> getDispatcher() { return a(); } // Purpur - OBFHELPER
+     public com.mojang.brigadier.CommandDispatcher<CommandListenerWrapper> a() {
+         return this.b;
+     }
+diff --git a/src/main/java/net/minecraft/server/CommandDispatcher.java.rej b/src/main/java/net/minecraft/server/CommandDispatcher.java.rej
+deleted file mode 100644
+index 7c1db96ec8692728e204a7d8490d74cf53b096a5..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/CommandDispatcher.java.rej
++++ /dev/null
+@@ -1,9 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/CommandDispatcher.java b/src/main/java/net/minecraft/server/CommandDispatcher.java	(rejected hunks)
+-@@ -109,6 +109,7 @@ public class CommandDispatcher {
+-             CommandWhitelist.a(this.b);
+-             net.pl3x.purpur.command.DemoCommand.register(getDispatcher()); // Purpur
+-             net.pl3x.purpur.command.PingCommand.register(getDispatcher()); // Purpur
+-+            net.pl3x.purpur.command.TPSBarCommand.register(getDispatcher()); // Purpur
+-         }
+- 
+-         if (commanddispatcher_servertype.d) {
 diff --git a/src/main/java/net/minecraft/server/CommandListenerWrapper.java b/src/main/java/net/minecraft/server/CommandListenerWrapper.java
 index 86f1cfe454ea0a989775b49a6b88375c766ef647..da53af61d1171db3c167c6e007adf95355771653 100644
 --- a/src/main/java/net/minecraft/server/CommandListenerWrapper.java
