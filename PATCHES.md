@@ -43,6 +43,7 @@ This is an overview over all patches that are currently used.
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
+| server |  Configurable enchanting table tick      | Ivan Pekov |  |
 | server |  Configurable flight checks      | l_MrBoom_l |  |
 | server |  Configurable movement checks      | l_MrBoom_l |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
@@ -124,7 +125,6 @@ This is an overview over all patches that are currently used.
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
-| server |  Tile Entity optimizations      | Mykyta Komarnytskyy |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Use faster random implementation      | Mykyta Komarnytskyy |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
