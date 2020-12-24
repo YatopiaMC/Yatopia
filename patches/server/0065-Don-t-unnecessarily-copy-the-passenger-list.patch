@@ -35,3 +35,16 @@ index 228236bce14bfdf930570b453862dcfaae9e4823..0be11d1263d84b270c25ec8249832164
              this.broadcastIncludingSelf(new PacketPlayOutMount(this.tracker)); // CraftBukkit
          }
  
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 6c39796e672a6412e85f69a6a3dfdb1037e51d30..eba7a33cb0c2f0bc18eda709dd1c2b341ddb36df 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -1430,7 +1430,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+             this.chunkCheck(entity);
+             } finally { timer.stopTiming(); } // Paper - timings
+             if (entity.inChunk) {
+-                Iterator iterator = entity.getPassengers().iterator();
++                Iterator iterator = new java.util.ArrayList<>(entity.getPassengers()).iterator(); // Yatopia - copy the passengers list here too
+ 
+                 while (iterator.hasNext()) {
+                     Entity entity1 = (Entity) iterator.next();
