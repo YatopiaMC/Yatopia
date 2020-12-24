@@ -5,7 +5,7 @@ Subject: [PATCH] Respect PlayerKickEvent leaveMessage
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 81ac7dae3b51c67a1a279fdb96cd1d50dd901f0b..c0fa18179cdd5367a5b346d7f795f969c0a6e2b7 100644
+index 10139becc33a483a81858dcad2d07571e48ea43e..c258b5b1cc6d5f7fae49c311865e9506d0164c6a 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -323,7 +323,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -17,7 +17,7 @@ index 81ac7dae3b51c67a1a279fdb96cd1d50dd901f0b..c0fa18179cdd5367a5b346d7f795f969
          this.networkManager.stopReading();
          MinecraftServer minecraftserver = this.minecraftServer;
          NetworkManager networkmanager = this.networkManager;
-@@ -1681,6 +1681,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1691,6 +1691,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
      @Override
      public void a(IChatBaseComponent ichatbasecomponent) {
@@ -29,7 +29,7 @@ index 81ac7dae3b51c67a1a279fdb96cd1d50dd901f0b..c0fa18179cdd5367a5b346d7f795f969
          // CraftBukkit start - Rarely it would send a disconnect line twice
          if (this.processedDisconnect) {
              return;
-@@ -1696,7 +1701,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1706,7 +1711,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          */
  
          this.player.p();
