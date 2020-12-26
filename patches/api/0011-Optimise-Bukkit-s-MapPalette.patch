@@ -5,7 +5,7 @@ Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d9a392e1f 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..4f015713ef9ee66f8ad53a9570c65c7791ded153 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
 @@ -22,7 +22,9 @@ public final class MapPalette {
@@ -43,7 +43,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d
  
      @NotNull
      static final Color[] colors = {
-@@ -95,6 +113,52 @@ public final class MapPalette {
+@@ -95,6 +113,51 @@ public final class MapPalette {
          c(60, 31, 43), c(74, 37, 53), c(86, 44, 62), c(45, 23, 32),
          c(14, 127, 93), c(17, 155, 114), c(20, 180, 133), c(10, 95, 70)
      };
@@ -62,12 +62,11 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d
 +        rgbColors = java.util.Arrays.stream(colors).mapToInt(Color::getRGB).toArray();
 +
 +        try {
-+            // load net.minecraft.server.MaterialMapColor class. using reflection because build fails. maven thinks nms isn't accessible from Yatopia-API
 +            Class<?> materialMapColorClass = MapPalette.class.getClassLoader().loadClass("net.minecraft.server.MaterialMapColor");
-+            // get vanilla colors
 +            Object[] vanillaColorObjects = (Object[]) java.util.Arrays.stream(materialMapColorClass.getFields()).filter(f -> f.getType().isArray() && f.getType().getComponentType().equals(materialMapColorClass)).findAny().get().get(null);
 +            // get MaterialMapColor.rgb instance field
 +            java.lang.reflect.Field rgbField = materialMapColorClass.getDeclaredField("rgb");
++            rgbField.setAccessible(true);
 +            // get vanilla colors array as java.awt.Color instances array
 +            vanillaColors = java.util.Arrays.stream(vanillaColorObjects).filter(java.util.Objects::nonNull).mapToInt(objColor -> {
 +                try {
@@ -82,9 +81,9 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d
 +                Color vanillaColor = vanillaColors[i];
 +                for (int j = 0; j < modifiers.length; j++) {
 +                    int modifier = modifiers[j];
-+                    int mr = vanillaColor.getRed() * modifier / 255;
-+                    int mg = vanillaColor.getGreen() * modifier / 255;
-+                    int mb = vanillaColor.getBlue() * modifier / 255;
++                    int mr = (vanillaColor.getRed() * modifier) / 255;
++                    int mg = (vanillaColor.getGreen() * modifier) / 255;
++                    int mb = (vanillaColor.getBlue() * modifier) / 255;
 +                    doubleColors[i][j] = c(mr, mg, mb);
 +                }
 +            }
@@ -96,34 +95,37 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d
  
      // Interface
      /**
-@@ -235,6 +299,8 @@ public final class MapPalette {
-     public static byte matchColor(@NotNull Color color) {
+@@ -236,6 +299,8 @@ public final class MapPalette {
          if (color.getAlpha() < 128) return 0;
  
+         int index = 0;
 +        // Yatopia start - foreach a maximum of 62 colors instead of 236 per pixel
 +        /*
-         int index = 0;
          double best = -1;
  
-@@ -245,9 +311,45 @@ public final class MapPalette {
+         for (int i = 4; i < colors.length; i++) {
+@@ -245,9 +310,44 @@ public final class MapPalette {
                  index = i;
              }
          }
 +         */
-+
-+        int index = 0;
 +        int best = -1;
 +
 +        for (int i = 0; i < vanillaColors.length; i++) {
 +            int distance = getDistanceSquared(color, vanillaColors[i]);
 +            if (distance == 0) {
 +                index = i;
++                best = 0;
 +                break;
 +            }
 +            if (distance < best || best == -1) {
 +                best = distance;
 +                index = i;
 +            }
++        }
++        if (best == 0) {
++            index = com.google.common.primitives.Ints.indexOf(rgbColors, vanillaColors[index].getRGB());
++            return (byte) (index < 128 ? index : index - 256);
 +        }
 +        Color[] modColors = doubleColors[index];
 +        best = -1;
@@ -140,10 +142,6 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d
 +        }
 +
 +        index = com.google.common.primitives.Ints.indexOf(rgbColors, modColors[index].getRGB());
-+        // we have already checked if color is transparent so now there aren't any transparent colors
-+        // and if (index < 4) then nearest color was black (hex #000000), so we need to return the most black color
-+        if (index < 4)
-+            index = 119;
 +        // Yatopia end
  
          // Minecraft has 143 colors, some of which have negative byte representations
@@ -152,7 +150,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..84daffdda568039423d0f6d18981bb9d
      }
  
      /**
-@@ -260,7 +362,7 @@ public final class MapPalette {
+@@ -260,7 +360,7 @@ public final class MapPalette {
      @Deprecated
      @NotNull
      public static Color getColor(byte index) {
