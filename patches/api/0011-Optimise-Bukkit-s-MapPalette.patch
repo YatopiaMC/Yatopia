@@ -5,7 +5,7 @@ Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed0525034135f 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..839a833ed4efe2de9c08c31697d20fb4e18f0f78 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
 @@ -23,6 +23,8 @@ public final class MapPalette {
@@ -17,7 +17,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed052
          double rmean = (c1.getRed() + c2.getRed()) / 2.0;
          double r = c1.getRed() - c2.getRed();
          double g = c1.getGreen() - c2.getGreen();
-@@ -31,6 +33,23 @@ public final class MapPalette {
+@@ -31,6 +33,17 @@ public final class MapPalette {
          double weightG = 4.0;
          double weightB = 2 + (255 - rmean) / 256.0;
          return weightR * r * r + weightG * g * g + weightB * b * b;
@@ -25,23 +25,17 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed052
 +        if (c1.getRGB() == c2.getRGB()) { // check if colors are same
 +            return 0;
 +        }
-+        return Math.sqrt(getDistanceSquared(c1, c2));
-+    }
-+    private static int getDistanceSquared(@NotNull Color c1, @NotNull Color c2) {
-+        if (c1.getRGB() == c2.getRGB()) {
-+            return 0;
-+        }
 +        int r = c1.getRed() - c2.getRed(),
 +                g = c1.getGreen() - c2.getGreen(),
 +                b = c1.getBlue() - c2.getBlue();
 +        // (x1 - x2)^2 + (y1 - y2)^2 + (z1 - z2)^2 formula
 +        // but with colors. red is x, green is y, blue is z
-+        return r * r + g * g + b * b;
++        return Math.sqrt(r * r + g * g + b * b);
 +        // Yatopia end
      }
  
      @NotNull
-@@ -95,6 +114,51 @@ public final class MapPalette {
+@@ -95,6 +108,51 @@ public final class MapPalette {
          c(60, 31, 43), c(74, 37, 53), c(86, 44, 62), c(45, 23, 32),
          c(14, 127, 93), c(17, 155, 114), c(20, 180, 133), c(10, 95, 70)
      };
@@ -93,24 +87,22 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed052
  
      // Interface
      /**
-@@ -236,6 +300,8 @@ public final class MapPalette {
-         if (color.getAlpha() < 128) return 0;
- 
+@@ -238,6 +296,8 @@ public final class MapPalette {
          int index = 0;
-+        // Yatopia start - foreach a maximum of 62 colors instead of 236 per pixel
-+        /*
          double best = -1;
  
++        // Yatopia start - foreach a maximum of 62 colors instead of 236 per pixel
++        /*
          for (int i = 4; i < colors.length; i++) {
-@@ -245,9 +311,44 @@ public final class MapPalette {
+             double distance = getDistance(color, colors[i]);
+             if (distance < best || best == -1) {
+@@ -245,9 +305,43 @@ public final class MapPalette {
                  index = i;
              }
          }
 +         */
-+        int best = -1;
-+
 +        for (int i = 0; i < vanillaColors.length; i++) {
-+            int distance = getDistanceSquared(color, vanillaColors[i]);
++            double distance = getDistance(color, vanillaColors[i]);
 +            if (distance == 0) {
 +                index = i;
 +                best = 0;
@@ -121,14 +113,16 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed052
 +                index = i;
 +            }
 +        }
++
 +        if (best == 0) {
 +            index = com.google.common.primitives.Ints.indexOf(rgbColors, vanillaColors[index].getRGB());
 +            return (byte) (index < 128 ? index : index - 256);
 +        }
++
 +        Color[] modColors = doubleColors[index];
 +        best = -1;
 +        for (int i = 0; i < modColors.length; i++) {
-+            int distance = getDistanceSquared(color, modColors[i]);
++            double distance = getDistance(color, modColors[i]);
 +            if (distance == 0) {
 +                index = i;
 +                break;
@@ -138,7 +132,6 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed052
 +                index = i;
 +            }
 +        }
-+
 +        index = com.google.common.primitives.Ints.indexOf(rgbColors, modColors[index].getRGB());
 +        // Yatopia end
  
@@ -148,7 +141,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..83c073ef1febf85c0799c363b16ed052
      }
  
      /**
-@@ -260,7 +361,7 @@ public final class MapPalette {
+@@ -260,7 +354,7 @@ public final class MapPalette {
      @Deprecated
      @NotNull
      public static Color getColor(byte index) {
