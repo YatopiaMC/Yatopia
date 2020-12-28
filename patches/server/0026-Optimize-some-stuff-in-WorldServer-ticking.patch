@@ -6,10 +6,10 @@ Subject: [PATCH] Optimize some stuff in WorldServer ticking
 Replaced some streams and some array lists with glue lists
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 46a88028a26df4a6101204726f4a0539d103785e..cba1df43983fb9d3c28fefdb03e59c2effd0f723 100644
+index 68515a440b032c1d95adf659cf8162aa421c9474..6acd67d491eb3a2978c472ebde1d9a5e8dfc117c 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -812,12 +812,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -752,12 +752,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              this.server.getPlayerList().sendAll(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.i, this.thunderLevel));
          }
          // */
@@ -34,7 +34,7 @@ index 46a88028a26df4a6101204726f4a0539d103785e..cba1df43983fb9d3c28fefdb03e59c2e
          if (flag != this.isRaining()) {
              // Only send weather packets to those affected
              for (int idx = 0; idx < this.players.size(); ++idx) {
-@@ -832,10 +841,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -772,10 +781,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              }
          }
          // CraftBukkit end
@@ -47,7 +47,7 @@ index 46a88028a26df4a6101204726f4a0539d103785e..cba1df43983fb9d3c28fefdb03e59c2e
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
              TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
-@@ -1021,9 +1029,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -961,9 +969,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      private void wakeupPlayers() {
@@ -59,7 +59,7 @@ index 46a88028a26df4a6101204726f4a0539d103785e..cba1df43983fb9d3c28fefdb03e59c2e
      }
  
      // Paper start - optimise random block ticking
-@@ -1803,8 +1811,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1743,8 +1751,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // Spigot start
          if ( entity instanceof EntityHuman )
          {
@@ -70,7 +70,7 @@ index 46a88028a26df4a6101204726f4a0539d103785e..cba1df43983fb9d3c28fefdb03e59c2e
                  for (Object o : worldData.data.values() )
                  {
                      if ( o instanceof WorldMap )
-@@ -1821,7 +1830,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1761,7 +1770,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          }
                      }
                  }
