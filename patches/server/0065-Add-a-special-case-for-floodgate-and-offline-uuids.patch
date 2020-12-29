@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 29 Dec 2020 08:47:43 +0200
+Subject: [PATCH] Add a special case for floodgate and offline uuids
+
+floodgate spoofs uuids, but plugins such as luckperms get the uuid that the server uses, causing problems
+if this option is configured properly, such things won't happen
+
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 2d4fb0a4664578f8d5c23db854eb8f2764724940..00c600d74ba84cb564b9b22f53f279a93839d71f 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -225,7 +225,16 @@ public class YatopiaConfig {
+         fixFallDistance = getBoolean("settings.fixFallDistance", false);
+     }
+ 
++    public static boolean usingFloodgate = false;
++    private static void usingFloodgate() {
++        usingFloodgate = getBoolean("settings.using-floodgate", false);
++    }
++
+     public static boolean shouldUseOfflineUUID() {
++        if (usingFloodgate) {
++            // never cuz floodgate spoofs an uuid
++            return false;
++        }
+         if (org.spigotmc.SpigotConfig.bungee && com.destroystokyo.paper.PaperConfig.bungeeOnlineMode) {
+             return false;
+         }
