@@ -5,7 +5,7 @@ Subject: [PATCH] Add NBT API as a first-class lib
 
 
 diff --git a/pom.xml b/pom.xml
-index 31aba885d940acf0a9df5d4e83dfec69030b2a37..afe3477c9a577a5fa1ef6c7dfd5a221fd3ca9f6b 100644
+index 31aba885d940acf0a9df5d4e83dfec69030b2a37..cb8eaf5dd3c89193960a433cdc5b6c2903076499 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -56,6 +56,11 @@
@@ -27,7 +27,7 @@ index 31aba885d940acf0a9df5d4e83dfec69030b2a37..afe3477c9a577a5fa1ef6c7dfd5a221f
 +        <dependency>
 +            <groupId>de.tr7zw</groupId>
 +            <artifactId>item-nbt-api</artifactId>
-+            <version>2.6.0</version>
++            <version>2.7.1</version>
 +        </dependency>
      </dependencies>
  
@@ -45,6 +45,27 @@ index 31aba885d940acf0a9df5d4e83dfec69030b2a37..afe3477c9a577a5fa1ef6c7dfd5a221f
                  </configuration>
              </plugin>
              <plugin>
+diff --git a/src/main/java/org/bukkit/Chunk.java b/src/main/java/org/bukkit/Chunk.java
+index 98263d896f316983609432c45b85401a2692432d..afaa459d2c351f99b598ec9054a6838ffb0098e8 100644
+--- a/src/main/java/org/bukkit/Chunk.java
++++ b/src/main/java/org/bukkit/Chunk.java
+@@ -275,4 +275,16 @@ public interface Chunk extends PersistentDataHolder {
+      * @return if the block is contained within
+      */
+     boolean contains(@NotNull BlockData block);
++
++    // Yatopia start
++    /**
++    * Returns a custom tag container of this chunk.
++    *
++    * @return custom NBT tags container
++    */
++    @NotNull
++    default de.tr7zw.changeme.nbtapi.NBTCompound getNBTC() {
++        return new de.tr7zw.changeme.nbtapi.NBTChunk(this).getPersistentDataContainer();
++    }
++    // Yatopia end
+ }
 diff --git a/src/main/java/org/bukkit/block/TileState.java b/src/main/java/org/bukkit/block/TileState.java
 index 3b10fcc13893403b29f0260b8605144679e89b82..1e9a96d8b08cc396acf73dc42083009354e89d8a 100644
 --- a/src/main/java/org/bukkit/block/TileState.java
@@ -108,10 +129,10 @@ index 76e857c364fe79e20cf9bde54b65e5b7108174fd..dc7e9983b89726625acce95026b45695
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
-index ccd81fca25233c2a9c2a8c3f4dda3053d7b2e723..5ad9dfb7856b2f86947b12b5444b2f8147f72bbf 100644
+index 4f2520f7a4ca6d57a85924ada1068a055b9a01fb..9ac89fe309e5cb393bdda3a77f8313991ab77732 100644
 --- a/src/main/java/org/bukkit/inventory/ItemStack.java
 +++ b/src/main/java/org/bukkit/inventory/ItemStack.java
-@@ -791,4 +791,42 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
+@@ -792,4 +792,42 @@ public class ItemStack implements Cloneable, ConfigurationSerializable {
          return itemMeta.hasItemFlag(flag);
      }
      // Paper end

@@ -4,6 +4,37 @@ Date: Sun, 25 Oct 2020 12:23:35 -0500
 Subject: [PATCH] Yatopia-Server-Fixes
 
 
+diff --git a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
+index 3542746c427192ef836675af1acd002b20fd0649..c863cd41de1929d61d6289b81c0943625484fb96 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
+@@ -714,4 +714,9 @@ public class PaperWorldConfig {
+     private void disableMobSpawnerSpawnEggTransformation() {
+         disableMobSpawnerSpawnEggTransformation = getBoolean("game-mechanics.disable-mob-spawner-spawn-egg-transformation", disableMobSpawnerSpawnEggTransformation);
+     }
++
++    public int projectileSaveLimit = -1;
++    private void projectileSaveLimit() {
++        projectileSaveLimit = getInt("projectile-load-save-per-chunk-limit", projectileSaveLimit);
++    }
+ }
+diff --git a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java.rej b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java.rej
+deleted file mode 100644
+index 67f63901bdbae923eb6262d522b5198f9df5a7bc..0000000000000000000000000000000000000000
+--- a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java.rej
++++ /dev/null
+@@ -1,11 +0,0 @@
+-diff a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java	(rejected hunks)
+-@@ -709,4 +709,9 @@ public class PaperWorldConfig {
+-     private void fixCuringExploit() {
+-         fixCuringZombieVillagerDiscountExploit = getBoolean("game-mechanics.fix-curing-zombie-villager-discount-exploit", fixCuringZombieVillagerDiscountExploit);
+-     }
+-+
+-+    public int projectileSaveLimit = -1;
+-+    private void projectileSaveLimit() {
+-+        projectileSaveLimit = getInt("projectile-load-save-per-chunk-limit", projectileSaveLimit);
+-+    }
+- }
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
 index fe7330fabe386966c2d203a190a00a785ea21be0..537456a7427cddd6783f5b5d8ee2d655668c4c53 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
@@ -373,7 +404,7 @@ index dd52a8fe4fd46e57a5d1af49ba1965a483cf4fcc..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 07d47ad2362c5ebfa7993262a8faed240cc21717..107d7ac761bfb7667dfab88b31712e2061a46258 100644
+index c2b5874a77ae8a992bc668dc19f5300bebf3d239..3bbfb0117187a26354fa58ec46eeb6e62845851e 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {

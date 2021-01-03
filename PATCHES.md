@@ -18,6 +18,7 @@ This is an overview over all patches that are currently used.
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
 | server |  Add component util      | William Blake Galbreath |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
@@ -50,7 +51,6 @@ This is an overview over all patches that are currently used.
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Bud Gidiere |  |
-| server |  DataBits slight optimization      | Paul Sauve |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -105,7 +105,6 @@ This is an overview over all patches that are currently used.
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
-| server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
