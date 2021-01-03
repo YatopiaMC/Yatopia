@@ -6,33 +6,10 @@ Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 Co-authored-by: Mykyta Komarn <nkomarn@hotmail.com>
 
 diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 1d3c2dd93657fb5dc71ee6b444c585b54619d1e8..77ea56c5a25fe09a1721429d42965ad34d905870 100644
+index e75e676d196d9f5a3409ec50645fab611b0afdad..fa2b88b54a419f506a195130e664701766720ceb 100644
 --- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-@@ -83,7 +83,14 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
-         this.c = recipes;
-     }
- 
-+    private static Object2IntOpenHashMap<Item> cachedFuelMap = null; // Yatopia
-+
-     public static Map<Item, Integer> f() {
-+        // Yatopia start
-+	    if(cachedFuelMap != null) {
-+		    return cachedFuelMap;
-+	    }
-+	    // Yatopia end
-         Map<Item, Integer> map = Maps.newLinkedHashMap();
- 
-         a(map, (IMaterial) Items.LAVA_BUCKET, 20000);
-@@ -146,6 +153,7 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
-         a(map, (IMaterial) Blocks.FLETCHING_TABLE, 300);
-         a(map, (IMaterial) Blocks.SMITHING_TABLE, 300);
-         a(map, (IMaterial) Blocks.COMPOSTER, 300);
-+        cachedFuelMap = new Object2IntOpenHashMap<>(map); // Yatopia
-         return map;
-     }
- 
-@@ -271,7 +279,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -283,7 +283,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
                      this.cookTime = MathHelper.clamp(this.cookTime - 2, 0, this.cookTimeTotal);
                  }
              } else {
@@ -44,7 +21,7 @@ index 1d3c2dd93657fb5dc71ee6b444c585b54619d1e8..77ea56c5a25fe09a1721429d42965ad3
  
                  if (!this.isBurning() && this.canBurn(irecipe)) {
                      // CraftBukkit start
-@@ -597,4 +608,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -609,4 +612,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }
