@@ -104,6 +104,7 @@ This is an overview over all patches that are currently used.
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
+| server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
 | server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
