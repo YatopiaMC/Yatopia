@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Mon, 4 Jan 2021 20:32:06 +0200
+Subject: [PATCH] Smol entity optimisations
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityBat.java b/src/main/java/net/minecraft/server/EntityBat.java
+index bdcbdc21f986852277dcc41a2b0f385f8caeb9f7..dff2dc82c2a6b26c6e41b3949953abcaf379b20a 100644
+--- a/src/main/java/net/minecraft/server/EntityBat.java
++++ b/src/main/java/net/minecraft/server/EntityBat.java
+@@ -208,7 +208,7 @@ public class EntityBat extends EntityAmbient {
+         if (blockposition.getY() >= generatoraccess.getSeaLevel()) {
+             return false;
+         } else {
+-            int i = generatoraccess.getLightLevel(blockposition);
++            //int i = generatoraccess.getLightLevel(blockposition); // Yatopia - moved down
+             byte b0 = 4;
+ 
+             if (eJ()) {
+@@ -217,6 +217,7 @@ public class EntityBat extends EntityAmbient {
+                 return false;
+             }
+ 
++            int i = generatoraccess.getLightLevel(blockposition); // Yatopia - moved from above
+             return i > random.nextInt(b0) ? false : a(entitytypes, generatoraccess, enummobspawn, blockposition, random);
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 228236bce14bfdf930570b453862dcfaae9e4823..e278681892d8cc6fe704f32f9d892b3186435ce4 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -2,6 +2,7 @@ package net.minecraft.server;
+ 
+ import com.google.common.collect.Lists;
+ import com.mojang.datafixers.util.Pair;
++import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet; // Yatopia
+ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.HashSet;
+@@ -56,7 +57,7 @@ public class EntityTrackerEntry {
+ 
+     public EntityTrackerEntry(WorldServer worldserver, Entity entity, int i, boolean flag, Consumer<Packet<?>> consumer, Set<EntityPlayer> trackedPlayers) {
+         // Paper end
+-        this.trackedPlayers = trackedPlayers;
++        this.trackedPlayers = new ObjectOpenHashSet<>(trackedPlayers); // Yatopia - uses less memory
+         // CraftBukkit end
+         this.m = Vec3D.ORIGIN;
+         this.p = Collections.emptyList();
