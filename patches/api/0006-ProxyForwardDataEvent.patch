@@ -6,12 +6,13 @@ Subject: [PATCH] ProxyForwardDataEvent
 
 diff --git a/src/main/java/net/yatopia/api/event/ProxyForwardDataEvent.java b/src/main/java/net/yatopia/api/event/ProxyForwardDataEvent.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453efd44d865b
+index 0000000000000000000000000000000000000000..d3780d965bdd491425a92bf5e554f7def6e0ecf0
 --- /dev/null
 +++ b/src/main/java/net/yatopia/api/event/ProxyForwardDataEvent.java
-@@ -0,0 +1,114 @@
+@@ -0,0 +1,125 @@
 +package net.yatopia.api.event;
 +
++import com.google.common.base.Preconditions;
 +import com.google.common.collect.ImmutableList;
 +import com.mojang.authlib.properties.Property;
 +import java.util.List;
@@ -19,6 +20,7 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +import org.bukkit.event.Event;
 +import org.bukkit.event.HandlerList;
 +import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
 +
 +/**
 + * Called when a proxy such as BungeeCord or Velocity forwards player data to the server.
@@ -29,7 +31,7 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +    private final String name;
 +    private List<Property> properties;
 +
-+    public ProxyForwardDataEvent(boolean async, UUID uuid, String name, List<Property> properties) {
++    public ProxyForwardDataEvent(boolean async, @NotNull UUID uuid, @NotNull String name, @NotNull List<Property> properties) {
 +        super(async);
 +        this.uuid = uuid;
 +        this.name = name;
@@ -41,6 +43,7 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     *
 +     * @return unique id
 +     */
++    @NotNull
 +    public UUID getUuid() {
 +        return uuid;
 +    }
@@ -50,15 +53,19 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     *
 +     * @return name
 +     */
++    @NotNull
 +    public String getName() {
 +        return name;
 +    }
 +
 +    /**
 +     * Returns an immutable copy of the forwarded properties.
++     * <p>
++     * If there were no properties, it would return an empty list.
 +     *
 +     * @return properties
 +     */
++    @NotNull
 +    public List<Property> getProperties() {
 +        return ImmutableList.copyOf(properties);
 +    }
@@ -68,7 +75,8 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     *
 +     * @param property property
 +     */
-+    public void addProperty(Property property) {
++    public void addProperty(@NotNull Property property) {
++        Preconditions.checkNotNull(property, "property");
 +        if (hasProperty(property.getName())) {
 +            removeProperty(property.getName());
 +        }
@@ -81,9 +89,11 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     * @param property the property's name you want to get
 +     * @return property if present
 +     */
-+    public Property getProperty(String property) {
++    @Nullable
++    public Property getProperty(@NotNull String property) {
++        Preconditions.checkNotNull(property, "property");
 +        for (Property prop : properties) {
-+            if (prop.getName().toLowerCase().equalsIgnoreCase(property.toLowerCase())) {
++            if (prop.getName().equalsIgnoreCase(property)) {
 +                return prop;
 +            }
 +        }
@@ -96,7 +106,7 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     * @param property the name of the property you want to check if exists
 +     * @return boolean value
 +     */
-+    public boolean hasProperty(String property) {
++    public boolean hasProperty(@NotNull String property) {
 +        return getProperty(property) != null;
 +    }
 +
@@ -105,8 +115,8 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     *
 +     * @param property the property's name you want to remove
 +     */
-+    public void removeProperty(String property) {
-+        properties.removeIf(prop -> prop.getName().toLowerCase().equalsIgnoreCase(property.toLowerCase()));
++    public void removeProperty(@NotNull String property) {
++        properties.removeIf(prop -> prop.getName().equalsIgnoreCase(property));
 +    }
 +
 +    /**
@@ -114,13 +124,14 @@ index 0000000000000000000000000000000000000000..22775d2d03ccd4c7decebc3e26b453ef
 +     *
 +     * @param property the property you want to remove
 +     */
-+    public void removeProperty(Property property) {
++    public void removeProperty(@NotNull Property property) {
++        Preconditions.checkNotNull(property, "property");
 +        properties.remove(property);
 +    }
 +
 +    //
 +    private static final HandlerList handlers = new HandlerList();
 +    @NotNull @Override public HandlerList getHandlers() { return handlers; }
-+    public static HandlerList getHandlerList() { return handlers; }
++    @NotNull public static HandlerList getHandlerList() { return handlers; }
 +    //
 +}

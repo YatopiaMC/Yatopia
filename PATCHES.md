@@ -76,13 +76,11 @@ This is an overview over all patches that are currently used.
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Implement TPSBar      | BillyGalbreath |  |
-| server |  Implement bamboo growth settings      | William Blake Galbreath |  |
 | server |  Implement infinite lava      | William Blake Galbreath |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Infinity No Arrows      | Bud Gidiere |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
-| api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |

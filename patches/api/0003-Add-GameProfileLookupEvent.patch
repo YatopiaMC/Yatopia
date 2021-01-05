@@ -5,7 +5,7 @@ Subject: [PATCH] Add GameProfileLookupEvent
 
 
 diff --git a/pom.xml b/pom.xml
-index f641f2b375bdb5c43880ff67195764c4d4124155..31aba885d940acf0a9df5d4e83dfec69030b2a37 100644
+index 89542d52c14cc009d8bf50f446ab2bebb8516c94..3e6971d0bbc383e4639e402c076af5292ee9236a 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -52,6 +52,10 @@
@@ -35,18 +35,18 @@ index f641f2b375bdb5c43880ff67195764c4d4124155..31aba885d940acf0a9df5d4e83dfec69
              <artifactId>fastutil</artifactId>
 diff --git a/src/main/java/dev/tr7zw/yatopia/events/GameProfileLookupEvent.java b/src/main/java/dev/tr7zw/yatopia/events/GameProfileLookupEvent.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..ff58b8875a07b34de02b9b479ff3e6daf66d7832
+index 0000000000000000000000000000000000000000..313fe42442a93db76f91eaab50a345340f314fa8
 --- /dev/null
 +++ b/src/main/java/dev/tr7zw/yatopia/events/GameProfileLookupEvent.java
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,51 @@
 +package dev.tr7zw.yatopia.events;
 +
++import com.mojang.authlib.GameProfile;
 +import java.util.UUID;
-+
 +import org.bukkit.event.Event;
 +import org.bukkit.event.HandlerList;
-+
-+import com.mojang.authlib.GameProfile;
++import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
 +
 +public class GameProfileLookupEvent extends Event {
 +    private static final HandlerList handlers = new HandlerList();
@@ -54,32 +54,38 @@ index 0000000000000000000000000000000000000000..ff58b8875a07b34de02b9b479ff3e6da
 +    private final UUID uuid;
 +    private final String name;
 +
-+	public GameProfileLookupEvent(boolean async, UUID uuid, String name) {
-+		super(async);
-+		this.uuid = uuid;
-+		this.name = name;
-+	}
++    public GameProfileLookupEvent(boolean async, @NotNull UUID uuid, @NotNull String name) {
++        super(async);
++        this.uuid = uuid;
++        this.name = name;
++    }
 +
-+	public GameProfile getGameProfile() {
-+		return gameProfile;
-+	}
++    @Nullable
++    public GameProfile getGameProfile() {
++        return gameProfile;
++    }
 +
-+	public void setGameProfile(GameProfile gameProfile) {
-+		this.gameProfile = gameProfile;
-+	}
++    public void setGameProfile(@Nullable GameProfile gameProfile) {
++        this.gameProfile = gameProfile;
++    }
 +
-+	public UUID getUuid() {
-+		return uuid;
-+	}
++    @NotNull
++    public UUID getUuid() {
++        return uuid;
++    }
 +
-+	public String getName() {
-+		return name;
-+	}
++    @NotNull
++    public String getName() {
++        return name;
++    }
 +
-+	public HandlerList getHandlers() {
++    @NotNull
++    @Override
++    public HandlerList getHandlers() {
 +        return handlers;
 +    }
 +
++    @NotNull
 +    public static HandlerList getHandlerList() {
 +        return handlers;
 +    }
