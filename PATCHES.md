@@ -76,13 +76,11 @@ This is an overview over all patches that are currently used.
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Implement TPSBar      | BillyGalbreath |  |
-| server |  Implement bamboo growth settings      | William Blake Galbreath |  |
 | server |  Implement infinite lava      | William Blake Galbreath |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Infinity No Arrows      | Bud Gidiere |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
-| api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
@@ -93,6 +91,7 @@ This is an overview over all patches that are currently used.
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimise portals      | Ivan Pekov |  |
+| server |  Optimised hallowen checker      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
@@ -123,6 +122,7 @@ This is an overview over all patches that are currently used.
 | server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
+| server |  Smol entity optimisations      | Ivan Pekov |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Spread out and optimise player list ticks      | James Lyne |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |

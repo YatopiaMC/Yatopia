@@ -7,10 +7,10 @@ Added per request
 
 diff --git a/src/main/java/net/yatopia/api/event/PlayerAttackEntityEvent.java b/src/main/java/net/yatopia/api/event/PlayerAttackEntityEvent.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..72e2cfd4c62f02154d8dddaa964249fe5aa64e98
+index 0000000000000000000000000000000000000000..7a4bd2d6518409972651373c3e6ea0fd17f8fcf7
 --- /dev/null
 +++ b/src/main/java/net/yatopia/api/event/PlayerAttackEntityEvent.java
-@@ -0,0 +1,121 @@
+@@ -0,0 +1,123 @@
 +package net.yatopia.api.event;
 +
 +import org.bukkit.entity.Entity;
@@ -37,7 +37,7 @@ index 0000000000000000000000000000000000000000..72e2cfd4c62f02154d8dddaa964249fe
 +    private boolean criticalHit;
 +    private float damage;
 +
-+    public PlayerAttackEntityEvent(HumanEntity attacker, Entity attacked, ItemStack attackItem, boolean criticalHit, float damage) {
++    public PlayerAttackEntityEvent(@NotNull HumanEntity attacker, @NotNull Entity attacked, @NotNull ItemStack attackItem, boolean criticalHit, float damage) {
 +        this.attacker = attacker;
 +        this.attacked = attacked;
 +        this.attackItem = attackItem;
@@ -67,6 +67,8 @@ index 0000000000000000000000000000000000000000..72e2cfd4c62f02154d8dddaa964249fe
 +
 +    /**
 +     * Returns the attack item used to damage the {@link #getAttackedEntity()}
++     * <p>
++     * If there wasn't any item, it would return ItemStack(Material.AIR)
 +     *
 +     * @return attack item
 +     */
@@ -129,6 +131,6 @@ index 0000000000000000000000000000000000000000..72e2cfd4c62f02154d8dddaa964249fe
 +    //
 +    private static final HandlerList handlers = new HandlerList();
 +    @NotNull @Override public HandlerList getHandlers() { return handlers; }
-+    public static HandlerList getHandlerList() { return handlers; }
++    @NotNull public static HandlerList getHandlerList() { return handlers; }
 +    //
 +}
