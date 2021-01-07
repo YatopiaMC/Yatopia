@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Camotoy <20743703+Camotoy@users.noreply.github.com>
+Date: Mon, 4 Jan 2021 10:45:49 +0200
+Subject: [PATCH] PaperPR - Fix username connecting with no texture being
+ overwritten by usercache
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+index 8bda2180576d3c58ad592e6158621160a8c4c5cf..44132e902b653b07b21fd01d13a88870290af439 100644
+--- a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
++++ b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+@@ -166,9 +166,15 @@ public class CraftPlayerProfile implements PlayerProfile {
+         if ((profile.getName() == null || !hasTextures()) && profile.getId() != null) {
+             GameProfile profile = userCache.getProfile(this.profile.getId());
+             if (profile != null) {
++                // Yatopia start - fix username connecting with no texture being overwritten by user cache
++                if (this.profile.getName() == null) {
+                 // if old has it, assume its newer, so overwrite, else use cached if it was set and ours wasn't
+                 copyProfileProperties(this.profile, profile);
+                 this.profile = profile;
++                } else {
++                    copyProfileProperties(profile, this.profile);
++                }
++                // Yatopia end
+             }
+         }
+         return this.profile.isComplete();

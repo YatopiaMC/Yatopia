@@ -18,6 +18,7 @@ This is an overview over all patches that are currently used.
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
 | server |  Add component util      | William Blake Galbreath |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
@@ -50,7 +51,6 @@ This is an overview over all patches that are currently used.
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Bud Gidiere |  |
-| server |  DataBits slight optimization      | Paul Sauve |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -68,6 +68,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
+| server |  Fix rotating UP/DOWN CW and CCW      | BillyGalbreath |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
@@ -76,13 +77,11 @@ This is an overview over all patches that are currently used.
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Implement TPSBar      | BillyGalbreath |  |
-| server |  Implement bamboo growth settings      | William Blake Galbreath |  |
 | server |  Implement infinite lava      | William Blake Galbreath |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Infinity No Arrows      | Bud Gidiere |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
-| api |  Kill AnnotationTest      | tr7zw |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
@@ -94,6 +93,7 @@ This is an overview over all patches that are currently used.
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | api |  Optimise Bukkit&#39;s MapPalette      | epserv |  |
 | server |  Optimise portals      | Ivan Pekov |  |
+| server |  Optimised hallowen checker      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
@@ -105,8 +105,8 @@ This is an overview over all patches that are currently used.
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
+| server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
 | server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
-| server |  PaperPR: Fix harming potion dupe      | PepperCode1 |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
@@ -124,6 +124,7 @@ This is an overview over all patches that are currently used.
 | server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
+| server |  Smol entity optimisations      | Ivan Pekov |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
 | server |  Spread out and optimise player list ticks      | James Lyne |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
