@@ -68,6 +68,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
+| server |  Fix rotating UP/DOWN CW and CCW      | BillyGalbreath |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
