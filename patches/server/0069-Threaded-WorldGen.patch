@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sat, 9 Jan 2021 19:21:16 +0800
+Subject: [PATCH] Threaded WorldGen
+
+A massive improvement to world generation.
+This patch actually schedules chunk status upgrade later rather than doing it right away.
+However, feature placements are still on the server thread for now.
+
+diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
+index 51ea295d66312c95685b9fe4ee502a029d2fff20..d6afef796ae8d302d0ecaaa40164be4618c7a6c1 100644
+--- a/src/main/java/net/minecraft/server/ChunkStatus.java
++++ b/src/main/java/net/minecraft/server/ChunkStatus.java
+@@ -61,6 +61,7 @@ public class ChunkStatus {
+         chunkgenerator.doCarving(worldserver.getSeed(), worldserver.d(), ichunkaccess, WorldGenStage.Features.LIQUID);
+     });
+     public static final ChunkStatus FEATURES = a("features", ChunkStatus.LIQUID_CARVERS, 8, ChunkStatus.o, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
++        // TODO threaded features
+         ProtoChunk protochunk = (ProtoChunk) ichunkaccess;
+ 
+         protochunk.a((LightEngine) lightenginethreaded);
+@@ -245,14 +246,18 @@ public class ChunkStatus {
+ 
+         @Override
+         default CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> doWork(ChunkStatus chunkstatus, WorldServer worldserver, ChunkGenerator chunkgenerator, DefinedStructureManager definedstructuremanager, LightEngineThreaded lightenginethreaded, Function<IChunkAccess, CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> function, List<IChunkAccess> list, IChunkAccess ichunkaccess) {
++            // Yatopia start - threaded worldGen
++            return CompletableFuture.supplyAsync(() -> {
+             if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
+                 this.doWork(worldserver, chunkgenerator, list, ichunkaccess);
+                 if (ichunkaccess instanceof ProtoChunk) {
+                     ((ProtoChunk) ichunkaccess).a(chunkstatus);
+                 }
+             }
++            return Either.left(ichunkaccess);
++            }, SystemUtils.getMainThreadExecutor());
+ 
+-            return CompletableFuture.completedFuture(Either.left(ichunkaccess));
++            // Yatopia end
+         }
+ 
+         void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
+diff --git a/src/main/java/net/minecraft/server/SystemUtils.java b/src/main/java/net/minecraft/server/SystemUtils.java
+index 61d399077f87fc1f198811ee31fc779b6f0ecfa9..98ec9db831697f59ddbefaee7e22d01888082485 100644
+--- a/src/main/java/net/minecraft/server/SystemUtils.java
++++ b/src/main/java/net/minecraft/server/SystemUtils.java
+@@ -115,6 +115,7 @@ public class SystemUtils {
+         return SystemUtils.d;
+     }
+ 
++    public static Executor getMainThreadExecutor() { return f(); } // Yatopia - OBFHELPER
+     public static Executor f() {
+         return SystemUtils.e;
+     }
