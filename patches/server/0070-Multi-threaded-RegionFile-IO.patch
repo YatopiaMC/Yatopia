@@ -1,0 +1,154 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sun, 15 Nov 2020 10:42:27 +0800
+Subject: [PATCH] Multi-threaded RegionFile IO
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
+index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..3637a8411345c0c0712c093141316a7e00ae8cbd 100644
+--- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
++++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
+@@ -35,7 +35,7 @@ import java.util.function.Function;
+  * @see #scheduleSave(WorldServer, int, int, NBTTagCompound, NBTTagCompound, int)
+  * @see #loadChunkDataAsync(WorldServer, int, int, int, Consumer, boolean, boolean, boolean)
+  */
+-public final class PaperFileIOThread extends QueueExecutorThread {
++public final class PaperFileIOThread { // Yatopia
+ 
+     public static final Logger LOGGER = MinecraftServer.LOGGER;
+     public static final NBTTagCompound FAILURE_VALUE = new NBTTagCompound();
+@@ -44,23 +44,57 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+ 
+         public static final PaperFileIOThread INSTANCE = new PaperFileIOThread();
+ 
++        /* Yatopia
+         static {
+             INSTANCE.start();
+         }
++        */
+     }
+ 
+     private final AtomicLong writeCounter = new AtomicLong();
++    // Yatopia start - multi-threaded RegionFile IO
++    private final PrioritizedTaskQueue<PrioritizedTaskQueue.PrioritizedTask> queue;
++    private final QueueExecutorThread[] workers;
+ 
+     private PaperFileIOThread() {
+-        super(new PrioritizedTaskQueue<>(), (int)(1.0e6)); // 1.0ms spinwait time
+-        this.setName("Paper RegionFile IO Thread");
+-        this.setPriority(Thread.NORM_PRIORITY - 1); // we keep priority close to normal because threads can wait on us
+-        this.setUncaughtExceptionHandler((final Thread unused, final Throwable thr) -> {
+-            LOGGER.fatal("Uncaught exception thrown from IO thread, report this!", thr);
+-        });
++        queue = new PrioritizedTaskQueue<>();
++        workers = new QueueExecutorThread[Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8))];
++        for (int i = 0; i < workers.length; i++) {
++            this.workers[i] = new QueueExecutorThread(queue, (int) (1.0e6)); // 1.0ms spinwait time
++            this.workers[i].setName("Paper RegionFile IO Thread #" + i);
++            this.workers[i].setPriority(Thread.NORM_PRIORITY - 1); // we keep priority close to normal because threads can wait on us
++            this.workers[i].setUncaughtExceptionHandler((final Thread thread, final Throwable thr) -> {
++                LOGGER.fatal("Uncaught exception thrown from " + thread.getName() + ", report this!", thr);
++            });
++            this.workers[i].start();
++        }
++    }
++
++    public void flush() {
++        for (QueueExecutorThread thread : workers)
++            thread.flush();
++    }
++
++    private void queueTask(PrioritizedTaskQueue.PrioritizedTask newTask) {
++        queue.add(newTask);
++        for(QueueExecutorThread thread: workers)
++            if(thread.notifyTasks()) break;
++    }
++
++    public void close(final boolean wait) {
++        for (QueueExecutorThread thread : workers)
++            thread.close(wait, false);
++        queue.shutdown();
++    }
++
++    public boolean isOnWorkerThread() {
++        final Thread currentThread = Thread.currentThread();
++        for (QueueExecutorThread thread : workers)
++            if (currentThread == thread) return true;
++        return false;
+     }
+ 
+-    /* run() is implemented by superclass */
++    // Yatopia end
+ 
+     /*
+      *
+diff --git a/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java b/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
+index ee906b594b306906c170180a29a8b61997d05168..8eab86b48679e23ca084e51f08959a1cc112e8a3 100644
+--- a/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
++++ b/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
+@@ -81,7 +81,7 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
+             // LockSupport.park() can fail for any reason
+             do {
+                 Thread.interrupted();
+-                LockSupport.park("Waiting on tasks");
++                LockSupport.parkNanos("Waiting on tasks", 1_000_000_000); // Yatopia - prevent dead lock
+             } while (this.parked.get());
+         }
+     }
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index bd5176606e8893aed457b85eb56ca9a80ed66845..eac007f59546a0365bd75165775da5fee27f38fb 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -830,7 +830,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         // Spigot end
+         // Paper start - move final shutdown items here
+         LOGGER.info("Flushing Chunk IO");
+-        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true, true); // Paper
++        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true); // Paper // Yatopia
+         LOGGER.info("Closing Thread Pool");
+         SystemUtils.shutdownServerThreadPool(); // Paper
+         LOGGER.info("Closing Server");
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 16779ffa00caf32752170700e1d88092802fa932..61e0a1bee4740cb82e96af8bde066cd4578d947a 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -1688,7 +1688,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     @Nullable
+     @Override
+     public NBTTagCompound read(ChunkCoordIntPair chunkcoordintpair) throws IOException {
+-        if (Thread.currentThread() != com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE) {
++        if (!com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.isOnWorkerThread()) { // Yatopia
+             NBTTagCompound ret = com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE
+                 .loadChunkDataAsyncFuture(this.world, chunkcoordintpair.x, chunkcoordintpair.z, com.destroystokyo.paper.io.IOUtil.getPriorityForCurrentThread(),
+                     false, true, true).join().chunkData;
+@@ -1703,7 +1703,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+ 
+     @Override
+     public void write(ChunkCoordIntPair chunkcoordintpair, NBTTagCompound nbttagcompound) throws IOException {
+-        if (Thread.currentThread() != com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE) {
++        if (!com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.isOnWorkerThread()) { // Yatopia
+             com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.scheduleSave(
+                 this.world, chunkcoordintpair.x, chunkcoordintpair.z, null, nbttagcompound,
+                 com.destroystokyo.paper.io.PrioritizedTaskQueue.NORMAL_PRIORITY); // Tuinity - writes are async, no need for priority
+diff --git a/src/main/java/net/minecraft/server/VillagePlace.java b/src/main/java/net/minecraft/server/VillagePlace.java
+index 84d67444d6f3948fb2e8c0fd7cc99844a2cbb7f9..0b307010ae942076e8f8ca6cc9f5c5876d55b331 100644
+--- a/src/main/java/net/minecraft/server/VillagePlace.java
++++ b/src/main/java/net/minecraft/server/VillagePlace.java
+@@ -533,7 +533,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+     @javax.annotation.Nullable
+     @Override
+     public NBTTagCompound read(ChunkCoordIntPair chunkcoordintpair) throws java.io.IOException {
+-        if (this.world != null && Thread.currentThread() != com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE) {
++        if (this.world != null && !com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.isOnWorkerThread()) { // Yatopia
+             NBTTagCompound ret = com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE
+                 .loadChunkDataAsyncFuture(this.world, chunkcoordintpair.x, chunkcoordintpair.z, com.destroystokyo.paper.io.IOUtil.getPriorityForCurrentThread(),
+                     true, false, true).join().poiData;
+@@ -548,7 +548,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+ 
+     @Override
+     public void write(ChunkCoordIntPair chunkcoordintpair, NBTTagCompound nbttagcompound) throws java.io.IOException {
+-        if (this.world != null && Thread.currentThread() != com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE) {
++        if (this.world != null && !com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.isOnWorkerThread()) { // Yatopia
+             com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.scheduleSave(
+                 this.world, chunkcoordintpair.x, chunkcoordintpair.z, nbttagcompound, null,
+                 com.destroystokyo.paper.io.PrioritizedTaskQueue.NORMAL_PRIORITY); // Tuinity - writes are async, no need for priority
