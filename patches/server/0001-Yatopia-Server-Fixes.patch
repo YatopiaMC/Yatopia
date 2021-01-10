@@ -141,6 +141,53 @@ index 2291135eaef64c403183724cb6e413cd7e472672..6fcc7ed7c129e6a33386d65b37cbba4a
      public static long getAdjacent(int baseX, int baseY, int baseZ, EnumDirection enumdirection) { return asLong(baseX + enumdirection.getAdjacentX(), baseY + enumdirection.getAdjacentY(), baseZ + enumdirection.getAdjacentZ()); } // Paper
      public static long a(long i, EnumDirection enumdirection) {
          return a(i, enumdirection.getAdjacentX(), enumdirection.getAdjacentY(), enumdirection.getAdjacentZ());
+diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
+index 781d74cf7e3669d71727cce781a8f8ce088c5547..bb7170e4f82f2f0d0046ceed95ac6a2622b9852f 100644
+--- a/src/main/java/net/minecraft/server/Chunk.java
++++ b/src/main/java/net/minecraft/server/Chunk.java
+@@ -52,6 +52,17 @@ public class Chunk implements IChunkAccess {
+     private Consumer<Chunk> v;
+     private final ChunkCoordIntPair loc; public final long coordinateKey; public final int locX; public final int locZ; // Paper - cache coordinate key
+     private volatile boolean x;
++    
++    // AirplaneL start - instead of using a random every time the chunk is ticked, define when lightning strikes preemptively
++    private int lightningTick = -1;
++    public boolean shouldDoLightning() {
++        boolean doTick = this.lightningTick == 0;
++        if (this.lightningTick-- <= 0) {
++            this.lightningTick = this.world.random.nextInt(100000) << 1;
++        }
++        return doTick;
++    }
++    // AirplaneL end
+ 
+     public Chunk(World world, ChunkCoordIntPair chunkcoordintpair, BiomeStorage biomestorage) {
+         this(world, chunkcoordintpair, biomestorage, ChunkConverter.a, TickListEmpty.b(), TickListEmpty.b(), 0L, (ChunkSection[]) null, (Consumer) null);
+diff --git a/src/main/java/net/minecraft/server/Chunk.java.rej b/src/main/java/net/minecraft/server/Chunk.java.rej
+deleted file mode 100644
+index 6a63cbff4fcd1ebcc23910a8ae4f400df0e51351..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/Chunk.java.rej
++++ /dev/null
+@@ -1,19 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java	(rejected hunks)
+-@@ -53,6 +53,17 @@ public class Chunk implements IChunkAccess {
+-     private final ChunkCoordIntPair loc; public final long coordinateKey; // Paper - cache coordinate key
+-     private volatile boolean x;
+- 
+-+    // AirplaneL start - instead of using a random every time the chunk is ticked, define when lightning strikes preemptively
+-+    private int lightningTick = -1;
+-+    public boolean shouldDoLightning() {
+-+        boolean doTick = this.lightningTick == 0;
+-+        if (this.lightningTick-- <= 0) {
+-+            this.lightningTick = this.world.random.nextInt(100000) << 1;
+-+        }
+-+        return doTick;
+-+    }
+-+    // AirplaneL end
+-+
+-     public Chunk(World world, ChunkCoordIntPair chunkcoordintpair, BiomeStorage biomestorage) {
+-         this(world, chunkcoordintpair, biomestorage, ChunkConverter.a, TickListEmpty.b(), TickListEmpty.b(), 0L, (ChunkSection[]) null, (Consumer) null);
+-     }
 diff --git a/src/main/java/net/minecraft/server/CommandDispatcher.java b/src/main/java/net/minecraft/server/CommandDispatcher.java
 index 17753c8a997aa286460be5d8eb6508e2eaed18ce..56d5cebd155f2b5ee24c1d8b75903316e59688d1 100644
 --- a/src/main/java/net/minecraft/server/CommandDispatcher.java
@@ -373,7 +420,7 @@ index dd52a8fe4fd46e57a5d1af49ba1965a483cf4fcc..00000000000000000000000000000000
 -                             IChunkAccess ichunkaccess = iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.STRUCTURE_STARTS, !(iworldreader instanceof World) || !((World) iworldreader).origamiConfig.onlyFindGeneratedFeatures);
 -                             if (ichunkaccess == null) {
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index c2b5874a77ae8a992bc668dc19f5300bebf3d239..3bbfb0117187a26354fa58ec46eeb6e62845851e 100644
+index 1ab3d205ae20a9674ee3d13c42fd7bc3c52e5503..af65e7fd2c3acac2627452f030bc973f8ad3ff54 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -96,6 +96,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -465,30 +512,57 @@ index 39dce006ebf2bd81a9d6c62c25eb9bd55d24199e..00000000000000000000000000000000
 -                 nbttagcompound = NBTCompressedStreamTools.a((InputStream) (new FileInputStream(file)));
 -             }
 -             // Spigot Start
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 5ee0f3680b191e8522b07b522d073f804f2bf43e..a5eebf136e26e8c0b0b1f52e31793f1f11f27fe5 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -181,6 +181,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     };
+     public final com.destroystokyo.paper.io.chunk.ChunkTaskManager asyncChunkTaskManager;
+     // Paper end
++    private int currentIceAndSnowTick = 0; protected void resetIceAndSnowTick() { this.currentIceAndSnowTick = this.randomTickRandom.nextInt(16); } // AirplaneL
+     // Paper start
+     @Override
+     public boolean isChunkLoaded(int x, int z) {
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java.rej b/src/main/java/net/minecraft/server/WorldServer.java.rej
+deleted file mode 100644
+index 06b971640f16a99b41eb07b1d0bb43f3ad300c84..0000000000000000000000000000000000000000
+--- a/src/main/java/net/minecraft/server/WorldServer.java.rej
++++ /dev/null
+@@ -1,10 +0,0 @@
+-diff a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java	(rejected hunks)
+-@@ -978,6 +978,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+-     private final com.destroystokyo.paper.util.math.ThreadUnsafeRandom randomTickRandom = new com.destroystokyo.paper.util.math.ThreadUnsafeRandom();
+-     // Paper end
+- 
+-+    private int currentIceAndSnowTick = 0; protected void resetIceAndSnowTick() { this.currentIceAndSnowTick = this.randomTickRandom.nextInt(16); } // AirplaneL
+-+
+-     // AirplaneL start - create version of chunk tick that returns a bool for updating lighting
+-     public void a(Chunk chunk, int i) { this.abool(chunk, i); }
+-     public boolean abool(Chunk chunk, int i) { final int randomTickSpeed = i; // Paper
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index f5c827f7427e7b743e8ec2adbcbc478735d028d4..718528409154348733166240478e9d577aa87b6e 100644
+index 750637ecdd44dacac2b7c83a1701d795309d5583..081dc7a2a4a5d80da868b1080b212ddce2bb0bc7 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-@@ -1,5 +1,6 @@
+@@ -1,5 +1,7 @@
  package net.pl3x.purpur;
  
++import co.aikar.timings.TimingsManager;
 +import com.destroystokyo.paper.PaperConfig;
  import com.google.common.base.Throwables;
  import net.minecraft.server.MinecraftServer;
  import net.pl3x.purpur.command.PurpurCommand;
-@@ -129,11 +130,6 @@ public class PurpurConfig {
+@@ -129,9 +131,7 @@ public class PurpurConfig {
          return config.getString(path, config.getString(path));
      }
  
 -    public static String timingsUrl = "https://timings.pl3x.net";
--    private static void timingsSettings() {
+     private static void timingsSettings() {
 -        timingsUrl = getString("settings.timings.url", timingsUrl);
--    }
--
-     public static double laggingThreshold = 19.0D;
-     private static void tickLoopSettings() {
-         laggingThreshold = getDouble("settings.lagging-threshold", laggingThreshold);
-@@ -162,4 +158,35 @@ public class PurpurConfig {
+         if (!TimingsManager.hiddenConfigs.contains("server-ip")) TimingsManager.hiddenConfigs.add("server-ip");
+     }
+ 
+@@ -163,4 +163,35 @@ public class PurpurConfig {
          InventoryType.ENDER_CHEST.setDefaultSize(enderChestSixRows ? 54 : 27);
          enderChestPermissionRows = getBoolean("settings.blocks.ender_chest.use-permissions-for-rows", enderChestPermissionRows);
      }
