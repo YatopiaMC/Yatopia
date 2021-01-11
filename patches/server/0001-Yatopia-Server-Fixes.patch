@@ -142,14 +142,13 @@ index 2291135eaef64c403183724cb6e413cd7e472672..6fcc7ed7c129e6a33386d65b37cbba4a
      public static long a(long i, EnumDirection enumdirection) {
          return a(i, enumdirection.getAdjacentX(), enumdirection.getAdjacentY(), enumdirection.getAdjacentZ());
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 781d74cf7e3669d71727cce781a8f8ce088c5547..bb7170e4f82f2f0d0046ceed95ac6a2622b9852f 100644
+index 781d74cf7e3669d71727cce781a8f8ce088c5547..7a25349d59d454c43453726f6f44b16a3e90e681 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
-@@ -52,6 +52,17 @@ public class Chunk implements IChunkAccess {
-     private Consumer<Chunk> v;
+@@ -53,6 +53,17 @@ public class Chunk implements IChunkAccess {
      private final ChunkCoordIntPair loc; public final long coordinateKey; public final int locX; public final int locZ; // Paper - cache coordinate key
      private volatile boolean x;
-+    
+ 
 +    // AirplaneL start - instead of using a random every time the chunk is ticked, define when lightning strikes preemptively
 +    private int lightningTick = -1;
 +    public boolean shouldDoLightning() {
@@ -160,9 +159,10 @@ index 781d74cf7e3669d71727cce781a8f8ce088c5547..bb7170e4f82f2f0d0046ceed95ac6a26
 +        return doTick;
 +    }
 +    // AirplaneL end
- 
++
      public Chunk(World world, ChunkCoordIntPair chunkcoordintpair, BiomeStorage biomestorage) {
          this(world, chunkcoordintpair, biomestorage, ChunkConverter.a, TickListEmpty.b(), TickListEmpty.b(), 0L, (ChunkSection[]) null, (Consumer) null);
+     }
 diff --git a/src/main/java/net/minecraft/server/Chunk.java.rej b/src/main/java/net/minecraft/server/Chunk.java.rej
 deleted file mode 100644
 index 6a63cbff4fcd1ebcc23910a8ae4f400df0e51351..0000000000000000000000000000000000000000
@@ -244,7 +244,7 @@ index 86f1cfe454ea0a989775b49a6b88375c766ef647..da53af61d1171db3c167c6e007adf953
          if (!(this.k instanceof EntityPlayer)) {
              throw CommandListenerWrapper.a.create();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 77100ab382b33aef8b2194b611c0b1d454da91fd..1ece3e1e9e7a26f1ee07202916687f627c9e4c95 100644
+index 59caf8aff5e4735b59d6b826a364f77889f9ce06..e809f24a62bd554bda93b8fc1fa79a6f28307364 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -434,7 +434,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -513,7 +513,7 @@ index 39dce006ebf2bd81a9d6c62c25eb9bd55d24199e..00000000000000000000000000000000
 -             }
 -             // Spigot Start
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 5ee0f3680b191e8522b07b522d073f804f2bf43e..a5eebf136e26e8c0b0b1f52e31793f1f11f27fe5 100644
+index 15ea85f42fbda6e2d25bd15009156b21571fa513..14f206d1bae202e26fd9c5ea0b9e3ff2a686c12e 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -181,6 +181,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
