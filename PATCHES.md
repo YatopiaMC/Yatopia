@@ -10,18 +10,18 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
-| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
+| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
-| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
-| server |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureLocateEvent      | dfsek |  |
+| server |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
 | server |  Add component util      | William Blake Galbreath |  |
-| server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
@@ -30,6 +30,8 @@ This is an overview over all patches that are currently used.
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
+| server |  AirplaneLite Data Structs      | Paul Sauve |  |
+| server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
 | server |  Allow infinite and mending enchantments together      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
@@ -84,11 +86,13 @@ This is an overview over all patches that are currently used.
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
-| server |  Modify POM      | YatopiaMC |  |
 | api |  Modify POM      | YatopiaMC |  |
+| server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
+| server |  Multi-threaded RegionFile IO      | ishland |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
+| server |  OpenCL base      | ishland |  |
 | server |  Optimise portals      | Ivan Pekov |  |
 | server |  Optimised hallowen checker      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
@@ -96,6 +100,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize advancement loading      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
+| server |  Optimize random calls in chunk ticking      | Paul Sauve |  |
 | server |  Optimize some stuff in WorldServer ticking      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
@@ -106,18 +111,19 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
-| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
-| api |  Remove Streams using IntelliJ IDEA      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Signs allow color codes      | William Blake Galbreath |  |
 | server |  Signs editable on right click      | William Blake Galbreath |  |
+| server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Smol entity optimisations      | Ivan Pekov |  |
@@ -126,10 +132,13 @@ This is an overview over all patches that are currently used.
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
+| server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
+| server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Threaded WorldGen      | ishland |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
-| server |  Use faster random implementation      | Mykyta Komarnytskyy |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
+| server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
 | api |  Yatopia API Bundle      | YatopiaMC |  |
 | server |  Yatopia configuration      | tr7zw |  |
