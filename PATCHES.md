@@ -69,6 +69,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix rotating UP/DOWN CW and CCW      | BillyGalbreath |  |
+| server |  Fix stuck in portals      | BillyGalbreath |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
@@ -98,6 +99,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize advancement loading      | Ivan Pekov |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
+| server |  Optimize random calls in chunk ticking      | Paul Sauve |  |
 | server |  Optimize some stuff in WorldServer ticking      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
@@ -105,7 +107,6 @@ This is an overview over all patches that are currently used.
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
-| server |  PaperPR - Projectile load/save limit per chunk      | jmp |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
@@ -133,7 +134,6 @@ This is an overview over all patches that are currently used.
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
-| server |  Use faster random implementation      | Mykyta Komarnytskyy |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
