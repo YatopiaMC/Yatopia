@@ -1,0 +1,204 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sat, 16 Jan 2021 10:37:54 +0800
+Subject: [PATCH] fixup! Threaded WorldGen
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java b/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java
+index 84ef8d9ecab4745a90504718f803110b9e2dbf65..3d2c59689256748a972cd49e8aca91a7373aa6c4 100644
+--- a/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java
++++ b/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java
+@@ -54,26 +54,28 @@ public final class IBlockDataList {
+     }
+ 
+     public long add(final int location, final IBlockData data) {
+-        final long curr = this.map.get((short)location);
++        synchronized (this) {
++            final long curr = this.map.get((short) location);
+ 
+-        if (curr == Long.MAX_VALUE) {
+-            final int index = this.size++;
+-            final long raw = getRawFromValues(index, location, data);
+-            this.map.put((short)location, raw);
++            if (curr == Long.MAX_VALUE) {
++                final int index = this.size++;
++                final long raw = getRawFromValues(index, location, data);
++                this.map.put((short) location, raw);
+ 
+-            if (index >= this.byIndex.length) {
+-                this.byIndex = Arrays.copyOf(this.byIndex, (int)Math.max(4L, this.byIndex.length * 2L));
+-            }
++                if (index >= this.byIndex.length) {
++                    this.byIndex = Arrays.copyOf(this.byIndex, (int) Math.max(4L, this.byIndex.length * 2L));
++                }
+ 
+-            this.byIndex[index] = raw;
+-            return raw;
+-        } else {
+-            final int index = getIndexFromRaw(curr);
+-            final long raw = this.byIndex[index] = getRawFromValues(index, location, data);
++                this.byIndex[index] = raw;
++                return raw;
++            } else {
++                final int index = getIndexFromRaw(curr);
++                final long raw = this.byIndex[index] = getRawFromValues(index, location, data);
+ 
+-            this.map.put((short)location, raw);
++                this.map.put((short) location, raw);
+ 
+-            return raw;
++                return raw;
++            }
+         }
+     }
+ 
+@@ -82,23 +84,25 @@ public final class IBlockDataList {
+     }
+ 
+     public long remove(final int location) {
+-        final long ret = this.map.remove((short)location);
+-        final int index = getIndexFromRaw(ret);
+-        if (ret == Long.MAX_VALUE) {
+-            return ret;
+-        }
++        synchronized (this) {
++            final long ret = this.map.remove((short) location);
++            final int index = getIndexFromRaw(ret);
++            if (ret == Long.MAX_VALUE) {
++                return ret;
++            }
+ 
+-        // move the entry at the end to this index
+-        final int endIndex = --this.size;
+-        final long end = this.byIndex[endIndex];
+-        if (index != endIndex) {
+-            // not empty after this call
+-            this.map.put((short)getLocationFromRaw(end), setIndexRawValues(end, index));
+-        }
+-        this.byIndex[index] = end;
+-        this.byIndex[endIndex] = 0L;
++            // move the entry at the end to this index
++            final int endIndex = --this.size;
++            final long end = this.byIndex[endIndex];
++            if (index != endIndex) {
++                // not empty after this call
++                this.map.put((short) getLocationFromRaw(end), setIndexRawValues(end, index));
++            }
++            this.byIndex[index] = end;
++            this.byIndex[endIndex] = 0L;
+ 
+-        return ret;
++            return ret;
++        }
+     }
+ 
+     public int size() {
+diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
+index d6afef796ae8d302d0ecaaa40164be4618c7a6c1..4dc3b413f42c7e2144f1376dc86ac7dca0649698 100644
+--- a/src/main/java/net/minecraft/server/ChunkStatus.java
++++ b/src/main/java/net/minecraft/server/ChunkStatus.java
+@@ -26,17 +26,18 @@ public class ChunkStatus {
+     public static final ChunkStatus EMPTY = a("empty", (ChunkStatus) null, -1, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
+     });
+     public static final ChunkStatus STRUCTURE_STARTS = a("structure_starts", ChunkStatus.EMPTY, 0, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
+-        if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
+-            if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
+-                chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
+-            }
++        return CompletableFuture.supplyAsync(() -> {
++            if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
++                if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
++                    chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
++                }
+ 
+-            if (ichunkaccess instanceof ProtoChunk) {
+-                ((ProtoChunk) ichunkaccess).a(chunkstatus);
++                if (ichunkaccess instanceof ProtoChunk) {
++                    ((ProtoChunk) ichunkaccess).a(chunkstatus);
++                }
+             }
+-        }
+-
+-        return CompletableFuture.completedFuture(Either.left(ichunkaccess));
++            return Either.left(ichunkaccess);
++        });
+     });
+     public static final ChunkStatus STRUCTURE_REFERENCES = a("structure_references", ChunkStatus.STRUCTURE_STARTS, 8, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
+         RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
+@@ -61,19 +62,20 @@ public class ChunkStatus {
+         chunkgenerator.doCarving(worldserver.getSeed(), worldserver.d(), ichunkaccess, WorldGenStage.Features.LIQUID);
+     });
+     public static final ChunkStatus FEATURES = a("features", ChunkStatus.LIQUID_CARVERS, 8, ChunkStatus.o, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
+-        // TODO threaded features
+-        ProtoChunk protochunk = (ProtoChunk) ichunkaccess;
++        return CompletableFuture.supplyAsync(() -> {
++            ProtoChunk protochunk = (ProtoChunk) ichunkaccess;
+ 
+-        protochunk.a((LightEngine) lightenginethreaded);
+-        if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
+-            HeightMap.a(ichunkaccess, EnumSet.of(HeightMap.Type.MOTION_BLOCKING, HeightMap.Type.MOTION_BLOCKING_NO_LEAVES, HeightMap.Type.OCEAN_FLOOR, HeightMap.Type.WORLD_SURFACE));
+-            RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
++            protochunk.a((LightEngine) lightenginethreaded);
++            if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
++                HeightMap.a(ichunkaccess, EnumSet.of(HeightMap.Type.MOTION_BLOCKING, HeightMap.Type.MOTION_BLOCKING_NO_LEAVES, HeightMap.Type.OCEAN_FLOOR, HeightMap.Type.WORLD_SURFACE));
++                RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
+ 
+-            chunkgenerator.addDecorations(regionlimitedworldaccess, worldserver.getStructureManager().a(regionlimitedworldaccess));
+-            protochunk.a(chunkstatus);
+-        }
++                chunkgenerator.addDecorations(regionlimitedworldaccess, worldserver.getStructureManager().a(regionlimitedworldaccess));
++                protochunk.a(chunkstatus);
++            }
+ 
+-        return CompletableFuture.completedFuture(Either.left(ichunkaccess));
++            return Either.left(ichunkaccess);
++        }, SystemUtils.getMainThreadExecutor());
+     });
+     public static final ChunkStatus LIGHT = a("light", ChunkStatus.FEATURES, 1, ChunkStatus.o, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
+         return a(chunkstatus, lightenginethreaded, ichunkaccess);
+diff --git a/src/main/java/net/minecraft/server/IChunkAccess.java b/src/main/java/net/minecraft/server/IChunkAccess.java
+index 62a648a78481b4f3f35882c689e137e733f7f152..501b28e7ffb751e7cd69690861be85bf5878d44a 100644
+--- a/src/main/java/net/minecraft/server/IChunkAccess.java
++++ b/src/main/java/net/minecraft/server/IChunkAccess.java
+@@ -8,6 +8,8 @@ import java.util.Map.Entry;
+ import java.util.Set;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
++
++import it.unimi.dsi.fastutil.shorts.ShortLists;
+ import org.apache.logging.log4j.LogManager;
+ 
+ public interface IChunkAccess extends IBlockAccess, IStructureAccess {
+@@ -159,7 +161,7 @@ public interface IChunkAccess extends IBlockAccess, IStructureAccess {
+ 
+     static ShortList a(ShortList[] ashortlist, int i) {
+         if (ashortlist[i] == null) {
+-            ashortlist[i] = new ShortArrayList();
++            ashortlist[i] = ShortLists.synchronize(new ShortArrayList());
+         }
+ 
+         return ashortlist[i];
+diff --git a/src/main/java/net/minecraft/server/ProtoChunkTickList.java b/src/main/java/net/minecraft/server/ProtoChunkTickList.java
+index d4f8311e44fd67f97e8056ebb08d287a1a9660b5..4c2d5dd49f794190c2b440b6412ed09cb3aeaf2e 100644
+--- a/src/main/java/net/minecraft/server/ProtoChunkTickList.java
++++ b/src/main/java/net/minecraft/server/ProtoChunkTickList.java
+@@ -37,16 +37,14 @@ public class ProtoChunkTickList<T> implements TickList<T> {
+     public void a(TickList<T> ticklist, Function<BlockPosition, T> function) {
+         for (int i = 0; i < this.c.length; ++i) {
+             if (this.c[i] != null) {
+-                ShortListIterator shortlistiterator = this.c[i].iterator();
++                final short[] shorts = this.c[i].toShortArray();
++                this.c[i].clear();
+ 
+-                while (shortlistiterator.hasNext()) {
+-                    Short oshort = (Short) shortlistiterator.next();
++                for (short oshort : shorts) {
+                     BlockPosition blockposition = ProtoChunk.a(oshort, i, this.b);
+ 
+                     ticklist.a(blockposition, function.apply(blockposition), 0);
+                 }
+-
+-                this.c[i].clear();
+             }
+         }
+ 
