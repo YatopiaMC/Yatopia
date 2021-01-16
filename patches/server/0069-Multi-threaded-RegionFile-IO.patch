@@ -22,7 +22,7 @@ index dd20e7924a233e5539ef288a1521d71cff2d4a16..85ace2333c7bb70e62b70c2625fee7cb
  
      <repositories>
 diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
-index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578db301cce 100644
+index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..78521bf05a9f43d5d10d1bf324eb7aae44bef091 100644
 --- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 @@ -1,5 +1,8 @@
@@ -34,7 +34,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
  import net.minecraft.server.ChunkCoordIntPair;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.NBTTagCompound;
-@@ -8,8 +11,12 @@ import net.minecraft.server.WorldServer;
+@@ -8,8 +11,13 @@ import net.minecraft.server.WorldServer;
  import org.apache.logging.log4j.Logger;
  
  import java.io.IOException;
@@ -44,10 +44,11 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
  import java.util.concurrent.ConcurrentHashMap;
 +import java.util.concurrent.ExecutorService;
 +import java.util.concurrent.Executors;
++import java.util.concurrent.TimeUnit;
  import java.util.concurrent.atomic.AtomicLong;
  import java.util.function.Consumer;
  import java.util.function.Function;
-@@ -35,7 +42,7 @@ import java.util.function.Function;
+@@ -35,7 +43,7 @@ import java.util.function.Function;
   * @see #scheduleSave(WorldServer, int, int, NBTTagCompound, NBTTagCompound, int)
   * @see #loadChunkDataAsync(WorldServer, int, int, int, Consumer, boolean, boolean, boolean)
   */
@@ -56,7 +57,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
  
      public static final Logger LOGGER = MinecraftServer.LOGGER;
      public static final NBTTagCompound FAILURE_VALUE = new NBTTagCompound();
-@@ -44,23 +51,70 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -44,23 +52,76 @@ public final class PaperFileIOThread extends QueueExecutorThread {
  
          public static final PaperFileIOThread INSTANCE = new PaperFileIOThread();
  
@@ -110,18 +111,24 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
 +
 +    public void flush() {
 +        receiver.flush();
-+    }
-+
-+    private void queueTask(PrioritizedTaskQueue.PrioritizedTask newTask) {
-+        queue.add(newTask);
-+        receiver.notifyTasks();
      }
  
 -    /* run() is implemented by superclass */
++    private void queueTask(PrioritizedTaskQueue.PrioritizedTask newTask) {
++        queue.add(newTask);
++        receiver.notifyTasks();
++    }
++
 +    public void close(final boolean wait) {
 +        receiver.close(wait, false);
 +        queue.shutdown();
 +        executor.shutdown();
++        while (wait && !executor.isTerminated()) {
++            try {
++                executor.awaitTermination(30, TimeUnit.SECONDS);
++            } catch (InterruptedException e) {
++            }
++        }
 +    }
 +
 +    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -133,7 +140,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
  
      /*
       *
-@@ -387,13 +441,85 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -387,13 +448,85 @@ public final class PaperFileIOThread extends QueueExecutorThread {
      /**
       * Schedules the given task at the specified priority to be executed on the IO thread.
       * <p>
@@ -220,7 +227,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
      static final class GeneralTask extends PrioritizedTaskQueue.PrioritizedTask implements Runnable {
  
          private final Runnable run;
-@@ -456,8 +582,8 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -456,8 +589,8 @@ public final class PaperFileIOThread extends QueueExecutorThread {
          public ChunkDataController.InProgressRead inProgressRead;
  
          private final WorldServer world;
@@ -231,7 +238,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..860b81c3fb6562ae5e1e6d686db0f578
          private final ChunkDataController taskController;
  
          public ChunkDataTask(final int priority, final WorldServer world, final int x, final int z, final ChunkDataController taskController) {
-@@ -602,5 +728,7 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -602,5 +735,7 @@ public final class PaperFileIOThread extends QueueExecutorThread {
                  continue;
              }
          }
