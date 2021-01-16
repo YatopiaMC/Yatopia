@@ -27,42 +27,26 @@ index cd681eb181571543b63108f33d1d3f129c035e84..dd20e7924a233e5539ef288a1521d71c
  
      <repositories>
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 7299cb87fd06be52593b4fe643b45891e4ecc6f6..64ce8b94e1d5738d79dac10eeaa7fa1cba9fc232 100644
+index 7299cb87fd06be52593b4fe643b45891e4ecc6f6..784252aa38bddd23bbbce8ffa66ae76149fe3a84 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -66,6 +66,7 @@ import co.aikar.timings.MinecraftTimings; // Paper
- import io.papermc.paper.util.PaperJvmChecker; // Paper
- import io.papermc.paper.event.server.ServerResourcesReloadedEvent; // Paper
- import org.spigotmc.SlackActivityAccountant; // Spigot
-+import org.yatopiamc.yatopia.server.opencl.OpenCompute;
- 
- public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTask> implements IMojangStatistics, ICommandListener, AutoCloseable {
- 
-@@ -837,6 +838,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -837,6 +837,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          LOGGER.info("Closing Thread Pool");
          SystemUtils.shutdownServerThreadPool(); // Paper
          LOGGER.info("Closing Server");
-+        OpenCompute.release(); // Yatopia
++        org.yatopiamc.yatopia.server.opencl.OpenCompute.release(); // Yatopia
          try {
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 605b7477dfce17c5d9752fd48a71098739e3f4c2..ec1d7e07f55b9182ba5c450c320860d20cc7cd9f 100644
+index 605b7477dfce17c5d9752fd48a71098739e3f4c2..aace1d79ade5504a74942fab25c55ee197681194 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -13,6 +13,7 @@ import java.util.logging.Logger;
- import joptsimple.OptionParser;
- import joptsimple.OptionSet;
- import net.minecrell.terminalconsole.TerminalConsoleAppender; // Paper
-+import org.yatopiamc.yatopia.server.opencl.OpenCompute;
- 
- public class Main {
-     public static boolean useJline = true;
-@@ -305,6 +306,7 @@ public class Main {
+@@ -305,6 +305,7 @@ public class Main {
                  System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
                  //de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config // Yatopia - no load here for u
                  System.out.println("Loading libraries, please wait...");
-+                OpenCompute.init();
++                org.yatopiamc.yatopia.server.opencl.OpenCompute.init();
                  net.minecraft.server.Main.main(options);
              } catch (Throwable t) {
                  t.printStackTrace();

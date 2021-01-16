@@ -7,195 +7,124 @@ A massive improvement to world generation.
 This patch actually schedules chunk status upgrade later rather than doing it right away.
 However, feature placements are still on the server thread for now.
 
-diff --git a/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java b/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java
-index 84ef8d9ecab4745a90504718f803110b9e2dbf65..3d2c59689256748a972cd49e8aca91a7373aa6c4 100644
---- a/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java
-+++ b/src/main/java/com/destroystokyo/paper/util/maplist/IBlockDataList.java
-@@ -54,26 +54,28 @@ public final class IBlockDataList {
-     }
+diff --git a/pom.xml b/pom.xml
+index dd20e7924a233e5539ef288a1521d71cff2d4a16..85ace2333c7bb70e62b70c2625fee7cb52addfac 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -191,6 +191,12 @@
+             <artifactId>jocl-main</artifactId>
+             <version>2.3.2</version>
+         </dependency>
++        <!-- https://mvnrepository.com/artifact/com.ibm.async/asyncutil -->
++        <dependency>
++            <groupId>com.ibm.async</groupId>
++            <artifactId>asyncutil</artifactId>
++            <version>0.1.0</version>
++        </dependency>
+     </dependencies>
  
-     public long add(final int location, final IBlockData data) {
--        final long curr = this.map.get((short)location);
-+        synchronized (this) {
-+            final long curr = this.map.get((short) location);
+     <repositories>
+diff --git a/src/main/java/net/minecraft/server/ChunkGenerator.java b/src/main/java/net/minecraft/server/ChunkGenerator.java
+index 16a477f2a99a5c8d68f0d1468d4cd79650a5a05d..58b9c9ae7fb32b0fee4d46cb41c0de46b9643623 100644
+--- a/src/main/java/net/minecraft/server/ChunkGenerator.java
++++ b/src/main/java/net/minecraft/server/ChunkGenerator.java
+@@ -19,6 +19,8 @@ public abstract class ChunkGenerator {
+     private final StructureSettings structureSettings;
+     private final long e;
+     private final List<ChunkCoordIntPair> f;
++    public final com.ibm.asyncutil.locks.AsyncLock featureGenLock = com.ibm.asyncutil.locks.AsyncLock.createFair(); // Yatopia - threaded WorldGen
++    public final com.ibm.asyncutil.locks.AsyncLock structureGenLock = com.ibm.asyncutil.locks.AsyncLock.createFair(); // Yatopia - threaded WorldGen
  
--        if (curr == Long.MAX_VALUE) {
--            final int index = this.size++;
--            final long raw = getRawFromValues(index, location, data);
--            this.map.put((short)location, raw);
-+            if (curr == Long.MAX_VALUE) {
-+                final int index = this.size++;
-+                final long raw = getRawFromValues(index, location, data);
-+                this.map.put((short) location, raw);
- 
--            if (index >= this.byIndex.length) {
--                this.byIndex = Arrays.copyOf(this.byIndex, (int)Math.max(4L, this.byIndex.length * 2L));
--            }
-+                if (index >= this.byIndex.length) {
-+                    this.byIndex = Arrays.copyOf(this.byIndex, (int) Math.max(4L, this.byIndex.length * 2L));
-+                }
- 
--            this.byIndex[index] = raw;
--            return raw;
--        } else {
--            final int index = getIndexFromRaw(curr);
--            final long raw = this.byIndex[index] = getRawFromValues(index, location, data);
-+                this.byIndex[index] = raw;
-+                return raw;
-+            } else {
-+                final int index = getIndexFromRaw(curr);
-+                final long raw = this.byIndex[index] = getRawFromValues(index, location, data);
- 
--            this.map.put((short)location, raw);
-+                this.map.put((short) location, raw);
- 
--            return raw;
-+                return raw;
-+            }
-         }
-     }
- 
-@@ -82,23 +84,25 @@ public final class IBlockDataList {
-     }
- 
-     public long remove(final int location) {
--        final long ret = this.map.remove((short)location);
--        final int index = getIndexFromRaw(ret);
--        if (ret == Long.MAX_VALUE) {
--            return ret;
--        }
-+        synchronized (this) {
-+            final long ret = this.map.remove((short) location);
-+            final int index = getIndexFromRaw(ret);
-+            if (ret == Long.MAX_VALUE) {
-+                return ret;
-+            }
- 
--        // move the entry at the end to this index
--        final int endIndex = --this.size;
--        final long end = this.byIndex[endIndex];
--        if (index != endIndex) {
--            // not empty after this call
--            this.map.put((short)getLocationFromRaw(end), setIndexRawValues(end, index));
--        }
--        this.byIndex[index] = end;
--        this.byIndex[endIndex] = 0L;
-+            // move the entry at the end to this index
-+            final int endIndex = --this.size;
-+            final long end = this.byIndex[endIndex];
-+            if (index != endIndex) {
-+                // not empty after this call
-+                this.map.put((short) getLocationFromRaw(end), setIndexRawValues(end, index));
-+            }
-+            this.byIndex[index] = end;
-+            this.byIndex[endIndex] = 0L;
- 
--        return ret;
-+            return ret;
-+        }
-     }
- 
-     public int size() {
+     public ChunkGenerator(WorldChunkManager worldchunkmanager, StructureSettings structuresettings) {
+         this(worldchunkmanager, worldchunkmanager, structuresettings, 0L);
 diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
-index 51ea295d66312c95685b9fe4ee502a029d2fff20..c8de7b1c324b0656b85ff6f0747e697023ee9446 100644
+index 51ea295d66312c95685b9fe4ee502a029d2fff20..0a7c4a56108291d40fe56b05e435173f4b3a8510 100644
 --- a/src/main/java/net/minecraft/server/ChunkStatus.java
 +++ b/src/main/java/net/minecraft/server/ChunkStatus.java
-@@ -2,6 +2,7 @@ package net.minecraft.server;
- 
- import com.google.common.collect.ImmutableList;
- import com.google.common.collect.Lists;
-+import com.google.common.util.concurrent.ThreadFactoryBuilder;
- import com.mojang.datafixers.util.Either;
- import it.unimi.dsi.fastutil.ints.IntArrayList;
- import it.unimi.dsi.fastutil.ints.IntList;
-@@ -9,11 +10,24 @@ import java.util.Collections;
+@@ -9,11 +9,34 @@ import java.util.Collections;
  import java.util.EnumSet;
  import java.util.List;
  import java.util.concurrent.CompletableFuture;
-+import java.util.concurrent.ExecutorService;
++// Yatopia start
 +import java.util.concurrent.LinkedBlockingQueue;
 +import java.util.concurrent.ThreadPoolExecutor;
 +import java.util.concurrent.TimeUnit;
++// Yatopia end
  import java.util.function.Function;
  import javax.annotation.Nullable;
  
  public class ChunkStatus {
  
++    // Yatopia start - threaded WorldGen
 +    private static final ThreadPoolExecutor featureGenExecutor = new ThreadPoolExecutor(
 +            1,
 +            Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
 +            60,
 +            TimeUnit.SECONDS,
 +            new LinkedBlockingQueue<>(),
-+            new ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks FeatureGen Worker #%d").build()
++            new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks FeatureGen Worker #%d").build()
 +    );
-+
++    private static final ThreadPoolExecutor structureGenExecutor = new ThreadPoolExecutor(
++            1,
++            Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
++            60,
++            TimeUnit.SECONDS,
++            new LinkedBlockingQueue<>(),
++            new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks StructureGen Worker #%d").build()
++    );
++    // Yatopia end
      private static final EnumSet<HeightMap.Type> n = EnumSet.of(HeightMap.Type.OCEAN_FLOOR_WG, HeightMap.Type.WORLD_SURFACE_WG);
      private static final EnumSet<HeightMap.Type> o = EnumSet.of(HeightMap.Type.OCEAN_FLOOR, HeightMap.Type.WORLD_SURFACE, HeightMap.Type.MOTION_BLOCKING, HeightMap.Type.MOTION_BLOCKING_NO_LEAVES);
      private static final ChunkStatus.c p = (chunkstatus, worldserver, definedstructuremanager, lightenginethreaded, function, ichunkaccess) -> {
-@@ -26,17 +40,18 @@ public class ChunkStatus {
+@@ -26,6 +49,9 @@ public class ChunkStatus {
      public static final ChunkStatus EMPTY = a("empty", (ChunkStatus) null, -1, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
      });
      public static final ChunkStatus STRUCTURE_STARTS = a("structure_starts", ChunkStatus.EMPTY, 0, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
--        if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
--            if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
--                chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
--            }
-+        return CompletableFuture.supplyAsync(() -> {
-+            if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
-+                if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
-+                    chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
-+                }
- 
--            if (ichunkaccess instanceof ProtoChunk) {
--                ((ProtoChunk) ichunkaccess).a(chunkstatus);
-+                if (ichunkaccess instanceof ProtoChunk) {
-+                    ((ProtoChunk) ichunkaccess).a(chunkstatus);
-+                }
++        // Yatopia start - threaded WorldGen
++        return chunkgenerator.structureGenLock.acquireLock().toCompletableFuture().thenComposeAsync(lockToken -> {
++        try {
+         if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
+             if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
+                 chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
+@@ -35,8 +61,12 @@ public class ChunkStatus {
+                 ((ProtoChunk) ichunkaccess).a(chunkstatus);
              }
--        }
+         }
 -
--        return CompletableFuture.completedFuture(Either.left(ichunkaccess));
-+            return Either.left(ichunkaccess);
-+        }, SystemUtils.getMainThreadExecutor());
++        } finally {
++            lockToken.releaseLock();
++        }
+         return CompletableFuture.completedFuture(Either.left(ichunkaccess));
++        }, structureGenExecutor);
++        // Yatopia end
      });
      public static final ChunkStatus STRUCTURE_REFERENCES = a("structure_references", ChunkStatus.STRUCTURE_STARTS, 8, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
          RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
-@@ -61,18 +76,24 @@ public class ChunkStatus {
+@@ -61,6 +91,9 @@ public class ChunkStatus {
          chunkgenerator.doCarving(worldserver.getSeed(), worldserver.d(), ichunkaccess, WorldGenStage.Features.LIQUID);
      });
      public static final ChunkStatus FEATURES = a("features", ChunkStatus.LIQUID_CARVERS, 8, ChunkStatus.o, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
--        ProtoChunk protochunk = (ProtoChunk) ichunkaccess;
-+        return worldserver.featureGenLock.acquireLock().toCompletableFuture().thenComposeAsync(token -> {
-+            try {
-+                ProtoChunk protochunk = (ProtoChunk) ichunkaccess;
++        // Yatopia start - threaded WorldGen
++        return chunkgenerator.featureGenLock.acquireLock().toCompletableFuture().thenComposeAsync(token -> {
++        try {
+         ProtoChunk protochunk = (ProtoChunk) ichunkaccess;
  
--        protochunk.a((LightEngine) lightenginethreaded);
--        if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
--            HeightMap.a(ichunkaccess, EnumSet.of(HeightMap.Type.MOTION_BLOCKING, HeightMap.Type.MOTION_BLOCKING_NO_LEAVES, HeightMap.Type.OCEAN_FLOOR, HeightMap.Type.WORLD_SURFACE));
--            RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
-+                protochunk.a((LightEngine) lightenginethreaded);
-+                if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
-+                    HeightMap.a(ichunkaccess, EnumSet.of(HeightMap.Type.MOTION_BLOCKING, HeightMap.Type.MOTION_BLOCKING_NO_LEAVES, HeightMap.Type.OCEAN_FLOOR, HeightMap.Type.WORLD_SURFACE));
-+                    RegionLimitedWorldAccess regionlimitedworldaccess = new RegionLimitedWorldAccess(worldserver, list);
+         protochunk.a((LightEngine) lightenginethreaded);
+@@ -71,8 +104,13 @@ public class ChunkStatus {
+             chunkgenerator.addDecorations(regionlimitedworldaccess, worldserver.getStructureManager().a(regionlimitedworldaccess));
+             protochunk.a(chunkstatus);
+         }
++        } finally {
++            token.releaseLock();
++        }
  
--            chunkgenerator.addDecorations(regionlimitedworldaccess, worldserver.getStructureManager().a(regionlimitedworldaccess));
--            protochunk.a(chunkstatus);
--        }
-+                    chunkgenerator.addDecorations(regionlimitedworldaccess, worldserver.getStructureManager().a(regionlimitedworldaccess));
-+                    protochunk.a(chunkstatus);
-+                }
-+            } finally {
-+                token.releaseLock();
-+            }
- 
--        return CompletableFuture.completedFuture(Either.left(ichunkaccess));
-+            return CompletableFuture.completedFuture(Either.left(ichunkaccess));
+         return CompletableFuture.completedFuture(Either.left(ichunkaccess));
 +        }, featureGenExecutor);
++        // Yatopia end
      });
      public static final ChunkStatus LIGHT = a("light", ChunkStatus.FEATURES, 1, ChunkStatus.o, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
          return a(chunkstatus, lightenginethreaded, ichunkaccess);
-@@ -245,14 +266,18 @@ public class ChunkStatus {
+@@ -245,14 +283,18 @@ public class ChunkStatus {
  
          @Override
          default CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> doWork(ChunkStatus chunkstatus, WorldServer worldserver, ChunkGenerator chunkgenerator, DefinedStructureManager definedstructuremanager, LightEngineThreaded lightenginethreaded, Function<IChunkAccess, CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> function, List<IChunkAccess> list, IChunkAccess ichunkaccess) {
@@ -215,157 +144,6 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..c8de7b1c324b0656b85ff6f0747e6970
          }
  
          void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
-diff --git a/src/main/java/net/minecraft/server/IChunkAccess.java b/src/main/java/net/minecraft/server/IChunkAccess.java
-index 62a648a78481b4f3f35882c689e137e733f7f152..501b28e7ffb751e7cd69690861be85bf5878d44a 100644
---- a/src/main/java/net/minecraft/server/IChunkAccess.java
-+++ b/src/main/java/net/minecraft/server/IChunkAccess.java
-@@ -8,6 +8,8 @@ import java.util.Map.Entry;
- import java.util.Set;
- import java.util.stream.Stream;
- import javax.annotation.Nullable;
-+
-+import it.unimi.dsi.fastutil.shorts.ShortLists;
- import org.apache.logging.log4j.LogManager;
- 
- public interface IChunkAccess extends IBlockAccess, IStructureAccess {
-@@ -159,7 +161,7 @@ public interface IChunkAccess extends IBlockAccess, IStructureAccess {
- 
-     static ShortList a(ShortList[] ashortlist, int i) {
-         if (ashortlist[i] == null) {
--            ashortlist[i] = new ShortArrayList();
-+            ashortlist[i] = ShortLists.synchronize(new ShortArrayList());
-         }
- 
-         return ashortlist[i];
-diff --git a/src/main/java/net/minecraft/server/ProtoChunkTickList.java b/src/main/java/net/minecraft/server/ProtoChunkTickList.java
-index d4f8311e44fd67f97e8056ebb08d287a1a9660b5..2a6ea5eb4485cba3440fe652c9117bd75b051b07 100644
---- a/src/main/java/net/minecraft/server/ProtoChunkTickList.java
-+++ b/src/main/java/net/minecraft/server/ProtoChunkTickList.java
-@@ -1,22 +1,35 @@
- package net.minecraft.server;
- 
-+import com.google.common.collect.Sets;
-+import it.unimi.dsi.fastutil.shorts.ShortArrayList;
- import it.unimi.dsi.fastutil.shorts.ShortList;
- import it.unimi.dsi.fastutil.shorts.ShortListIterator;
-+
-+import java.util.Arrays;
-+import java.util.HashSet;
-+import java.util.Iterator;
-+import java.util.Set;
- import java.util.function.Function;
- import java.util.function.Predicate;
-+import java.util.stream.Collectors;
- 
- public class ProtoChunkTickList<T> implements TickList<T> {
- 
-     protected final Predicate<T> a;
-     private final ChunkCoordIntPair b;
--    private final ShortList[] c;
-+    private final Set<Short>[] c;
- 
-     public ProtoChunkTickList(Predicate<T> predicate, ChunkCoordIntPair chunkcoordintpair) {
-         this(predicate, chunkcoordintpair, new NBTTagList());
-     }
- 
-     public ProtoChunkTickList(Predicate<T> predicate, ChunkCoordIntPair chunkcoordintpair, NBTTagList nbttaglist) {
--        this.c = new ShortList[16];
-+        this.c = new Set[16];
-+        Set<Short>[] sets = this.c;
-+        for (int i = 0, setsLength = sets.length; i < setsLength; i++) {
-+            sets[i] = Sets.newConcurrentHashSet();
-+        }
-+
-         this.a = predicate;
-         this.b = chunkcoordintpair;
- 
-@@ -24,29 +37,34 @@ public class ProtoChunkTickList<T> implements TickList<T> {
-             NBTTagList nbttaglist1 = nbttaglist.b(i);
- 
-             for (int j = 0; j < nbttaglist1.size(); ++j) {
--                IChunkAccess.a(this.c, i).add(nbttaglist1.d(j));
-+                this.c[i].add(nbttaglist1.d(j));
-             }
-         }
- 
-     }
- 
-     public NBTTagList b() {
--        return ChunkRegionLoader.a(this.c);
-+        return ChunkRegionLoader.a(Arrays.stream(this.c)
-+                .map(shorts -> new ShortArrayList(shorts))
-+                .toArray(ShortList[]::new)
-+        );
-     }
- 
-     public void a(TickList<T> ticklist, Function<BlockPosition, T> function) {
-         for (int i = 0; i < this.c.length; ++i) {
-             if (this.c[i] != null) {
--                ShortListIterator shortlistiterator = this.c[i].iterator();
-+                Iterator<Short> shortlistiterator = this.c[i].iterator();
- 
-                 while (shortlistiterator.hasNext()) {
-                     Short oshort = (Short) shortlistiterator.next();
-                     BlockPosition blockposition = ProtoChunk.a(oshort, i, this.b);
- 
-                     ticklist.a(blockposition, function.apply(blockposition), 0);
-+
-+                    shortlistiterator.remove();
-                 }
- 
--                this.c[i].clear();
-+                // this.c[i].clear();
-             }
-         }
- 
-@@ -59,7 +77,7 @@ public class ProtoChunkTickList<T> implements TickList<T> {
- 
-     @Override
-     public void a(BlockPosition blockposition, T t0, int i, TickListPriority ticklistpriority) {
--        IChunkAccess.a(this.c, blockposition.getY() >> 4).add(ProtoChunk.l(blockposition));
-+        this.c[blockposition.getY() >> 4].add(ProtoChunk.l(blockposition));
-     }
- 
-     @Override
-diff --git a/src/main/java/net/minecraft/server/StructureStart.java b/src/main/java/net/minecraft/server/StructureStart.java
-index d27b4be211cce4f8754732021f0a31852d748b17..a10db188a831f66440229902eb916ae64982390a 100644
---- a/src/main/java/net/minecraft/server/StructureStart.java
-+++ b/src/main/java/net/minecraft/server/StructureStart.java
-@@ -1,6 +1,8 @@
- package net.minecraft.server;
- 
- import com.google.common.collect.Lists;
-+
-+import java.util.Collections;
- import java.util.Iterator;
- import java.util.List;
- import java.util.Random;
-@@ -11,7 +13,7 @@ public abstract class StructureStart<C extends WorldGenFeatureConfiguration> {
-         public void a(IRegistryCustom iregistrycustom, ChunkGenerator chunkgenerator, DefinedStructureManager definedstructuremanager, int i, int j, BiomeBase biomebase, WorldGenMineshaftConfiguration worldgenmineshaftconfiguration) {}
-     };
-     private final StructureGenerator<C> e;
--    protected final List<StructurePiece> b = Lists.newArrayList();
-+    protected final List<StructurePiece> b = Collections.synchronizedList(Lists.newArrayList());
-     protected StructureBoundingBox c;
-     private final int f;
-     private final int g;
-@@ -46,15 +48,7 @@ public abstract class StructureStart<C extends WorldGenFeatureConfiguration> {
-                 StructureBoundingBox structureboundingbox1 = ((StructurePiece) this.b.get(0)).n;
-                 BaseBlockPosition baseblockposition = structureboundingbox1.g();
-                 BlockPosition blockposition = new BlockPosition(baseblockposition.getX(), structureboundingbox1.b, baseblockposition.getZ());
--                Iterator iterator = this.b.iterator();
--
--                while (iterator.hasNext()) {
--                    StructurePiece structurepiece = (StructurePiece) iterator.next();
--
--                    if (structurepiece.g().b(structureboundingbox) && !structurepiece.a(generatoraccessseed, structuremanager, chunkgenerator, random, structureboundingbox, chunkcoordintpair, blockposition)) {
--                        iterator.remove();
--                    }
--                }
-+                this.b.removeIf(structurepiece -> structurepiece.g().b(structureboundingbox) && !structurepiece.a(generatoraccessseed, structuremanager, chunkgenerator, random, structureboundingbox, chunkcoordintpair, blockposition));
- 
-                 this.b();
-             }
 diff --git a/src/main/java/net/minecraft/server/SystemUtils.java b/src/main/java/net/minecraft/server/SystemUtils.java
 index 61d399077f87fc1f198811ee31fc779b6f0ecfa9..98ec9db831697f59ddbefaee7e22d01888082485 100644
 --- a/src/main/java/net/minecraft/server/SystemUtils.java
@@ -378,23 +156,3 @@ index 61d399077f87fc1f198811ee31fc779b6f0ecfa9..98ec9db831697f59ddbefaee7e22d018
      public static Executor f() {
          return SystemUtils.e;
      }
-diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 2855425bbb4d82146ff117e5d106d2bd7c723868..6fcb78b8b5d9034204144c8db2fcd3fb43c55d25 100644
---- a/src/main/java/net/minecraft/server/WorldServer.java
-+++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
- import com.google.common.collect.Maps;
- import com.google.common.collect.Queues;
- import com.google.common.collect.Sets;
-+import com.ibm.asyncutil.locks.AsyncLock;
- import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
- import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
- import it.unimi.dsi.fastutil.ints.Int2ObjectMap.Entry;
-@@ -67,6 +68,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-     public final List<EntityPlayer> players = Lists.newArrayList(); // Paper - private -> public
-     public final ChunkProviderServer chunkProvider; // Paper - public
-     public boolean tickingEntities; // Paper - expose for watchdog
-+    public AsyncLock featureGenLock = AsyncLock.createFair();
-     // Paper start
-     List<java.lang.Runnable> afterEntityTickingTasks = Lists.newArrayList();
-     public void doIfNotEntityTicking(java.lang.Runnable run) {
