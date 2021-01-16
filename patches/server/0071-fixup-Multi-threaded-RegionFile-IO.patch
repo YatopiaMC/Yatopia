@@ -1,0 +1,235 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sat, 16 Jan 2021 15:38:28 +0800
+Subject: [PATCH] fixup! Multi-threaded RegionFile IO
+
+
+diff --git a/pom.xml b/pom.xml
+index 8f2d82fae8f792d7afe0e734a19f1350ff82f252..38391191938347cc0efacfe1285341137ad55de5 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -183,6 +183,12 @@
+             <artifactId>jocl-main</artifactId>
+             <version>2.3.2</version>
+         </dependency>
++        <!-- https://mvnrepository.com/artifact/com.ibm.async/asyncutil -->
++        <dependency>
++            <groupId>com.ibm.async</groupId>
++            <artifactId>asyncutil</artifactId>
++            <version>0.1.0</version>
++        </dependency>
+     </dependencies>
+ 
+     <repositories>
+diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
+index 3637a8411345c0c0712c093141316a7e00ae8cbd..860b81c3fb6562ae5e1e6d686db0f578db301cce 100644
+--- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
++++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
+@@ -1,5 +1,8 @@
+ package com.destroystokyo.paper.io;
+ 
++import com.google.common.collect.Sets;
++import com.google.common.util.concurrent.ThreadFactoryBuilder;
++import com.ibm.asyncutil.locks.AsyncNamedLock;
+ import net.minecraft.server.ChunkCoordIntPair;
+ import net.minecraft.server.MinecraftServer;
+ import net.minecraft.server.NBTTagCompound;
+@@ -8,8 +11,12 @@ import net.minecraft.server.WorldServer;
+ import org.apache.logging.log4j.Logger;
+ 
+ import java.io.IOException;
++import java.util.Objects;
++import java.util.Set;
+ import java.util.concurrent.CompletableFuture;
+ import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
+ import java.util.concurrent.atomic.AtomicLong;
+ import java.util.function.Consumer;
+ import java.util.function.Function;
+@@ -53,45 +60,58 @@ public final class PaperFileIOThread { // Yatopia
+ 
+     private final AtomicLong writeCounter = new AtomicLong();
+     // Yatopia start - multi-threaded RegionFile IO
++    private final AsyncNamedLock<RegionFileCoord> regionFileLock = AsyncNamedLock.createFair();
+     private final PrioritizedTaskQueue<PrioritizedTaskQueue.PrioritizedTask> queue;
+-    private final QueueExecutorThread[] workers;
++    private final QueueExecutorThread receiver;
++    private final Set<Thread> executorThreads = Sets.newConcurrentHashSet();
++    private final ExecutorService executor = Executors.newFixedThreadPool(
++            Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
++            new ThreadFactoryBuilder()
++                    .setNameFormat("Paper RegionFile IO Worker #%d")
++                    .setPriority(Thread.NORM_PRIORITY - 1)
++                    .setDaemon(true)
++                    .setThreadFactory(r -> {
++                        Thread thr = new Thread(r);
++                        executorThreads.add(thr);
++                        return thr;
++                    })
++                    .setUncaughtExceptionHandler((t, e) -> {
++                        LOGGER.fatal("Uncaught exception thrown from " + t.getName() + ", report this!", e);
++                        executorThreads.remove(t);
++                    })
++                    .build()
++    );
+ 
+     private PaperFileIOThread() {
+         queue = new PrioritizedTaskQueue<>();
+-        workers = new QueueExecutorThread[Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8))];
+-        for (int i = 0; i < workers.length; i++) {
+-            this.workers[i] = new QueueExecutorThread(queue, (int) (1.0e6)); // 1.0ms spinwait time
+-            this.workers[i].setName("Paper RegionFile IO Thread #" + i);
+-            this.workers[i].setPriority(Thread.NORM_PRIORITY - 1); // we keep priority close to normal because threads can wait on us
+-            this.workers[i].setUncaughtExceptionHandler((final Thread thread, final Throwable thr) -> {
+-                LOGGER.fatal("Uncaught exception thrown from " + thread.getName() + ", report this!", thr);
+-            });
+-            this.workers[i].start();
+-        }
++        receiver = new PaperFileIOThread.FileIOExecutorThread(queue, (int) (1.0e6)); // 1.0ms spinwait time
++        receiver.setName("Paper RegionFile IO Task Receiver");
++        receiver.setPriority(Thread.NORM_PRIORITY - 1); // we keep priority close to normal because threads can wait on us
++        receiver.setUncaughtExceptionHandler((final Thread thread, final Throwable thr) -> {
++            LOGGER.fatal("Uncaught exception thrown from " + thread.getName() + ", report this!", thr);
++        });
++        receiver.start();
++
+     }
+ 
+     public void flush() {
+-        for (QueueExecutorThread thread : workers)
+-            thread.flush();
++        receiver.flush();
+     }
+ 
+     private void queueTask(PrioritizedTaskQueue.PrioritizedTask newTask) {
+         queue.add(newTask);
+-        for(QueueExecutorThread thread: workers)
+-            if(thread.notifyTasks()) break;
++        receiver.notifyTasks();
+     }
+ 
+     public void close(final boolean wait) {
+-        for (QueueExecutorThread thread : workers)
+-            thread.close(wait, false);
++        receiver.close(wait, false);
+         queue.shutdown();
++        executor.shutdown();
+     }
+ 
++    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+     public boolean isOnWorkerThread() {
+-        final Thread currentThread = Thread.currentThread();
+-        for (QueueExecutorThread thread : workers)
+-            if (currentThread == thread) return true;
+-        return false;
++        return executorThreads.contains(Thread.currentThread());
+     }
+ 
+     // Yatopia end
+@@ -421,13 +441,85 @@ public final class PaperFileIOThread { // Yatopia
+     /**
+      * Schedules the given task at the specified priority to be executed on the IO thread.
+      * <p>
+-     *     Internal api. Do not use.
++     * Internal api. Do not use.
+      * </p>
+      */
+     public void runTask(final int priority, final Runnable runnable) {
+         this.queueTask(new GeneralTask(priority, runnable));
+     }
+ 
++    static final class RegionFileCoord {
++
++        public final int x;
++        public final int z;
++
++        RegionFileCoord(int x, int z) {
++            this.x = x;
++            this.z = z;
++        }
++
++        @Override
++        public boolean equals(Object o) {
++            if (this == o) return true;
++            if (o == null || getClass() != o.getClass()) return false;
++            RegionFileCoord that = (RegionFileCoord) o;
++            return x == that.x && z == that.z;
++        }
++
++        @Override
++        public int hashCode() {
++            return Objects.hash(x, z);
++        }
++    }
++
++    final class FileIOExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask & Runnable> extends QueueExecutorThread<T> {
++
++        public FileIOExecutorThread(PrioritizedTaskQueue<T> queue, long spinWaitTime) {
++            super(queue, spinWaitTime);
++        }
++
++        @Override
++        protected boolean pollTasks(boolean flushTasks) {
++            Runnable task;
++            boolean ret = false;
++
++            while ((task = this.queue.poll()) != null) {
++                ret = true;
++                if (task instanceof ChunkDataTask) {
++                    ChunkDataTask chunkDataTask = (ChunkDataTask) task;
++                    regionFileLock.acquireLock(new RegionFileCoord(chunkDataTask.x >> 5, chunkDataTask.z >> 5))
++                            .thenApplyAsync(lockToken -> {
++                                try {
++                                    chunkDataTask.run();
++                                } finally {
++                                    lockToken.releaseLock();
++                                }
++                                return null;
++                            }, executor)
++                    .exceptionally(throwable -> {
++                        LOGGER.fatal("Exception thrown from prioritized runnable task in thread '" + Thread.currentThread().getName() + "': " + IOUtil.genericToString(chunkDataTask), throwable);
++                        return null;
++                    });
++                } else {
++                    Runnable finalTask = task;
++                    CompletableFuture.supplyAsync(() -> {
++                        finalTask.run();
++                        return null;
++                    }).exceptionally(throwable -> {
++                        LOGGER.fatal("Exception thrown from prioritized runnable task in thread '" + Thread.currentThread().getName() + "': " + IOUtil.genericToString(finalTask), throwable);
++                        return null;
++                    });
++                }
++            }
++
++            if (flushTasks) {
++                this.handleFlushThreads(false);
++            }
++
++            return ret;
++        }
++    }
++
+     static final class GeneralTask extends PrioritizedTaskQueue.PrioritizedTask implements Runnable {
+ 
+         private final Runnable run;
+@@ -490,8 +582,8 @@ public final class PaperFileIOThread { // Yatopia
+         public ChunkDataController.InProgressRead inProgressRead;
+ 
+         private final WorldServer world;
+-        private final int x;
+-        private final int z;
++        public final int x;
++        public final int z;
+         private final ChunkDataController taskController;
+ 
+         public ChunkDataTask(final int priority, final WorldServer world, final int x, final int z, final ChunkDataController taskController) {
+@@ -636,5 +728,7 @@ public final class PaperFileIOThread { // Yatopia
+                 continue;
+             }
+         }
++
++
+     }
+ }

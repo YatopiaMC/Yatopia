@@ -179,26 +179,131 @@ index 62a648a78481b4f3f35882c689e137e733f7f152..501b28e7ffb751e7cd69690861be85bf
  
          return ashortlist[i];
 diff --git a/src/main/java/net/minecraft/server/ProtoChunkTickList.java b/src/main/java/net/minecraft/server/ProtoChunkTickList.java
-index d4f8311e44fd67f97e8056ebb08d287a1a9660b5..4c2d5dd49f794190c2b440b6412ed09cb3aeaf2e 100644
+index d4f8311e44fd67f97e8056ebb08d287a1a9660b5..2a6ea5eb4485cba3440fe652c9117bd75b051b07 100644
 --- a/src/main/java/net/minecraft/server/ProtoChunkTickList.java
 +++ b/src/main/java/net/minecraft/server/ProtoChunkTickList.java
-@@ -37,16 +37,14 @@ public class ProtoChunkTickList<T> implements TickList<T> {
+@@ -1,22 +1,35 @@
+ package net.minecraft.server;
+ 
++import com.google.common.collect.Sets;
++import it.unimi.dsi.fastutil.shorts.ShortArrayList;
+ import it.unimi.dsi.fastutil.shorts.ShortList;
+ import it.unimi.dsi.fastutil.shorts.ShortListIterator;
++
++import java.util.Arrays;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.Set;
+ import java.util.function.Function;
+ import java.util.function.Predicate;
++import java.util.stream.Collectors;
+ 
+ public class ProtoChunkTickList<T> implements TickList<T> {
+ 
+     protected final Predicate<T> a;
+     private final ChunkCoordIntPair b;
+-    private final ShortList[] c;
++    private final Set<Short>[] c;
+ 
+     public ProtoChunkTickList(Predicate<T> predicate, ChunkCoordIntPair chunkcoordintpair) {
+         this(predicate, chunkcoordintpair, new NBTTagList());
+     }
+ 
+     public ProtoChunkTickList(Predicate<T> predicate, ChunkCoordIntPair chunkcoordintpair, NBTTagList nbttaglist) {
+-        this.c = new ShortList[16];
++        this.c = new Set[16];
++        Set<Short>[] sets = this.c;
++        for (int i = 0, setsLength = sets.length; i < setsLength; i++) {
++            sets[i] = Sets.newConcurrentHashSet();
++        }
++
+         this.a = predicate;
+         this.b = chunkcoordintpair;
+ 
+@@ -24,29 +37,34 @@ public class ProtoChunkTickList<T> implements TickList<T> {
+             NBTTagList nbttaglist1 = nbttaglist.b(i);
+ 
+             for (int j = 0; j < nbttaglist1.size(); ++j) {
+-                IChunkAccess.a(this.c, i).add(nbttaglist1.d(j));
++                this.c[i].add(nbttaglist1.d(j));
+             }
+         }
+ 
+     }
+ 
+     public NBTTagList b() {
+-        return ChunkRegionLoader.a(this.c);
++        return ChunkRegionLoader.a(Arrays.stream(this.c)
++                .map(shorts -> new ShortArrayList(shorts))
++                .toArray(ShortList[]::new)
++        );
+     }
+ 
      public void a(TickList<T> ticklist, Function<BlockPosition, T> function) {
          for (int i = 0; i < this.c.length; ++i) {
              if (this.c[i] != null) {
 -                ShortListIterator shortlistiterator = this.c[i].iterator();
-+                final short[] shorts = this.c[i].toShortArray();
-+                this.c[i].clear();
++                Iterator<Short> shortlistiterator = this.c[i].iterator();
  
--                while (shortlistiterator.hasNext()) {
--                    Short oshort = (Short) shortlistiterator.next();
-+                for (short oshort : shorts) {
+                 while (shortlistiterator.hasNext()) {
+                     Short oshort = (Short) shortlistiterator.next();
                      BlockPosition blockposition = ProtoChunk.a(oshort, i, this.b);
  
                      ticklist.a(blockposition, function.apply(blockposition), 0);
++
++                    shortlistiterator.remove();
                  }
--
+ 
 -                this.c[i].clear();
++                // this.c[i].clear();
              }
          }
  
+@@ -59,7 +77,7 @@ public class ProtoChunkTickList<T> implements TickList<T> {
+ 
+     @Override
+     public void a(BlockPosition blockposition, T t0, int i, TickListPriority ticklistpriority) {
+-        IChunkAccess.a(this.c, blockposition.getY() >> 4).add(ProtoChunk.l(blockposition));
++        this.c[blockposition.getY() >> 4].add(ProtoChunk.l(blockposition));
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/StructureStart.java b/src/main/java/net/minecraft/server/StructureStart.java
+index d27b4be211cce4f8754732021f0a31852d748b17..a10db188a831f66440229902eb916ae64982390a 100644
+--- a/src/main/java/net/minecraft/server/StructureStart.java
++++ b/src/main/java/net/minecraft/server/StructureStart.java
+@@ -1,6 +1,8 @@
+ package net.minecraft.server;
+ 
+ import com.google.common.collect.Lists;
++
++import java.util.Collections;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Random;
+@@ -11,7 +13,7 @@ public abstract class StructureStart<C extends WorldGenFeatureConfiguration> {
+         public void a(IRegistryCustom iregistrycustom, ChunkGenerator chunkgenerator, DefinedStructureManager definedstructuremanager, int i, int j, BiomeBase biomebase, WorldGenMineshaftConfiguration worldgenmineshaftconfiguration) {}
+     };
+     private final StructureGenerator<C> e;
+-    protected final List<StructurePiece> b = Lists.newArrayList();
++    protected final List<StructurePiece> b = Collections.synchronizedList(Lists.newArrayList());
+     protected StructureBoundingBox c;
+     private final int f;
+     private final int g;
+@@ -46,15 +48,7 @@ public abstract class StructureStart<C extends WorldGenFeatureConfiguration> {
+                 StructureBoundingBox structureboundingbox1 = ((StructurePiece) this.b.get(0)).n;
+                 BaseBlockPosition baseblockposition = structureboundingbox1.g();
+                 BlockPosition blockposition = new BlockPosition(baseblockposition.getX(), structureboundingbox1.b, baseblockposition.getZ());
+-                Iterator iterator = this.b.iterator();
+-
+-                while (iterator.hasNext()) {
+-                    StructurePiece structurepiece = (StructurePiece) iterator.next();
+-
+-                    if (structurepiece.g().b(structureboundingbox) && !structurepiece.a(generatoraccessseed, structuremanager, chunkgenerator, random, structureboundingbox, chunkcoordintpair, blockposition)) {
+-                        iterator.remove();
+-                    }
+-                }
++                this.b.removeIf(structurepiece -> structurepiece.g().b(structureboundingbox) && !structurepiece.a(generatoraccessseed, structuremanager, chunkgenerator, random, structureboundingbox, chunkcoordintpair, blockposition));
+ 
+                 this.b();
+             }
