@@ -3,9 +3,9 @@
 <h1>Yatopia</h1>
 
 [![Github-CI](https://github.com/YatopiaMC/Yatopia/workflows/CI/badge.svg)](https://github.com/YatopiaMC/Yatopia/actions?query=workflow%3ACI)
-[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.4)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.4/)
+[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.5)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.5/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.io/YatopiaMC)
-[![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopiamc.org%2F)](https://api.yatopiamc.org/v2/latestBuild?branch=ver/1.16.4)
+[![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopiamc.org%2F)](https://api.yatopiamc.org/v2/latestBuild?branch=ver/1.16.5)
 <h3>Blazing fast <a href="https://github.com/Spottedleaf/Tuinity">Tuinity</a> fork with no-compromises performance.</h3>
 </div>
 
@@ -21,7 +21,7 @@ Yatopia combines the best patches from many [Paper](https://github.com/PaperMC/P
 
 
 ## Try it out 
-The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopiamc.org/download.html). You can also download the latest development build [here](https://api.yatopiamc.org/v2/latestBuild/download?branch=ver/1.16.4).
+The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopiamc.org/download.html). You can also download the latest development build [here](https://api.yatopiamc.org/v2/latestBuild/download?branch=ver/1.16.5).
 
 ## Documentation
 
@@ -69,7 +69,7 @@ And then add the Yatopia-API dependency:
     <dependency>
         <groupId>org.yatopiamc</groupId>
         <artifactId>yatopia-api</artifactId>
-        <version>1.16.4-R0.1-SNAPSHOT</version>
+        <version>1.16.5-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>

@@ -379,7 +379,7 @@ index 0094babbd59cc81554b9480088464d632824ae8e..5db147b5c602a00fa758ab5ddc8f18d9
  
      final class a extends LightEngineGraphSection {
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..15d2b2c21e61369b5c7897914ccf0aa950f44668 100644
+index 943a437ff27162eae09211c28bdc0d141fa6a404..b4ae140eeddb7e31b6d530e74f3c0736529e00d4 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
 @@ -5,6 +5,10 @@ import com.google.common.collect.Maps;
@@ -418,15 +418,15 @@ index f43bc1f7d693d63c6bbdba976c048d2d0c8767b1..15d2b2c21e61369b5c7897914ccf0aa9
      public Stream<VillagePlaceRecord> a(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy villageplace_occupancy) {
          return this.c.entrySet().stream().filter((entry) -> {
              return predicate.test(entry.getKey());
-@@ -90,7 +105,7 @@ public class VillagePlaceSection {
-         } else {
-             this.b.put(short0, villageplacerecord);
-             ((Set) this.c.computeIfAbsent(villageplacetype, (villageplacetype1) -> {
--                return Sets.newHashSet();
-+                return new ObjectOpenHashSet<>(); // Yatopia
-             })).add(villageplacerecord);
-             return true;
-         }
+@@ -97,7 +112,7 @@ public class VillagePlaceSection {
+ 
+         this.b.put(short0, villageplacerecord);
+         ((Set) this.c.computeIfAbsent(villageplacetype, (villageplacetype1) -> {
+-            return Sets.newHashSet();
++            return new ObjectOpenHashSet<>(); // Yatopia
+         })).add(villageplacerecord);
+         return true;
+     }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkPos.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkPos.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..de95cf5ca20abdc8f200806287fb0ba03eec1e7c
