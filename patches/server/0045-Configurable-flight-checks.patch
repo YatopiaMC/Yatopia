@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: l_MrBoom_l <admin@epserv.ru>
+Date: Wed, 30 Sep 2020 18:20:12 +0300
+Subject: [PATCH] Configurable flight checks
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index 0e7005787044cf2bf5d9f378eccf371f4e9f9bac..f12bc4d590ffd85d167c390dc55d1637f6aa420d 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -179,7 +179,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+         ++this.e;
+         this.processedMovePackets = this.receivedMovePackets;
+         if (this.B && !this.player.isSleeping()) {
+-            if (++this.C > 80) {
++            if (org.yatopiamc.yatopia.server.YatopiaConfig.checkFlying && ++this.C > 80) { // Yatopia
+                 PlayerConnection.LOGGER.warn("{} was kicked for floating too long!", this.player.getDisplayName().getString());
+                 this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage); // Paper - use configurable kick message
+                 return;
+@@ -198,7 +198,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+             this.w = this.r.locY();
+             this.x = this.r.locZ();
+             if (this.D && this.player.getRootVehicle().getRidingPassenger() == this.player) {
+-                if (++this.E > 80) {
++                if (org.yatopiamc.yatopia.server.YatopiaConfig.checkVehicleFlying && ++this.E > 80) { // Yatopia
+                     PlayerConnection.LOGGER.warn("{} was kicked for floating a vehicle too long!", this.player.getDisplayName().getString());
+                     this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickVehicleMessage); // Paper - use configurable kick message
+                     return;
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index b358aacce7b8e1282d721ae1077b888239ec6b39..26bd1fc5b348cc16ca29f66eead2ca42bd4258a8 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -246,4 +246,11 @@ public class YatopiaConfig {
+     public static boolean isProxy() {
+         return org.spigotmc.SpigotConfig.bungee || com.destroystokyo.paper.PaperConfig.velocitySupport;
+     }
++
++    public static boolean checkFlying = true;
++    public static boolean checkVehicleFlying = true;
++    private static void flightChecks() {
++        checkFlying = getBoolean("settings.checks.flight", checkFlying);
++        checkVehicleFlying = getBoolean("settings.checks.vehicle-flight", checkVehicleFlying);
++    }
+ }

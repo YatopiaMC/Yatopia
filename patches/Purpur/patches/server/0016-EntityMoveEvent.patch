@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: William Blake Galbreath <Blake.Galbreath@GMail.com>
+Date: Tue, 11 Feb 2020 21:56:48 -0600
+Subject: [PATCH] EntityMoveEvent
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index 279662570c0bbd6c00b5732881cd35dfe694b25d..50cb2551598101d1c12007c53421b6c2f59ce2aa 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2813,6 +2813,20 @@ public abstract class EntityLiving extends Entity {
+ 
+         this.collideNearby();
+         this.world.getMethodProfiler().exit();
++        // Purpur start
++        if (((WorldServer) world).hasEntityMoveEvent) {
++            if (lastX != locX() || lastY != locY() || lastZ != locZ() || lastYaw != yaw || lastPitch != pitch) {
++                Location from = new Location(world.getWorld(), lastX, lastY, lastZ, lastYaw, lastPitch);
++                Location to = new Location (world.getWorld(), locX(), locY(), locZ(), yaw, pitch);
++                net.pl3x.purpur.event.entity.EntityMoveEvent event = new net.pl3x.purpur.event.entity.EntityMoveEvent(getBukkitLivingEntity(), from, to.clone());
++                if (!event.callEvent()) {
++                    setLocation(from.getX(), from.getY(), from.getZ(), from.getYaw(), from.getPitch());
++                } else if (!to.equals(event.getTo())) {
++                    setLocation(to.getX(), to.getY(), to.getZ(), to.getYaw(), to.getPitch());
++                }
++            }
++        }
++        // Purpur end
+         if (!this.world.isClientSide && this.dO() && this.aG()) {
+             this.damageEntity(DamageSource.DROWN, 1.0F);
+         }
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index eb4d09cc03f6eae99c10414c915b0e32ce8f262a..6c69d6de2748ca68c4188603937af2c4f738d49c 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1398,6 +1398,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         while (iterator.hasNext()) {
+             WorldServer worldserver = (WorldServer) iterator.next();
+             worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
++            worldserver.hasEntityMoveEvent = net.pl3x.purpur.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Purpur
+             TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
+ 
+             this.methodProfiler.a(() -> {
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index f3f38ee5794b8437432085bfbf1611eab37c81df..3918d51f12092aa1a19091c8c14f5edf13816ccf 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -101,6 +101,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     public final Convertable.ConversionSession convertable;
+     public final UUID uuid;
+     boolean hasPhysicsEvent = true; // Paper
++    boolean hasEntityMoveEvent = false; // Purpur
+     private static Throwable getAddToWorldStackTrace(Entity entity) {
+         return new Throwable(entity + " Added to world at " + new java.util.Date());
+     }

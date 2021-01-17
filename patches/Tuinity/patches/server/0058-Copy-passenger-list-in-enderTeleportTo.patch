@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <spottedleaf@spottedleaf.dev>
+Date: Thu, 10 Dec 2020 15:35:43 -0800
+Subject: [PATCH] Copy passenger list in enderTeleportTo
+
+Fixes https://github.com/Spottedleaf/Tuinity/issues/208
+
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index 551199005e8a7ddb1bbe957c3935ff596a2cd567..f4cafdfd988f79e718a0fb2e464e00166fdc6a89 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -3104,7 +3104,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+             this.recursiveStream().forEach((entity) -> {
+                 worldserver.chunkCheck(entity);
+                 entity.az = true;
+-                Iterator iterator = entity.passengers.iterator();
++                Iterator iterator = new java.util.ArrayList<>(entity.passengers).iterator(); // Tuinity - copy list to guard against CME
+ 
+                 while (iterator.hasNext()) {
+                     Entity entity1 = (Entity) iterator.next();

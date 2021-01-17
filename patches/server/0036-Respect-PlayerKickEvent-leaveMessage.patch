@@ -1,0 +1,65 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Thu, 10 Sep 2020 21:16:40 +0300
+Subject: [PATCH] Respect PlayerKickEvent leaveMessage
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
+index e3cdeb2d899957901e99f0f997af92505cbe4582..0e7005787044cf2bf5d9f378eccf371f4e9f9bac 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/PlayerConnection.java
+@@ -329,7 +329,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+         this.networkManager.sendPacket(new PacketPlayOutKickDisconnect(ichatbasecomponent), (future) -> {
+             this.networkManager.close(ichatbasecomponent);
+         });
+-        this.a(ichatbasecomponent); // CraftBukkit - fire quit instantly
++        this.a(ichatbasecomponent, event.getLeaveMessage() == null || event.getLeaveMessage().equalsIgnoreCase(leaveMessage) ? null : event.getLeaveMessage()); // CraftBukkit - fire quit instantly // Yatopia
+         this.networkManager.stopReading();
+         MinecraftServer minecraftserver = this.minecraftServer;
+         NetworkManager networkmanager = this.networkManager;
+@@ -1717,6 +1717,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
+ 
+     @Override
+     public void a(IChatBaseComponent ichatbasecomponent) {
++        // Yatopia start - added quitMessage parameter
++        a(ichatbasecomponent, null);
++    }
++    public void a(IChatBaseComponent ichatbasecomponent, String quitMessage) {
++        // Yatopia end
+         // CraftBukkit start - Rarely it would send a disconnect line twice
+         if (this.processedDisconnect) {
+             return;
+@@ -1732,7 +1737,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+         */
+ 
+         this.player.p();
+-        String quitMessage = this.minecraftServer.getPlayerList().disconnect(this.player);
++        quitMessage = this.minecraftServer.getPlayerList().disconnect(this.player, quitMessage); // Yatopia
+         if ((quitMessage != null) && (quitMessage.length() > 0)) {
+             this.minecraftServer.getPlayerList().sendMessage(CraftChatMessage.fromString(quitMessage));
+         }
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index f354712e8e1cd359bc8fb0461f30214b8db24112..7e42654873195d17c9a5a2a718216a943533e658 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -499,6 +499,11 @@ public abstract class PlayerList {
+     }
+ 
+     public String disconnect(EntityPlayer entityplayer) { // CraftBukkit - return string
++        // Yatopia start - add quitMessage parameter
++        return disconnect(entityplayer, null);
++    }
++    public String disconnect(EntityPlayer entityplayer, String quitMessage) {
++        // Yatopia end
+         WorldServer worldserver = entityplayer.getWorldServer();
+ 
+         entityplayer.a(StatisticList.LEAVE_GAME);
+@@ -598,7 +603,7 @@ public abstract class PlayerList {
+         cserver.getScoreboardManager().removePlayer(entityplayer.getBukkitEntity());
+         // CraftBukkit end
+ 
+-        return entityplayer.didPlayerJoinEvent ? playerQuitEvent.getQuitMessage() : null; // CraftBukkit // Paper - don't print quit if we never printed join
++        return entityplayer.didPlayerJoinEvent ? quitMessage != null ? quitMessage : playerQuitEvent.getQuitMessage() : null; // CraftBukkit // Paper - don't print quit if we never printed join // Yatopia
+     }
+ 
+     // CraftBukkit start - Whole method, SocketAddress to LoginListener, added hostname to signature, return EntityPlayer

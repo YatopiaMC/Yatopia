@@ -1,0 +1,198 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Phoenix616 <mail@moep.tv>
+Date: Sun, 24 Nov 2019 22:41:38 +0100
+Subject: [PATCH] Origami Server Config
+
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..fe7330fabe386966c2d203a190a00a785ea21be0
+--- /dev/null
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -0,0 +1,117 @@
++package de.minebench.origami;
++
++import org.bukkit.Bukkit;
++import org.bukkit.configuration.file.YamlConfiguration;
++
++import java.io.File;
++import java.lang.reflect.Method;
++import java.lang.reflect.Modifier;
++import java.util.logging.Level;
++
++public final class OrigamiConfig {
++
++    public static final String CONFIG_HEADER = "Configuration file for Origami.";
++    public static final int CURRENT_CONFIG_VERSION = 0;
++
++    private static final Object[] EMPTY = new Object[0];
++
++    private static File configFile;
++    private static YamlConfiguration config;
++    private static int configVersion;
++
++    public static void init(final File file) {
++        OrigamiConfig.configFile = file;
++        OrigamiConfig.config = new YamlConfiguration();
++        config.options().header(CONFIG_HEADER);
++        config.options().copyDefaults(true);
++
++        if (!file.exists()) {
++            try {
++                file.createNewFile();
++            } catch (final Exception ex) {
++                System.out.println("Failure to create origami config");
++                ex.printStackTrace();
++            }
++        } else {
++            try {
++                config.load(file);
++            } catch (final Exception ex) {
++                System.out.println("Failure to load origami config");
++                throw new RuntimeException(ex);
++            }
++        }
++
++        OrigamiConfig.load(OrigamiConfig.class, null);
++    }
++
++    public static void load(Class<?> clazz, Object instance) {
++        OrigamiConfig.configVersion = OrigamiConfig.getInt("config-version-please-do-not-modify-me", CURRENT_CONFIG_VERSION);
++
++        for (final Method method : clazz.getDeclaredMethods()) {
++            if (method.getReturnType() != void.class || method.getParameterCount() != 0 ||
++                    !Modifier.isPrivate(method.getModifiers()) || (instance == null && !Modifier.isStatic(method.getModifiers()))) {
++                continue;
++            }
++
++            try {
++                method.setAccessible(true);
++                method.invoke(instance, EMPTY);
++            } catch (final Exception ex) {
++                throw new RuntimeException(ex);
++            }
++        }
++
++        /* We re-save to add new options */
++        try {
++            config.save(OrigamiConfig.configFile);
++        } catch (final Exception ex) {
++            System.out.println("Unable to save origami config");
++            ex.printStackTrace();
++        }
++    }
++
++    private static boolean getBoolean(final String path, final boolean dfl) {
++        OrigamiConfig.config.addDefault(path, Boolean.valueOf(dfl));
++        return OrigamiConfig.config.getBoolean(path, dfl);
++    }
++
++    private static int getInt(final String path, final int dfl) {
++        OrigamiConfig.config.addDefault(path, Integer.valueOf(dfl));
++        return OrigamiConfig.config.getInt(path, dfl);
++    }
++
++    private static double getDouble(final String path, final double dfl) {
++        OrigamiConfig.config.addDefault(path, Double.valueOf(dfl));
++        return OrigamiConfig.config.getDouble(path, dfl);
++    }
++
++    public static final class WorldConfig {
++
++        public final String worldName;
++
++        public WorldConfig(final String worldName) {
++            this.worldName = worldName;
++            this.init();
++        }
++
++        public void init() {
++            load(WorldConfig.class, this);
++        }
++
++        private boolean getBoolean(final String path, final boolean dfl) {
++            config.addDefault("worlds.default." + path, Boolean.valueOf(dfl));
++            return config.getBoolean("worlds." + worldName + "." + path, config.getBoolean("worlds.default." + path, dfl));
++        }
++
++        private int getInt(final String path, final int dfl) {
++            config.addDefault("worlds.default." + path, Integer.valueOf(dfl));
++            return config.getInt("worlds." + worldName + "." + path, config.getInt("worlds.default." + path, dfl));
++        }
++
++        private double getDouble(final String path, final double dfl) {
++            config.addDefault("worlds.default." + path, Double.valueOf(dfl));
++            return config.getDouble("worlds." + worldName + "." + path, config.getDouble("worlds.default." + path, dfl));
++        }
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index f2512fd66849cfa743cf7bfdffcb4c26178ffebf..b47bc7cadd34f4592605c1ecfdfcb33e2d580034 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -97,6 +97,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
+     public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
+ 
++    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World Config
++
+     public final co.aikar.timings.WorldTimingsHandler timings; // Paper
+     public static BlockPosition lastPhysicsProblem; // Spigot
+     private org.spigotmc.TickLimiter entityLimiter;
+@@ -199,6 +201,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+         this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig(((WorldDataServer) worlddatamutable).getName(), this.spigotConfig); // Paper
+         this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
+         this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig(((WorldDataServer) worlddatamutable).getName(), env); // Purpur
++        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((WorldDataServer)worlddatamutable).getName()); // Origami - World Config
+         this.playerBreedingCooldowns = this.getNewBreedingCooldownCache(); // Purpur
+         this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
+         this.generator = gen;
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 413c55feb6b1c2ddc80aa8dc1c83ed13b2c4c4a5..53deddce357170a712913d916ba1d58e663fc1a1 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -863,6 +863,7 @@ public final class CraftServer implements Server {
+         com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
+         com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
++        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
+         for (WorldServer world : console.getWorlds()) {
+             world.worldDataServer.setDifficulty(config.difficulty);
+             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
+@@ -899,6 +900,7 @@ public final class CraftServer implements Server {
+             world.paperConfig.init(); // Paper
+             world.tuinityConfig.init(); // Tuinity - Server Config
+             world.purpurConfig.init(); // Purpur
++            world.origamiConfig.init(); // Origami - World Config
+         }
+ 
+         Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
+diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
+index b10873022efc8f01ef172e86cad07831d7bf0d5e..448538cc8a3d16b028a0a6f0f05c9370a02f4259 100644
+--- a/src/main/java/org/bukkit/craftbukkit/Main.java
++++ b/src/main/java/org/bukkit/craftbukkit/Main.java
+@@ -154,6 +154,14 @@ public class Main {
+                         .describedAs("Yml file");
+                 // Purpur end
+ 
++                // Origami Start - Server Config
++                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
++                        .withRequiredArg()
++                        .ofType(File.class)
++                        .defaultsTo(new File("origami.yml"))
++                        .describedAs("Yml file");
++                // Origami end - Server Config
++
+                 // Paper start
+                 acceptsAll(asList("server-name"), "Name of the server")
+                         .withRequiredArg()
+@@ -287,6 +295,7 @@ public class Main {
+                 }
+                 // Paper end
+                 System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
++                de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config
+                 System.out.println("Loading libraries, please wait...");
+                 net.minecraft.server.Main.main(options);
+             } catch (Throwable t) {
