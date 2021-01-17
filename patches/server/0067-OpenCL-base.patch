@@ -26,6 +26,18 @@ index cd681eb181571543b63108f33d1d3f129c035e84..dd20e7924a233e5539ef288a1521d71c
      </dependencies>
  
      <repositories>
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index 2473eb88ec7be3f4935debe04eeabcc0815b3233..d9d3f1192bf4697d9a2f11da375626d8d11160b2 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -187,6 +187,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+             DedicatedServer.LOGGER.error("Unable to load server configuration", e);
+             return false;
+         }
++        org.yatopiamc.yatopia.server.opencl.OpenCompute.init();
+         org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands();
+         // Yatopia end
+         de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
 index 7299cb87fd06be52593b4fe643b45891e4ecc6f6..784252aa38bddd23bbbce8ffa66ae76149fe3a84 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
@@ -38,18 +50,6 @@ index 7299cb87fd06be52593b4fe643b45891e4ecc6f6..784252aa38bddd23bbbce8ffa66ae761
          try {
              net.minecrell.terminalconsole.TerminalConsoleAppender.close(); // Paper - Use TerminalConsoleAppender
          } catch (Exception e) {
-diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 605b7477dfce17c5d9752fd48a71098739e3f4c2..aace1d79ade5504a74942fab25c55ee197681194 100644
---- a/src/main/java/org/bukkit/craftbukkit/Main.java
-+++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -305,6 +305,7 @@ public class Main {
-                 System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows
-                 //de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings")); // Origami - Server Config // Yatopia - no load here for u
-                 System.out.println("Loading libraries, please wait...");
-+                org.yatopiamc.yatopia.server.opencl.OpenCompute.init();
-                 net.minecraft.server.Main.main(options);
-             } catch (Throwable t) {
-                 t.printStackTrace();
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 index 00c600d74ba84cb564b9b22f53f279a93839d71f..5778aeed79718cd593fdc2cc1c36d18f6732c061 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
@@ -338,10 +338,10 @@ index 0000000000000000000000000000000000000000..28d2405f8e502f0f561351e13f5b4c6a
 +}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/opencl/OpenCompute.java b/src/main/java/org/yatopiamc/yatopia/server/opencl/OpenCompute.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..cde8c3612929f98fea5d6a65b56de8ef0ec79989
+index 0000000000000000000000000000000000000000..f00f8b349b29d3b8f0a55b5f40914ab841bc93a1
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/opencl/OpenCompute.java
-@@ -0,0 +1,327 @@
+@@ -0,0 +1,321 @@
 +/*
 + * Glowstone Copyright (C) 2015-2020 The Glowstone Project.
 + * Glowstone Copyright (C) 2011-2014 Tad Hardesty.
@@ -598,13 +598,7 @@ index 0000000000000000000000000000000000000000..cde8c3612929f98fea5d6a65b56de8ef
 +                            openCLBenchmarkResult.openCompute.getDevice().getName(), openCLBenchmarkResult.openCompute.getPlatform(), openCLBenchmarkResult.openCompute.getDevice());
 +                }
 +
-+                CompletableFuture<CPUBenchmarkResult> cpuBenchmark = BasicCPUBenchmark.benchmark();
-+                double CPUResult = cpuBenchmark.join().getTiming() / 1_000_000.0;
 +                OpenCLBenchmarkResult fastestdeivce = deviceBenchmarks.get(0).join();
-+                LOGGER.info("Native CPU: {}ms round trip", CPUResult);
-+                if (!(fastestdeivce.getCpuTiming() / 1_000_000.0 < CPUResult)) {
-+                    LOGGER.warn("OpenCL: OpenCL is not faster");
-+                }
 +                CLDevice device = fastestdeivce.openCompute.device;
 +                LOGGER.info("OpenCL: Using {}", device.getName());
 +                LOGGER.debug("OpenCL: Using CLPlatform {} on device CLDevice {}", device.getPlatform(), device);
