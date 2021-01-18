@@ -62,7 +62,7 @@ jobs:
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
          sudo chmod -R -f 777 ./gradlew
-         ./gradlew setupUpstream
+         ./gradlew initGitSubmodules
     - name: Get MC Version
       run: echo "::set-output name=mcver::$(cat "Paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
       id: mcver
@@ -74,6 +74,7 @@ jobs:
         key: ${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-minecraft-decomp
     - name: Build Yatopia
       run: |
+        ./gradlew setupUpstream
         ./gradlew applyPatches
         ./gradlew paperclip
     - name: Upload Artifact
