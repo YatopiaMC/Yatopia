@@ -25,10 +25,7 @@ internal fun Project.createPaperclipTask(
             "mvn", "-T", "2C", "clean", "package",
             "-Dmcver=${toothpick.minecraftVersion}",
             "-Dpaperjar=$patchedJarPath",
-            "-Dvanillajar=$vanillaJarPath",
-            "-XX:+TieredCompilation",
-            "-XX:TieredStopAtLevel=1",
-            "-XX:+UseParallelGC"
+            "-Dvanillajar=$vanillaJarPath"
         )
         if (jenkins) paperclipCmd.add("-Dstyle.color=never")
         ensureSuccess(cmd(*paperclipCmd.toTypedArray(), dir = paperclipDir, printOut = true))
