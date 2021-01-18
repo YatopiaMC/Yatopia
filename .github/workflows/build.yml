@@ -64,7 +64,7 @@ jobs:
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
          sudo chmod -R -f 777 ./gradlew
-         ./gradlew initGitSubmodules
+         ./gradlew initGitSubmodules --no-daemon
     - name: Get MC Version
       run: echo "::set-output name=mcver::$(cat "Paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
       id: mcver
@@ -76,9 +76,9 @@ jobs:
         key: ${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-java-${{ matrix.java }}-minecraft-decomp
     - name: Build Yatopia
       run: |
-        ./gradlew setupUpstream
-        ./gradlew applyPatches
-        ./gradlew paperclip
+        ./gradlew setupUpstream --no-daemon
+        ./gradlew applyPatches --no-daemon
+        ./gradlew paperclip --no-daemon
     - name: Upload Artifact
       if: github.ref != 'refs/heads/ver/1.16.4'
       uses: actions/upload-artifact@v2
