@@ -57,7 +57,7 @@ internal fun Project.createUpdateUpstreamTask(
                             }
                         }
                     }
-                    var currentPatchListFiltered = currentPatchList?.toList()
+                    val currentPatchListFiltered = currentPatchList?.toList()
                         ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
                     for (patch in serverRepoPatches) {
                         if (serverPatches != null && serverPatches.contains(patch)) {
@@ -87,7 +87,7 @@ internal fun Project.createUpdateUpstreamTask(
                             }
                         }
                     }
-                    var currentPatchListFiltered = currentPatchList?.toList()
+                    val currentPatchListFiltered = currentPatchList?.toList()
                         ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
                     for (patch in apiRepoPatches) {
                         if (apiPatches != null && apiPatches.contains(patch)) {
@@ -104,8 +104,8 @@ internal fun Project.createUpdateUpstreamTask(
             } else {
                 if (serverRepoPatches != null) {
                     var i = 0
-                    var currentPatchList = Paths.get("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
-                    var tmpFolder = Paths.get("${upstream.patchPath}/tmp/server").toFile()
+                    val currentPatchList = Paths.get("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
+                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/server").toFile()
                     tmpFolder.mkdirs()
                     if (currentPatchList != null) {
                         for (patch in currentPatchList) {
@@ -118,7 +118,7 @@ internal fun Project.createUpdateUpstreamTask(
                             }
                         }
                     }
-                    var currentPatchListFiltered = currentPatchList?.toList()
+                    val currentPatchListFiltered = currentPatchList?.toList()
                         ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
                     for (patch in serverRepoPatches) {
                         if (serverPatches != null) {
@@ -136,8 +136,8 @@ internal fun Project.createUpdateUpstreamTask(
                 }
                 if (apiRepoPatches != null) {
                     var i = 0
-                    var currentPatchList = Paths.get("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
-                    var tmpFolder = Paths.get("${upstream.patchPath}/tmp/api").toFile()
+                    val currentPatchList = Paths.get("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
+                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/api").toFile()
                     tmpFolder.mkdirs()
                     if (currentPatchList != null) {
                         for (patch in currentPatchList) {
@@ -150,7 +150,7 @@ internal fun Project.createUpdateUpstreamTask(
                             }
                         }
                     }
-                    var currentPatchListFiltered = currentPatchList?.toList()
+                    val currentPatchListFiltered = currentPatchList?.toList()
                         ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
                     for (patch in apiRepoPatches) {
                         if (apiPatches != null) {

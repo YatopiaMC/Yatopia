@@ -19,16 +19,20 @@ object PatchParser {
         var subject: String = "Unknown"
         val coAuthors: MutableList<String> = ArrayList()
         for (line: String in lines) {
-            if (line.startsWith("From: ")) {
-                from =
-                    decodeStringIfNeeded(line.replace("From: ", "").split("<").toTypedArray()[0].trim { it <= ' ' })
-            } else if (line.startsWith("Subject: ")) {
-                subject = line.replace("Subject: ", "").replace("[PATCH]", "").trim { it <= ' ' }
-            } else if (line.startsWith("Co-authored-by: ")) {
-                coAuthors.add(
-                    decodeStringIfNeeded(
-                        line.replace("Co-authored-by: ", "").split("<").toTypedArray()[0].trim { it <= ' ' })
-                )
+            when {
+                line.startsWith("From: ") -> {
+                    from =
+                        decodeStringIfNeeded(line.replace("From: ", "").split("<").toTypedArray()[0].trim { it <= ' ' })
+                }
+                line.startsWith("Subject: ") -> {
+                    subject = line.replace("Subject: ", "").replace("[PATCH]", "").trim { it <= ' ' }
+                }
+                line.startsWith("Co-authored-by: ") -> {
+                    coAuthors.add(
+                        decodeStringIfNeeded(
+                            line.replace("Co-authored-by: ", "").split("<").toTypedArray()[0].trim { it <= ' ' })
+                    )
+                }
             }
         }
         return PatchInfo(file.parentFile.name, from, subject, coAuthors)
@@ -45,7 +49,7 @@ object PatchParser {
         return org
     }
 
-    class PatchInfo(val parent: String, val from: String, val subject: String, val coAuthors: List<String>) {
+    class PatchInfo(private val parent: String, private val from: String, val subject: String, private val coAuthors: List<String>) {
         val coAuthorString: Function<String, String>
             get() = Function { s: String? ->
                 java.lang.String.join(

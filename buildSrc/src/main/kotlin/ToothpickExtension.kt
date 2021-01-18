@@ -67,11 +67,11 @@ open class ToothpickExtension(objects: ObjectFactory) {
     fun getUpstreams(rootProjectDir: File): MutableList<Upstream>? {
         val configDir = rootProjectDir.resolve("$rootProjectDir/upstreamConfig")
         val upstreams = configDir.listFiles()
-        val uptreamArray = ArrayList<Upstream>()
+        val upstreamArray = ArrayList<Upstream>()
         val prop = Properties()
         for (upstream in upstreams) {
             prop.load(FileInputStream(upstream))
-            uptreamArray.add(Upstream(prop.getProperty("name"),
+            upstreamArray.add(Upstream(prop.getProperty("name"),
                 prop.getProperty("useBlackList")!!.toBoolean(),
                 (prop.getProperty("list")),
                 rootProjectDir,
@@ -79,6 +79,6 @@ open class ToothpickExtension(objects: ObjectFactory) {
                 Integer.parseInt(upstream.name.substring(0,4)),
                 project))
         }
-        return uptreamArray.stream().sorted {upstream1, upstream2 -> upstream1.id - upstream2.id}.collect(Collectors.toList())
+        return upstreamArray.stream().sorted { upstream1, upstream2 -> upstream1.id - upstream2.id}.collect(Collectors.toList())
     }
 }
