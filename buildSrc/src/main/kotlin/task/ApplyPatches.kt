@@ -63,11 +63,14 @@ internal fun Project.createApplyPatchesTask(
 
             // Reset or initialize subproject
             logger.lifecycle(">>> Resetting subproject $name")
+            System.out.println("$upstreamDir/$upstream-${folder.toUpperCase()}")
+            System.out.println(projectDir.absolutePath)
+            System.out.println(sourceRepo.absolutePath)
             if (projectDir.exists()) {
                 ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
                 ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
             } else {
-                ensureSuccess(gitCmd("clone", "$upstreamDir/$upstream-$folder", projectDir.absolutePath))
+                ensureSuccess(gitCmd("clone", "$upstreamDir/$upstream-${folder.toUpperCase()}", projectDir.absolutePath))
             }
             logger.lifecycle(">>> Done resetting subproject $name")
 
