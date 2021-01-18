@@ -40,7 +40,6 @@ internal fun Project.createApplyPatchesTask(
         //Cursed Apply Mode that makes fixing stuff a lot easier
         if (checkCursed(project)) {
             for (patch in patches) {
-                System.out.println("test")
                 val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
                     "--rerere-autoupdate", "--whitespace=fix", "--reject", "-C0", patch)
                 if (gitCmd(*gitCommand.toTypedArray(), dir = projectDir, printOut = true).exitCode != 0) {
@@ -55,7 +54,6 @@ internal fun Project.createApplyPatchesTask(
                 if (wasGitSigningEnabled) reEnableGitSigning(projectDir)
             }
         }
-
         return false;
     }
 
@@ -96,5 +94,4 @@ internal fun Project.createApplyPatchesTask(
             logger.lifecycle(">>> Done applying patches to $name")
         }
     }
-
 }
