@@ -61,6 +61,7 @@ open class ToothpickExtension(objects: ObjectFactory) {
     val paperWorkDir: File
         get() = paperDir.resolve("work/Minecraft/${minecraftVersion}")
 
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     fun getUpstreams(rootProjectDir: File): MutableList<Upstream>? {
         val configDir = rootProjectDir.resolve("$rootProjectDir/upstreamConfig")
         val upstreams = configDir.listFiles()
@@ -69,7 +70,7 @@ open class ToothpickExtension(objects: ObjectFactory) {
         for (upstream in upstreams) {
             prop.load(FileInputStream(upstream))
             uptreamArray.add(Upstream(prop.getProperty("name"),
-                Boolean.parseBoolean(prop.getProperty("useBlackList")),
+                Boolean.parseBoolean(prop.getProperty("useBlackList")), // Kotlin has no alternative and I'm too lazy to write my own
                 (prop.getProperty("list")),
                 rootProjectDir,
                 prop.getProperty("branch"),
