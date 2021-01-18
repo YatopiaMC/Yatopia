@@ -14,8 +14,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import upstreamDir
-import upstream
 
 internal fun Project.createApplyPatchesTask(
     receiver: Task.() -> Unit = {}

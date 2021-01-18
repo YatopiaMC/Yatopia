@@ -2,11 +2,8 @@ import org.gradle.api.Project
 import java.io.File
 import java.io.FileWriter
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 import java.util.stream.Collectors
-import kotlin.collections.ArrayList
 
 open class Upstream(in_name: String, in_useBlackList: Boolean, in_list: String, in_rootProjectDir: File, in_branch: String, in_id: Int, in_project: Project) {
     var name: String = in_name

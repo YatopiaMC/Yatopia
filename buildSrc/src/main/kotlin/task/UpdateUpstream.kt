@@ -1,5 +1,6 @@
 package task
 
+import Upstream
 import ensureSuccess
 import gitCmd
 import org.apache.tools.ant.util.FileUtils
@@ -10,11 +11,9 @@ import taskGroup
 import toothpick
 import upstreamDir
 import upstreams
-import Upstream
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.stream.Collectors
 

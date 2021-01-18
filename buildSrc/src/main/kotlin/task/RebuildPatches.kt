@@ -1,14 +1,13 @@
 package task
 
 import ensureSuccess
+import forkName
 import gitCmd
 import org.gradle.api.Project
 import org.gradle.api.Task
 import taskGroup
 import toothpick
 import upstreams
-import java.nio.file.Path
-import forkName
 import java.nio.file.Paths
 
 @Suppress("UNUSED_VARIABLE")
