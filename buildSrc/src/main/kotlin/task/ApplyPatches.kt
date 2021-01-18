@@ -66,6 +66,7 @@ internal fun Project.createApplyPatchesTask(
             System.out.println("$upstreamDir/$upstream-${folder.toUpperCase()}")
             System.out.println(projectDir.absolutePath)
             System.out.println(sourceRepo.absolutePath)
+            System.out.println(projectDir.exists())
             if (projectDir.exists()) {
                 ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
                 ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
