@@ -23,15 +23,15 @@ index cd681eb181571543b63108f33d1d3f129c035e84..807c7b752ff9a11943e409fcd51cae47
 +            <version>0.0.3.Final</version>
 +            <classifier>linux-x86_64</classifier>
 +        </dependency>
-+        <!-- Yatopia end -->
++        <!-- YAtopia end -->
          <dependency>
              <groupId>io.papermc</groupId>
              <artifactId>minecraft-server</artifactId>
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..1cebb1625c07fbb5dfcf344fdc4cb0fee22009d4 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..e6a31f881b05009655c49df370a8802970b3e640 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
-@@ -26,16 +26,12 @@ import java.util.List;
+@@ -26,16 +26,19 @@ import java.util.List;
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -41,20 +41,23 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..1cebb1625c07fbb5dfcf344fdc4cb0fe
  
      private static final Logger LOGGER = LogManager.getLogger();
 -    public static final LazyInitVar<NioEventLoopGroup> a = new LazyInitVar<>(() -> {
--        return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Server IO #%d").setDaemon(true).build());
++    // Yatopia Start - New network system - Remove unused fields
++    /*public static final LazyInitVar<NioEventLoopGroup> a = new LazyInitVar<>(() -> {
+         return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Server IO #%d").setDaemon(true).build());
+     });
+     public static final LazyInitVar<EpollEventLoopGroup> b = new LazyInitVar<>(() -> {
+         return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).build());
 -    });
--    public static final LazyInitVar<EpollEventLoopGroup> b = new LazyInitVar<>(() -> {
--        return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).build());
--    });
-+
++    });*/
++    // Yatopia end
      private final MinecraftServer e;
      public volatile boolean c;
      private final List<ChannelFuture> listeningChannels = Collections.synchronizedList(Lists.newArrayList());
-@@ -52,52 +48,63 @@ public class ServerConnection {
+@@ -52,16 +55,27 @@ public class ServerConnection {
      }
      // Paper end
  
-+    // Yatopia start - New network system
++    // Yatopia Start - New network system
 +    private final NetworkType networkType;
 +    private final EventLoopGroup boss;
 +    private final EventLoopGroup worker;
@@ -64,7 +67,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..1cebb1625c07fbb5dfcf344fdc4cb0fe
          this.e = minecraftserver;
          this.c = true;
 +
-+        // Yatopia start - New network system
++        // Yatopia Start - New network system
 +        this.networkType = NetworkType.bestType(LOGGER, minecraftserver);
 +        this.boss = networkType.createEventLoopGroup(NetworkType.Type.BOSS);
 +        this.worker = networkType.createEventLoopGroup(NetworkType.Type.WORKER);
@@ -76,73 +79,37 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..1cebb1625c07fbb5dfcf344fdc4cb0fe
 -
          synchronized (this.listeningChannels) {
 -            Class oclass;
--            LazyInitVar lazyinitvar;
--
--            if (Epoll.isAvailable() && this.e.l()) {
--                oclass = EpollServerSocketChannel.class;
--                lazyinitvar = ServerConnection.b;
--                ServerConnection.LOGGER.info("Using epoll channel type");
--            } else {
--                oclass = NioServerSocketChannel.class;
--                lazyinitvar = ServerConnection.a;
--                ServerConnection.LOGGER.info("Using default channel type");
++            // Yatopia Start - New network system - remove unused field
++            /*Class oclass;
+             LazyInitVar lazyinitvar;
+ 
+             if (Epoll.isAvailable() && this.e.l()) {
+@@ -72,14 +86,17 @@ public class ServerConnection {
+                 oclass = NioServerSocketChannel.class;
+                 lazyinitvar = ServerConnection.a;
+                 ServerConnection.LOGGER.info("Using default channel type");
 -            }
--
++            }*/
++            // Yatopia end
+ 
              // Tuinity start - indicate Velocity natives in use
              ServerConnection.LOGGER.info("Tuinity: Using " + com.velocitypowered.natives.util.Natives.compress.getLoadedVariant() + " compression from Velocity.");
              ServerConnection.LOGGER.info("Tuinity: Using " + com.velocitypowered.natives.util.Natives.cipher.getLoadedVariant() + " cipher from Velocity.");
              // Tuinity end
-+            // Yatopia start - New network system
-+            ServerConnection.LOGGER.info("Yatopia: Using " + networkType.getName() + " channel type.");
-+            ServerBootstrap serverBootstrap = new ServerBootstrap()
-+                    .group(boss, worker)
-+                    .channelFactory(networkType.getServerSocketChannelFactory())
-+                    .childHandler(new ChannelInitializer<Channel>() {
-+                        protected void initChannel(Channel channel) {
-+                            try {
-+                                channel.config().setOption(ChannelOption.TCP_NODELAY, true);
-+                            } catch (ChannelException ignored) {
-+                            }
  
 -            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channel(oclass)).childHandler(new ChannelInitializer<Channel>() {
--                protected void initChannel(Channel channel) throws Exception {
--                    try {
--                        channel.config().setOption(ChannelOption.TCP_NODELAY, true);
--                    } catch (ChannelException channelexception) {
--                        ;
--                    }
-+                            if (!disableFlushConsolidation)
-+                                channel.pipeline().addFirst(new FlushConsolidationHandler()); // Paper
- 
--                    if (!disableFlushConsolidation) channel.pipeline().addFirst(new FlushConsolidationHandler()); // Paper
--                    channel.pipeline().addLast("timeout", new ReadTimeoutHandler(30)).addLast("legacy_query", new LegacyPingHandler(ServerConnection.this)).addLast("splitter", new PacketSplitter()).addLast("decoder", new PacketDecoder(EnumProtocolDirection.SERVERBOUND)).addLast("prepender", new PacketPrepender()).addLast("encoder", new PacketEncoder(EnumProtocolDirection.CLIENTBOUND));
--                    int j = ServerConnection.this.e.k();
--                    Object object = j > 0 ? new NetworkManagerServer(j) : new NetworkManager(EnumProtocolDirection.SERVERBOUND);
-+                            channel.pipeline()
-+                                    .addLast("timeout", new ReadTimeoutHandler(30))
-+                                    .addLast("legacy_query", new LegacyPingHandler(ServerConnection.this))
-+                                    .addLast("splitter", new PacketSplitter())
-+                                    .addLast("decoder", new PacketDecoder(EnumProtocolDirection.SERVERBOUND))
-+                                    .addLast("prepender", new PacketPrepender())
-+                                    .addLast("encoder", new PacketEncoder(EnumProtocolDirection.CLIENTBOUND));
- 
--                    //ServerConnection.this.connectedChannels.add((NetworkManager) object); // CraftBukkit - decompile error
--                    pending.add((NetworkManager) object); // Paper
--                    channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
--                    ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
--                }
--            }).group((EventLoopGroup) lazyinitvar.a()).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
-+                            int j = ServerConnection.this.e.k();
-+                            NetworkManager networkManager = j > 0 ? new NetworkManagerServer(j) : new NetworkManager(EnumProtocolDirection.SERVERBOUND);
++            ServerConnection.LOGGER.info("Yatopia: Using " + networkType.getName() + " network type.");
 +
-+                            //ServerConnection.this.connectedChannels.add((NetworkManager) object); // CraftBukkit - decompile error
-+                            pending.add(networkManager); // Paper
-+                            channel.pipeline().addLast("packet_handler", networkManager);
-+                            networkManager.setPacketListener(new HandshakeListener(ServerConnection.this.e, networkManager));
-+                        }
-+                    }).option(ChannelOption.AUTO_READ, false); // CraftBukkit
-+            this.listeningChannels.add(serverBootstrap.bind(inetaddress, i).syncUninterruptibly());
-+            // Yatopia end
++            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
+                 protected void initChannel(Channel channel) throws Exception {
+                     try {
+                         channel.config().setOption(ChannelOption.TCP_NODELAY, true);
+@@ -97,7 +114,7 @@ public class ServerConnection {
+                     channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
+                     ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
+                 }
+-            }).group((EventLoopGroup) lazyinitvar.a()).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
++            }).group(boss, worker).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
          }
      }
  
@@ -162,7 +129,7 @@ index 00c600d74ba84cb564b9b22f53f279a93839d71f..43edf14ad296db0ade49eed2897257d0
  }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..56a723fb8c964d7fec66880461e39a66436a8f93
+index 0000000000000000000000000000000000000000..853006a250ac01d92f51be9d59a4148cf0ac723e
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
 @@ -0,0 +1,153 @@
@@ -270,7 +237,7 @@ index 0000000000000000000000000000000000000000..56a723fb8c964d7fec66880461e39a66
 +        // IOUring not available on spigot server with bungeecord
 +        // https://github.com/netty/netty-incubator-transport-io_uring/issues/40
 +        if(!SpigotConfig.bungee && YatopiaConfig.ioUringBeta) {
-+            logger.info("Attempting to use enhanced IOUringEventLoop");
++            logger.log(Level.ERROR, "Attempting to use enhanced IOUringEventLoop");
 +            if (IOUring.isAvailable()) {
 +                return IOURING;
 +            }
