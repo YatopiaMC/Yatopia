@@ -40,7 +40,6 @@ subprojects {
         maven("https://nexus.velocitypowered.com/repository/velocity-artifacts-snapshots/")
         maven("https://libraries.minecraft.net")
         maven("https://repo.codemc.io/repository/maven-public/")
-        maven("https://repo.mrivanplays.com/repository/ivan/")
         mavenLocal()
     }
 

@@ -20,6 +20,11 @@ internal fun Project.createApplyPatchesTask(
 ): Task = tasks.create("applyPatches") {
     receiver(this)
     group = taskGroup
+
+    fun checkCursed(project: Project): Boolean {
+        return project.properties.getOrDefault("cursed", "false").toString().toBoolean()
+    }
+
     fun applyPatches(patchDir: Path, applyName: String, name: String, wasGitSigningEnabled: Boolean, projectDir: File): Boolean {
         val patchPaths = Files.newDirectoryStream(patchDir)
             .map { it.toFile() }
@@ -33,8 +38,9 @@ internal fun Project.createApplyPatchesTask(
         gitCmd("am", "--abort")
 
         //Cursed Apply Mode that makes fixing stuff a lot easier
-        if (false) {
+        if (checkCursed(project)) {
             for (patch in patches) {
+                System.out.println("test")
                 val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
                     "--rerere-autoupdate", "--whitespace=fix", "--reject", "-C0", patch)
                 if (gitCmd(*gitCommand.toTypedArray(), dir = projectDir, printOut = true).exitCode != 0) {
@@ -90,4 +96,5 @@ internal fun Project.createApplyPatchesTask(
             logger.lifecycle(">>> Done applying patches to $name")
         }
     }
+
 }
