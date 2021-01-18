@@ -25,7 +25,7 @@ The latest stable builds of Yatopia are always available over at our [downloads 
 
 ## Documentation
 
-You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md). You can also find our recommended config base [here](https://github.com/YatopiaMC/Yatopia/wiki/Configurations-Parameters-recommended)!
+ You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md).
 
 ## Building and setting up
 
