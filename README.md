@@ -43,7 +43,7 @@ Run the following commands in the root directory:
 
 To build your plugin against the Yatopia-API, first add the CodeMC maven repository:
 
-#Maven
+###Maven
 Add the CodeMC Repo:
 ```xml
 <repositories>
@@ -66,7 +66,7 @@ And then add the Yatopia-API dependency:
 </dependencies>
 ```
 
-#Gradle
+###Gradle
 Add the CodeMC Repo:
 ```kotlin
 repositories {
