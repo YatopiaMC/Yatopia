@@ -30,7 +30,7 @@ internal fun Project.createUpdateUpstreamTask(
         for (upstream in upstreams) {
             ensureSuccess(gitCmd("fetch", dir = upstream.repoPath.toFile(), printOut = true))
             ensureSuccess(gitCmd("reset", "--hard", upstream.branch, dir = upstream.repoPath.toFile(), printOut = true))
-            //ensureSuccess(gitCmd("add", "upstream/${upstream.name}", dir = upstream.repoPath.toFile(), printOut = true)) //TODO FIX
+            ensureSuccess(gitCmd("add", "upstream/${upstream.name}", dir = rootProjectDir, printOut = true))
         }
         ensureSuccess(gitCmd("submodule", "update", "--init", "--recursive", dir = upstreamDir, printOut = true))
         val fileUtils = FileUtils.getFileUtils()
