@@ -17,7 +17,7 @@ internal fun Project.createInitGitSubmodulesTask(
     onlyIf { !upstreamDir.resolve(".git").exists() || upstreamNotInit }
     doLast {
         var exit = gitCmd("submodule", "update", "--init", printOut = true).exitCode
-        exit += gitCmd("submodule", "update", "--init", "--recursive", dir = upstreamDir,printOut = true).exitCode
+        exit += gitCmd("submodule", "update", "--init", "--recursive", dir = upstreamDir, printOut = true).exitCode
         if (exit != 0) {
             error("Failed to checkout git submodules: git exited with code $exit")
         }

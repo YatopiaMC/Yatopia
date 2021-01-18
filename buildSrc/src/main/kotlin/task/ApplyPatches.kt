@@ -65,7 +65,7 @@ internal fun Project.createApplyPatchesTask(
                 ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
                 ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
             } else {
-                ensureSuccess(gitCmd("clone", sourceRepo.absolutePath, projectDir.absolutePath))
+                ensureSuccess(gitCmd("clone", "$rootDir/$forkName-$folder", projectDir.absolutePath))
             }
             logger.lifecycle(">>> Done resetting subproject $name")
 
