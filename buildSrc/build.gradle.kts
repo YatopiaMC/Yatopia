@@ -14,6 +14,8 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx.dom:$kotlinxDomVersion")
     implementation("com.github.jengelman.gradle.plugins:shadow:$shadowVersion")
+    implementation("com.github.spullara.mustache.java:compiler:0.9.6")
+    implementation("javax.mail:mail:1.4.4")
 }
 
 gradlePlugin {

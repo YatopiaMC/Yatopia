@@ -20,6 +20,9 @@ toothpick {
 
     paperclipName = "yatopia-$minecraftVersion-paperclip.jar"
 
+    patchCreditsOutput = "PATCHES.md"
+    patchCreditsTemplate = ".template.md"
+
     server {
         project = project(":$forkNameLowercase-server")
         patchesDir = rootProject.projectDir.resolve("patches/server")

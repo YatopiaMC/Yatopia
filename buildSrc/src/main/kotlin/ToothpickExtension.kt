@@ -29,6 +29,10 @@ open class ToothpickExtension(objects: ObjectFactory) {
         get() = paperclipName ?: "${forkNameLowercase}-paperclip.jar"
 
     lateinit var serverProject: ToothpickSubproject
+
+    lateinit var patchCreditsOutput: String
+    lateinit var patchCreditsTemplate: String
+
     fun server(receiver: ToothpickSubproject.() -> Unit) {
         serverProject = ToothpickSubproject()
         receiver(serverProject)

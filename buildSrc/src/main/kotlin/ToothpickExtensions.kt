@@ -33,3 +33,9 @@ val Project.upstreams: MutableList<Upstream>
 
 val Project.forkName: String
     get() = toothpick.forkName
+
+val Project.patchCreditsOutput: String
+    get() = toothpick.patchCreditsOutput
+
+val Project.patchCreditsTemplate: String
+    get() = toothpick.patchCreditsTemplate

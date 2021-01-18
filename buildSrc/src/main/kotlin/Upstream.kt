@@ -24,11 +24,11 @@ open class Upstream(in_name: String, in_useBlackList: Boolean, in_list: String, 
 
     var project = in_project
 
-    var uptreamCommit = getUpstreamCommitHash()
+    var upstreamCommit = getUpstreamCommitHash()
 
     private fun getUpstreamCommitHash(): String {
-        val commitFileFoler = Paths.get("$rootProjectDir/upstreamCommits")
-        val commitFilePath = Paths.get("$commitFileFoler/$name")
+        val commitFileFolder = Paths.get("$rootProjectDir/upstreamCommits")
+        val commitFilePath = Paths.get("$commitFileFolder/$name")
         val commitFile = commitFilePath.toFile()
         var commitHash: String
         if (commitFile.isFile) {
@@ -49,7 +49,7 @@ open class Upstream(in_name: String, in_useBlackList: Boolean, in_list: String, 
         val commitFilePath = Paths.get("$commitFileFoler/$name")
         val commitFile = commitFilePath.toFile()
         updateHashFile(commitFile)
-        uptreamCommit = getUpstreamCommitHash()
+        upstreamCommit = getUpstreamCommitHash()
     }
 
     public fun getCurrentCommitHash(): String {

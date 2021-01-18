@@ -227,7 +227,7 @@ fun patchChanged(
     patch: String,
     folder: String
 ): Boolean {
-    val diffCheckCmdResult = upstream.project.gitCmd("diff", "--name-only", upstream.uptreamCommit, upstream.getCurrentCommitHash(), dir = upstream.repoPath.toFile() )
+    val diffCheckCmdResult = upstream.project.gitCmd("diff", "--name-only", upstream.upstreamCommit, upstream.getCurrentCommitHash(), dir = upstream.repoPath.toFile() )
     val diffCheckResult = diffCheckCmdResult.output.toString()
     if (diffCheckResult.isBlank()) return false
     val diffCheckChangeFiles = diffCheckResult.split("\\n".toRegex()).toTypedArray().toList()

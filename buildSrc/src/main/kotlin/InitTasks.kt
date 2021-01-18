@@ -52,7 +52,11 @@ internal fun Project.initToothpickTasks() {
         dependsOn(importMCDev)
     }
 
-    val rebuildPatches = createRebuildPatchesTask()
+    val patchCredits = createPatchCreditsTask()
+
+    val rebuildPatches = createRebuildPatchesTask {
+        dependsOn(patchCredits)
+    }
 
     val updateUpstream = createUpdateUpstreamTask {
         finalizedBy(setupUpstream)
