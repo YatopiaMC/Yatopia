@@ -70,7 +70,7 @@ internal fun Project.createApplyPatchesTask(
                 ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
                 ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
             } else {
-                ensureSuccess(gitCmd("clone", "$upstreamDir/$upstream-${folder.toUpperCase()}", projectDir.absolutePath))
+                ensureSuccess(gitCmd("clone", "$upstreamDir/$upstream-${if (folder == "api") {"API"} else {"Server"}}", projectDir.absolutePath))
             }
             logger.lifecycle(">>> Done resetting subproject $name")
 
