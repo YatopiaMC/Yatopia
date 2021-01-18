@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    `maven-publish`
     toothpick
 }
 
@@ -50,5 +51,10 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.current()
         withSourcesJar()
+    }
+
+    publishing.repositories.maven {
+        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
+        credentials(PasswordCredentials::class)
     }
 }
