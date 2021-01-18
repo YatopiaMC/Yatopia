@@ -49,9 +49,9 @@ object PatchParser {
         return org
     }
 
-    class PatchInfo(private val parent: String, private val from: String, val subject: String, private val coAuthors: List<String>) {
+    class PatchInfo(val parent: String, val from: String, val subject: String, val coAuthors: List<String>) {
         val coAuthorString: Function<String, String>
-            get() = Function { s: String? ->
+            get() = Function {
                 java.lang.String.join(
                     ", ",
                     coAuthors
