@@ -22,7 +22,7 @@ internal fun Project.createPaperclipTask(
         val patchedJarPath = inputs.files.singleFile.absolutePath
         logger.lifecycle(">>> Building paperclip")
         val paperclipCmd = arrayListOf(
-            "mvn", "-T", "1.5C", "clean", "package",
+            "mvn", "-T", "2C", "clean", "package",
             "-Dmcver=${toothpick.minecraftVersion}",
             "-Dpaperjar=$patchedJarPath",
             "-Dvanillajar=$vanillaJarPath"
