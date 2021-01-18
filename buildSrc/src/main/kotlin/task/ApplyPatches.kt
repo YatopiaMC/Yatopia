@@ -14,6 +14,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import upstreamDir
+import upstream
 
 internal fun Project.createApplyPatchesTask(
     receiver: Task.() -> Unit = {}
@@ -65,7 +67,7 @@ internal fun Project.createApplyPatchesTask(
                 ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
                 ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
             } else {
-                ensureSuccess(gitCmd("clone", "$rootDir/$forkName-$folder", projectDir.absolutePath))
+                ensureSuccess(gitCmd("clone", "$upstreamDir/$upstream-$folder", projectDir.absolutePath))
             }
             logger.lifecycle(">>> Done resetting subproject $name")
 

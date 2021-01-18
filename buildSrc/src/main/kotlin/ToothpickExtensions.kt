@@ -25,6 +25,9 @@ val Project.rootProjectDir: File
 val Project.upstreamDir: File
     get() = rootProject.projectDir.resolve(toothpick.upstream)
 
+val Project.upstream: String
+    get() = toothpick.upstream
+
 val Project.upstreams: MutableList<Upstream>
     get() = toothpick.getUpstreams(rootProject.projectDir) as MutableList<Upstream>
 
