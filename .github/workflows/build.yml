@@ -52,6 +52,12 @@ jobs:
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    - name: Pull Gradle Cache
+      uses: actions/cache@v2
+      id: gradle-cache
+      with:
+        path: ./gradle
+        key: ${{ runner.os }}-maven-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}        
         restore-keys: ${{ runner.os }}-maven-
     - name: Setup Yatopia Project
       run: |
