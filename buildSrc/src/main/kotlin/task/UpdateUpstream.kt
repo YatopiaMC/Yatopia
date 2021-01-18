@@ -41,7 +41,7 @@ internal fun Project.createUpdateUpstreamTask(
             val apiPatches = upstream.apiList
             logger.lifecycle(">>> Pulling ${upstream.name} patches")
             updatePatches(serverRepoPatches, upstream, fileUtils, serverPatches, "server")
-            updatePatches(apiRepoPatches, upstream, fileUtils, serverPatches, "api")
+            updatePatches(apiRepoPatches, upstream, fileUtils, apiPatches, "api")
             upstream.updateUpstreamCommitHash()
         }
     }
