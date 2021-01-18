@@ -28,7 +28,7 @@ index cd681eb181571543b63108f33d1d3f129c035e84..807c7b752ff9a11943e409fcd51cae47
              <groupId>io.papermc</groupId>
              <artifactId>minecraft-server</artifactId>
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..e6a31f881b05009655c49df370a8802970b3e640 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..0ebdfce5061c560ea01cb7a8ce1c90e004db4447 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
 @@ -26,16 +26,19 @@ import java.util.List;
@@ -40,9 +40,8 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..e6a31f881b05009655c49df370a88029
  public class ServerConnection {
  
      private static final Logger LOGGER = LogManager.getLogger();
--    public static final LazyInitVar<NioEventLoopGroup> a = new LazyInitVar<>(() -> {
-+    // Yatopia Start - New network system - Remove unused fields
-+    /*public static final LazyInitVar<NioEventLoopGroup> a = new LazyInitVar<>(() -> {
++    /* // Yatopia Start - New network system - Remove unused fields
+     public static final LazyInitVar<NioEventLoopGroup> a = new LazyInitVar<>(() -> {
          return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Server IO #%d").setDaemon(true).build());
      });
      public static final LazyInitVar<EpollEventLoopGroup> b = new LazyInitVar<>(() -> {
@@ -53,7 +52,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..e6a31f881b05009655c49df370a88029
      private final MinecraftServer e;
      public volatile boolean c;
      private final List<ChannelFuture> listeningChannels = Collections.synchronizedList(Lists.newArrayList());
-@@ -52,16 +55,27 @@ public class ServerConnection {
+@@ -52,15 +55,26 @@ public class ServerConnection {
      }
      // Paper end
  
@@ -78,19 +77,17 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..e6a31f881b05009655c49df370a88029
 -        List list = this.listeningChannels;
 -
          synchronized (this.listeningChannels) {
--            Class oclass;
-+            // Yatopia Start - New network system - remove unused field
-+            /*Class oclass;
++            /* // Yatopia Start - New network system - remove unused field
+             Class oclass;
              LazyInitVar lazyinitvar;
  
-             if (Epoll.isAvailable() && this.e.l()) {
 @@ -72,14 +86,17 @@ public class ServerConnection {
                  oclass = NioServerSocketChannel.class;
                  lazyinitvar = ServerConnection.a;
                  ServerConnection.LOGGER.info("Using default channel type");
 -            }
 +            }*/
-+            // Yatopia end
++
  
              // Tuinity start - indicate Velocity natives in use
              ServerConnection.LOGGER.info("Tuinity: Using " + com.velocitypowered.natives.util.Natives.compress.getLoadedVariant() + " compression from Velocity.");
@@ -104,12 +101,13 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..e6a31f881b05009655c49df370a88029
                  protected void initChannel(Channel channel) throws Exception {
                      try {
                          channel.config().setOption(ChannelOption.TCP_NODELAY, true);
-@@ -97,7 +114,7 @@ public class ServerConnection {
+@@ -97,7 +114,8 @@ public class ServerConnection {
                      channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
                      ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
                  }
 -            }).group((EventLoopGroup) lazyinitvar.a()).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
 +            }).group(boss, worker).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
++            // Yatopia end
          }
      }
  
