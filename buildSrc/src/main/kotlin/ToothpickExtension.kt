@@ -2,7 +2,6 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import java.io.File
 import java.io.FileInputStream
-import java.lang.Boolean
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.collections.ArrayList
@@ -61,7 +60,6 @@ open class ToothpickExtension(objects: ObjectFactory) {
     val paperWorkDir: File
         get() = paperDir.resolve("work/Minecraft/${minecraftVersion}")
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     fun getUpstreams(rootProjectDir: File): MutableList<Upstream>? {
         val configDir = rootProjectDir.resolve("$rootProjectDir/upstreamConfig")
         val upstreams = configDir.listFiles()
@@ -70,7 +68,7 @@ open class ToothpickExtension(objects: ObjectFactory) {
         for (upstream in upstreams) {
             prop.load(FileInputStream(upstream))
             uptreamArray.add(Upstream(prop.getProperty("name"),
-                Boolean.parseBoolean(prop.getProperty("useBlackList")), // Kotlin has no alternative and I'm too lazy to write my own
+                prop.getProperty("useBlackList")!!.toBoolean(),
                 (prop.getProperty("list")),
                 rootProjectDir,
                 prop.getProperty("branch"),
