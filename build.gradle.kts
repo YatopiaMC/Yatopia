@@ -18,7 +18,7 @@ toothpick {
     upstream = "Paper"
     upstreamBranch = "origin/master"
 
-    paperclipName = "Yatopia-launcher.jar"
+    paperclipName = "yatopia-$minecraftVersion-paperclip.jar"
 
     server {
         project = project(":$forkNameLowercase-server")

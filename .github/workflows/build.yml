@@ -62,19 +62,20 @@ jobs:
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
          sudo chmod -R -f 777 scripts
-         ./yatopia init
+         ./gradlew setupUpstream
     - name: Get MC Version
-      run: echo "::set-output name=mcver::$(cat "Tuinity/Paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
+      run: echo "::set-output name=mcver::$(cat "Paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
       id: mcver
     - name: Pull Minecraft Decompile Cache
       uses: actions/cache@v2
       id: decompile-cache
       with:
-        path: Tuinity/Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
+        path: Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
         key: ${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-minecraft-decomp
     - name: Build Yatopia
       run: |
-        ./yatopia full
+        ./yatopia applyPatches
+        ./yatopia paperclip
     - name: Upload Artifact
       if: github.ref != 'refs/heads/ver/1.16.4'
       uses: actions/upload-artifact@v2
