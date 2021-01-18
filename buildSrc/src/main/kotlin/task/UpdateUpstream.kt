@@ -40,134 +40,51 @@ internal fun Project.createUpdateUpstreamTask(
             val serverPatches = upstream.serverList
             val apiPatches = upstream.apiList
             logger.lifecycle(">>> Pulling ${upstream.name} patches")
-            if (upstream.useBlackList) {
-                if (serverRepoPatches != null) {
-                    var i = 0
-                    val currentPatchList = Paths.get("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
-                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/server").toFile()
-                    tmpFolder.mkdirs()
-                    if (currentPatchList != null) {
-                        for (patch in currentPatchList) {
-                            if (patch.exists()) {
-                                fileUtils.copyFile(
-                                    "${upstream.patchPath}/server/${patch.name}",
-                                    "${upstream.patchPath}/tmp/server/${patch.name}"
-                                )
-                                patch.delete()
-                            }
-                        }
-                    }
-                    val currentPatchListFiltered = currentPatchList?.toList()
-                        ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
-                    for (patch in serverRepoPatches) {
-                        if (serverPatches != null && serverPatches.contains(patch)) {
-                            continue
-                        } else {
-                            i++
-                            updatePatch(fileUtils, upstream, serverRepoPatches, patch, i, "server", currentPatchListFiltered)
-                        }
-                    }
-                    for (patch in tmpFolder.listFiles()) {
-                        patch.delete()
-                    }
-                }
-                if (apiRepoPatches != null) {
-                    var i = 0
-                    val currentPatchList = Paths.get("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
-                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/api").toFile()
-                    tmpFolder.mkdirs()
-                    if (currentPatchList != null) {
-                        for (patch in currentPatchList) {
-                            if (patch.exists()) {
-                                fileUtils.copyFile(
-                                    "${upstream.patchPath}/api/${patch.name}",
-                                    "${upstream.patchPath}/tmp/api/${patch.name}"
-                                )
-                                patch.delete()
-                            }
-                        }
-                    }
-                    val currentPatchListFiltered = currentPatchList?.toList()
-                        ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
-                    for (patch in apiRepoPatches) {
-                        if (apiPatches != null && apiPatches.contains(patch)) {
-                            continue
-                        } else {
-                            i++
-                            updatePatch(fileUtils, upstream, apiRepoPatches, patch, i, "api", currentPatchListFiltered)
-                        }
-                    }
-                    for (patch in tmpFolder.listFiles()) {
-                        patch.delete()
-                    }
-                }
-            } else {
-                if (serverRepoPatches != null) {
-                    var i = 0
-                    val currentPatchList = Paths.get("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
-                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/server").toFile()
-                    tmpFolder.mkdirs()
-                    if (currentPatchList != null) {
-                        for (patch in currentPatchList) {
-                            if (patch.exists()) {
-                                fileUtils.copyFile(
-                                    "${upstream.patchPath}/server/${patch.name}",
-                                    "${upstream.patchPath}/tmp/server/${patch.name}"
-                                )
-                                patch.delete()
-                            }
-                        }
-                    }
-                    val currentPatchListFiltered = currentPatchList?.toList()
-                        ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
-                    for (patch in serverRepoPatches) {
-                        if (serverPatches != null) {
-                            if (!serverPatches.contains(patch)) {
-                                continue
-                            } else {
-                                i++
-                                updatePatch(fileUtils, upstream, serverRepoPatches, patch, i, "server", currentPatchListFiltered)
-                            }
-                        }
-                    }
-                    for (patch in tmpFolder.listFiles()) {
-                        patch.delete()
-                    }
-                }
-                if (apiRepoPatches != null) {
-                    var i = 0
-                    val currentPatchList = Paths.get("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
-                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/api").toFile()
-                    tmpFolder.mkdirs()
-                    if (currentPatchList != null) {
-                        for (patch in currentPatchList) {
-                            if (patch.exists()) {
-                                fileUtils.copyFile(
-                                    "${upstream.patchPath}/api/${patch.name}",
-                                    "${upstream.patchPath}/tmp/api/${patch.name}"
-                                )
-                                patch.delete()
-                            }
-                        }
-                    }
-                    val currentPatchListFiltered = currentPatchList?.toList()
-                        ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length)}?.collect(Collectors.toList())
-                    for (patch in apiRepoPatches) {
-                        if (apiPatches != null) {
-                            if (!apiPatches.contains(patch)) {
-                                continue
-                            } else {
-                                i++
-                                updatePatch(fileUtils, upstream, apiRepoPatches, patch, i, "api", currentPatchListFiltered)
-                            }
-                        }
-                    }
-                    for (patch in tmpFolder.listFiles()) {
-                        patch.delete()
-                    }
+            updatePatches(serverRepoPatches, upstream, fileUtils, serverPatches, "server")
+            updatePatches(apiRepoPatches, upstream, fileUtils, serverPatches, "api")
+            upstream.updateUpstreamCommitHash()
+        }
+    }
+}
+
+private fun updatePatches(
+    repoPatches: MutableList<String>?,
+    upstream: Upstream,
+    fileUtils: FileUtils,
+    patches: MutableList<String>?,
+    folder: String
+) {
+    if (repoPatches != null) {
+        var i = 0
+        val currentPatchList = Paths.get("${upstream.patchPath}/$folder").toFile().listFiles() as Array<File>?
+        val tmpFolder = Paths.get("${upstream.patchPath}/tmp/$folder").toFile()
+        tmpFolder.mkdirs()
+        if (currentPatchList != null) {
+            for (patch in currentPatchList) {
+                if (patch.exists()) {
+                    fileUtils.copyFile(
+                        "${upstream.patchPath}/$folder/${patch.name}",
+                        "${upstream.patchPath}/tmp/$folder/${patch.name}"
+                    )
+                    patch.delete()
                 }
             }
-            upstream.updateUpstreamCommitHash()
+        }
+        val currentPatchListFiltered = currentPatchList?.toList()
+            ?.stream()?.sorted()?.map { patch -> patch.name.substring(5, patch.name.length) }
+            ?.collect(Collectors.toList())
+        for (patch in repoPatches) {
+            if (patches != null) {
+                if ((patches.contains(patch) && upstream.useBlackList) || (!patches.contains(patch) && !upstream.useBlackList)) {
+                    continue
+                } else {
+                    i++
+                    updatePatch(fileUtils, upstream, repoPatches, patch, i, folder, currentPatchListFiltered)
+                }
+            }
+        }
+        for (patch in tmpFolder.listFiles()) {
+            patch.delete()
         }
     }
 }
