@@ -13,6 +13,7 @@ import upstreams
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 internal fun Project.createApplyPatchesTask(
     receiver: Task.() -> Unit = {}
@@ -75,7 +76,7 @@ internal fun Project.createApplyPatchesTask(
                 project.gitCmd("branch", "-D", "${upstream.name}-$folder", dir = projectDir)
                 project.gitCmd("checkout", "-b", "${upstream.name}-$folder", dir = projectDir)
                 // Apply patches
-                val patchDir = Path.of("${upstream.patchPath}/$folder")
+                val patchDir = Paths.get("${upstream.patchPath}/$folder")
 
                 if (applyPatches(patchDir, upstream.name, name, wasGitSigningEnabled, projectDir)) continue
             }

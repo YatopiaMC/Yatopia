@@ -3,6 +3,7 @@ import java.io.File
 import java.io.FileWriter
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.collections.ArrayList
@@ -21,16 +22,16 @@ open class Upstream(in_name: String, in_useBlackList: Boolean, in_list: String, 
         ?.sorted()?.map { patch -> patch.substring(4, patch.length) }?.collect(Collectors.toList())
 
 
-    var patchPath = Path.of("$rootProjectDir/patches/$name/patches")
-    var repoPath = Path.of("$rootProjectDir/upstream/$name")
+    var patchPath = Paths.get("$rootProjectDir/patches/$name/patches")
+    var repoPath = Paths.get("$rootProjectDir/upstream/$name")
 
     var project = in_project
 
     var uptreamCommit = getUpstreamCommitHash()
 
     private fun getUpstreamCommitHash(): String {
-        val commitFileFoler = Path.of("$rootProjectDir/upstreamCommits")
-        val commitFilePath = Path.of("$commitFileFoler/$name")
+        val commitFileFoler = Paths.get("$rootProjectDir/upstreamCommits")
+        val commitFilePath = Paths.get("$commitFileFoler/$name")
         val commitFile = commitFilePath.toFile()
         var commitHash: String
         if (commitFile.isFile) {
@@ -47,8 +48,8 @@ open class Upstream(in_name: String, in_useBlackList: Boolean, in_list: String, 
     }
 
     public fun updateUpstreamCommitHash() {
-        val commitFileFoler = Path.of("$rootProjectDir/upstreamCommits")
-        val commitFilePath = Path.of("$commitFileFoler/$name")
+        val commitFileFoler = Paths.get("$rootProjectDir/upstreamCommits")
+        val commitFilePath = Paths.get("$commitFileFoler/$name")
         val commitFile = commitFilePath.toFile()
         updateHashFile(commitFile)
         uptreamCommit = getUpstreamCommitHash()

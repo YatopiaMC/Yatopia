@@ -9,6 +9,7 @@ import toothpick
 import upstreams
 import java.nio.file.Path
 import forkName
+import java.nio.file.Paths
 
 @Suppress("UNUSED_VARIABLE")
 internal fun Project.createRebuildPatchesTask(
@@ -23,9 +24,9 @@ internal fun Project.createRebuildPatchesTask(
             val folder = (if (patchesDir.endsWith("server")) "server" else "api")
 
             for (upstream in upstreams) {
-                val patchPath = Path.of("${upstream.patchPath}/$folder").toFile()
+                val patchPath = Paths.get("${upstream.patchPath}/$folder").toFile()
 
-                if (!Path.of("${upstream.patchPath}/$folder").toFile().exists()) {
+                if (!Paths.get("${upstream.patchPath}/$folder").toFile().exists()) {
                     patchPath.mkdirs()
                 }
 
@@ -35,8 +36,8 @@ internal fun Project.createRebuildPatchesTask(
 
                 // Nuke old patches
                 patchPath.listFiles()
-                    ?.filter { it.name.endsWith(".patch") }
-                    ?.forEach { it.delete() }
+                    ?.filter { it -> it.name.endsWith(".patch") }
+                    ?.forEach { it -> it.delete() }
                 ensureSuccess(gitCmd("checkout", "${upstream.name}-$folder", dir = projectDir))
                 ensureSuccess(
                     gitCmd(
@@ -58,8 +59,8 @@ internal fun Project.createRebuildPatchesTask(
 
             // Nuke old patches
             patchesDir.listFiles()
-                ?.filter { it.name.endsWith(".patch") }
-                ?.forEach { it.delete() }
+                ?.filter { it -> it.name.endsWith(".patch") }
+                ?.forEach { it -> it.delete() }
 
             // And generate new
             ensureSuccess(

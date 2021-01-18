@@ -15,6 +15,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.charset.StandardCharsets
+import java.nio.file.Paths
 import java.util.stream.Collectors
 
 
@@ -28,7 +29,6 @@ internal fun Project.createUpdateUpstreamTask(
         ensureSuccess(gitCmd("reset", "--hard", toothpick.upstreamBranch, dir = upstreamDir, printOut = true))
         ensureSuccess(gitCmd("add", toothpick.upstream, dir = rootProjectDir, printOut = true))
         for (upstream in upstreams) {
-            System.out.println(upstream.repoPath)
             ensureSuccess(gitCmd("fetch", dir = upstream.repoPath.toFile(), printOut = true))
             ensureSuccess(gitCmd("reset", "--hard", upstream.branch, dir = upstream.repoPath.toFile(), printOut = true))
             //ensureSuccess(gitCmd("add", "upstream/${upstream.name}", dir = upstream.repoPath.toFile(), printOut = true)) //TODO FIX
@@ -44,8 +44,8 @@ internal fun Project.createUpdateUpstreamTask(
             if (upstream.useBlackList) {
                 if (serverRepoPatches != null) {
                     var i = 0
-                    val currentPatchList = Path.of("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
-                    val tmpFolder = Path.of("${upstream.patchPath}/tmp/server").toFile()
+                    val currentPatchList = Paths.get("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
+                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/server").toFile()
                     tmpFolder.mkdirs()
                     if (currentPatchList != null) {
                         for (patch in currentPatchList) {
@@ -74,8 +74,8 @@ internal fun Project.createUpdateUpstreamTask(
                 }
                 if (apiRepoPatches != null) {
                     var i = 0
-                    val currentPatchList = Path.of("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
-                    val tmpFolder = Path.of("${upstream.patchPath}/tmp/api").toFile()
+                    val currentPatchList = Paths.get("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
+                    val tmpFolder = Paths.get("${upstream.patchPath}/tmp/api").toFile()
                     tmpFolder.mkdirs()
                     if (currentPatchList != null) {
                         for (patch in currentPatchList) {
@@ -105,8 +105,8 @@ internal fun Project.createUpdateUpstreamTask(
             } else {
                 if (serverRepoPatches != null) {
                     var i = 0
-                    var currentPatchList = Path.of("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
-                    var tmpFolder = Path.of("${upstream.patchPath}/tmp/server").toFile()
+                    var currentPatchList = Paths.get("${upstream.patchPath}/server").toFile().listFiles() as Array<File>?
+                    var tmpFolder = Paths.get("${upstream.patchPath}/tmp/server").toFile()
                     tmpFolder.mkdirs()
                     if (currentPatchList != null) {
                         for (patch in currentPatchList) {
@@ -137,8 +137,8 @@ internal fun Project.createUpdateUpstreamTask(
                 }
                 if (apiRepoPatches != null) {
                     var i = 0
-                    var currentPatchList = Path.of("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
-                    var tmpFolder = Path.of("${upstream.patchPath}/tmp/api").toFile()
+                    var currentPatchList = Paths.get("${upstream.patchPath}/api").toFile().listFiles() as Array<File>?
+                    var tmpFolder = Paths.get("${upstream.patchPath}/tmp/api").toFile()
                     tmpFolder.mkdirs()
                     if (currentPatchList != null) {
                         for (patch in currentPatchList) {
@@ -202,10 +202,10 @@ fun patchHasDiff(
     folder: String,
     currentPatchListFiltered: MutableList<String>
 ): Boolean {
-    if (!Path.of("${upstream.patchPath}/tmp/$folder/${String.format("%04d", currentPatchListFiltered.indexOf(patch) + 1)}-$patch").toFile().isFile) return true
+    if (!Paths.get("${upstream.patchPath}/tmp/$folder/${String.format("%04d", currentPatchListFiltered.indexOf(patch) + 1)}-$patch").toFile().isFile) return true
     if (!patchChanged(upstream, serverRepoPatches, patch, folder)) return false
-    val upstreamFile = Files.readAllLines(Path.of("${upstream.repoPath}/patches/$folder/${String.format("%04d", serverRepoPatches.indexOf(patch) + 1)}-$patch"), StandardCharsets.UTF_8)
-    val repoFile = Files.readAllLines(Path.of("${upstream.patchPath}/tmp/$folder/${String.format("%04d", currentPatchListFiltered.indexOf(patch) + 1)}-$patch"), StandardCharsets.UTF_8)
+    val upstreamFile = Files.readAllLines(Paths.get("${upstream.repoPath}/patches/$folder/${String.format("%04d", serverRepoPatches.indexOf(patch) + 1)}-$patch"), StandardCharsets.UTF_8)
+    val repoFile = Files.readAllLines(Paths.get("${upstream.patchPath}/tmp/$folder/${String.format("%04d", currentPatchListFiltered.indexOf(patch) + 1)}-$patch"), StandardCharsets.UTF_8)
     return upstreamFile.stream().filter {line -> line.startsWith("+") || line.startsWith("-")}
         .filter {line -> if (line.startsWith("---") || line.startsWith("+++")) {
             line.substring(3, line.length).trim().isNotBlank()
