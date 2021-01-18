@@ -55,7 +55,7 @@ internal fun Project.initToothpickTasks() {
     val patchCredits = createPatchCreditsTask()
 
     val rebuildPatches = createRebuildPatchesTask {
-        dependsOn(patchCredits)
+        finalizedBy(patchCredits)
     }
 
     val updateUpstream = createUpdateUpstreamTask {
