@@ -53,10 +53,6 @@ jobs:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-maven-
-    - uses: s4u/maven-settings-action@v2.1.0
-      name: Use ${{ matrix.java }} as the java target
-      with:
-        properties: '[{"maven.compiler.target": "${{ matrix.java }}"}]'
     - name: Setup Yatopia Project
       run: |
          git config --global user.email "ci@github.com"
@@ -71,7 +67,7 @@ jobs:
       id: decompile-cache
       with:
         path: Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
-        key: ${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-minecraft-decomp
+        key: ${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-java-${{ matrix.java }}-minecraft-decomp
     - name: Build Yatopia
       run: |
         ./gradlew setupUpstream
