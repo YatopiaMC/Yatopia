@@ -38,7 +38,7 @@ internal fun Project.createRebuildPatchesTask(
                     ?.filter { it -> it.name.endsWith(".patch") }
                     ?.forEach { it -> it.delete() }
                 System.out.println(projectDir)
-                ensureSuccess(gitCmd("checkout", "-B", "${upstream.name}-$folder", dir = projectDir,
+                ensureSuccess(gitCmd("checkout", "${upstream.name}-$folder", dir = projectDir,
                     printOut = true))
                 ensureSuccess(
                     gitCmd(
@@ -51,7 +51,7 @@ internal fun Project.createRebuildPatchesTask(
                 )
                 previousUpstreamName = "${upstream.name}-$folder"
             }
-            ensureSuccess(gitCmd("checkout", "-B", "$forkName-$folder", dir = projectDir))
+            ensureSuccess(gitCmd("checkout", "$forkName-$folder", dir = projectDir))
             if (!patchesDir.exists()) {
                 patchesDir.mkdirs()
             }
