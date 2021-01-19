@@ -141,6 +141,7 @@ This is an overview over all patches that are currently used.
 | server |  Do not load chunks during a crash report      | Spottedleaf |  |
 | server |  Do not retain playerchunkmap instance in light thread factory      | Spottedleaf |  |
 | server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
+| server |  Don&#39;t allow StructureLocateEvent to change worlds      | Spottedleaf |  |
 | server |  Don&#39;t get entity equipment if not needed      | Paul Sauve |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
 | server |  Don&#39;t lookup fluid state when raytracing      | Spottedleaf |  |
@@ -288,9 +289,9 @@ This is an overview over all patches that are currently used.
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
 | server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
-| server |  Prevent log spam for &quot;Block is water but TE is chest&quot;      | Spottedleaf |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
+| server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
