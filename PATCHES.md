@@ -352,6 +352,7 @@ This is an overview over all patches that are currently used.
 | server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
 | server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
+| server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Util patch      | Spottedleaf |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
 | api |  Villager#resetOffers      | William Blake Galbreath |  |
