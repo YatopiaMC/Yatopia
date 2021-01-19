@@ -10,6 +10,7 @@ import upstreamDir
 import upstreams
 import java.io.File
 import Upstream
+import java.util.concurrent.CopyOnWriteArrayList
 
 internal fun Project.createUpstreamCommitTask(
     receiver: Task.() -> Unit = {}
@@ -17,25 +18,21 @@ internal fun Project.createUpstreamCommitTask(
     receiver(this)
     group = taskGroup
     doLast {
-        val changedUpstreams = ArrayList<String>()
-        var gitChangelog = ""
-
-        gitChangelog += getUpstreamChanges(project,this, changedUpstreams, gitChangelog, toothpick.upstream,
+        gitChangelog = getUpstreamChanges(project,this, toothpick.upstream,
             upstreamDir, toothpick.upstream)
 
         for (upstream in upstreams) {
-            gitChangelog += getUpstreamChanges(project,this, changedUpstreams, gitChangelog, upstream.name,
+            gitChangelog = getUpstreamChanges(project,this, upstream.name,
                 upstream.repoPath.toFile(), "upstream/${upstream.name}")
         }
 
-        val changedUpstreamsString = ""
+        var changedUpstreamsString = ""
         for (upstreamName in changedUpstreams) {
             if (changedUpstreams.isNotEmpty()) {
                 changedUpstreams += "/"
             }
-            changedUpstreams += upstreamName
+            changedUpstreamsString += upstreamName
         }
-
         if (changedUpstreamsString.isNotEmpty()) {
             val commitMessage = """
                     |Updated Upstream and Sidestream(s) ($changedUpstreamsString)
@@ -55,8 +52,6 @@ internal fun Project.createUpstreamCommitTask(
 private fun getUpstreamChanges(
     project: Project,
     task: Task,
-    changedUpstreams: ArrayList<String>,
-    gitChangelog: String,
     name: String,
     dir: File,
     path: String
@@ -64,7 +59,6 @@ private fun getUpstreamChanges(
     var gitChangelog1 = gitChangelog
     var oldRev = ensureSuccess(project.gitCmd("ls-tree", "HEAD", path))
         ?.substringAfter("commit ")?.substringBefore("\t")
-    var changes = true;
     var upstreamTmp = ensureSuccess(
         project.gitCmd(
             "log",
@@ -74,12 +68,15 @@ private fun getUpstreamChanges(
             dir = dir
         )
     ) {
-        changes = false;
         task.logger.lifecycle("No $name changes to commit.")
     }
-    if (changes) {
-        changedUpstreams.add("$name")
+    if (!upstreamTmp.isNullOrBlank()) {
+        changedUpstreams.add(name)
         gitChangelog1 += "$name Changes:\n$upstreamTmp\n"
     }
     return gitChangelog1
 }
+
+val changedUpstreams = CopyOnWriteArrayList<String>()
+
+var gitChangelog = ""
