@@ -18,7 +18,7 @@ This is an overview over all patches that are currently used.
 | server |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
-| server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
+| server |  Add IntelliJ IDEA runnable      | Zoe |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
@@ -124,7 +124,7 @@ This is an overview over all patches that are currently used.
 | server |  Copy passenger list in enderTeleportTo      | Spottedleaf |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Crying obsidian valid for portal frames      | William Blake Galbreath |  |
-| server |  Custom Locale Support      | Bud Gidiere |  |
+| server |  Custom Locale Support      | Zoe |  |
 | server |  Customizable wither health and healing      | jmp |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Delay chunk unloads      | Spottedleaf |  |
@@ -202,7 +202,7 @@ This is an overview over all patches that are currently used.
 | server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Improved oversized chunk data packet handling      | Spottedleaf |  |
 | server |  Infinite fuel furnace      | William Blake Galbreath |  |
-| server |  Infinity No Arrows      | Bud Gidiere |  |
+| server |  Infinity No Arrows      | Zoe |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
 | api |  Item entity immunities      | William Blake Galbreath |  |
 | server |  Item entity immunities      | William Blake Galbreath |  |
@@ -358,7 +358,7 @@ This is an overview over all patches that are currently used.
 | api |  Villager#resetOffers      | William Blake Galbreath |  |
 | server |  Villagers farming can bypass mob-griefing gamerule      | William Blake Galbreath |  |
 | server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
-| api |  Yatopia Config &amp; Redirect Config      | Zoe |  |
+| api |  Yatopia Config &amp; Redirect Config      | YatopiaMC |  |
 | server |  Yatopia configuration      | tr7zw |  |
 | server |  Zombie break door minimum difficulty option      | BillyGalbreath |  |
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
