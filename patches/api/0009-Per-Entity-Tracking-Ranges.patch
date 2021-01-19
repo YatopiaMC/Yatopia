@@ -1,0 +1,108 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: fluse1367 <3984402-fluse1367@users.noreply.gitlab.com>
+Date: Tue, 19 Jan 2021 11:53:21 +0100
+Subject: [PATCH] Per Entity Tracking Ranges
+
+
+diff --git a/src/main/java/org/bukkit/entity/Entity.java b/src/main/java/org/bukkit/entity/Entity.java
+index dc7e9983b89726625acce95026b45695b3f387b6..7616bb435dfd8d5727151dce3f21bc1fbd60fcb0 100644
+--- a/src/main/java/org/bukkit/entity/Entity.java
++++ b/src/main/java/org/bukkit/entity/Entity.java
+@@ -719,5 +719,23 @@ public interface Entity extends Metadatable, CommandSender, Nameable, Persistent
+     default de.tr7zw.changeme.nbtapi.NBTCompound getNBTC() {
+         return getNBT().getPersistentDataContainer();
+     }
++
++    /**
++     * Returns the tracking (render) distance for this specific {@link Entity},<br>
++     *      *     falls back to {@link EntityType#getTrackingDistance(World)} if not set.
++     * @return the tracking (render) distance for this specific {@link Entity}.
++     */
++    int getTrackingDistance();
++
++    /**
++     * the tracking (render) distance for this specific {@link Entity}.
++     * @param distance the tracking distance to set.
++     */
++    void setTrackingDistance(int distance);
++
++    /**
++     * Sets the tracking (render) distance for this specific {@link Entity} back to default.
++     */
++    void resetTrackingDistance();
+     // Yatopia end
+ }
+diff --git a/src/main/java/org/bukkit/entity/EntityType.java b/src/main/java/org/bukkit/entity/EntityType.java
+index 692b75eb78405874077c850bfc72e247ccc80860..3def6f19cdd3acf51c1ca96385e7c78c3a392e2f 100644
+--- a/src/main/java/org/bukkit/entity/EntityType.java
++++ b/src/main/java/org/bukkit/entity/EntityType.java
+@@ -287,6 +287,8 @@ public enum EntityType implements Keyed {
+     private final short typeId;
+     private final boolean independent, living;
+     private final NamespacedKey key;
++    private int trackingDistance = -1; // Yatopia
++    private final Map<World, Integer> trackingDistances = new HashMap<>(); // Yatopia
+ 
+     private static final Map<String, EntityType> NAME_MAP = new HashMap<String, EntityType>();
+     private static final Map<Short, EntityType> ID_MAP = new HashMap<Short, EntityType>();
+@@ -425,4 +427,60 @@ public enum EntityType implements Keyed {
+     String getTranslationKey() {
+         return org.bukkit.Bukkit.getUnsafe().getTranslationKey(this);
+     }
++
++    // Yatopia start
++
++    /**
++     * Returns the tracking (render) distance for a specific {@link EntityType}, {@code -1} if not set.
++     * @return the tracking (render) distance for a specific {@link EntityType}, {@code -1} if not set.
++     */
++    public int getTrackingDistance() {
++        return trackingDistance;
++    }
++
++    /**
++     * Returns the tracking (render) distance for a specific {@link EntityType} in the {@link World} {@code world},<br>
++     *     falls back to {@link #getTrackingDistance()} if not set.
++     * @return Returns the tracking (render) distance for a specific {@link EntityType} in the {@link World} {@code world}.
++     */
++    public int getTrackingDistance(@NotNull World world) {
++        return trackingDistances.getOrDefault(world, getTrackingDistance());
++    }
++
++    /**
++     * Sets the tracking (render) distance for a specific {@link EntityType}.
++     * @param distance the tracking distance to set.
++     */
++    public void setTrackingDistance(int distance) {
++        this.trackingDistance = distance;
++    }
++
++    /**
++     * Sets the tracking (render) distance for a specific {@link EntityType} in the {@link World} {@code world}.
++     * @param world    the world in which the tracking distance should take effect.
++     * @param distance the tracking distance to set.
++     */
++    public void setTrackingDistance(@NotNull World world, int distance) {
++        if (distance < 0) {
++            resetTrackingDistance(world);
++        } else {
++            trackingDistances.put(world, distance);
++        }
++    }
++
++    /**
++     * Sets the tracking (render) distance for a specific {@link EntityType} back to default.
++     */
++    public void resetTrackingDistance() {
++        this.trackingDistance = -1;
++    }
++
++    /**
++     * Sets the tracking (render) distance for a specific {@link EntityType} in the {@link World} {@code world} back to default.
++     * @param world the world to reset the render distance for.
++     */
++    public void resetTrackingDistance(@NotNull World world) {
++        trackingDistances.remove(world);
++    }
++    // Yatopia end
+ }

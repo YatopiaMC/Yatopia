@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: fluse1367 <3984402-fluse1367@users.noreply.gitlab.com>
+Date: Tue, 19 Jan 2021 11:53:30 +0100
+Subject: [PATCH] Per Entity Tracking Ranges
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+index a6d849facba1526ae2a2b7f3fb9a140d0b50289c..b4df64cfc15fce322849f13138973ffa6dbc5f5a 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
+@@ -181,6 +181,7 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+     protected Entity entity;
+     private EntityDamageEvent lastDamageEvent;
+     private final CraftPersistentDataContainer persistentDataContainer = new CraftPersistentDataContainer(DATA_TYPE_REGISTRY);
++    private int trackingDistance = -1;
+ 
+     public CraftEntity(final CraftServer server, final Entity entity) {
+         this.server = server;
+@@ -1160,4 +1161,23 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+         return getHandle().isTicking();
+     }
+     // Paper end
++
++    // Yatopia start
++
++    @Override
++    public int getTrackingDistance() {
++        return trackingDistance < 0 ? getType().getTrackingDistance(getWorld()) : trackingDistance;
++    }
++
++    @Override
++    public void setTrackingDistance(int distance) {
++        this.trackingDistance = Math.max(-1, distance);
++    }
++
++    @Override
++    public void resetTrackingDistance() {
++        this.trackingDistance = -1;
++    }
++
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/spigotmc/TrackingRange.java b/src/main/java/org/spigotmc/TrackingRange.java
+index 5cfe16ef8c5a7b4405efa58b8fc532e14353f88d..f3255829cef9ffc020acc5774b87c1f11c40f7c8 100644
+--- a/src/main/java/org/spigotmc/TrackingRange.java
++++ b/src/main/java/org/spigotmc/TrackingRange.java
+@@ -23,6 +23,10 @@ public class TrackingRange
+      */
+     public static int getEntityTrackingRange(Entity entity, int defaultRange)
+     {
++        int trackingDistance = entity.getBukkitEntity().getTrackingDistance();
++        if (trackingDistance >= 0) {
++            return trackingDistance;
++        }
+         if (entity instanceof EntityEnderDragon) return defaultRange; // Paper - enderdragon is exempt
+         SpigotWorldConfig config = entity.world.spigotConfig;
+         if ( entity instanceof EntityPlayer )
