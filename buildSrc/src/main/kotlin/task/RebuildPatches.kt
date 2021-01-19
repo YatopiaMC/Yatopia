@@ -52,7 +52,7 @@ internal fun Project.createRebuildPatchesTask(
                 previousUpstreamName = "${upstream.name}-$folder"
             }
             ensureSuccess(gitCmd("checkout", "$forkName-$folder", dir = projectDir,
-                printOut = true)))
+                printOut = true))
             if (!patchesDir.exists()) {
                 patchesDir.mkdirs()
             }
