@@ -28,8 +28,8 @@ internal fun Project.createUpstreamCommitTask(
 
         var changedUpstreamsString = ""
         for (upstreamName in changedUpstreams) {
-            if (changedUpstreams.isNotEmpty()) {
-                changedUpstreams += "/"
+            if (changedUpstreamsString.isNotEmpty()) {
+                changedUpstreamsString += "/"
             }
             changedUpstreamsString += upstreamName
         }
