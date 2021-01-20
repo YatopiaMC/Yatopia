@@ -41,13 +41,26 @@ index 581b675fae4ca8a3d774f4353d1e58fc31b557c7..cdf24f05f3e7c437c40fea4528fb6dff
  
      public boolean getPVP() {
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..4e0c40242eebac99aa9c16ddd4742a1f9501aa9a 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e94203ec3565 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
-@@ -26,16 +26,20 @@ import java.util.List;
+@@ -11,6 +11,7 @@ import io.netty.channel.ChannelInitializer;
+ import io.netty.channel.ChannelOption;
+ import io.netty.channel.EventLoopGroup;
+ import io.netty.channel.epoll.Epoll;
++import io.netty.channel.epoll.EpollChannelOption;
+ import io.netty.channel.epoll.EpollEventLoopGroup;
+ import io.netty.channel.epoll.EpollServerSocketChannel;
+ import io.netty.channel.nio.NioEventLoopGroup;
+@@ -24,18 +25,25 @@ import java.util.Collections;
+ import java.util.Iterator;
+ import java.util.List;
  import javax.annotation.Nullable;
++
++import io.netty.incubator.channel.uring.IOUringChannelOption;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
++import org.yatopiamc.yatopia.server.YatopiaConfig;
 +import org.yatopiamc.yatopia.server.network.NetworkType; // Yatopia
  
  public class ServerConnection {
@@ -65,7 +78,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..4e0c40242eebac99aa9c16ddd4742a1f
      private final MinecraftServer e;
      public volatile boolean c;
      private final List<ChannelFuture> listeningChannels = Collections.synchronizedList(Lists.newArrayList());
-@@ -52,15 +56,29 @@ public class ServerConnection {
+@@ -52,15 +60,29 @@ public class ServerConnection {
      }
      // Paper end
  
@@ -95,7 +108,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..4e0c40242eebac99aa9c16ddd4742a1f
              Class oclass;
              LazyInitVar lazyinitvar;
  
-@@ -73,13 +91,17 @@ public class ServerConnection {
+@@ -73,16 +95,24 @@ public class ServerConnection {
                  lazyinitvar = ServerConnection.a;
                  ServerConnection.LOGGER.info("Using default channel type");
              }
@@ -109,12 +122,19 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..4e0c40242eebac99aa9c16ddd4742a1f
  
 -            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channel(oclass)).childHandler(new ChannelInitializer<Channel>() {
 +            ServerConnection.LOGGER.info("Yatopia: Using " + networkType.getName() + " network type.");
-+
-+            this.listeningChannels.add((((new ServerBootstrap()).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
++            ServerBootstrap serverBootstrap = new ServerBootstrap();
++            if(YatopiaConfig.tcpFastOpen && networkType == NetworkType.EPOLL){
++                    serverBootstrap.option(EpollChannelOption.TCP_FASTOPEN, 3); // Will improve the connection with some speed
++            }
++            this.listeningChannels.add((((serverBootstrap).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
                  protected void initChannel(Channel channel) throws Exception {
                      try {
                          channel.config().setOption(ChannelOption.TCP_NODELAY, true);
-@@ -97,7 +119,8 @@ public class ServerConnection {
++                        channel.config().setOption(ChannelOption.IP_TOS, 0x18); // Change the priority of the packet to immediate
+                     } catch (ChannelException channelexception) {
+                         ;
+                     }
+@@ -97,7 +127,8 @@ public class ServerConnection {
                      channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
                      ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
                  }
@@ -125,22 +145,24 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..4e0c40242eebac99aa9c16ddd4742a1f
      }
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 00c600d74ba84cb564b9b22f53f279a93839d71f..390715d5495142c214562d53612cf71dc9fc1d72 100644
+index 00c600d74ba84cb564b9b22f53f279a93839d71f..89ca0f817f059fa97e60cd4affbe1db0aeaecb8b 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -297,4 +297,9 @@ public class YatopiaConfig {
+@@ -297,4 +297,11 @@ public class YatopiaConfig {
      private static void tickEnchantingTables() {
          shouldTickEnchantingTables = getBoolean("settings.tick.enchanting-tables", shouldTickEnchantingTables);
      }
 +
 +    public static boolean ioUringBeta = false;
++    public static boolean tcpFastOpen = false;
 +    private static void newNetworkSystem() {
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
++        tcpFastOpen = getBoolean("network.ftcp-fastopen", tcpFastOpen);
 +    }
  }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..f30cb125942b1f82ef863ec5ae805f43469cebed
+index 0000000000000000000000000000000000000000..3e74e23f3cc44b7547d9f8575b411059e0e65449
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
 @@ -0,0 +1,27 @@
@@ -173,38 +195,30 @@ index 0000000000000000000000000000000000000000..f30cb125942b1f82ef863ec5ae805f43
 +}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..a23f31d3d5c46a8da34711389d9459078776a77e
+index 0000000000000000000000000000000000000000..6b9d788dfef2c51111e9f2129a04fce7754c51ba
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
-@@ -0,0 +1,127 @@
+@@ -0,0 +1,110 @@
 +package org.yatopiamc.yatopia.server.network;
 +
 +import io.netty.channel.ChannelFactory;
 +import io.netty.channel.EventLoopGroup;
 +import io.netty.channel.epoll.Epoll;
-+import io.netty.channel.epoll.EpollDatagramChannel;
 +import io.netty.channel.epoll.EpollEventLoopGroup;
 +import io.netty.channel.epoll.EpollServerSocketChannel;
-+import io.netty.channel.epoll.EpollSocketChannel;
 +import io.netty.channel.kqueue.KQueue;
-+import io.netty.channel.kqueue.KQueueDatagramChannel;
 +import io.netty.channel.kqueue.KQueueEventLoopGroup;
 +import io.netty.channel.kqueue.KQueueServerSocketChannel;
-+import io.netty.channel.kqueue.KQueueSocketChannel;
 +import io.netty.channel.nio.NioEventLoopGroup;
-+import io.netty.channel.socket.DatagramChannel;
 +import io.netty.channel.socket.ServerSocketChannel;
-+import io.netty.channel.socket.SocketChannel;
-+import io.netty.channel.socket.nio.NioDatagramChannel;
 +import io.netty.channel.socket.nio.NioServerSocketChannel;
-+import io.netty.channel.socket.nio.NioSocketChannel;
 +import io.netty.incubator.channel.uring.IOUring;
-+import io.netty.incubator.channel.uring.IOUringDatagramChannel;
 +import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
 +import io.netty.incubator.channel.uring.IOUringServerSocketChannel;
-+import io.netty.incubator.channel.uring.IOUringSocketChannel;
++
 +import java.util.concurrent.ThreadFactory;
 +import java.util.function.BiFunction;
++
 +import net.minecraft.server.MinecraftServer;
 +import org.spigotmc.SpigotConfig;
 +import org.yatopiamc.yatopia.server.YatopiaConfig;
@@ -213,33 +227,23 @@ index 0000000000000000000000000000000000000000..a23f31d3d5c46a8da34711389d945907
 + * Based off of Velocity's TransportType
 + */
 +public enum NetworkType {
-+    NIO("NIO", NioServerSocketChannel::new, NioSocketChannel::new, NioDatagramChannel::new,
-+            (name, type) -> new NioEventLoopGroup(8, createThreadFactory(name, type))),
++    NIO("NIO", NioServerSocketChannel::new, (name, type) -> new NioEventLoopGroup(8, createThreadFactory(name, type))),
 +
-+    EPOLL("Epoll", EpollServerSocketChannel::new, EpollSocketChannel::new, EpollDatagramChannel::new,
-+            (name, type) -> new EpollEventLoopGroup(8, createThreadFactory(name, type))),
++    EPOLL("Epoll", EpollServerSocketChannel::new, (name, type) -> new EpollEventLoopGroup(8, createThreadFactory(name, type))),
 +
-+    IOURING("IOUring", IOUringServerSocketChannel::new, IOUringSocketChannel::new, IOUringDatagramChannel::new,
-+            (name, type) -> new IOUringEventLoopGroup(8, createThreadFactory(name, type))),
++    IOURING("IOUring", IOUringServerSocketChannel::new, (name, type) -> new IOUringEventLoopGroup(8, createThreadFactory(name, type))),
 +
-+    KQUEUE("KQueue", KQueueServerSocketChannel::new, KQueueSocketChannel::new, KQueueDatagramChannel::new,
-+            (name, type) -> new KQueueEventLoopGroup(8, createThreadFactory(name, type)));
++    KQUEUE("KQueue", KQueueServerSocketChannel::new, (name, type) -> new KQueueEventLoopGroup(8, createThreadFactory(name, type)));
 +
 +    public final String name;
 +    public final ChannelFactory<? extends ServerSocketChannel> serverSocketChannelFactory;
-+    public final ChannelFactory<? extends SocketChannel> socketChannelFactory;
-+    public final ChannelFactory<? extends DatagramChannel> channelFactory;
 +    public final BiFunction<String, LoopGroupType, EventLoopGroup> eventLoopGroupFactory;
 +
 +    NetworkType(final String name,
 +                final ChannelFactory<? extends ServerSocketChannel> serverSocketChannelFactory,
-+                final ChannelFactory<? extends SocketChannel> socketChannelFactory,
-+                final ChannelFactory<? extends DatagramChannel> channelFactory,
 +                final BiFunction<String, LoopGroupType, EventLoopGroup> eventLoopGroupFactory) {
 +        this.name = name;
 +        this.serverSocketChannelFactory = serverSocketChannelFactory;
-+        this.socketChannelFactory = socketChannelFactory;
-+        this.channelFactory = channelFactory;
 +        this.eventLoopGroupFactory = eventLoopGroupFactory;
 +    }
 +
@@ -271,7 +275,8 @@ index 0000000000000000000000000000000000000000..a23f31d3d5c46a8da34711389d945907
 +        // Actually, there is a decompression problem with zlib from bungeecord that makes
 +        // IOUring not available on spigot server with bungeecord
 +        // https://github.com/netty/netty-incubator-transport-io_uring/issues/40
-+        if (!SpigotConfig.bungee && YatopiaConfig.ioUringBeta) {
++        // Looks like iouring send very small compressed packet and trigger PacketDecompressor
++        if (!SpigotConfig.bungee && YatopiaConfig.ioUringBeta && MinecraftServer.getServer().ax() < 0) {
 +            if (IOUring.isAvailable()) {
 +                return IOURING;
 +            }
