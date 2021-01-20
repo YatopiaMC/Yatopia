@@ -18,6 +18,7 @@ Yatopia combines the best patches from many [Paper](https://github.com/PaperMC/P
 * [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 * [AirplaneLite](https://github.com/Technove/AirplaneLite)
+* [Krypton](https://github.com/astei/krypton)
 
 
 ## Try it out 

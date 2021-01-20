@@ -1,0 +1,575 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Andrew Steinborn <git@steinborn.me>
+Date: Thu, 21 Jan 2021 00:40:24 +0100
+Subject: [PATCH] Port krypton
+Co-authored-by: HookWood_ <hookwood@pop-os.localdomain>
+
+diff --git a/src/main/java/me/steinborn/krypton/mod/shared/network/ClientConnectionEncryptionExtension.java b/src/main/java/me/steinborn/krypton/mod/shared/network/ClientConnectionEncryptionExtension.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4758ad1b98ce69542021583b8fe56a06ae41e603
+--- /dev/null
++++ b/src/main/java/me/steinborn/krypton/mod/shared/network/ClientConnectionEncryptionExtension.java
+@@ -0,0 +1,9 @@
++package me.steinborn.krypton.mod.shared.network;
++
++import javax.crypto.SecretKey;
++import java.security.GeneralSecurityException;
++
++public interface ClientConnectionEncryptionExtension {
++    void setupEncryption(SecretKey key) throws GeneralSecurityException;
++}
++
+diff --git a/src/main/java/me/steinborn/krypton/mod/shared/network/VarintByteDecoder.java b/src/main/java/me/steinborn/krypton/mod/shared/network/VarintByteDecoder.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..cdf5a3b1f7ec27171f3825f89cfb8d398fb3fd79
+--- /dev/null
++++ b/src/main/java/me/steinborn/krypton/mod/shared/network/VarintByteDecoder.java
+@@ -0,0 +1,47 @@
++package me.steinborn.krypton.mod.shared.network;
++
++import io.netty.util.ByteProcessor;
++
++public class VarintByteDecoder implements ByteProcessor {
++    private int readVarint;
++    private int bytesRead;
++    private DecodeResult result = DecodeResult.TOO_SHORT;
++
++    @Override
++    public boolean process(byte k) {
++        readVarint |= (k & 0x7F) << bytesRead++ * 7;
++        if (bytesRead > 3) {
++            result = DecodeResult.TOO_BIG;
++            return false;
++        }
++        if ((k & 0x80) != 128) {
++            result = DecodeResult.SUCCESS;
++            return false;
++        }
++        return true;
++    }
++
++    public int readVarint() {
++        return readVarint;
++    }
++
++    public int varintBytes() {
++        return bytesRead;
++    }
++
++    public DecodeResult getResult() {
++        return result;
++    }
++
++    public void reset() {
++        readVarint = 0;
++        bytesRead = 0;
++        result = DecodeResult.TOO_SHORT;
++    }
++
++    public enum DecodeResult {
++        SUCCESS,
++        TOO_SHORT,
++        TOO_BIG
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/steinborn/krypton/mod/shared/network/compression/MinecraftCompressDecoder.java b/src/main/java/me/steinborn/krypton/mod/shared/network/compression/MinecraftCompressDecoder.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e9a51c71e136be14ebe8a240c4b21205079fc71b
+--- /dev/null
++++ b/src/main/java/me/steinborn/krypton/mod/shared/network/compression/MinecraftCompressDecoder.java
+@@ -0,0 +1,68 @@
++package me.steinborn.krypton.mod.shared.network.compression;
++
++import com.velocitypowered.natives.compression.VelocityCompressor;
++import io.netty.buffer.ByteBuf;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.codec.CorruptedFrameException;
++import io.netty.handler.codec.MessageToMessageDecoder;
++import net.minecraft.server.PacketDataSerializer;
++
++import java.util.List;
++
++import static com.velocitypowered.natives.util.MoreByteBufUtils.ensureCompatible;
++import static com.velocitypowered.natives.util.MoreByteBufUtils.preferredBuffer;
++
++public class MinecraftCompressDecoder extends MessageToMessageDecoder<ByteBuf> {
++
++    private static final int VANILLA_MAXIMUM_UNCOMPRESSED_SIZE = 2 * 1024 * 1024; // 2MiB
++    private static final int HARD_MAXIMUM_UNCOMPRESSED_SIZE = 16 * 1024 * 1024; // 16MiB
++
++    private static final int UNCOMPRESSED_CAP =
++            Boolean.getBoolean("velocity.increased-compression-cap")
++                    ? HARD_MAXIMUM_UNCOMPRESSED_SIZE : VANILLA_MAXIMUM_UNCOMPRESSED_SIZE;
++
++    private final int threshold;
++    private final VelocityCompressor compressor;
++
++    public MinecraftCompressDecoder(int threshold, VelocityCompressor compressor) {
++        this.threshold = threshold;
++        this.compressor = compressor;
++    }
++
++    @Override
++    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
++        PacketDataSerializer wrappedBuf = new PacketDataSerializer(in);
++        int claimedUncompressedSize = wrappedBuf.readVarInt();
++        if (claimedUncompressedSize == 0) {
++            // This message is not compressed.
++            out.add(in.retainedSlice());
++            return;
++        }
++
++        if (claimedUncompressedSize < threshold) {
++            throw new CorruptedFrameException("Uncompressed size " + claimedUncompressedSize + " is less than"
++                    + " threshold " + threshold);
++        }
++        if (claimedUncompressedSize > UNCOMPRESSED_CAP) {
++            throw new CorruptedFrameException("Uncompressed size " + claimedUncompressedSize + " exceeds hard " +
++                    "threshold of " + UNCOMPRESSED_CAP);
++        }
++
++        ByteBuf compatibleIn = ensureCompatible(ctx.alloc(), compressor, in);
++        ByteBuf uncompressed = preferredBuffer(ctx.alloc(), compressor, claimedUncompressedSize);
++        try {
++            compressor.inflate(compatibleIn, uncompressed, claimedUncompressedSize);
++            out.add(uncompressed);
++        } catch (Exception e) {
++            uncompressed.release();
++            throw e;
++        } finally {
++            compatibleIn.release();
++        }
++    }
++
++    @Override
++    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
++        compressor.close();
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/steinborn/krypton/mod/shared/network/compression/MinecraftCompressEncoder.java b/src/main/java/me/steinborn/krypton/mod/shared/network/compression/MinecraftCompressEncoder.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..1114e1db59476353ad609a519b71479438db7b0c
+--- /dev/null
++++ b/src/main/java/me/steinborn/krypton/mod/shared/network/compression/MinecraftCompressEncoder.java
+@@ -0,0 +1,59 @@
++package me.steinborn.krypton.mod.shared.network.compression;
++
++
++import com.velocitypowered.natives.compression.VelocityCompressor;
++import com.velocitypowered.natives.util.MoreByteBufUtils;
++import io.netty.buffer.ByteBuf;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.codec.MessageToByteEncoder;
++import net.minecraft.server.PacketDataSerializer;
++
++public class MinecraftCompressEncoder extends MessageToByteEncoder<ByteBuf> {
++
++    private final int threshold;
++    private final VelocityCompressor compressor;
++
++    public MinecraftCompressEncoder(int threshold, VelocityCompressor compressor) {
++        this.threshold = threshold;
++        this.compressor = compressor;
++    }
++
++    @Override
++    protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) throws Exception {
++        PacketDataSerializer wrappedBuf = new PacketDataSerializer(out);
++        int uncompressed = msg.readableBytes();
++        if (uncompressed < threshold) {
++            // Under the threshold, there is nothing to do.
++            wrappedBuf.writeVarInt(0);
++            out.writeBytes(msg);
++        } else {
++            wrappedBuf.writeVarInt(uncompressed);
++            ByteBuf compatibleIn = MoreByteBufUtils.ensureCompatible(ctx.alloc(), compressor, msg);
++            try {
++                compressor.deflate(compatibleIn, out);
++            } finally {
++                compatibleIn.release();
++            }
++        }
++    }
++
++    @Override
++    protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, ByteBuf msg, boolean preferDirect)
++            throws Exception {
++        // We allocate bytes to be compressed plus 1 byte. This covers two cases:
++        //
++        // - Compression
++        //    According to https://github.com/ebiggers/libdeflate/blob/master/libdeflate.h#L103,
++        //    if the data compresses well (and we do not have some pathological case) then the maximum
++        //    size the compressed size will ever be is the input size minus one.
++        // - Uncompressed
++        //    This is fairly obvious - we will then have one more than the uncompressed size.
++        int initialBufferSize = msg.readableBytes() + 1;
++        return MoreByteBufUtils.preferredBuffer(ctx.alloc(), compressor, initialBufferSize);
++    }
++
++    @Override
++    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
++        compressor.close();
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/steinborn/krypton/mod/shared/network/pipeline/MinecraftCipherDecoder.java b/src/main/java/me/steinborn/krypton/mod/shared/network/pipeline/MinecraftCipherDecoder.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..2612c350446b172629b8030602ed812fa69f24a4
+--- /dev/null
++++ b/src/main/java/me/steinborn/krypton/mod/shared/network/pipeline/MinecraftCipherDecoder.java
+@@ -0,0 +1,36 @@
++package me.steinborn.krypton.mod.shared.network.pipeline;
++
++import com.google.common.base.Preconditions;
++import com.velocitypowered.natives.encryption.VelocityCipher;
++import com.velocitypowered.natives.util.MoreByteBufUtils;
++import io.netty.buffer.ByteBuf;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.codec.MessageToMessageDecoder;
++
++import java.util.List;
++
++public class MinecraftCipherDecoder extends MessageToMessageDecoder<ByteBuf> {
++
++    private final VelocityCipher cipher;
++
++    public MinecraftCipherDecoder(VelocityCipher cipher) {
++        this.cipher = Preconditions.checkNotNull(cipher, "cipher");
++    }
++
++    @Override
++    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
++        ByteBuf compatible = MoreByteBufUtils.ensureCompatible(ctx.alloc(), cipher, in).slice();
++        try {
++            cipher.process(compatible);
++            out.add(compatible);
++        } catch (Exception e) {
++            compatible.release(); // compatible will never be used if we throw an exception
++            throw e;
++        }
++    }
++
++    @Override
++    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
++        cipher.close();
++    }
++}
+diff --git a/src/main/java/me/steinborn/krypton/mod/shared/network/pipeline/MinecraftCipherEncoder.java b/src/main/java/me/steinborn/krypton/mod/shared/network/pipeline/MinecraftCipherEncoder.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..068b0d51daf11045a5054cddd53897ecdd117a37
+--- /dev/null
++++ b/src/main/java/me/steinborn/krypton/mod/shared/network/pipeline/MinecraftCipherEncoder.java
+@@ -0,0 +1,36 @@
++package me.steinborn.krypton.mod.shared.network.pipeline;
++
++import com.google.common.base.Preconditions;
++import com.velocitypowered.natives.encryption.VelocityCipher;
++import com.velocitypowered.natives.util.MoreByteBufUtils;
++import io.netty.buffer.ByteBuf;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.codec.MessageToMessageEncoder;
++
++import java.util.List;
++
++public class MinecraftCipherEncoder extends MessageToMessageEncoder<ByteBuf> {
++
++    private final VelocityCipher cipher;
++
++    public MinecraftCipherEncoder(VelocityCipher cipher) {
++        this.cipher = Preconditions.checkNotNull(cipher, "cipher");
++    }
++
++    @Override
++    protected void encode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
++        ByteBuf compatible = MoreByteBufUtils.ensureCompatible(ctx.alloc(), cipher, msg);
++        try {
++            cipher.process(compatible);
++            out.add(compatible);
++        } catch (Exception e) {
++            compatible.release(); // compatible will never be used if we throw an exception
++            throw e;
++        }
++    }
++
++    @Override
++    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
++        cipher.close();
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/LegacyPingHandler.java b/src/main/java/net/minecraft/server/LegacyPingHandler.java
+index 4a49fe4cc600e2b70963302ddae0c4479849f3f5..3abc3869b8012f060e1997822ffdb321f4884929 100644
+--- a/src/main/java/net/minecraft/server/LegacyPingHandler.java
++++ b/src/main/java/net/minecraft/server/LegacyPingHandler.java
+@@ -23,6 +23,11 @@ public class LegacyPingHandler extends ChannelInboundHandlerAdapter {
+     }
+ 
+     public void channelRead(ChannelHandlerContext channelhandlercontext, Object object) throws Exception {
++        // Yatopia start - New network system
++        if (!channelhandlercontext.channel().isActive()) {
++            ((ByteBuf) object).clear();
++            return;
++        } // Yatopia end
+         ByteBuf bytebuf = (ByteBuf) object;
+ 
+         // Paper start - Make legacy ping handler more reliable
+diff --git a/src/main/java/net/minecraft/server/LoginListener.java b/src/main/java/net/minecraft/server/LoginListener.java
+index 847122f76f6d951b24b22c86276140e02aaf37d6..b5ec95944a33c32a9082fb4454cfee44dadc4c26 100644
+--- a/src/main/java/net/minecraft/server/LoginListener.java
++++ b/src/main/java/net/minecraft/server/LoginListener.java
+@@ -8,6 +8,7 @@ import java.math.BigInteger;
+ import java.net.InetAddress;
+ import java.net.InetSocketAddress;
+ import java.net.SocketAddress;
++import java.security.GeneralSecurityException;
+ import java.security.PrivateKey;
+ import java.util.Arrays;
+ import java.util.Random;
+@@ -16,6 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
+ import javax.annotation.Nullable;
+ import javax.crypto.Cipher;
+ import javax.crypto.SecretKey;
++
++import me.steinborn.krypton.mod.shared.network.ClientConnectionEncryptionExtension;
+ import org.apache.commons.lang3.Validate;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -256,8 +259,8 @@ public class LoginListener implements PacketLoginInListener {
+ 
+             s = (new BigInteger(MinecraftEncryption.a("", this.server.getKeyPair().getPublic(), this.loginKey))).toString(16);
+             this.g = LoginListener.EnumProtocolState.AUTHENTICATING;
+-            this.networkManager.a(this.loginKey); // Tuinity
+-        } catch (CryptographyException cryptographyexception) {
++            this.networkManager.setupEncryption(this.loginKey); // Tuinity // Yatopia - New network system
++        } catch (CryptographyException | GeneralSecurityException cryptographyexception) {
+             throw new IllegalStateException("Protocol error", cryptographyexception);
+         }
+ 
+diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
+index 8ae1378e4cb5694130630943a84884dddecb9b3b..897d50894e8f5d4082409712a537b976b657683c 100644
+--- a/src/main/java/net/minecraft/server/NetworkManager.java
++++ b/src/main/java/net/minecraft/server/NetworkManager.java
+@@ -2,6 +2,9 @@ package net.minecraft.server;
+ 
+ import com.google.common.collect.Queues;
+ import com.google.common.util.concurrent.ThreadFactoryBuilder;
++import com.velocitypowered.natives.compression.VelocityCompressor;
++import com.velocitypowered.natives.encryption.VelocityCipher;
++import com.velocitypowered.natives.util.Natives;
+ import io.netty.channel.Channel;
+ import io.netty.channel.ChannelFuture;
+ import io.netty.channel.ChannelFutureListener;
+@@ -18,9 +21,17 @@ import io.netty.util.AttributeKey;
+ import io.netty.util.concurrent.Future;
+ import io.netty.util.concurrent.GenericFutureListener;
+ import java.net.SocketAddress;
++import java.security.GeneralSecurityException;
+ import java.util.Queue;
+ import javax.annotation.Nullable;
+ import javax.crypto.Cipher;
++import javax.crypto.SecretKey;
++
++import me.steinborn.krypton.mod.shared.network.ClientConnectionEncryptionExtension;
++import me.steinborn.krypton.mod.shared.network.compression.MinecraftCompressDecoder;
++import me.steinborn.krypton.mod.shared.network.compression.MinecraftCompressEncoder;
++import me.steinborn.krypton.mod.shared.network.pipeline.MinecraftCipherDecoder;
++import me.steinborn.krypton.mod.shared.network.pipeline.MinecraftCipherEncoder;
+ import org.apache.commons.lang3.Validate;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -29,7 +40,7 @@ import org.apache.logging.log4j.MarkerManager;
+ 
+ import io.netty.util.concurrent.AbstractEventExecutor; // Tuinity
+ 
+-public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
++public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> implements ClientConnectionEncryptionExtension {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     public static final Marker a = MarkerManager.getMarker("NETWORK");
+@@ -107,6 +118,16 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+     }
+     // Tuinity end - allow controlled flushing
+ 
++    @Override
++    public void setupEncryption(SecretKey key) throws GeneralSecurityException {
++        VelocityCipher decryption = Natives.cipher.get().forDecryption(key);
++        VelocityCipher encryption = Natives.cipher.get().forEncryption(key);
++
++        this.n = true;
++        this.channel.pipeline().addBefore("splitter", "decrypt", new MinecraftCipherDecoder(decryption));
++        this.channel.pipeline().addBefore("prepender", "encrypt", new MinecraftCipherEncoder(encryption));
++    }
++
+     public NetworkManager(EnumProtocolDirection enumprotocoldirection) {
+         this.h = enumprotocoldirection;
+     }
+@@ -623,6 +644,18 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+     }
+ 
+     public void setCompressionLevel(int i) {
++        if (i >= 0) { // Yatopia start - New network system
++            VelocityCompressor compressor = Natives.compress.get().create(4);
++            MinecraftCompressEncoder encoder = new MinecraftCompressEncoder(i, compressor);
++            MinecraftCompressDecoder decoder = new MinecraftCompressDecoder(i, compressor);
++
++            channel.pipeline().addBefore("decoder", "decompress", decoder);
++            channel.pipeline().addBefore("encoder", "compress", encoder);
++        } else {
++            this.channel.pipeline().remove("decompress");
++            this.channel.pipeline().remove("compress");
++        } // Yatopia end
++        /*
+         if (i >= 0) {
+             if (this.channel.pipeline().get("decompress") instanceof PacketDecompressor) {
+                 ((PacketDecompressor) this.channel.pipeline().get("decompress")).a(i);
+@@ -643,7 +676,7 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+             if (this.channel.pipeline().get("compress") instanceof PacketCompressor) {
+                 this.channel.pipeline().remove("compress");
+             }
+-        }
++        }*/
+ 
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/PacketDataSerializer.java b/src/main/java/net/minecraft/server/PacketDataSerializer.java
+index f43193c1090238f2241b878120247d1b3d0d4e57..b084ee1c0ab01409dce55fa5e7b7edd49b7899b3 100644
+--- a/src/main/java/net/minecraft/server/PacketDataSerializer.java
++++ b/src/main/java/net/minecraft/server/PacketDataSerializer.java
+@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
+ import io.netty.buffer.ByteBufAllocator;
+ import io.netty.buffer.ByteBufInputStream;
+ import io.netty.buffer.ByteBufOutputStream;
++import io.netty.buffer.ByteBufUtil;
+ import io.netty.handler.codec.DecoderException;
+ import io.netty.handler.codec.EncoderException;
+ import io.netty.util.ByteProcessor;
+@@ -30,7 +31,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack; // CraftBukkit
+ 
+ public class PacketDataSerializer extends ByteBuf {
+ 
+-    private final ByteBuf a;
++    private final ByteBuf a; private final ByteBuf getParent(){ return a; } // Yatopia - OBFHELPER
+ 
+     public PacketDataSerializer(ByteBuf bytebuf) {
+         this.a = bytebuf;
+@@ -210,6 +211,7 @@ public class PacketDataSerializer extends ByteBuf {
+         return new UUID(this.readLong(), this.readLong());
+     }
+ 
++    public PacketDataSerializer writeVarInt(int i){ return d(i); } // Yatopia - OBFHELPER
+     public PacketDataSerializer d(int i) {
+         while ((i & -128) != 0) {
+             this.writeByte(i & 127 | 128);
+@@ -357,16 +359,15 @@ public class PacketDataSerializer extends ByteBuf {
+         return this.a(s, 32767);
+     }
+ 
+-    public PacketDataSerializer a(String s, int i) {
+-        byte[] abyte = s.getBytes(StandardCharsets.UTF_8);
+-
+-        if (abyte.length > i) {
+-            throw new EncoderException("String too big (was " + abyte.length + " bytes encoded, max " + i + ")");
++    public PacketDataSerializer a(String s, int i) { // Yatopia start - New network system
++        int utf8Bytes = ByteBufUtil.utf8Bytes(s);
++        if (utf8Bytes > i) {
++            throw new EncoderException("String too big (was " + utf8Bytes + " bytes encoded, max " + i + ")");
+         } else {
+-            this.d(abyte.length);
+-            this.writeBytes(abyte);
+-            return this;
+-        }
++            this.writeVarInt(utf8Bytes);
++            this.writeCharSequence(s, StandardCharsets.UTF_8);
++            return new PacketDataSerializer(getParent());
++        } // Yatopia end
+     }
+ 
+     public MinecraftKey p() {
+diff --git a/src/main/java/net/minecraft/server/PacketSplitter.java b/src/main/java/net/minecraft/server/PacketSplitter.java
+index 2aaa8770edfd8acc6861c23176e405863858b275..cc678caf3a9c6ce982e9273d6b79787e9e01b11b 100644
+--- a/src/main/java/net/minecraft/server/PacketSplitter.java
++++ b/src/main/java/net/minecraft/server/PacketSplitter.java
+@@ -5,53 +5,50 @@ import io.netty.buffer.Unpooled;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.handler.codec.ByteToMessageDecoder;
+ import io.netty.handler.codec.CorruptedFrameException;
++import io.netty.handler.codec.DecoderException;
++import me.steinborn.krypton.mod.shared.network.VarintByteDecoder;
++
+ import java.util.List;
+ 
+ public class PacketSplitter extends ByteToMessageDecoder {
+ 
++    private final VarintByteDecoder reader = new VarintByteDecoder();
+     private final byte[] lenBuf = new byte[3]; // Paper
+     public PacketSplitter() {}
+ 
+     protected void decode(ChannelHandlerContext channelhandlercontext, ByteBuf bytebuf, List<Object> list) throws Exception {
+-        // Paper start - if channel is not active just discard the packet
++        // Yatopia start - New network system
+         if (!channelhandlercontext.channel().isActive()) {
+-            bytebuf.skipBytes(bytebuf.readableBytes());
++            bytebuf.clear();
+             return;
+         }
+-        // Paper end
+-        bytebuf.markReaderIndex();
+-        // Paper start - reuse temporary length buffer
+-        byte[] abyte = lenBuf;
+-        java.util.Arrays.fill(abyte, (byte) 0);
+-        // Paper end
+-
+-        for (int i = 0; i < abyte.length; ++i) {
+-            if (!bytebuf.isReadable()) {
+-                bytebuf.resetReaderIndex();
+-                return;
+-            }
+ 
+-            abyte[i] = bytebuf.readByte();
+-            if (abyte[i] >= 0) {
+-                PacketDataSerializer packetdataserializer = new PacketDataSerializer(Unpooled.wrappedBuffer(abyte));
++        reader.reset();
+ 
+-                try {
+-                    int j = packetdataserializer.i();
+-
+-                    if (bytebuf.readableBytes() >= j) {
+-                        list.add(bytebuf.readBytes(j));
+-                        return;
+-                    }
++        int varintEnd = bytebuf.forEachByte(reader);
++        if (varintEnd == -1) {
++            // We tried to go beyond the end of the buffer. This is probably a good sign that the
++            // buffer was too short to hold a proper varint.
++            return;
++        }
+ 
+-                    bytebuf.resetReaderIndex();
+-                } finally {
+-                    packetdataserializer.release();
++        if (reader.getResult() == VarintByteDecoder.DecodeResult.SUCCESS) {
++            int readLen = reader.readVarint();
++            if (readLen < 0) {
++                throw new DecoderException("Bad packet length");
++            } else if (readLen == 0) {
++                // skip over the empty packet and ignore it
++                bytebuf.readerIndex(varintEnd + 1);
++            } else {
++                int minimumRead = reader.varintBytes() + readLen;
++                if (bytebuf.isReadable(minimumRead)) {
++                    list.add(bytebuf.retainedSlice(varintEnd + 1, readLen));
++                    bytebuf.skipBytes(minimumRead);
+                 }
+-
+-                return;
+             }
++        } else if (reader.getResult() == VarintByteDecoder.DecodeResult.TOO_BIG) {
++            throw new DecoderException("Varint too big");
+         }
+-
+-        throw new CorruptedFrameException("length wider than 21-bit");
++        // Yatopia end
+     }
+ }

@@ -2,6 +2,8 @@ The project (Everything that is not a .patch file) is licensed under the MIT lic
 
 All patches (.patch files) marked with "lithium" are licensed under LGPL3 found [here](https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/dev/LICENSE.txt).
 
+All patches (.patch files) marked with "krypton" are licensed under the MIT license found [here](https://github.com/astei/krypton/blob/master/LICENSE).
+
 All patches (.patch files) marked with "tic-tacs" are licensed under LGPL3 found [here](https://github.com/gegy1000/tic-tacs/blob/1.16.2/LICENSE).
 
 All patches (.patch files) marked with "gluelist" are licensed under Apache 2.0 found [here](https://github.com/ertugrulcetin/GlueList/blob/master/Readme.md).
