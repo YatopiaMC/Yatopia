@@ -57,9 +57,9 @@ private fun getUpstreamChanges(
     path: String
 ): String {
     var gitChangelog1 = gitChangelog
-    var oldRev = ensureSuccess(project.gitCmd("ls-tree", "HEAD", path))
+    val oldRev = ensureSuccess(project.gitCmd("ls-tree", "HEAD", path))
         ?.substringAfter("commit ")?.substringBefore("\t")
-    var upstreamTmp = ensureSuccess(
+    val upstreamTmp = ensureSuccess(
         project.gitCmd(
             "log",
             "--oneline",
