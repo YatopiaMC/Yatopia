@@ -27,8 +27,20 @@ index cd681eb181571543b63108f33d1d3f129c035e84..d28bd6ddbe3e61da90c49151eb5f17e0
          <dependency>
              <groupId>io.papermc</groupId>
              <artifactId>minecraft-server</artifactId>
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 581b675fae4ca8a3d774f4353d1e58fc31b557c7..cdf24f05f3e7c437c40fea4528fb6dff5a67dc78 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1732,6 +1732,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         return true;
+     }
+ 
++    public final boolean isUsingNativeTransport() { return l(); } // Yatopia - OBFHELPER
+     public abstract boolean l();
+ 
+     public boolean getPVP() {
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..788bcaa3a645969ab9f036adc58d800c0b9ebd72 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..3351257cb134d973372901fe09f53ee2b114b8d7 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
 @@ -26,16 +26,20 @@ import java.util.List;
@@ -66,7 +78,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..788bcaa3a645969ab9f036adc58d800c
          this.c = true;
 +
 +        // Yatopia start - New network system
-+        this.networkType = NetworkType.bestType(LOGGER, minecraftserver);
++        this.networkType = NetworkType.bestType(minecraftserver);
 +        this.boss = networkType.createEventLoopGroup(NetworkType.Type.BOSS);
 +        this.worker = networkType.createEventLoopGroup(NetworkType.Type.WORKER);
 +        // Yatopia end
@@ -127,10 +139,10 @@ index 00c600d74ba84cb564b9b22f53f279a93839d71f..390715d5495142c214562d53612cf71d
  }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bca118400f67d81469bddbcaeb49a5e1f8e36239
+index 0000000000000000000000000000000000000000..da254055298d4352287a7e600e567fb40ea03d17
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,150 @@
 +package org.yatopiamc.yatopia.server.util;
 +
 +import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -161,8 +173,6 @@ index 0000000000000000000000000000000000000000..bca118400f67d81469bddbcaeb49a5e1
 +import java.util.concurrent.ThreadFactory;
 +import java.util.function.BiFunction;
 +import net.minecraft.server.MinecraftServer;
-+import org.apache.logging.log4j.Level;
-+import org.apache.logging.log4j.Logger;
 +import org.spigotmc.SpigotConfig;
 +import org.yatopiamc.yatopia.server.YatopiaConfig;
 +
@@ -238,40 +248,28 @@ index 0000000000000000000000000000000000000000..bca118400f67d81469bddbcaeb49a5e1
 +                .build();
 +    }
 +
-+    public static NetworkType bestType(Logger logger, MinecraftServer minecraftServer) {
-+        if (!minecraftServer.l()) {
++    public static NetworkType bestType(MinecraftServer minecraftServer) {
++        if (!minecraftServer.isUsingNativeTransport()) {
 +            return NIO;
 +        }
 +        // Actually, there is a decompression problem with zlib from bungeecord that makes
 +        // IOUring not available on spigot server with bungeecord
 +        // https://github.com/netty/netty-incubator-transport-io_uring/issues/40
 +        if (!SpigotConfig.bungee && YatopiaConfig.ioUringBeta) {
-+            logger.log(Level.ERROR, "Attempting to use enhanced IOUringEventLoop");
 +            if (IOUring.isAvailable()) {
 +                return IOURING;
 +            }
-+            logger.log(Level.ERROR, "IOUring is not working, falling back to Epoll: {}", exceptionMessage(IOUring.unavailabilityCause()));
 +        }
 +
-+        logger.info("Attempting to use enhanced EpollEventLoop");
 +        if (Epoll.isAvailable()) {
 +            return EPOLL;
 +        }
-+        logger.log(Level.ERROR, "Epoll is not working, falling back to KQueue: {}", exceptionMessage(Epoll.unavailabilityCause()));
 +
-+        logger.info("Attempting to use enhanced KQueueEventLoop");
 +        if (KQueue.isAvailable()) {
 +            return KQUEUE;
 +        }
-+        logger.log(Level.ERROR, "KQueue is not working, falling back to NIO: {}", exceptionMessage(KQueue.unavailabilityCause()));
 +
 +        return NIO;
-+    }
-+
-+    private static String exceptionMessage(Throwable throwable) {
-+        StackTraceElement[] trace = throwable.getStackTrace();
-+        return getClassNameFromString(throwable.getClass().getName()) + " : " + throwable.getMessage()
-+                + ((trace.length > 0) ? " @ " + throwable.getStackTrace()[0].getClassName() + ":" + throwable.getStackTrace()[0].getLineNumber() : "");
 +    }
 +
 +    private static String getClassNameFromString(String className) {
