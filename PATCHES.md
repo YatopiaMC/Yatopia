@@ -10,16 +10,16 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
-| api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
+| api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
-| api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
+| api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
 | server |  Add component util      | William Blake Galbreath |  |
-| api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
+| api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
@@ -85,8 +85,8 @@ This is an overview over all patches that are currently used.
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
-| api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
+| api |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  Multi-threaded RegionFile IO      | ishland |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
@@ -109,10 +109,10 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
-| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
