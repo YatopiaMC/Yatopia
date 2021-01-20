@@ -1,4 +1,6 @@
-The project (Everything that is not a .patch file) is licensed under the MIT license found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.5/Licensing/MIT.md).
+The project minus the build tools (Everything that is not a .patch file or in the buildSrc folder) are licensed under the MIT license found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.5/Licensing/MIT.md).
+
+All files in the buildSrc folder are licensed under MIT found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.5/buildSrc/license.txt)
 
 All patches (.patch files) marked with "lithium" are licensed under LGPL3 found [here](https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/dev/LICENSE.txt).
 
