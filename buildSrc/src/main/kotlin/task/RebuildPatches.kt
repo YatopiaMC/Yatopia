@@ -27,7 +27,7 @@ internal fun Project.createRebuildPatchesTask(
             for (upstream in upstreams) {
                 val patchPath = Paths.get("${upstream.patchPath}/$folder").toFile()
 
-                if (patchPath.listFiles().isEmpty()) continue
+                if (patchPath.listFiles()?.isEmpty() != false) continue
 
                 updatePatches(patchPath, upstream.name, folder, projectDir, previousUpstreamName)
                 previousUpstreamName = "${upstream.name}-$folder"

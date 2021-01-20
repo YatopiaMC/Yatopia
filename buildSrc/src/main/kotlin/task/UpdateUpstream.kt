@@ -83,8 +83,11 @@ private fun updatePatches(
                 }
             }
         }
-        for (patch in tmpFolder.listFiles()) {
-            patch.delete()
+        val tmpFolderList = tmpFolder.listFiles()
+        if (tmpFolderList?.isNotEmpty() != false) {
+            for (patch in tmpFolderList) {
+                patch.delete()
+            }
         }
     }
 }
