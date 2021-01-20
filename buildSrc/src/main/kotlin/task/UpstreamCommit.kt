@@ -72,7 +72,7 @@ private fun getUpstreamChanges(
     }
     if (!upstreamTmp.isNullOrBlank()) {
         changedUpstreams.add(name)
-        gitChangelog1 += "$name Changes:\n$upstreamTmp\n"
+        gitChangelog1 += "$name Changes:\n$upstreamTmp\n\n"
     }
     return gitChangelog1
 }
