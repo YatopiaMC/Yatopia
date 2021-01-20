@@ -43,7 +43,7 @@ Run the following commands in the root directory:
 
 To build your plugin against the Yatopia-API, first add the CodeMC maven repository:
 
-### Maven
+# Maven
 Add the CodeMC Repo:
 ```xml
 <repositories>
@@ -66,7 +66,26 @@ And then add the Yatopia-API dependency:
 </dependencies>
 ```
 
-### Gradle
+# Gradle
+
+> Groovy DSL
+Add the CodeMC Repo:
+```groovy
+repositories {
+    maven {
+        url 'https://repo.codemc.io/repository/maven-public/'
+    }
+}
+```
+
+And then add the Yatopia-API dependency:
+```groovy
+dependencies {
+    compileOnly 'org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT'
+}
+```
+
+> Kotlin DSL
 Add the CodeMC Repo:
 ```kotlin
 repositories {
@@ -77,7 +96,7 @@ repositories {
 And then add the Yatopia-API dependency:
 ```kotlin
 dependencies {
-	compile "org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT"
+	compileOnly("org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT")
 }
 ```
 
@@ -96,11 +115,11 @@ That being said we make light API additions when requested.
 
 ## License
 
-License information can be found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.5/Licensing/LICENSE.md).
+License information can be found [here](../Licensing/LICENSE.md).
 
 ## Security
 
-Security information can be found found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.5/SECURITY.md).
+Security information can be found found [here](../SECURITY.md).
 
 ## Statistics
 [![bStats Graph Data](https://bstats.org/signatures/server-implementation/Yatopia.svg)](https://bstats.org/plugin/server-implementation/Yatopia)
