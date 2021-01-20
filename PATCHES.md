@@ -88,6 +88,7 @@ This is an overview over all patches that are currently used.
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
+| server |  New Network System      | Hugo Planque |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimise portals      | Ivan Pekov |  |

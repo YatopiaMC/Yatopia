@@ -5,7 +5,7 @@ Subject: [PATCH] New Network System
 
 
 diff --git a/pom.xml b/pom.xml
-index cd681eb181571543b63108f33d1d3f129c035e84..807c7b752ff9a11943e409fcd51cae47116b5682 100644
+index cd681eb181571543b63108f33d1d3f129c035e84..d28bd6ddbe3e61da90c49151eb5f17e0cda53c10 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -51,9 +51,17 @@
@@ -13,29 +13,29 @@ index cd681eb181571543b63108f33d1d3f129c035e84..807c7b752ff9a11943e409fcd51cae47
              <groupId>io.netty</groupId>
              <artifactId>netty-all</artifactId>
 -            <version>4.1.50.Final</version>
-+            <version>4.1.58.Final</version>
++            <version>4.1.58.Final</version> <!-- Yatopia -->
          </dependency>
          <!-- Tuinity end - fix compile issue (cannot see new api) by moving netty include BEFORE server jar -->
-+        <!-- Yatopia Start - Add IOUring beta support -->
++        <!-- Yatopia start - Add IOUring beta support -->
 +        <dependency>
 +            <groupId>io.netty.incubator</groupId>
 +            <artifactId>netty-incubator-transport-native-io_uring</artifactId>
 +            <version>0.0.3.Final</version>
 +            <classifier>linux-x86_64</classifier>
 +        </dependency>
-+        <!-- YAtopia end -->
++        <!-- Yatopia end -->
          <dependency>
              <groupId>io.papermc</groupId>
              <artifactId>minecraft-server</artifactId>
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..0ebdfce5061c560ea01cb7a8ce1c90e004db4447 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..788bcaa3a645969ab9f036adc58d800c0b9ebd72 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
-@@ -26,16 +26,19 @@ import java.util.List;
+@@ -26,16 +26,20 @@ import java.util.List;
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-+import org.yatopiamc.yatopia.server.util.NetworkType;
++import org.yatopiamc.yatopia.server.util.NetworkType; // Yatopia
  
  public class ServerConnection {
  
@@ -46,27 +46,26 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..0ebdfce5061c560ea01cb7a8ce1c90e0
      });
      public static final LazyInitVar<EpollEventLoopGroup> b = new LazyInitVar<>(() -> {
          return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).build());
--    });
-+    });*/
+     });
++     */
 +    // Yatopia end
      private final MinecraftServer e;
      public volatile boolean c;
      private final List<ChannelFuture> listeningChannels = Collections.synchronizedList(Lists.newArrayList());
-@@ -52,15 +55,26 @@ public class ServerConnection {
+@@ -52,15 +56,29 @@ public class ServerConnection {
      }
      // Paper end
  
-+    // Yatopia Start - New network system
++    // Yatopia start - New network system
 +    private final NetworkType networkType;
-+    private final EventLoopGroup boss;
-+    private final EventLoopGroup worker;
++    private final EventLoopGroup boss, worker;
 +    // Yatopia end
 +
      public ServerConnection(MinecraftServer minecraftserver) {
          this.e = minecraftserver;
          this.c = true;
 +
-+        // Yatopia Start - New network system
++        // Yatopia start - New network system
 +        this.networkType = NetworkType.bestType(LOGGER, minecraftserver);
 +        this.boss = networkType.createEventLoopGroup(NetworkType.Type.BOSS);
 +        this.worker = networkType.createEventLoopGroup(NetworkType.Type.WORKER);
@@ -74,19 +73,20 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..0ebdfce5061c560ea01cb7a8ce1c90e0
      }
  
      public void a(@Nullable InetAddress inetaddress, int i) throws IOException {
--        List list = this.listeningChannels;
--
++        /* // Yatopia start - New network system
+         List list = this.listeningChannels;
++         */
+ 
          synchronized (this.listeningChannels) {
-+            /* // Yatopia Start - New network system - remove unused field
++            /*
              Class oclass;
              LazyInitVar lazyinitvar;
  
-@@ -72,14 +86,17 @@ public class ServerConnection {
-                 oclass = NioServerSocketChannel.class;
+@@ -73,13 +91,17 @@ public class ServerConnection {
                  lazyinitvar = ServerConnection.a;
                  ServerConnection.LOGGER.info("Using default channel type");
--            }
-+            }*/
+             }
++             */
 +
  
              // Tuinity start - indicate Velocity natives in use
@@ -97,11 +97,11 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..0ebdfce5061c560ea01cb7a8ce1c90e0
 -            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channel(oclass)).childHandler(new ChannelInitializer<Channel>() {
 +            ServerConnection.LOGGER.info("Yatopia: Using " + networkType.getName() + " network type.");
 +
-+            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
++            this.listeningChannels.add((((new ServerBootstrap()).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
                  protected void initChannel(Channel channel) throws Exception {
                      try {
                          channel.config().setOption(ChannelOption.TCP_NODELAY, true);
-@@ -97,7 +114,8 @@ public class ServerConnection {
+@@ -97,7 +119,8 @@ public class ServerConnection {
                      channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
                      ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
                  }
@@ -112,7 +112,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..0ebdfce5061c560ea01cb7a8ce1c90e0
      }
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 00c600d74ba84cb564b9b22f53f279a93839d71f..43edf14ad296db0ade49eed2897257d0d2c6d74b 100644
+index 00c600d74ba84cb564b9b22f53f279a93839d71f..390715d5495142c214562d53612cf71dc9fc1d72 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -297,4 +297,9 @@ public class YatopiaConfig {
@@ -121,23 +121,31 @@ index 00c600d74ba84cb564b9b22f53f279a93839d71f..43edf14ad296db0ade49eed2897257d0
      }
 +
 +    public static boolean ioUringBeta = false;
-+    private static void newNetworkSystem(){
++    private static void newNetworkSystem() {
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
 +    }
  }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..853006a250ac01d92f51be9d59a4148cf0ac723e
+index 0000000000000000000000000000000000000000..e29440359e2f878e3a3bc66ce936ffc903b35d2f
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,164 @@
 +package org.yatopiamc.yatopia.server.util;
 +
 +import com.google.common.util.concurrent.ThreadFactoryBuilder;
 +import io.netty.channel.ChannelFactory;
 +import io.netty.channel.EventLoopGroup;
-+import io.netty.channel.epoll.*;
-+import io.netty.channel.kqueue.*;
++import io.netty.channel.epoll.Epoll;
++import io.netty.channel.epoll.EpollDatagramChannel;
++import io.netty.channel.epoll.EpollEventLoopGroup;
++import io.netty.channel.epoll.EpollServerSocketChannel;
++import io.netty.channel.epoll.EpollSocketChannel;
++import io.netty.channel.kqueue.KQueue;
++import io.netty.channel.kqueue.KQueueDatagramChannel;
++import io.netty.channel.kqueue.KQueueEventLoopGroup;
++import io.netty.channel.kqueue.KQueueServerSocketChannel;
++import io.netty.channel.kqueue.KQueueSocketChannel;
 +import io.netty.channel.nio.NioEventLoopGroup;
 +import io.netty.channel.socket.DatagramChannel;
 +import io.netty.channel.socket.ServerSocketChannel;
@@ -145,15 +153,18 @@ index 0000000000000000000000000000000000000000..853006a250ac01d92f51be9d59a4148c
 +import io.netty.channel.socket.nio.NioDatagramChannel;
 +import io.netty.channel.socket.nio.NioServerSocketChannel;
 +import io.netty.channel.socket.nio.NioSocketChannel;
-+import io.netty.incubator.channel.uring.*;
++import io.netty.incubator.channel.uring.IOUring;
++import io.netty.incubator.channel.uring.IOUringDatagramChannel;
++import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
++import io.netty.incubator.channel.uring.IOUringServerSocketChannel;
++import io.netty.incubator.channel.uring.IOUringSocketChannel;
++import java.util.concurrent.ThreadFactory;
++import java.util.function.BiFunction;
 +import net.minecraft.server.MinecraftServer;
 +import org.apache.logging.log4j.Level;
 +import org.apache.logging.log4j.Logger;
 +import org.spigotmc.SpigotConfig;
 +import org.yatopiamc.yatopia.server.YatopiaConfig;
-+
-+import java.util.concurrent.ThreadFactory;
-+import java.util.function.BiFunction;
 +
 +/**
 + * This class is based on asteii work on
@@ -171,7 +182,7 @@ index 0000000000000000000000000000000000000000..853006a250ac01d92f51be9d59a4148c
 +    IOURING("IOUring", IOUringServerSocketChannel.class, IOUringServerSocketChannel::new, IOUringSocketChannel.class, IOUringSocketChannel::new,
 +            IOUringDatagramChannel.class, IOUringDatagramChannel::new,
 +            (name, type) -> new IOUringEventLoopGroup(8, createThreadFactory(name, type))),
-+    
++
 +    KQUEUE("Kqueue", KQueueServerSocketChannel.class, KQueueServerSocketChannel::new, KQueueSocketChannel.class, KQueueSocketChannel::new,
 +            KQueueDatagramChannel.class, KQueueDatagramChannel::new,
 +            (name, type) -> new KQueueEventLoopGroup(8, createThreadFactory(name, type)));
@@ -234,25 +245,25 @@ index 0000000000000000000000000000000000000000..853006a250ac01d92f51be9d59a4148c
 +        // Actually, there is a decompression problem with zlib from bungeecord that makes
 +        // IOUring not available on spigot server with bungeecord
 +        // https://github.com/netty/netty-incubator-transport-io_uring/issues/40
-+        if(!SpigotConfig.bungee && YatopiaConfig.ioUringBeta) {
++        if (!SpigotConfig.bungee && YatopiaConfig.ioUringBeta) {
 +            logger.log(Level.ERROR, "Attempting to use enhanced IOUringEventLoop");
 +            if (IOUring.isAvailable()) {
 +                return IOURING;
 +            }
-+            logger.log(Level.ERROR, "IOUring is not working, falling back to Epoll: {0}", exceptionMessage(IOUring.unavailabilityCause()));
++            logger.log(Level.ERROR, "IOUring is not working, falling back to Epoll: {}", exceptionMessage(IOUring.unavailabilityCause()));
 +        }
 +
 +        logger.info("Attempting to use enhanced EpollEventLoop");
 +        if (Epoll.isAvailable()) {
 +            return EPOLL;
 +        }
-+        logger.log(Level.ERROR, "EPoll is not working, falling back to KQueue: {0}", exceptionMessage(Epoll.unavailabilityCause()));
++        logger.log(Level.ERROR, "Epoll is not working, falling back to KQueue: {}", exceptionMessage(Epoll.unavailabilityCause()));
 +
 +        logger.info("Attempting to use enhanced KQueueEventLoop");
 +        if (KQueue.isAvailable()) {
 +            return KQUEUE;
 +        }
-+        logger.log(Level.ERROR, "Kqueue is not working, falling back to NIO: {0}", exceptionMessage(KQueue.unavailabilityCause()));
++        logger.log(Level.ERROR, "KQueue is not working, falling back to NIO: {}", exceptionMessage(KQueue.unavailabilityCause()));
 +
 +        return NIO;
 +    }
