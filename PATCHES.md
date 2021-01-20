@@ -16,8 +16,6 @@ This is an overview over all patches that are currently used.
 | server |  Add JsonList save timings      | Ivan Pekov |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| api |  Add StructureLocateEvent      | dfsek |  |
-| server |  Add StructureLocateEvent      | dfsek |  |
 | server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
 | server |  Add component util      | William Blake Galbreath |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |

@@ -141,53 +141,6 @@ index 2291135eaef64c403183724cb6e413cd7e472672..6fcc7ed7c129e6a33386d65b37cbba4a
      public static long getAdjacent(int baseX, int baseY, int baseZ, EnumDirection enumdirection) { return asLong(baseX + enumdirection.getAdjacentX(), baseY + enumdirection.getAdjacentY(), baseZ + enumdirection.getAdjacentZ()); } // Paper
      public static long a(long i, EnumDirection enumdirection) {
          return a(i, enumdirection.getAdjacentX(), enumdirection.getAdjacentY(), enumdirection.getAdjacentZ());
-diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 7842e65115cf6c37322c83ebff954a06408680b5..883f1dc18801e54e67e70c3346f732823877e464 100644
---- a/src/main/java/net/minecraft/server/Chunk.java
-+++ b/src/main/java/net/minecraft/server/Chunk.java
-@@ -53,6 +53,17 @@ public class Chunk implements IChunkAccess {
-     private final ChunkCoordIntPair loc; public final long coordinateKey; public final int locX; public final int locZ; // Paper - cache coordinate key
-     private volatile boolean x;
- 
-+    // AirplaneL start - instead of using a random every time the chunk is ticked, define when lightning strikes preemptively
-+    private int lightningTick = -1;
-+    public boolean shouldDoLightning() {
-+        boolean doTick = this.lightningTick == 0;
-+        if (this.lightningTick-- <= 0) {
-+            this.lightningTick = this.world.random.nextInt(100000) << 1;
-+        }
-+        return doTick;
-+    }
-+    // AirplaneL end
-+
-     public Chunk(World world, ChunkCoordIntPair chunkcoordintpair, BiomeStorage biomestorage) {
-         this(world, chunkcoordintpair, biomestorage, ChunkConverter.a, TickListEmpty.b(), TickListEmpty.b(), 0L, (ChunkSection[]) null, (Consumer) null);
-     }
-diff --git a/src/main/java/net/minecraft/server/Chunk.java.rej b/src/main/java/net/minecraft/server/Chunk.java.rej
-deleted file mode 100644
-index 6a63cbff4fcd1ebcc23910a8ae4f400df0e51351..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/Chunk.java.rej
-+++ /dev/null
-@@ -1,19 +0,0 @@
--diff a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java	(rejected hunks)
--@@ -53,6 +53,17 @@ public class Chunk implements IChunkAccess {
--     private final ChunkCoordIntPair loc; public final long coordinateKey; // Paper - cache coordinate key
--     private volatile boolean x;
-- 
--+    // AirplaneL start - instead of using a random every time the chunk is ticked, define when lightning strikes preemptively
--+    private int lightningTick = -1;
--+    public boolean shouldDoLightning() {
--+        boolean doTick = this.lightningTick == 0;
--+        if (this.lightningTick-- <= 0) {
--+            this.lightningTick = this.world.random.nextInt(100000) << 1;
--+        }
--+        return doTick;
--+    }
--+    // AirplaneL end
--+
--     public Chunk(World world, ChunkCoordIntPair chunkcoordintpair, BiomeStorage biomestorage) {
--         this(world, chunkcoordintpair, biomestorage, ChunkConverter.a, TickListEmpty.b(), TickListEmpty.b(), 0L, (ChunkSection[]) null, (Consumer) null);
--     }
 diff --git a/src/main/java/net/minecraft/server/CommandDispatcher.java b/src/main/java/net/minecraft/server/CommandDispatcher.java
 index 17753c8a997aa286460be5d8eb6508e2eaed18ce..56d5cebd155f2b5ee24c1d8b75903316e59688d1 100644
 --- a/src/main/java/net/minecraft/server/CommandDispatcher.java
@@ -244,7 +197,7 @@ index 86f1cfe454ea0a989775b49a6b88375c766ef647..da53af61d1171db3c167c6e007adf953
          if (!(this.k instanceof EntityPlayer)) {
              throw CommandListenerWrapper.a.create();
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index b76b8ba5d705ab85bb622daaa5128d583a17e98f..dbbfe5ca3bcb4f63e84a10527e5ddc152b18e191 100644
+index 136114149fdfe63e7c5a1bfdf66b450f8afbaf1e..653b832c0aa51d2ef0fabedd753390b922a63848 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -434,7 +434,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -272,29 +225,6 @@ index b76b8ba5d705ab85bb622daaa5128d583a17e98f..dbbfe5ca3bcb4f63e84a10527e5ddc15
              }
  
              this.inPortal = true;
-diff --git a/src/main/java/net/minecraft/server/Entity.java.rej b/src/main/java/net/minecraft/server/Entity.java.rej
-deleted file mode 100644
-index 38dc8171d74f62287c1ac9b04f90ff8d000f1bf1..0000000000000000000000000000000000000000
---- a/src/main/java/net/minecraft/server/Entity.java.rej
-+++ /dev/null
-@@ -1,17 +0,0 @@
--diff a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java	(rejected hunks)
--@@ -2419,12 +2419,15 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
--         return new Vec2F(this.pitch, this.yaw);
--     }
-- 
--+    public BlockPosition portalPos = BlockPosition.ZERO; // Purpur
--     public void d(BlockPosition blockposition) {
--         if (this.ai()) {
--+            if (!(world.purpurConfig.playerFixStuckPortal && this instanceof EntityPlayer && !blockposition.equals(portalPos))) // Purpur
--             this.resetPortalCooldown();
--         } else if (world.purpurConfig.entitiesCanUsePortals || this instanceof EntityPlayer) { // Purpur
--             if (!this.world.isClientSide && !blockposition.equals(this.ac)) {
--                 this.ac = blockposition.immutableCopy();
--+                portalPos = BlockPosition.ZERO; // Purpur
--             }
-- 
--             this.inPortal = true;
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
 index c034869310ca3dadbfe5425c45aaa80dac59ac88..3c94f5b5cb94af4f1089e958ad7fef15f21f155e 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
@@ -333,7 +263,7 @@ index 538b2c92e050176a1ac0bb4c2315f5b22c7f8eac..00000000000000000000000000000000
 - 
 -     @Override
 diff --git a/src/main/java/net/minecraft/server/IProjectile.java b/src/main/java/net/minecraft/server/IProjectile.java
-index 9f5ce64a60fe7c312399ee416b11b84213dd3bee..64c08d830c358247186cf4e5fcf2010ed43f0f02 100644
+index bbc089b41fcbe0141f13591db2cb44b9e688cac4..a01a14dc27351fd8c4a21068017ff0664ef16f6e 100644
 --- a/src/main/java/net/minecraft/server/IProjectile.java
 +++ b/src/main/java/net/minecraft/server/IProjectile.java
 @@ -13,6 +13,7 @@ public abstract class IProjectile extends Entity {
@@ -883,7 +813,7 @@ index 0ee12c5b16ce479cdf86b3fd21d3cc5af6da9e9b..00000000000000000000000000000000
 -     private void teleportIfOutsideBorder() {
 -         teleportIfOutsideBorder = getBoolean("gameplay-mechanics.player.teleport-if-outside-border", teleportIfOutsideBorder);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 00e6b6f29e042fb48c2fc8009659c57e9a930abc..fcf2bf8962cf6bc33d4213c1101debae4afa7114 100644
+index 37cf84e0273d1a3bb49aadd2fe19d86730135afd..8f18c57ab283c85571333165e8aeca23256a39e4 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -863,6 +863,7 @@ public final class CraftServer implements Server {
@@ -902,7 +832,7 @@ index 00e6b6f29e042fb48c2fc8009659c57e9a930abc..fcf2bf8962cf6bc33d4213c1101debae
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
-@@ -2309,6 +2311,13 @@ public final class CraftServer implements Server {
+@@ -2314,6 +2316,13 @@ public final class CraftServer implements Server {
          }
          // Purpur end
  
@@ -916,7 +846,7 @@ index 00e6b6f29e042fb48c2fc8009659c57e9a930abc..fcf2bf8962cf6bc33d4213c1101debae
          @Override
          public void restart() {
              org.spigotmc.RestartCommand.restart();
-@@ -2446,4 +2455,11 @@ public final class CraftServer implements Server {
+@@ -2451,4 +2460,11 @@ public final class CraftServer implements Server {
          return mobGoals;
      }
      // Paper end
@@ -947,7 +877,7 @@ index b9dbdd5416862e325200e62b7d5821a73c230ec1..00000000000000000000000000000000
 -     // Purpur end
 - }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 25501197b33441fa0d319082bd8d8b72110373af..dbc934b374ff1b9eb4b66d2365e89c39c951763b 100644
+index bb93febb86c81e0897f1a0d8d058f4fb29f18b41..d1f337d1371fc476d0c35b8fb4bdf55c345d86be 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
 @@ -154,6 +154,14 @@ public class Main {
