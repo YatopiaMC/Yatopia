@@ -69,6 +69,7 @@ And then add the Yatopia-API dependency:
 # Gradle
 
 > Groovy DSL
+
 Add the CodeMC Repo:
 ```groovy
 repositories {
@@ -86,6 +87,7 @@ dependencies {
 ```
 
 > Kotlin DSL
+
 Add the CodeMC Repo:
 ```kotlin
 repositories {
@@ -96,7 +98,7 @@ repositories {
 And then add the Yatopia-API dependency:
 ```kotlin
 dependencies {
-	compileOnly("org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT")
+    compileOnly("org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT")
 }
 ```
 
