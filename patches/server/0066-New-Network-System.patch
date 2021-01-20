@@ -3,6 +3,7 @@ From: Hugo Planque <hookwood@pop-os.localdomain>
 Date: Mon, 18 Jan 2021 11:27:08 +0100
 Subject: [PATCH] New Network System
 
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/pom.xml b/pom.xml
 index cd681eb181571543b63108f33d1d3f129c035e84..d28bd6ddbe3e61da90c49151eb5f17e0cda53c10 100644
@@ -40,14 +41,14 @@ index 581b675fae4ca8a3d774f4353d1e58fc31b557c7..cdf24f05f3e7c437c40fea4528fb6dff
  
      public boolean getPVP() {
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..3351257cb134d973372901fe09f53ee2b114b8d7 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..4e0c40242eebac99aa9c16ddd4742a1f9501aa9a 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
 @@ -26,16 +26,20 @@ import java.util.List;
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-+import org.yatopiamc.yatopia.server.util.NetworkType; // Yatopia
++import org.yatopiamc.yatopia.server.network.NetworkType; // Yatopia
  
  public class ServerConnection {
  
@@ -79,8 +80,8 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..3351257cb134d973372901fe09f53ee2
 +
 +        // Yatopia start - New network system
 +        this.networkType = NetworkType.bestType(minecraftserver);
-+        this.boss = networkType.createEventLoopGroup(NetworkType.Type.BOSS);
-+        this.worker = networkType.createEventLoopGroup(NetworkType.Type.WORKER);
++        this.boss = networkType.createEventLoopGroup(NetworkType.LoopGroupType.BOSS);
++        this.worker = networkType.createEventLoopGroup(NetworkType.LoopGroupType.WORKER);
 +        // Yatopia end
      }
  
@@ -137,15 +138,47 @@ index 00c600d74ba84cb564b9b22f53f279a93839d71f..390715d5495142c214562d53612cf71d
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
 +    }
  }
-diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..da254055298d4352287a7e600e567fb40ea03d17
+index 0000000000000000000000000000000000000000..f30cb125942b1f82ef863ec5ae805f43469cebed
 --- /dev/null
-+++ b/src/main/java/org/yatopiamc/yatopia/server/util/NetworkType.java
-@@ -0,0 +1,150 @@
-+package org.yatopiamc.yatopia.server.util;
++++ b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
+@@ -0,0 +1,27 @@
++package org.yatopiamc.yatopia.server.network;
 +
-+import com.google.common.util.concurrent.ThreadFactoryBuilder;
++import io.netty.util.concurrent.FastThreadLocalThread;
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.atomic.AtomicInteger;
++
++/**
++ * Based off of Velocity's VelocityNettyThreadFactory
++ */
++public class NettyThreadFactory implements ThreadFactory {
++
++    private final AtomicInteger threadNumber = new AtomicInteger();
++    private final String networkTypeName, loopGroupTypeName;
++
++    public NettyThreadFactory(String networkTypeName, String loopGroupTypeName) {
++        this.networkTypeName = networkTypeName;
++        this.loopGroupTypeName = loopGroupTypeName;
++    }
++
++    @Override
++    public Thread newThread(Runnable r) {
++        return new FastThreadLocalThread(
++                r,
++                "Netty " + networkTypeName + " " + loopGroupTypeName + " #" + threadNumber.getAndIncrement()
++        );
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a23f31d3d5c46a8da34711389d9459078776a77e
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
+@@ -0,0 +1,127 @@
++package org.yatopiamc.yatopia.server.network;
++
 +import io.netty.channel.ChannelFactory;
 +import io.netty.channel.EventLoopGroup;
 +import io.netty.channel.epoll.Epoll;
@@ -177,49 +210,35 @@ index 0000000000000000000000000000000000000000..da254055298d4352287a7e600e567fb4
 +import org.yatopiamc.yatopia.server.YatopiaConfig;
 +
 +/**
-+ * This class is based on astei work on
-+ * https://github.com/VelocityPowered/Velocity/blob/dev/1.1.0/proxy/src/main/java/com/velocitypowered/proxy/network/TransportType.java
++ * Based off of Velocity's TransportType
 + */
 +public enum NetworkType {
-+    NIO("NIO", NioServerSocketChannel.class, NioServerSocketChannel::new, NioSocketChannel.class, NioSocketChannel::new, NioDatagramChannel.class,
-+            NioDatagramChannel::new,
++    NIO("NIO", NioServerSocketChannel::new, NioSocketChannel::new, NioDatagramChannel::new,
 +            (name, type) -> new NioEventLoopGroup(8, createThreadFactory(name, type))),
 +
-+    EPOLL("Epoll", EpollServerSocketChannel.class, EpollServerSocketChannel::new, EpollSocketChannel.class, EpollSocketChannel::new,
-+            EpollDatagramChannel.class, EpollDatagramChannel::new,
++    EPOLL("Epoll", EpollServerSocketChannel::new, EpollSocketChannel::new, EpollDatagramChannel::new,
 +            (name, type) -> new EpollEventLoopGroup(8, createThreadFactory(name, type))),
 +
-+    IOURING("IOUring", IOUringServerSocketChannel.class, IOUringServerSocketChannel::new, IOUringSocketChannel.class, IOUringSocketChannel::new,
-+            IOUringDatagramChannel.class, IOUringDatagramChannel::new,
++    IOURING("IOUring", IOUringServerSocketChannel::new, IOUringSocketChannel::new, IOUringDatagramChannel::new,
 +            (name, type) -> new IOUringEventLoopGroup(8, createThreadFactory(name, type))),
 +
-+    KQUEUE("Kqueue", KQueueServerSocketChannel.class, KQueueServerSocketChannel::new, KQueueSocketChannel.class, KQueueSocketChannel::new,
-+            KQueueDatagramChannel.class, KQueueDatagramChannel::new,
++    KQUEUE("KQueue", KQueueServerSocketChannel::new, KQueueSocketChannel::new, KQueueDatagramChannel::new,
 +            (name, type) -> new KQueueEventLoopGroup(8, createThreadFactory(name, type)));
 +
 +    public final String name;
-+    public final Class<? extends ServerSocketChannel> serverSocketChannelClass;
 +    public final ChannelFactory<? extends ServerSocketChannel> serverSocketChannelFactory;
-+    public final Class<? extends SocketChannel> socketChannelClass;
 +    public final ChannelFactory<? extends SocketChannel> socketChannelFactory;
-+    public final Class<? extends DatagramChannel> datagramChannelClass;
 +    public final ChannelFactory<? extends DatagramChannel> channelFactory;
-+    public final BiFunction<String, Type, EventLoopGroup> eventLoopGroupFactory;
++    public final BiFunction<String, LoopGroupType, EventLoopGroup> eventLoopGroupFactory;
 +
 +    NetworkType(final String name,
-+                final Class<? extends ServerSocketChannel> serverSocketChannelClass,
 +                final ChannelFactory<? extends ServerSocketChannel> serverSocketChannelFactory,
-+                final Class<? extends SocketChannel> socketChannelClass,
 +                final ChannelFactory<? extends SocketChannel> socketChannelFactory,
-+                final Class<? extends DatagramChannel> datagramChannelClass,
 +                final ChannelFactory<? extends DatagramChannel> channelFactory,
-+                final BiFunction<String, Type, EventLoopGroup> eventLoopGroupFactory) {
++                final BiFunction<String, LoopGroupType, EventLoopGroup> eventLoopGroupFactory) {
 +        this.name = name;
-+        this.serverSocketChannelClass = serverSocketChannelClass;
 +        this.serverSocketChannelFactory = serverSocketChannelFactory;
-+        this.socketChannelClass = socketChannelClass;
 +        this.socketChannelFactory = socketChannelFactory;
-+        this.datagramChannelClass = datagramChannelClass;
 +        this.channelFactory = channelFactory;
 +        this.eventLoopGroupFactory = eventLoopGroupFactory;
 +    }
@@ -237,15 +256,12 @@ index 0000000000000000000000000000000000000000..da254055298d4352287a7e600e567fb4
 +        return this.name;
 +    }
 +
-+    public EventLoopGroup createEventLoopGroup(final Type type) {
++    public EventLoopGroup createEventLoopGroup(final LoopGroupType type) {
 +        return this.eventLoopGroupFactory.apply(this.name, type);
 +    }
 +
-+    private static ThreadFactory createThreadFactory(final String name, final Type type) {
-+        return new ThreadFactoryBuilder()
-+                .setNameFormat("Netty " + name + " " + type.toString() + " #%1$d")
-+                .setDaemon(true)
-+                .build();
++    private static ThreadFactory createThreadFactory(final String name, final LoopGroupType type) {
++        return new NettyThreadFactory(name, type.toString());
 +    }
 +
 +    public static NetworkType bestType(MinecraftServer minecraftServer) {
@@ -272,18 +288,13 @@ index 0000000000000000000000000000000000000000..da254055298d4352287a7e600e567fb4
 +        return NIO;
 +    }
 +
-+    private static String getClassNameFromString(String className) {
-+        int i = className.lastIndexOf('.');
-+        return i > 0 ? className.substring(i + 1) : className;
-+    }
-+
-+    public enum Type {
++    public enum LoopGroupType {
 +        BOSS("Boss"),
 +        WORKER("Worker");
 +
 +        private final String name;
 +
-+        Type(final String name) {
++        LoopGroupType(final String name) {
 +            this.name = name;
 +        }
 +
