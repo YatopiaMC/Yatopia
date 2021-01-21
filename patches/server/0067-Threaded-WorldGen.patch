@@ -8,10 +8,10 @@ This patch actually schedules chunk status upgrade later rather than doing it ri
 However, feature placements are still on the server thread for now.
 
 diff --git a/pom.xml b/pom.xml
-index dd20e7924a233e5539ef288a1521d71cff2d4a16..85ace2333c7bb70e62b70c2625fee7cb52addfac 100644
+index 0fd10a103b8d3e43ab6a45d32dd99c6a8a1f8bda..ca75552df286e56a9e5d934cb84ebd8e98e092cc 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -191,6 +191,12 @@
+@@ -193,6 +193,12 @@
              <artifactId>jocl-main</artifactId>
              <version>2.3.2</version>
          </dependency>
@@ -25,7 +25,7 @@ index dd20e7924a233e5539ef288a1521d71cff2d4a16..85ace2333c7bb70e62b70c2625fee7cb
  
      <repositories>
 diff --git a/src/main/java/net/minecraft/server/ChunkGenerator.java b/src/main/java/net/minecraft/server/ChunkGenerator.java
-index 17cf00dfe8b24adf2fb66eca4710ab7888a894e3..48cebf3b811f579d75bfaac5a72f9d6aa3e11f85 100644
+index 6223d1d9048e31fb10cec7f485d1556aec2c7d5e..aec4d52ced71046b435cd45565124ed02a348b43 100644
 --- a/src/main/java/net/minecraft/server/ChunkGenerator.java
 +++ b/src/main/java/net/minecraft/server/ChunkGenerator.java
 @@ -20,6 +20,8 @@ public abstract class ChunkGenerator {
@@ -162,7 +162,7 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..4afba15d01e86e64ddec3f599a04b7f9
  
          void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 784252aa38bddd23bbbce8ffa66ae76149fe3a84..ac794dc404835bf25a8334ebd43bd651eff86273 100644
+index 706877a6d8a568a3fe8598e51b94dd4ec860f183..9798289202435317d3b3a9660b82a2b0a92970e0 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -835,6 +835,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas

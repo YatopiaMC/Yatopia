@@ -238,18 +238,14 @@ This is an overview over all patches that are currently used.
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
-<<<<<<< HEAD
-| server |  Multi-threaded RegionFile IO      | ishland |  |
-| server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
-| server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
-| server |  OpenCL base      | ishland |  |
-=======
 | server |  Movement options for armour stands      | Mariell Hoversholm |  |
 | server |  Multi-Threaded Server Ticking Vanilla      | Spottedleaf |  |
 | server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
+| server |  Multi-threaded RegionFile IO      | ishland |  |
 | server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
+| server |  OpenCL base      | ishland |  |
 | server |  Optimise EntityInsentient#checkDespawn      | Spottedleaf |  |
 | server |  Optimise WorldServer#notify      | Spottedleaf |  |
 | server |  Optimise chunk tick iteration      | Spottedleaf |  |
@@ -257,7 +253,6 @@ This is an overview over all patches that are currently used.
 | server |  Optimise collision checking in player move packet handling      | Spottedleaf |  |
 | server |  Optimise entity hard collision checking      | Spottedleaf |  |
 | server |  Optimise non-flush packet sending      | Spottedleaf |  |
->>>>>>> 985b5655f5910fd9258322d3a7fa6566297942c8
 | server |  Optimise portals      | Ivan Pekov |  |
 | server |  Optimise tab complete      | Spottedleaf |  |
 | server |  Optimised hallowen checker      | Ivan Pekov |  |
@@ -348,12 +343,8 @@ This is an overview over all patches that are currently used.
 | server |  Striders give saddle back      | Ben Kerllenevich |  |
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
-<<<<<<< HEAD
-| server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Threaded WorldGen      | ishland |  |
-=======
 | server |  Time scoreboard search      | Spottedleaf |  |
->>>>>>> 985b5655f5910fd9258322d3a7fa6566297942c8
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
 | server |  Totems work in inventory      | draycia |  |

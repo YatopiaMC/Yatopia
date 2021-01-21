@@ -6,10 +6,10 @@ Subject: [PATCH] Don't unnecessarily copy the passenger list
 It is only copied if it's needed, and that is in EntityTrackerEntry, when we've detected a change.
 
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index e286c8c536abd35df552b7023bc458e89306926b..b62b8782780d2c3460dae56187224f0a103c902d 100644
+index 51c4ff1bd6948ab46d723c37af39c76cdf662be5..a48b56839a3516baa7d3373295b259a24012109e 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -3271,7 +3271,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -3282,7 +3282,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
      }
  
      public List<Entity> getPassengers() {
@@ -36,24 +36,15 @@ index 228236bce14bfdf930570b453862dcfaae9e4823..0be11d1263d84b270c25ec8249832164
          }
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 6777802ad3d2f4bdd53a9e5439c4c36baaf8424c..ff8f68ed2dc90a8918c95b9dda536a034e91ee5f 100644
+index 6c39796e672a6412e85f69a6a3dfdb1037e51d30..eba7a33cb0c2f0bc18eda709dd1c2b341ddb36df 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1298,7 +1298,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1430,7 +1430,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              this.chunkCheck(entity);
              } finally { timer.stopTiming(); } // Paper - timings
              if (entity.inChunk) {
 -                Iterator iterator = entity.getPassengers().iterator();
-+                Iterator iterator = new java.util.ArrayList<>(entity.getPassengers()).iterator(); // Yatopia
++                Iterator iterator = new java.util.ArrayList<>(entity.getPassengers()).iterator(); // Yatopia - copy the passengers list here too
  
                  while (iterator.hasNext()) {
                      Entity entity1 = (Entity) iterator.next();
-@@ -1351,7 +1351,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
- 
-                 this.chunkCheck(entity1);
-                 if (entity1.inChunk) {
--                    Iterator iterator = entity1.getPassengers().iterator();
-+                    Iterator iterator = new java.util.ArrayList<>(entity1.getPassengers()).iterator(); // Yatopia
- 
-                     while (iterator.hasNext()) {
-                         Entity entity2 = (Entity) iterator.next();
