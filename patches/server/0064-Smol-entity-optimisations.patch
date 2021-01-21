@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Mon, 4 Jan 2021 20:32:06 +0200
+Subject: [PATCH] Smol entity optimisations
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityBat.java b/src/main/java/net/minecraft/server/EntityBat.java
+index 778cd2d0e091b455fddf05d9c07605a6c305de94..c6ef1c30d3a2269954fa2bfa0eb34a1478b58df6 100644
+--- a/src/main/java/net/minecraft/server/EntityBat.java
++++ b/src/main/java/net/minecraft/server/EntityBat.java
+@@ -266,7 +266,7 @@ public class EntityBat extends EntityAmbient {
+         if (blockposition.getY() >= generatoraccess.getSeaLevel()) {
+             return false;
+         } else {
+-            int i = generatoraccess.getLightLevel(blockposition);
++            //int i = generatoraccess.getLightLevel(blockposition); // Yatopia - moved down
+             byte b0 = 4;
+ 
+             if (eJ()) {
+@@ -275,6 +275,7 @@ public class EntityBat extends EntityAmbient {
+                 return false;
+             }
+ 
++            int i = generatoraccess.getLightLevel(blockposition); // Yatopia - moved from above
+             return i > random.nextInt(b0) ? false : a(entitytypes, generatoraccess, enummobspawn, blockposition, random);
+         }
+     }

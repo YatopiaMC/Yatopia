@@ -1,0 +1,352 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <Spottedleaf@users.noreply.github.com>
+Date: Sat, 17 Aug 2019 18:06:04 -0700
+Subject: [PATCH] Add soft async catcher
+
+Must be enabled via -Dtuinity.strict-thread-checks=true
+
+diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
+index e7624948ea4aa1a07d84ed3d295cfe2dd354fd14..a263cd7a0680e0cc3517f84308118eb32c487732 100644
+--- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
++++ b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
+@@ -186,6 +186,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+     }
+ 
+     public void onChunkSetTicking(final int chunkX, final int chunkZ) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list chunk ticking update"); // Tuinity - soft async catcher
+         final ArrayList<NextTickListEntry<T>> pending = this.pendingChunkTickLoad.remove(MCUtil.getCoordinateKey(chunkX, chunkZ));
+         if (pending == null) {
+             return;
+@@ -268,6 +269,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     protected void nextTick() {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list tick"); // Tuinity - soft async catcher
+         ++this.currentTick;
+         if (this.currentTick != this.world.getTime()) {
+             if (!this.warnedAboutDesync) {
+@@ -280,6 +282,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     public void tick() {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list tick"); // Tuinity - soft async catcher
+         final ChunkProviderServer chunkProvider = this.world.getChunkProvider();
+ 
+         this.world.getMethodProfiler().enter("cleaning");
+@@ -424,6 +427,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+     }
+ 
+     public void schedule(final BlockPosition pos, final T data, final long targetTick, final TickListPriority priority) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list schedule"); // Tuinity - soft async catcher
+         final NextTickListEntry<T> entry = new NextTickListEntry<>(pos, data, targetTick, priority);
+         if (this.excludeFromScheduling.test(entry.getData())) {
+             return;
+@@ -479,6 +483,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     public List<NextTickListEntry<T>> getEntriesInBoundingBox(final StructureBoundingBox structureboundingbox, final boolean removeReturned, final boolean excludeTicked) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list get in bounding box"); // Tuinity - soft async catcher
+         if (structureboundingbox.getMinX() == structureboundingbox.getMaxX() || structureboundingbox.getMinZ() == structureboundingbox.getMaxZ()) {
+             return Collections.emptyList(); // vanilla behaviour, check isBlockInSortof above
+         }
+@@ -535,6 +540,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     public void copy(StructureBoundingBox structureboundingbox, BlockPosition blockposition) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list copy"); // Tuinity - soft async catcher
+         // start copy from TickListServer // TODO check on update
+         List<NextTickListEntry<T>> list = this.getEntriesInBoundingBox(structureboundingbox, false, false);
+         Iterator<NextTickListEntry<T>> iterator = list.iterator();
+@@ -554,6 +560,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     public List<NextTickListEntry<T>> getEntriesInChunk(ChunkCoordIntPair chunkPos, boolean removeReturned, boolean excludeTicked) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list get"); // Tuinity - soft async catcher
+         // Vanilla DOES get the entries 2 blocks out of the chunk too, but that doesn't matter since we ignore chunks
+         // not at ticking status, and ticking status requires neighbours loaded
+         // so with this method we will reduce scheduler churning
+@@ -585,6 +592,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     public NBTTagList serialize(ChunkCoordIntPair chunkcoordintpair) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list serialize"); // Tuinity - soft async catcher
+         // start copy from TickListServer  // TODO check on update
+         List<NextTickListEntry<T>> list = this.getEntriesInChunk(chunkcoordintpair, false, true);
+ 
+@@ -594,6 +602,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
+ 
+     @Override
+     public int getTotalScheduledEntries() {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("async tick list get size"); // Tuinity - soft async catcher
+         // good thing this is only used in debug reports // TODO check on update
+         int ret = 0;
+ 
+diff --git a/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java b/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java
+index 20150ad0750a648d349701a09b31881be124e46c..cae06962d80cdd00962236891472ba815b0ab8cd 100644
+--- a/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java
++++ b/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java
+@@ -162,6 +162,7 @@ public final class SingleThreadChunkRegionManager<T extends Enum<T> & SingleThre
+     }
+ 
+     public void addChunk(final int chunkX, final int chunkZ) {
++        com.tuinity.tuinity.util.TickThread.ensureTickThread("async region manager add chunk"); // Tuinity
+         this.addChunkTimings.startTiming();
+         try {
+             this.getOrCreateAndMergeSection(chunkX >> REGION_CHUNK_SIZE_SHIFT, chunkZ >> REGION_CHUNK_SIZE_SHIFT, null).addChunk(chunkX, chunkZ);
+@@ -171,6 +172,7 @@ public final class SingleThreadChunkRegionManager<T extends Enum<T> & SingleThre
+     }
+ 
+     public void removeChunk(final int chunkX, final int chunkZ) {
++        com.tuinity.tuinity.util.TickThread.ensureTickThread("async region manager remove chunk"); // Tuinity
+         this.removeChunkTimings.startTiming();
+         try {
+             final RegionSection<T> section = this.regionsBySection.get(
+@@ -187,6 +189,7 @@ public final class SingleThreadChunkRegionManager<T extends Enum<T> & SingleThre
+     }
+ 
+     public void recalculateRegions() {
++        com.tuinity.tuinity.util.TickThread.ensureTickThread("async region recalculation"); // Tuinity
+         for (int i = 0, len = this.needsRecalculation.size(); i < len; ++i) {
+             final Region<T> region = this.needsRecalculation.removeFirst();
+ 
+diff --git a/src/main/java/com/tuinity/tuinity/util/TickThread.java b/src/main/java/com/tuinity/tuinity/util/TickThread.java
+index 033548a58d27f64d3954206d267783c0437d4019..08ed243259f052165c6f75aed1d1d65a14219715 100644
+--- a/src/main/java/com/tuinity/tuinity/util/TickThread.java
++++ b/src/main/java/com/tuinity/tuinity/util/TickThread.java
+@@ -1,7 +1,33 @@
+ package com.tuinity.tuinity.util;
+ 
++import net.minecraft.server.MinecraftServer;
++import org.bukkit.Bukkit;
++
+ public final class TickThread extends Thread {
+ 
++    public static final boolean STRICT_THREAD_CHECKS = Boolean.getBoolean("tuinity.strict-thread-checks");
++
++    static {
++        if (STRICT_THREAD_CHECKS) {
++            MinecraftServer.LOGGER.warn("Strict thread checks enabled - performance may suffer");
++        }
++    }
++
++    public static void softEnsureTickThread(final String reason) {
++        if (!STRICT_THREAD_CHECKS) {
++            return;
++        }
++        ensureTickThread(reason);
++    }
++
++
++    public static void ensureTickThread(final String reason) {
++        if (!Bukkit.isPrimaryThread()) {
++            MinecraftServer.LOGGER.fatal("Thread " + Thread.currentThread().getName() + " failed main thread check: " + reason, new Throwable());
++            throw new IllegalStateException(reason);
++        }
++    }
++
+     public final int id; /* We don't override getId as the spec requires that it be unique (with respect to all other threads) */
+ 
+     public TickThread(final Runnable run, final String name, final int id) {
+diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
+index af9d54ef057d5f6977cf77c57cde25b6b0d1f39d..8816d3326af25431e2235c5e735e86c7335f60dc 100644
+--- a/src/main/java/net/minecraft/server/Chunk.java
++++ b/src/main/java/net/minecraft/server/Chunk.java
+@@ -548,6 +548,7 @@ public class Chunk implements IChunkAccess {
+ 
+     @Override
+     public void a(Entity entity) {
++        org.spigotmc.AsyncCatcher.catchOp("Chunk add entity"); // Tuinity
+         this.q = true;
+         int i = MathHelper.floor(entity.locX() / 16.0D);
+         int j = MathHelper.floor(entity.locZ() / 16.0D);
+@@ -617,6 +618,7 @@ public class Chunk implements IChunkAccess {
+     }
+ 
+     public void a(Entity entity, int i) {
++        org.spigotmc.AsyncCatcher.catchOp("Chunk remove entity"); // Tuinity // Tuinity
+         if (i < 0) {
+             i = 0;
+         }
+diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+index 3c7b225edbe23dc1959002293a6f8b816287b5a8..d3588e238506ea859407b72da0d0cf291945b2ec 100644
+--- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
++++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
+@@ -65,6 +65,7 @@ public abstract class ChunkMapDistance {
+     }
+ 
+     protected void purgeTickets() {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Async purge tickets"); // Tuinity
+         ++this.currentTick;
+         ObjectIterator objectiterator = this.tickets.long2ObjectEntrySet().fastIterator();
+ 
+@@ -98,6 +99,7 @@ public abstract class ChunkMapDistance {
+     protected abstract PlayerChunk a(long i, int j, @Nullable PlayerChunk playerchunk, int k);
+ 
+     public boolean a(PlayerChunkMap playerchunkmap) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot tick ChunkMapDistance off of the main-thread");// Tuinity
+         //this.f.a(); // Paper - no longer used
+         AsyncCatcher.catchOp("DistanceManagerTick"); // Paper
+         this.g.a();
+@@ -370,6 +372,7 @@ public abstract class ChunkMapDistance {
+     }
+ 
+     private ArraySetSorted<Ticket<?>> e(long i) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Async tickets compute"); // Tuinity
+         return (ArraySetSorted) this.tickets.computeIfAbsent(i, (j) -> {
+             return ArraySetSorted.a(4);
+         });
+@@ -387,6 +390,7 @@ public abstract class ChunkMapDistance {
+     }
+ 
+     public void a(SectionPosition sectionposition, EntityPlayer entityplayer) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Async player add"); // Tuinity
+         long i = sectionposition.r().pair();
+ 
+         ((ObjectSet) this.c.computeIfAbsent(i, (j) -> {
+@@ -397,6 +401,7 @@ public abstract class ChunkMapDistance {
+     }
+ 
+     public void b(SectionPosition sectionposition, EntityPlayer entityplayer) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Async player remove"); // Tuinity
+         long i = sectionposition.r().pair();
+         ObjectSet<EntityPlayer> objectset = (ObjectSet) this.c.get(i);
+ 
+@@ -446,6 +451,7 @@ public abstract class ChunkMapDistance {
+ 
+     // CraftBukkit start
+     public <T> void removeAllTicketsFor(TicketType<T> ticketType, int ticketLevel, T ticketIdentifier) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Async ticket remove"); // Tuinity
+         Ticket<T> target = new Ticket<>(ticketType, ticketLevel, ticketIdentifier);
+ 
+         for (java.util.Iterator<Entry<ArraySetSorted<Ticket<?>>>> iterator = this.tickets.long2ObjectEntrySet().fastIterator(); iterator.hasNext();) {
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 5e2168fa0958325358a9c41478d70c78accb53d1..d68f91a881e001649f20e9257a4b2a4a8fc2cb04 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -1190,6 +1190,7 @@ public class ChunkProviderServer extends IChunkProvider {
+ 
+         @Override
+         protected boolean executeNext() {
++            com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot execute chunk tasks off-main thread");// Tuinity
+         // CraftBukkit start - process pending Chunk loadCallback() and unloadCallback() after each run task
+         try {
+             boolean execChunkTask = com.destroystokyo.paper.io.chunk.ChunkTaskManager.pollChunkWaitQueue() || ChunkProviderServer.this.world.asyncChunkTaskManager.pollNextChunkTask(); // Paper
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 4efc40c01ec12b80bd7cf9d35cf0ea0df973baf7..f322dccd834ff56b99f8796309709b5b6ac01456 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -74,6 +74,7 @@ public class EntityTrackerEntry {
+ 
+     public final void tick() { this.a(); } // Paper - OBFHELPER
+     public void a() {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Tracker update"); // Tuinity
+         List<Entity> list = this.tracker.getPassengers();
+ 
+         if (!list.equals(this.p)) {
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index fb46fdeb22a7c31c8d132bdc80d657ae82c191be..2be8c1b7974f3f6271be60872d45123ba9743672 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -200,6 +200,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     // Paper end - no-tick view distance
+ 
+     void addPlayerToDistanceMaps(EntityPlayer player) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot update distance maps off of the main thread"); // Tuinity
+         int chunkX = MCUtil.getChunkCoordinate(player.locX());
+         int chunkZ = MCUtil.getChunkCoordinate(player.locZ());
+         // Note: players need to be explicitly added to distance maps before they can be updated
+@@ -230,6 +231,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     }
+ 
+     void removePlayerFromDistanceMaps(EntityPlayer player) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot update distance maps off of the main thread"); // Tuinity
+         // Paper start - use distance map to optimise tracker
+         for (int i = 0, len = TRACKING_RANGE_TYPES.length; i < len; ++i) {
+             this.playerEntityTrackerTrackMaps[i].remove(player);
+@@ -247,6 +249,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     }
+ 
+     void updateMaps(EntityPlayer player) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot update distance maps off of the main thread"); // Tuinity
+         int chunkX = MCUtil.getChunkCoordinate(player.locX());
+         int chunkZ = MCUtil.getChunkCoordinate(player.locZ());
+         // Note: players need to be explicitly added to distance maps before they can be updated
+@@ -774,6 +777,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+ 
+     @Nullable
+     private PlayerChunk a(long i, int j, @Nullable PlayerChunk playerchunk, int k) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Chunk holder update"); // Tuinity
+         if (k > PlayerChunkMap.GOLDEN_TICKET && j > PlayerChunkMap.GOLDEN_TICKET) {
+             return playerchunk;
+         } else {
+@@ -1081,6 +1085,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     }
+ 
+     protected boolean b() {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot update visibleChunks off of the main thread"); // Tuinity
+         if (!this.updatingChunksModified) {
+             return false;
+         } else {
+@@ -1520,6 +1525,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     }
+ 
+     public void setViewDistance(int i) { // Paper - public
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot update view distance off of the main thread"); // Tuinity
+         int j = MathHelper.clamp(i + 1, 3, 33); // Paper - diff on change, these make the lower view distance limit 2 and the upper 32
+ 
+         if (j != this.viewDistance) {
+@@ -1533,6 +1539,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+ 
+     // Paper start - no-tick view distance
+     public final void setNoTickViewDistance(int viewDistance) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot update view distance off of the main thread"); // Tuinity
+         viewDistance = viewDistance == -1 ? -1 : MathHelper.clamp(viewDistance, 2, 32);
+ 
+         this.noTickViewDistance = viewDistance;
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 38c49d04d7bfb9c116a3b6eb87daaad2c75040cf..ab8a5c00e383ef84cb3e5acf9ac9221f672effdd 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -363,6 +363,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+ 
+     @Override
+     public boolean a(BlockPosition blockposition, IBlockData iblockdata, int i, int j) {
++        org.spigotmc.AsyncCatcher.catchOp("set type call"); // Tuinity
+         // CraftBukkit start - tree generation
+         if (this.captureTreeGeneration) {
+             // Paper start
+@@ -464,6 +465,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+ 
+     // CraftBukkit start - Split off from above in order to directly send client and physic updates
+     public void notifyAndUpdatePhysics(BlockPosition blockposition, Chunk chunk, IBlockData oldBlock, IBlockData newBlock, IBlockData actualBlock, int i, int j) {
++        com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Async notify and update"); // Tuinity
+         IBlockData iblockdata = newBlock;
+         IBlockData iblockdata1 = oldBlock;
+         IBlockData iblockdata2 = actualBlock;
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 603935fef6211bd4addcd3bac58ebc0729e387c3..969902a5c498114d93c3e956a01066343afca14c 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -1660,6 +1660,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+     @Override
+     public void notify(BlockPosition blockposition, IBlockData iblockdata, IBlockData iblockdata1, int i) {
++        org.spigotmc.AsyncCatcher.catchOp("notify call"); // Tuinity
+         this.getChunkProvider().flagDirty(blockposition);
+         VoxelShape voxelshape = iblockdata.getCollisionShape(this, blockposition);
+         VoxelShape voxelshape1 = iblockdata1.getCollisionShape(this, blockposition);
+diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
+index 10606ed03e88e4e467de2d5424df12466c4e7873..51e9c54cddf4b28ba3d3d892322c487774bdab70 100644
+--- a/src/main/java/org/spigotmc/AsyncCatcher.java
++++ b/src/main/java/org/spigotmc/AsyncCatcher.java
+@@ -10,8 +10,9 @@ public class AsyncCatcher
+ 
+     public static void catchOp(String reason)
+     {
+-        if ( enabled && !org.bukkit.Bukkit.isPrimaryThread() ) // Tuinity
++        if ( ( enabled || com.tuinity.tuinity.util.TickThread.STRICT_THREAD_CHECKS ) && !org.bukkit.Bukkit.isPrimaryThread() ) // Tuinity
+         {
++            MinecraftServer.LOGGER.fatal("Thread " + Thread.currentThread().getName() + " failed thread check for reason: Asynchronous " + reason, new Throwable()); // Tuinity - not all exceptions are printed
+             throw new IllegalStateException( "Asynchronous " + reason + "!" );
+         }
+     }

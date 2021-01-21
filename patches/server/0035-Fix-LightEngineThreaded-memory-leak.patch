@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Thu, 10 Sep 2020 21:02:26 +0300
+Subject: [PATCH] Fix LightEngineThreaded memory leak
+
+
+diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+index 168fe23177dfaa401396c1e460f56273ee0a59e4..4141cf02690e13350a10cdfa5e09344c56703f04 100644
+--- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
++++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
+@@ -110,6 +110,8 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+             }
+         }
+ 
++        public final void remove(long chunkId) { pendingTasks.removeIf(task -> task.chunkId == chunkId); queueUpdate(); } // Yatopia
++
+         public final boolean isEmpty() {
+             return this.size == 0 && this.pendingTasks.isEmpty();
+         }
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index be58626bdd1591758317c9c81cb3a6f2aecfc099..40e87f3043da14b1265fcdadde02bef3b261a9d1 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -1792,6 +1792,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         }
+         // Paper end
+ 
++        chunkProvider.getLightEngine().queue.remove(chunk.getPos().pair()); // Yatopia - unregister from light queue
+     }
+ 
+     public void unregisterEntity(Entity entity) {

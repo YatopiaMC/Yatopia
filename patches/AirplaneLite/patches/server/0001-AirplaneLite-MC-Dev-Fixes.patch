@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sat, 31 Oct 2020 19:21:42 -0500
+Subject: [PATCH] AirplaneLite MC Dev Fixes
+
+Airplane Lite
+Copyright (C) 2020 Technove LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+diff --git a/src/main/java/net/minecraft/server/LootTableInfo.java b/src/main/java/net/minecraft/server/LootTableInfo.java
+index addeb268d4d487e18ddaadebf96f078fd079246f..268147484805e9fff298d2f5006f1c594c485342 100644
+--- a/src/main/java/net/minecraft/server/LootTableInfo.java
++++ b/src/main/java/net/minecraft/server/LootTableInfo.java
+@@ -53,7 +53,7 @@ public class LootTableInfo {
+ 
+     @Nullable
+     public <T> T getContextParameter(LootContextParameter<T> lootcontextparameter) {
+-        return this.h.get(lootcontextparameter);
++        return (T) this.h.get(lootcontextparameter); // AirplaneL - compile error
+     }
+ 
+     public boolean a(LootTable loottable) {
+@@ -207,7 +207,7 @@ public class LootTableInfo {
+         }
+ 
+         public <T> T a(LootContextParameter<T> lootcontextparameter) {
+-            T t0 = this.b.get(lootcontextparameter);
++            T t0 = (T) this.b.get(lootcontextparameter); // AirplaneL - compile error
+ 
+             if (t0 == null) {
+                 throw new IllegalArgumentException("No parameter " + lootcontextparameter);
+@@ -218,7 +218,7 @@ public class LootTableInfo {
+ 
+         @Nullable
+         public <T> T b(LootContextParameter<T> lootcontextparameter) {
+-            return this.b.get(lootcontextparameter);
++            return (T) this.b.get(lootcontextparameter); // AirplaneL - compile error
+         }
+ 
+         public LootTableInfo build(LootContextParameterSet lootcontextparameterset) {
