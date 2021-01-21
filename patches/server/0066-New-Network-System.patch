@@ -41,26 +41,21 @@ index 87cf9cd88d1fb5ae70d19e5618ebfb67d281304a..a1c2bea7c93433434b4e4dfd0bb4b962
  
      public boolean getPVP() {
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e94203ec3565 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949cb6d1d99 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
 @@ -11,6 +11,7 @@ import io.netty.channel.ChannelInitializer;
  import io.netty.channel.ChannelOption;
  import io.netty.channel.EventLoopGroup;
  import io.netty.channel.epoll.Epoll;
-+import io.netty.channel.epoll.EpollChannelOption;
++import io.netty.channel.epoll.EpollChannelOption; // Yatopia
  import io.netty.channel.epoll.EpollEventLoopGroup;
  import io.netty.channel.epoll.EpollServerSocketChannel;
  import io.netty.channel.nio.NioEventLoopGroup;
-@@ -24,18 +25,25 @@ import java.util.Collections;
- import java.util.Iterator;
- import java.util.List;
+@@ -26,16 +27,20 @@ import java.util.List;
  import javax.annotation.Nullable;
-+
-+import io.netty.incubator.channel.uring.IOUringChannelOption;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-+import org.yatopiamc.yatopia.server.YatopiaConfig;
 +import org.yatopiamc.yatopia.server.network.NetworkType; // Yatopia
  
  public class ServerConnection {
@@ -78,7 +73,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e942
      private final MinecraftServer e;
      public volatile boolean c;
      private final List<ChannelFuture> listeningChannels = Collections.synchronizedList(Lists.newArrayList());
-@@ -52,15 +60,29 @@ public class ServerConnection {
+@@ -52,15 +57,29 @@ public class ServerConnection {
      }
      // Paper end
  
@@ -108,7 +103,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e942
              Class oclass;
              LazyInitVar lazyinitvar;
  
-@@ -73,16 +95,24 @@ public class ServerConnection {
+@@ -73,16 +92,25 @@ public class ServerConnection {
                  lazyinitvar = ServerConnection.a;
                  ServerConnection.LOGGER.info("Using default channel type");
              }
@@ -123,8 +118,9 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e942
 -            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channel(oclass)).childHandler(new ChannelInitializer<Channel>() {
 +            ServerConnection.LOGGER.info("Yatopia: Using " + networkType.getName() + " network type.");
 +            ServerBootstrap serverBootstrap = new ServerBootstrap();
-+            if(YatopiaConfig.tcpFastOpen && networkType == NetworkType.EPOLL){
-+                    serverBootstrap.option(EpollChannelOption.TCP_FASTOPEN, 3); // Will improve the connection with some speed
++
++            if (org.yatopiamc.yatopia.server.YatopiaConfig.tcpFastOpen && networkType == NetworkType.EPOLL) {
++                serverBootstrap.option(EpollChannelOption.TCP_FASTOPEN, 3); // Will improve the connection with some speed
 +            }
 +            this.listeningChannels.add((((serverBootstrap).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
                  protected void initChannel(Channel channel) throws Exception {
@@ -134,7 +130,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e942
                      } catch (ChannelException channelexception) {
                          ;
                      }
-@@ -97,7 +127,8 @@ public class ServerConnection {
+@@ -97,7 +125,8 @@ public class ServerConnection {
                      channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
                      ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
                  }
@@ -145,23 +141,21 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e942
      }
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..7cfa938023bc79c5ae3bec7085183a84015f2d3c 100644
+index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..c4d0dabd408c7a943dafd6ca89b598cb4afb440e 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -291,6 +291,13 @@ public class YatopiaConfig {
-         checkMovedWrongly = getBoolean("settings.checks.moved-wrongly", checkMovedWrongly);
-         checkVehicleMovedQuickly = getBoolean("settings.checks.vehicle-moved-quickly", checkVehicleMovedQuickly);
-         checkVehicleMovedWrongly = getBoolean("settings.checks.vehicle-moved-wrongly", checkVehicleMovedWrongly);
-+
+@@ -303,4 +303,11 @@ public class YatopiaConfig {
+         logPlayerLoginLoc = getBoolean("settings.log-player-login-location", logPlayerLoginLoc);
+     }
+ 
 +    public static boolean ioUringBeta = false;
 +    public static boolean tcpFastOpen = false;
 +    private static void newNetworkSystem() {
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
 +        tcpFastOpen = getBoolean("network.ftcp-fastopen", tcpFastOpen);
 +    }
-     }
- 
-     public static boolean shouldTickEnchantingTables = false;
++
+ }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..3e74e23f3cc44b7547d9f8575b411059e0e65449
