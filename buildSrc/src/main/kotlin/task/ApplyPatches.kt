@@ -77,6 +77,7 @@ internal fun Project.createApplyPatchesTask(
 
             for (upstream in upstreams) {
                 if (((folder == "server" && upstream.serverList?.isEmpty() != false) || (folder == "api" && upstream.apiList?.isEmpty() != false)) && !upstream.useBlackList) continue
+                if (((folder == "server" && upstream.getRepoServerPatches()?.isEmpty() != false) || (folder == "api" && upstream.getRepoAPIPatches()?.isEmpty() != false)) && upstream.useBlackList) continue
                 project.gitCmd("branch", "-D", "${upstream.name}-$folder", dir = projectDir)
                 project.gitCmd("checkout", "-b", "${upstream.name}-$folder", dir = projectDir)
                 // Apply patches
