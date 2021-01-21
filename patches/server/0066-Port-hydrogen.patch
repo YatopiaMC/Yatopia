@@ -334,10 +334,10 @@ index 0000000000000000000000000000000000000000..a5314a0396f4a8f373d855e873820ddd
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/BiomeStorage.java b/src/main/java/net/minecraft/server/BiomeStorage.java
-index b7f5c932197529c0ea045cfe696fd5da1ccc7202..69de217db4d1e08c567409a6392686f6f6a936f2 100644
+index b7f5c932197529c0ea045cfe696fd5da1ccc7202..af6245ba0c6b1389703722596ab7aa50deaf9e9f 100644
 --- a/src/main/java/net/minecraft/server/BiomeStorage.java
 +++ b/src/main/java/net/minecraft/server/BiomeStorage.java
-@@ -1,23 +1,30 @@
+@@ -1,23 +1,32 @@
  package net.minecraft.server;
  
  import javax.annotation.Nullable;
@@ -360,12 +360,13 @@ index b7f5c932197529c0ea045cfe696fd5da1ccc7202..69de217db4d1e08c567409a6392686f6
 +    public static final int c = (1 << BiomeStorage.f) - 1; public static final int VERTICAL_BIT_MASK = c; // Yatopia - OBFHELPER
      public final Registry<BiomeBase> registry;
 -    private final BiomeBase[] h;
--
-+    // Yatopia Start - Port hydrogen
-+    private BiomeBase[] h; private BiomeBase[] getData(){ return h; } // Yatopia - OBFHELPER
++    private BiomeBase[] h; private BiomeBase[] getData() { return h; } // Yatopia - OBFHELPER , remove final
++
++    // Yatopia start - Port hydrogen
 +    private BiomeBase[] palette;
 +    private DataBits intArray;
 +    // Yatopia end
+ 
      public BiomeStorage(Registry<BiomeBase> registry, BiomeBase[] abiomebase) {
          this.registry = registry;
          this.h = abiomebase;
@@ -373,53 +374,61 @@ index b7f5c932197529c0ea045cfe696fd5da1ccc7202..69de217db4d1e08c567409a6392686f6
      }
  
      private BiomeStorage(Registry<BiomeBase> registry) {
-@@ -36,7 +43,7 @@ public class BiomeStorage implements BiomeManager.Provider {
- 
+@@ -37,6 +46,7 @@ public class BiomeStorage implements BiomeManager.Provider {
              this.h[k] = worldchunkmanager.getBiome(i + l, i1, j + j1);
          }
--
+ 
 +        this.createCompact(); // Yatopia - Port hydrogen
      }
  
      public BiomeStorage(Registry<BiomeBase> registry, ChunkCoordIntPair chunkcoordintpair, WorldChunkManager worldchunkmanager, @Nullable int[] aint) {
-@@ -66,26 +73,27 @@ public class BiomeStorage implements BiomeManager.Provider {
-                 this.h[k] = worldchunkmanager.getBiome(i + l, i1, j + j1);
+@@ -67,9 +77,11 @@ public class BiomeStorage implements BiomeManager.Provider {
              }
          }
--
+ 
 +        this.createCompact(); // Yatopia - Port hydrogen
      }
  
      public int[] a() {
--        int[] aint = new int[this.h.length];
-+        int size = this.intArray.getSize();
-+        int[] array = new int[size];
++        /* // Yatopia start - Port hydrogen
+         int[] aint = new int[this.h.length];
  
--        for (int i = 0; i < this.h.length; ++i) {
--            aint[i] = this.registry.a(this.h[i]);
-+        for (int i = 0; i < size; ++i) {
-+            array[i] = this.registry.a(this.palette[this.intArray.get(i)]);
+         for (int i = 0; i < this.h.length; ++i) {
+@@ -77,15 +89,33 @@ public class BiomeStorage implements BiomeManager.Provider {
          }
  
--        return aint;
+         return aint;
++         */
++        int size = this.intArray.getSize();
++        int[] array = new int[size];
++
++        for (int i = 0; i < size; ++i) {
++            array[i] = this.registry.a(this.palette[this.intArray.get(i)]);
++        }
++
 +        return array;
++        // Yatopia end
      }
  
      @Override
      public BiomeBase getBiome(int i, int j, int k) {
--        int l = i & BiomeStorage.b;
--        int i1 = MathHelper.clamp(j, 0, BiomeStorage.c);
--        int j1 = k & BiomeStorage.b;
++        /* // Yatopia start - Port hydrogen
+         int l = i & BiomeStorage.b;
+         int i1 = MathHelper.clamp(j, 0, BiomeStorage.c);
+         int j1 = k & BiomeStorage.b;
+ 
+         return this.h[i1 << BiomeStorage.e + BiomeStorage.e | j1 << BiomeStorage.e | l];
++         */
 +        int x = i & HORIZONTAL_BIT_MASK;
 +        int y = MathHelper.clamp(j, 0, VERTICAL_BIT_MASK);
 +        int z = k & HORIZONTAL_BIT_MASK;
- 
--        return this.h[i1 << BiomeStorage.e + BiomeStorage.e | j1 << BiomeStorage.e | l];
-+        return this.palette[this.intArray.get(y << HORIZONTAL_SECTION_COUNT + HORIZONTAL_SECTION_COUNT | z << HORIZONTAL_SECTION_COUNT | x)]; // Yatopia - Port Hydrogen
++
++        return this.palette[this.intArray.get(y << HORIZONTAL_SECTION_COUNT + HORIZONTAL_SECTION_COUNT | z << HORIZONTAL_SECTION_COUNT | x)];
++        // Yatopia end
      }
  
      // CraftBukkit start
-@@ -94,7 +102,74 @@ public class BiomeStorage implements BiomeManager.Provider {
+@@ -94,7 +124,74 @@ public class BiomeStorage implements BiomeManager.Provider {
          int i1 = MathHelper.clamp(j, 0, BiomeStorage.c);
          int j1 = k & BiomeStorage.b;
  
@@ -515,7 +524,7 @@ index 8b7fd21e6b366196fbc9cd44a340335c4cf9205f..8b8ecc2d8925b3c209d99e101f6e478b
  
      public org.bukkit.Chunk bukkitChunk;
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-index 5f04591193d58ba7897194142da5efcbec3763dd..ff5a63dc5c3b9c86384a06b8f0b0de4edd67701d 100644
+index 5f04591193d58ba7897194142da5efcbec3763dd..bf4f34b5f4f7473921589b2f001570a38e96c5ce 100644
 --- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 +++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 @@ -70,8 +70,10 @@ public class ChunkRegionLoader {
@@ -525,24 +534,30 @@ index 5f04591193d58ba7897194142da5efcbec3763dd..ff5a63dc5c3b9c86384a06b8f0b0de4e
 +    private static final ThreadLocal<NBTTagCompound> CAPTURED_TAGS = new ThreadLocal<>(); // Yatopia - Port Hydrogen
  
      public static InProgressChunkHolder loadChunk(WorldServer worldserver, DefinedStructureManager definedstructuremanager, VillagePlace villageplace, ChunkCoordIntPair chunkcoordintpair, NBTTagCompound nbttagcompound, boolean distinguish) {
-+        CAPTURED_TAGS.set(nbttagcompound);
++        CAPTURED_TAGS.set(nbttagcompound); // Yatopia
          ArrayDeque<Runnable> tasksToExecuteOnMain = new ArrayDeque<>();
          // Paper end
          ChunkGenerator chunkgenerator = worldserver.getChunkProvider().getChunkGenerator();
-@@ -190,10 +192,15 @@ public class ChunkRegionLoader {
+@@ -190,10 +192,22 @@ public class ChunkRegionLoader {
              } else {
                  object2 = protochunkticklist1;
              }
++            // Yatopia start
 +            NBTTagCompound strippedTag = new NBTTagCompound();
 +            strippedTag.set("Entities", nbttagcompound1.getList("Entities", 10));
 +            strippedTag.set("TileEntities", nbttagcompound1.getList("TileEntities", 10));
 +            strippedTag.set("ChunkBukkitValues", nbttagcompound1.get("ChunkBukkitValues"));
++            // Yatopia end
  
              object = new Chunk(worldserver.getMinecraftWorld(), chunkcoordintpair, biomestorage, chunkconverter, (TickList) object1, (TickList) object2, j, achunksection, // Paper start - fix massive nbt memory leak due to lambda. move lambda into a container method to not leak scope. Only clone needed NBT keys.
--                createLoadEntitiesConsumer(new SafeNBTCopy(nbttagcompound1, "TileEntities", "Entities", "ChunkBukkitValues")) // Paper - move CB Chunk PDC into here
-+                createLoadEntitiesConsumer(strippedTag) // Paper - move CB Chunk PDC into here // Yatopia - Port Hydrogen
++                    // Yatopia start - Port hydrogen
++                    /*
+                 createLoadEntitiesConsumer(new SafeNBTCopy(nbttagcompound1, "TileEntities", "Entities", "ChunkBukkitValues")) // Paper - move CB Chunk PDC into here
++                     */
++                    createLoadEntitiesConsumer(strippedTag)
++                    // Yatopia end
              );// Paper end
-+            CAPTURED_TAGS.remove();
++            CAPTURED_TAGS.remove(); // Yatopia
              ((Chunk)object).setBlockNibbles(blockNibbles); // Tuinity - replace light impl
              ((Chunk)object).setSkyNibbles(skyNibbles); // Tuinity - replace light impl
          } else {
@@ -575,47 +590,55 @@ index f0c9009fb808ca664a7c3ebaeb8cfa8e2ba7b97e..40e3001bc1742231dcd02cee4423c57d
          return this.e;
      }
 diff --git a/src/main/java/net/minecraft/server/IBlockDataHolder.java b/src/main/java/net/minecraft/server/IBlockDataHolder.java
-index b19c694cf01bc868dd7c4ec6432b613d19f2ca40..66fcd0919e69b01b3396bea881988ad6e2d067da 100644
+index b19c694cf01bc868dd7c4ec6432b613d19f2ca40..865fd6ef879943634ee2861c6da21ead31306eb2 100644
 --- a/src/main/java/net/minecraft/server/IBlockDataHolder.java
 +++ b/src/main/java/net/minecraft/server/IBlockDataHolder.java
-@@ -8,6 +8,9 @@ import com.google.common.collect.Table;
+@@ -8,6 +8,10 @@ import com.google.common.collect.Table;
  import com.google.common.collect.UnmodifiableIterator;
  import com.mojang.serialization.Codec;
  import com.mojang.serialization.MapCodec;
++// Yatopia start
 +import me.jellysquid.mods.lithium.common.cache.StatePropertyTableCache;
 +import me.jellysquid.mods.lithium.common.collections.FastImmutableTable;
-+
++// Yatopia end
  import java.util.Collection;
  import java.util.Collections;
  import java.util.Iterator;
-@@ -143,7 +146,7 @@ public abstract class IBlockDataHolder<O, S> {
+@@ -143,7 +147,12 @@ public abstract class IBlockDataHolder<O, S> {
                  }
              }
  
--            this.e = (Table) (table.isEmpty() ? table : ArrayTable.create(table));
-+            this.e = new FastImmutableTable<>((table.isEmpty() ? table : ArrayTable.create(table)), StatePropertyTableCache.getTableCache(this.c)); // Yatopia Start
++            // Yatopia start - Port hydrogen
++            /*
+             this.e = (Table) (table.isEmpty() ? table : ArrayTable.create(table));
++             */
++            this.e = new FastImmutableTable<>((table.isEmpty() ? table : ArrayTable.create(table)), StatePropertyTableCache.getTableCache(this.c));
++            // Yatopia end
          }
      }
  
 diff --git a/src/main/java/net/minecraft/server/NBTTagCompound.java b/src/main/java/net/minecraft/server/NBTTagCompound.java
-index 06d5acab794e3ee139a11f9b068e8a359c46db2c..4ac86d44bd9c2d345f4c30fdc7f2054f963d703f 100644
+index 06d5acab794e3ee139a11f9b068e8a359c46db2c..2bc71833fea91f1b7b35a431b1d6905a5738e83c 100644
 --- a/src/main/java/net/minecraft/server/NBTTagCompound.java
 +++ b/src/main/java/net/minecraft/server/NBTTagCompound.java
-@@ -20,6 +20,8 @@ import java.util.Set;
+@@ -20,6 +20,7 @@ import java.util.Set;
  import java.util.UUID;
  import java.util.regex.Pattern;
  import javax.annotation.Nullable;
-+
-+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
++import it.unimi.dsi.fastutil.objects.Object2ObjectMap; // Yatopia
  import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap; // Paper
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
-@@ -74,7 +76,7 @@ public class NBTTagCompound implements NBTBase {
+@@ -74,7 +75,12 @@ public class NBTTagCompound implements NBTBase {
      public final Map<String, NBTBase> map; // Paper
  
      protected NBTTagCompound(Map<String, NBTBase> map) {
--        this.map = map;
-+        this.map = map instanceof Object2ObjectMap ? map : new Object2ObjectOpenHashMap<>(map); // Yatopia - Port Hydrogen
++        // Yatopia start - Port hydrogen
++        /*
+         this.map = map;
++         */
++        this.map = map instanceof Object2ObjectMap ? map : new Object2ObjectOpenHashMap<>(map);
++        // Yatopia end
      }
  
      public NBTTagCompound() {
