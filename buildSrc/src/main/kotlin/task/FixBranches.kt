@@ -19,27 +19,24 @@ internal fun Project.createFixBranchesTask(
     doLast {
         for (folder in folderArray) {
             val subprojectWorkDir = Paths.get("${toothpick.forkName}-${if (folder == "api") {"API"} else {"Server"}}").toFile()
-            val branchCommits = ConcurrentHashMap<String, String>()
+            val currentBranchCommits = gitCmd("--no-pager", "log", "${toothpick.forkName}-$folder...${toothpick.upstreamBranch}", "--pretty=oneline",
+                dir = subprojectWorkDir).output.toString()
+            val nameMap = ConcurrentHashMap<String, String>()
             for (upstream in upstreams) {
                 val patchPath = Paths.get("${upstream.patchPath}/$folder").toFile()
                 if (patchPath.listFiles()?.isEmpty() != false) continue
                 val commitName = gitCmd("--no-pager", "log", "${upstream.name}-$folder", "-1", "--format=\"%s\"",
                     dir = subprojectWorkDir).output.toString()
-                branchCommits.put("${upstream.name}-$folder", commitName.substring(1, commitName.length-1))
-            }
-            val currentBranchCommits = gitCmd("--no-pager", "log", "${toothpick.forkName}-$folder...${toothpick.upstreamBranch}", "--pretty=oneline",
-                dir = subprojectWorkDir).output.toString()
-            val nameMap = ConcurrentHashMap<String, String>()
-            for (line in currentBranchCommits.split("\\n".toRegex()).stream().parallel()) {
-                val commitName = line.substring(41, line.length)
-                for ((key, value) in branchCommits) {
-                    if (value == commitName) {
+                val branchName = "${upstream.name}-$folder"
+                val commitNameFiltered = commitName.substring(1, commitName.length-1)
+                for (line in currentBranchCommits.split("\\n".toRegex()).stream().parallel()) {
+                    val commitNameIterator = line.substring(41, line.length)
+                    if (commitNameIterator == commitNameFiltered) {
                         val hash = line.substring(0, 40)
-                        nameMap.put(key, hash)
+                        nameMap.put(branchName, hash)
                         continue
                     }
                 }
-
             }
             for (upstream in upstreams) {
                 val patchPath = Paths.get("${upstream.patchPath}/$folder").toFile()
