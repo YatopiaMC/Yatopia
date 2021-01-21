@@ -6,10 +6,10 @@ Subject: [PATCH] New Network System
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 
 diff --git a/pom.xml b/pom.xml
-index cd681eb181571543b63108f33d1d3f129c035e84..d28bd6ddbe3e61da90c49151eb5f17e0cda53c10 100644
+index 8af1a91102c5cc4c230f622e6629e46e95f17d44..9b7ed0de1054285dadff6aefc95c7207079504a6 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -51,9 +51,17 @@
+@@ -53,9 +53,17 @@
          <dependency>
              <groupId>io.netty</groupId>
              <artifactId>netty-all</artifactId>
@@ -29,10 +29,10 @@ index cd681eb181571543b63108f33d1d3f129c035e84..d28bd6ddbe3e61da90c49151eb5f17e0
              <groupId>io.papermc</groupId>
              <artifactId>minecraft-server</artifactId>
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 581b675fae4ca8a3d774f4353d1e58fc31b557c7..cdf24f05f3e7c437c40fea4528fb6dff5a67dc78 100644
+index 87cf9cd88d1fb5ae70d19e5618ebfb67d281304a..a1c2bea7c93433434b4e4dfd0bb4b9620657c40d 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1732,6 +1732,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1740,6 +1740,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          return true;
      }
  
@@ -145,13 +145,13 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..183ebe09403e74eb53c73513a9c6e942
      }
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 00c600d74ba84cb564b9b22f53f279a93839d71f..89ca0f817f059fa97e60cd4affbe1db0aeaecb8b 100644
+index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..7cfa938023bc79c5ae3bec7085183a84015f2d3c 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -297,4 +297,11 @@ public class YatopiaConfig {
-     private static void tickEnchantingTables() {
-         shouldTickEnchantingTables = getBoolean("settings.tick.enchanting-tables", shouldTickEnchantingTables);
-     }
+@@ -291,6 +291,13 @@ public class YatopiaConfig {
+         checkMovedWrongly = getBoolean("settings.checks.moved-wrongly", checkMovedWrongly);
+         checkVehicleMovedQuickly = getBoolean("settings.checks.vehicle-moved-quickly", checkVehicleMovedQuickly);
+         checkVehicleMovedWrongly = getBoolean("settings.checks.vehicle-moved-wrongly", checkVehicleMovedWrongly);
 +
 +    public static boolean ioUringBeta = false;
 +    public static boolean tcpFastOpen = false;
@@ -159,7 +159,9 @@ index 00c600d74ba84cb564b9b22f53f279a93839d71f..89ca0f817f059fa97e60cd4affbe1db0
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
 +        tcpFastOpen = getBoolean("network.ftcp-fastopen", tcpFastOpen);
 +    }
- }
+     }
+ 
+     public static boolean shouldTickEnchantingTables = false;
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..3e74e23f3cc44b7547d9f8575b411059e0e65449

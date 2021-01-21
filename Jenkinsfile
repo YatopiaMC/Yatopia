@@ -6,15 +6,14 @@ pipeline {
             steps {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
                 sh 'rm -rf ./target'
-                sh 'rm -rf ./Tuinity/Paper/Paper-API ./Tuinity/Paper/Paper-Server ./Tuinity/Paper/work/Spigot/Spigot-API ./Tuinity/Paper/work/Spigot/Spigot-Server'
-                sh 'rm -rf ./Tuinity/Tuinity-API ./Tuinity/Tuinity-Server ./Tuinity/mc-dev'
+                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work/Spigot/Spigot-API ./Paper/work/Spigot/Spigot-Server'
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
-                sh 'chmod +x ./scripts/*.sh'
+                sh 'chmod +x ./gradlew'
             }
         }
         stage('Init project & submodules') {
             steps {
-                sh './yatopia init'
+                sh './gradlew initGitSubmodules'
             }
         }
         stage('Decompile & apply patches') {
@@ -28,17 +27,13 @@ pipeline {
                     publisherStrategy: 'EXPLICIT',
                 ) {
                     sh '''
-                        set -e
-                        source "./scripts/functions.sh"
-                        basedir
-                        $scriptdir/updateUpstream.sh "$basedir" false true || exit 1
-                        set -e
-                        $scriptdir/applyPatches.sh "$basedir" || exit 1
+                    ./gradlew setupUpstream
+                    ./gradlew applyPatches
                     '''
                 }
             }
         }
-        stage('Build API') {
+        stage('Build') {
             tools {
                 jdk "OpenJDK 8"
             }
@@ -48,23 +43,10 @@ pipeline {
                     mavenLocalRepo: '.repository',
                     publisherStrategy: 'EXPLICIT'
                 ) {
-                    sh 'mvn -N install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy'
-                    sh 'cd Yatopia-API && mvn install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy'
-                    sh 'cd ./Tuinity/Paper/Paper-MojangAPI && mvn install'
-                }
-            }
-        }
-        stage('Build Server') {
-            tools {
-                jdk "OpenJDK 8"
-            }
-            steps {
-                withMaven(
-                    maven: '3',
-                    mavenLocalRepo: '.repository',
-                    publisherStrategy: 'EXPLICIT'
-                ) {
-                    sh 'cd Yatopia-Server && mvn install org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy -DaltDeploymentRepository=codemc-snapshots::default::https://repo.codemc.org/repository/nms-local/'
+                    sh '''
+                    ./gradlew build
+                    ./gradlew publish
+                    '''
                 }
             }
         }
@@ -79,18 +61,10 @@ pipeline {
                     publisherStrategy: 'EXPLICIT'
                 ) {
                     sh '''
-                        basedir=$(pwd)
-                        paperworkdir="$basedir/Tuinity/Paper/work"
-                        mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
-                        serverjar="$basedir/Yatopia-Server/target/yatopia-$mcver.jar"
-                        vanillajar="$paperworkdir/Minecraft/$mcver/$mcver.jar"
-                        (
-                            cd "$paperworkdir/Paperclip"
-                            mvn clean package "-Dmcver=$mcver" "-Dpaperjar=$serverjar" "-Dvanillajar=$vanillajar"
-                        )
                         mkdir -p "./target"
-                        cp "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
-                    '''
+                        ./gradlew paperclip
+                        cp "yatopia-$mcver-paperclip.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
+                        '''
                 }
             }
             post {

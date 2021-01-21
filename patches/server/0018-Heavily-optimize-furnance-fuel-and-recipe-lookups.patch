@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Thu, 25 Jun 2020 23:40:12 +0200
+Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
+
+Co-authored-by: Mykyta Komarn <nkomarn@hotmail.com>
+
+diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
+index 76ea1d003b43d822e2b85eec3b8740155efd531a..c1d1ce582c94fd20f42b1979d6edbb6b377adff8 100644
+--- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
++++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
+@@ -299,7 +299,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+                     this.cookTime = MathHelper.clamp(this.cookTime - 2, 0, this.cookTimeTotal);
+                 }
+             } else {
+-                IRecipe irecipe = this.world.getCraftingManager().craft((Recipes<RecipeCooking>) this.c, this, this.world).orElse(null); // Eclipse fail
++                // Yatopia start - used cached recipe if possible, otherwise look up
++                IRecipe irecipe = getCurrentRecipe();
++                if (irecipe == null) irecipe = this.world.getCraftingManager().craft((Recipes<RecipeCooking>) this.c, this, this.world).orElse(null); // Eclipse fail
++                // Yatopia end
+ 
+                 if (!this.isBurning() && this.canBurn(irecipe)) {
+                     // CraftBukkit start
+@@ -627,4 +630,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+         }
+ 
+     }
++
++    // Yatopia start - cache recipe
++    private IRecipe cachedRecipe = null;
++
++    @Override
++    public IRecipe getCurrentRecipe() {
++        return cachedRecipe;
++    }
++
++    @Override
++    public void setCurrentRecipe(IRecipe recipe) {
++        cachedRecipe = recipe;
++    }
++    // Yatopia end
+ }
