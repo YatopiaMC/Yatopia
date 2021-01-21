@@ -1,0 +1,181 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: William Blake Galbreath <blake.galbreath@gmail.com>
+Date: Fri, 31 May 2019 21:24:33 -0500
+Subject: [PATCH] Advancement API
+
+
+diff --git a/src/main/java/net/minecraft/server/Advancement.java b/src/main/java/net/minecraft/server/Advancement.java
+index c405047c00d354bbc1449fd2f917b73f980ef1a5..384d4090f8ff1ea718de16affa5c146a2f58d28a 100644
+--- a/src/main/java/net/minecraft/server/Advancement.java
++++ b/src/main/java/net/minecraft/server/Advancement.java
+@@ -64,7 +64,7 @@ public class Advancement {
+     }
+ 
+     @Nullable
+-    public AdvancementDisplay c() {
++    public AdvancementDisplay c() { return getDisplay(); } public AdvancementDisplay getDisplay() { // Purpur
+         return this.display;
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/AdvancementDisplay.java b/src/main/java/net/minecraft/server/AdvancementDisplay.java
+index b0d4b7a67679a35fa8f88c241193c0f3814f1e7b..ac4fac89837f4e77dcaec6f9ca90c5aa8a78c4be 100644
+--- a/src/main/java/net/minecraft/server/AdvancementDisplay.java
++++ b/src/main/java/net/minecraft/server/AdvancementDisplay.java
+@@ -15,10 +15,11 @@ public class AdvancementDisplay {
+     private final MinecraftKey d;
+     private final AdvancementFrameType e;
+     private final boolean f;
+-    private final boolean g;
+-    private final boolean h;
++    private boolean g; // Purpur - un-finalize
++    private boolean h; // Purpur - un-finalize
+     private float i;
+     private float j;
++    public final org.bukkit.advancement.AdvancementDisplay bukkit = new org.bukkit.craftbukkit.advancement.CraftAdvancementDisplay(this); // Purpur
+ 
+     public AdvancementDisplay(ItemStack itemstack, IChatBaseComponent ichatbasecomponent, IChatBaseComponent ichatbasecomponent1, @Nullable MinecraftKey minecraftkey, AdvancementFrameType advancementframetype, boolean flag, boolean flag1, boolean flag2) {
+         this.a = ichatbasecomponent;
+@@ -36,22 +37,29 @@ public class AdvancementDisplay {
+         this.j = f1;
+     }
+ 
++    public IChatBaseComponent getTitle() { return a(); } // Purpur - OBFHELPER
+     public IChatBaseComponent a() {
+         return this.a;
+     }
+ 
++    public IChatBaseComponent getDescription() { return b(); } // Purpur - OBFHELPER
+     public IChatBaseComponent b() {
+         return this.b;
+     }
+ 
++    public AdvancementFrameType getFrameType() { return e(); } // Purpur - OBFHELPER
+     public AdvancementFrameType e() {
+         return this.e;
+     }
+ 
++    public void setShouldAnnounceToChat(boolean announce) { this.g = announce; } // Purpur - OBFHELPER
++    public boolean shouldAnnounceToChat() { return i(); } // Purpur - OBFHELPER
+     public boolean i() {
+         return this.g;
+     }
+ 
++    public void setHidden(boolean hidden) { this.h = hidden; } // Purpur - OBFHELPER
++    public boolean isHidden() { return j(); } // Purpur - OBFHELPER
+     public boolean j() {
+         return this.h;
+     }
+diff --git a/src/main/java/net/minecraft/server/AdvancementFrameType.java b/src/main/java/net/minecraft/server/AdvancementFrameType.java
+index 90b78e49c0688dc2fb02df0b6784cd82fad4bc07..9a3a53cf3576c299629a84ba76cb5b9b86a14491 100644
+--- a/src/main/java/net/minecraft/server/AdvancementFrameType.java
++++ b/src/main/java/net/minecraft/server/AdvancementFrameType.java
+@@ -1,15 +1,26 @@
+ package net.minecraft.server;
+ 
++import org.bukkit.advancement.FrameType; // Purpur
++
+ public enum AdvancementFrameType {
+ 
+-    TASK("task", 0, EnumChatFormat.GREEN), CHALLENGE("challenge", 26, EnumChatFormat.DARK_PURPLE), GOAL("goal", 52, EnumChatFormat.GREEN);
++    // Purpur start
++    TASK("task", 0, EnumChatFormat.GREEN, FrameType.TASK),
++    CHALLENGE("challenge", 26, EnumChatFormat.DARK_PURPLE, FrameType.CHALLENGE),
++    GOAL("goal", 52, EnumChatFormat.GREEN, FrameType.GOAL);
++    // Purpur end
+ 
+     private final String d;
+     private final int e;
+     private final EnumChatFormat f;
+     private final IChatBaseComponent g;
+ 
+-    private AdvancementFrameType(String s, int i, EnumChatFormat enumchatformat) {
++    // Purpur start
++    public final FrameType bukkit;
++
++    AdvancementFrameType(String s, int i, EnumChatFormat enumchatformat, FrameType bukkit) {
++        this.bukkit = bukkit;
++        // Purpur end
+         this.d = s;
+         this.e = i;
+         this.f = enumchatformat;
+diff --git a/src/main/java/net/minecraft/server/CriterionTrigger.java b/src/main/java/net/minecraft/server/CriterionTrigger.java
+index cfb420a9c7e64ec240fff81d2e3fd32f607847b3..6fd3671c37a4fc42aa438a93d5a749b52f618b1e 100644
+--- a/src/main/java/net/minecraft/server/CriterionTrigger.java
++++ b/src/main/java/net/minecraft/server/CriterionTrigger.java
+@@ -26,6 +26,7 @@ public interface CriterionTrigger<T extends CriterionInstance> {
+             this.c = s;
+         }
+ 
++        public T getInstance() { return a(); } // Purpur - OBFHELPER
+         public T a() {
+             return this.a;
+         }
+diff --git a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java
+index a5aadf2850f273e258f84b6c7bc9ca3649fb884d..b0a7092d623adccd61fd3e094f1ec5e8d95c3691 100644
+--- a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java
++++ b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancement.java
+@@ -27,4 +27,11 @@ public class CraftAdvancement implements org.bukkit.advancement.Advancement {
+     public Collection<String> getCriteria() {
+         return Collections.unmodifiableCollection(handle.getCriteria().keySet());
+     }
++
++    // Purpur start
++    @Override
++    public org.bukkit.advancement.AdvancementDisplay getDisplay() {
++        return getHandle().getDisplay() == null ? null : getHandle().getDisplay().bukkit;
++    }
++    // Purpur end
+ }
+diff --git a/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementDisplay.java b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementDisplay.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..1cbb1e67b64a7e830cfabcd1fc07e998434476c3
+--- /dev/null
++++ b/src/main/java/org/bukkit/craftbukkit/advancement/CraftAdvancementDisplay.java
+@@ -0,0 +1,47 @@
++package org.bukkit.craftbukkit.advancement;
++
++import net.minecraft.server.AdvancementDisplay;
++import org.bukkit.advancement.FrameType;
++import org.bukkit.craftbukkit.util.CraftChatMessage;
++
++public class CraftAdvancementDisplay implements org.bukkit.advancement.AdvancementDisplay {
++    private final AdvancementDisplay handle;
++
++    public CraftAdvancementDisplay(AdvancementDisplay handle) {
++        this.handle = handle;
++    }
++
++    public AdvancementDisplay getHandle() {
++        return handle;
++    }
++
++    @Override
++    public String getTitle() {
++        return CraftChatMessage.fromComponent(handle.getTitle());
++    }
++
++    @Override
++    public String getDescription() {
++        return CraftChatMessage.fromComponent(handle.getDescription());
++    }
++
++    @Override
++    public FrameType getFrameType() {
++        return handle.getFrameType().bukkit;
++    }
++
++    @Override
++    public boolean shouldAnnounceToChat() {
++        return handle.shouldAnnounceToChat();
++    }
++
++    @Override
++    public void setShouldAnnounceToChat(boolean announce) {
++        handle.setShouldAnnounceToChat(announce);
++    }
++
++    @Override
++    public boolean isHidden() {
++        return handle.isHidden();
++    }
++}

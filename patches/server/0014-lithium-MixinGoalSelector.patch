@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Mon, 11 May 2020 22:07:17 +0200
+Subject: [PATCH] lithium MixinGoalSelector
+
+Only replaces the set type, might want to also port the logic rewrite in the future
+
+Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+index 9cad895c7d008487ce885cbcc2c3966645df4c19..b63f274ec0afec96b4879f9ebaed72c416d1f9d2 100644
+--- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
++++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+@@ -11,6 +11,7 @@ import java.util.function.Supplier;
+ import java.util.stream.Stream;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet; // Yatopia
+ 
+ public class PathfinderGoalSelector {
+ 
+@@ -27,7 +28,7 @@ public class PathfinderGoalSelector {
+         }
+     };
+     private final Map<PathfinderGoal.Type, PathfinderGoalWrapped> c = new EnumMap(PathfinderGoal.Type.class);
+-    private final Set<PathfinderGoalWrapped> d = Sets.newLinkedHashSet(); public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public
++    private final Set<PathfinderGoalWrapped> d = new ObjectLinkedOpenHashSet<>();/* Yatopia better set */ public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public
+     private final Supplier<GameProfilerFiller> e;
+     private final EnumSet<PathfinderGoal.Type> f = EnumSet.noneOf(PathfinderGoal.Type.class); // Paper unused, but dummy to prevent plugins from crashing as hard. Theyll need to support paper in a special case if this is super important, but really doesn't seem like it would be.
+     private final OptimizedSmallEnumSet<PathfinderGoal.Type> goalTypes = new OptimizedSmallEnumSet<>(PathfinderGoal.Type.class); // Paper - remove streams from pathfindergoalselector

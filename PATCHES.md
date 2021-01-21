@@ -8,92 +8,252 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
+| api |  AFK API      | William Blake Galbreath |  |
+| server |  AFK API      | William Blake Galbreath |  |
+| server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
+| server |  Actually unload POI data      | Spottedleaf |  |
+| server |  Add /ping command      | William Blake Galbreath |  |
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
 | api |  Add ChatColor.getById      | Aikar |  |
+| api |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
+| server |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
-| server |  Add IntelliJ IDEA runnable      | Bud Gidiere |  |
+| server |  Add IntelliJ IDEA runnable      | Zoe |  |
 | server |  Add JsonList save timings      | Ivan Pekov |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
-| api |  Add StructureLocateEvent      | dfsek |  |
-| server |  Add StructureLocateEvent      | dfsek |  |
+| api |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
+| server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
+| server |  Add Velocity natives for encryption and compression      | Andrew Steinborn |  |
 | server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
+| server |  Add adjustable breeding cooldown to config      | montlikadani |  |
+| server |  Add allow water in end world option      | William Blake Galbreath |  |
+| server |  Add boat fall damage config      | BillyGalbreath |  |
+| server |  Add canSaveToDisk to Entity      | William Blake Galbreath |  |
 | server |  Add component util      | William Blake Galbreath |  |
+| server |  Add config for allowing Endermen to despawn even while      | jmp |  |
+| server |  Add configurable snowball damage      | BillyGalbreath |  |
+| api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
+| server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
+| server |  Add demo command      | BillyGalbreath |  |
+| server |  Add enderman and creeper griefing controls      | William Blake Galbreath |  |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add mobGriefing bypass to everything affected      | Encode42 |  |
 | server |  Add no-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
+| server |  Add obfhelpers for plugin use      | William Blake Galbreath |  |
+| server |  Add option for boats to eject players on land      | William Blake Galbreath |  |
+| server |  Add option to allow loyalty on tridents to work in the void      | William Blake Galbreath |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
+| server |  Add option to disable mushroom block updates      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
+| api |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
+| server |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
+| server |  Add option to set armorstand step height      | William Blake Galbreath |  |
+| server |  Add option to teleport to spawn if outside world border      | William Blake Galbreath |  |
+| server |  Add packet limiter config      | Spottedleaf |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
+| server |  Add phantom spawning options      | William Blake Galbreath |  |
+| server |  Add player death exp control options      | William Blake Galbreath |  |
+| api |  Add predicate to recipe&#39;s ExactChoice ingredient      | William Blake Galbreath |  |
+| server |  Add predicate to recipe&#39;s ExactChoice ingredient      | William Blake Galbreath |  |
+| server |  Add soft async catcher      | Spottedleaf |  |
+| server |  Add tablist suffix option for afk      | montlikadani |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
-| server |  AirplaneLite Data Structs      | Paul Sauve |  |
+| server |  Add vindicator johnny spawn chance      | William Blake Galbreath |  |
+| server |  Add wither skeleton takes wither damage option      | William Blake Galbreath |  |
+| api |  Advancement API      | William Blake Galbreath |  |
+| server |  Advancement API      | William Blake Galbreath |  |
 | server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
+| server |  Allow Entities to be removed from a world while ticking      | Spottedleaf |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
+| server |  Allow color codes in books      | William Blake Galbreath |  |
+| server |  Allow controlled flushing for network manager      | Spottedleaf |  |
 | server |  Allow infinite and mending enchantments together      | William Blake Galbreath |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
 | server |  Allow leashing villagers      | William Blake Galbreath |  |
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow to change the piston push limit      | tr7zw |  |
+| server |  Allow toggling special MobSpawners per world      | jmp |  |
+| api |  Alphabetize in-game /plugins list      | BillyGalbreath |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
+| api |  Anvil API      | William Blake Galbreath |  |
+| server |  Anvil API      | William Blake Galbreath |  |
+| server |  Apply display names from item forms of entities to entities      | jmp |  |
+| server |  Arrows should not reset despawn counter      | William Blake Galbreath |  |
+| server |  Attempt to recalculate regionfile header if it is corrupt      | Spottedleaf |  |
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
+| server |  Brand changes      | Spottedleaf |  |
 | server |  Brandings      | YatopiaMC |  |
+| server |  Breedable Polar Bears      | William Blake Galbreath |  |
+| api |  Bring back server name      | William Blake Galbreath |  |
+| server |  Bring back server name      | William Blake Galbreath |  |
+| server |  Cat spawning options      | William Blake Galbreath |  |
+| server |  Change writes to use NORMAL priority rather than LOW      | Spottedleaf |  |
+| server |  Changeable Mob Left Handed Chance      | Ben Kerllenevich |  |
+| server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
+| api |  ChatColor conveniences      | William Blake Galbreath |  |
+| server |  Chickens can retaliate      | William Blake Galbreath |  |
+| server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
+| server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
+| server |  Configurable TPS Catchup      | William Blake Galbreath |  |
+| server |  Configurable chance for wolves to spawn rabid      | Encode42 |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
+| server |  Configurable daylight cycle      | William Blake Galbreath |  |
+| server |  Configurable default wolf collar color      | Encode42 |  |
+| server |  Configurable dungeon seed      | William Blake Galbreath |  |
 | server |  Configurable enchanting table tick      | Ivan Pekov |  |
+| server |  Configurable end spike seed      | William Blake Galbreath |  |
+| server |  Configurable entity base attributes      | BillyGalbreath |  |
 | server |  Configurable flight checks      | l_MrBoom_l |  |
+| server |  Configurable jockey options      | William Blake Galbreath |  |
 | server |  Configurable movement checks      | l_MrBoom_l |  |
+| api |  Configurable permission message upgrades      | William Blake Galbreath |  |
+| server |  Configurable server mod name      | William Blake Galbreath |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
+| server |  Configurable villager breeding      | draycia |  |
+| server |  Configurable void damage height      | William Blake Galbreath |  |
+| server |  Consolidate flush calls for entity tracker packets      | Spottedleaf |  |
+| server |  Controllable Minecarts      | William Blake Galbreath |  |
+| server |  Copy passenger list in enderTeleportTo      | Spottedleaf |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
-| server |  Custom Locale Support      | Bud Gidiere |  |
+| server |  Crying obsidian valid for portal frames      | William Blake Galbreath |  |
+| server |  Custom Locale Support      | Zoe |  |
+| server |  Customizable wither health and healing      | jmp |  |
 | api |  Default permissions      | William Blake Galbreath |  |
+| server |  Delay chunk unloads      | Spottedleaf |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
+| server |  Detail more information in watchdog dumps      | Spottedleaf |  |
+| server |  Disable loot drops on death by cramming      | William Blake Galbreath |  |
+| server |  Disable outdated build check      | William Blake Galbreath |  |
 | api |  Disable reload command      | Ivan Pekov |  |
 | server |  Disable the Snooper      | Sotr |  |
+| server |  Dispenser curse of binding protection      | William Blake Galbreath |  |
+| server |  Dispensers place anvils option      | William Blake Galbreath |  |
+| server |  Distance manager tick timings      | Spottedleaf |  |
+| server |  Do not allow ticket level changes while unloading      | Spottedleaf |  |
+| server |  Do not load chunks during a crash report      | Spottedleaf |  |
+| server |  Do not retain playerchunkmap instance in light thread factory      | Spottedleaf |  |
 | server |  Do not update distance map when animal and mob spawning is      | Beech Horn |  |
+| server |  Don&#39;t allow StructureLocateEvent to change worlds      | Spottedleaf |  |
+| server |  Don&#39;t get entity equipment if not needed      | Paul Sauve |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
+| server |  Don&#39;t lookup fluid state when raytracing      | Spottedleaf |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
+| api |  DragonEggPlaceEvent      | William Blake Galbreath |  |
+| server |  DragonEggPlaceEvent      | William Blake Galbreath |  |
+| server |  Duplicate paper&#39;s vanilla scoreboard colors patch to sync      | William Blake Galbreath |  |
+| server |  EMC - Configurable disable give dropping      | Aikar |  |
+| api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
+| server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
+| server |  End gateway should check if entity can use portal      | William Blake Galbreath |  |
+| server |  Ender dragon always drop egg      | William Blake Galbreath |  |
+| server |  Ender dragon always drop full exp      | William Blake Galbreath |  |
 | server |  Ensure pools create daemon threads      | Ivan Pekov |  |
+| server |  Entities can use portals configuration      | William Blake Galbreath |  |
+| server |  Entities pick up loot bypass mob-griefing gamerule      | William Blake Galbreath |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
+| api |  EntityMoveEvent      | William Blake Galbreath |  |
+| server |  EntityMoveEvent      | William Blake Galbreath |  |
+| server |  Execute chunk tasks mid-tick      | Spottedleaf |  |
+| api |  ExecuteCommandEvent      | William Blake Galbreath |  |
+| server |  Farmland trampling changes      | Mariell Hoversholm |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
+| server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
+| server |  Fix death message colors      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
+| api |  Fix javadoc warnings (missing @param and @return)      | BillyGalbreath |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix rotating UP/DOWN CW and CCW      | BillyGalbreath |  |
 | server |  Fix stuck in portals      | BillyGalbreath |  |
+| server |  Fix swamp hut cat generation deadlock      | Spottedleaf |  |
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
+| api |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
+| server |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
+| server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
+| server |  Highly optimise single and multi-AABB VoxelShapes and      | Spottedleaf |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
+| server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement TPSBar      | BillyGalbreath |  |
+| server |  Implement bed explosion options      | William Blake Galbreath |  |
+| server |  Implement configurable search radius for villagers to spawn      | William Blake Galbreath |  |
+| server |  Implement elytra settings      | William Blake Galbreath |  |
 | server |  Implement infinite lava      | William Blake Galbreath |  |
+| server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
+| server |  Improve abnormal server shutdown process      | Spottedleaf |  |
+| server |  Improve async tp to not load chunks when crossing worlds      | Spottedleaf |  |
+| server |  Improve paper prevent moving into unloaded chunk check      | Spottedleaf |  |
 | server |  Improve task performance      | ishland | Mykyta Komarn |
-| server |  Infinity No Arrows      | Bud Gidiere |  |
+| server |  Improved oversized chunk data packet handling      | Spottedleaf |  |
+| server |  Infinite fuel furnace      | William Blake Galbreath |  |
+| server |  Infinity No Arrows      | Zoe |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
+| api |  Item entity immunities      | William Blake Galbreath |  |
+| server |  Item entity immunities      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
+| api |  ItemFactory#getMonsterEgg      | William Blake Galbreath |  |
+| server |  ItemFactory#getMonsterEgg      | William Blake Galbreath |  |
+| api |  ItemStack convenience methods      | William Blake Galbreath |  |
+| server |  Kelp weeping and twisting vines configurable max growth age      | BillyGalbreath |  |
+| server |  Lag compensate block breaking      | Spottedleaf |  |
+| api |  Lagging threshold      | William Blake Galbreath |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
+| api |  Left handed API      | BillyGalbreath |  |
+| server |  Left handed API      | BillyGalbreath |  |
+| api |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
+| server |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
+| api |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
+| server |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
+| api |  Llama API      | William Blake Galbreath |  |
+| server |  Llama API      | William Blake Galbreath |  |
+| server |  Lobotomize stuck villagers      | BillyGalbreath |  |
+| server |  Logger settings (suppressing pointless logs)      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
 | server |  MC-168772 Fix - Add turtle egg block options      | William Blake Galbreath |  |
+| server |  MC-Dev fixes      | Spottedleaf |  |
+| server |  Make CallbackExecutor strict again      | Spottedleaf |  |
+| server |  Make Iron Golems Swim      | William Blake Galbreath |  |
+| server |  Make animal breeding times configurable      | jmp |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
+| server |  Make sure inlined getChunkAt has inlined logic for loaded      | Spottedleaf |  |
+| server |  Manually inline methods in BlockPosition      | Spottedleaf |  |
+| server |  Mending mends most damages equipment first      | William Blake Galbreath |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
+| server |  Movement options for armour stands      | Mariell Hoversholm |  |
+| server |  Multi-Threaded Server Ticking Vanilla      | Spottedleaf |  |
+| server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
+| server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | api |  Optimise Bukkit&#39;s MapPalette      | epserv |  |
+| server |  Optimise EntityInsentient#checkDespawn      | Spottedleaf |  |
+| server |  Optimise WorldServer#notify      | Spottedleaf |  |
+| server |  Optimise chunk tick iteration      | Spottedleaf |  |
+| server |  Optimise closest entity lookup used by AI goals      | Spottedleaf |  |
+| server |  Optimise collision checking in player move packet handling      | Spottedleaf |  |
+| server |  Optimise entity hard collision checking      | Spottedleaf |  |
+| server |  Optimise non-flush packet sending      | Spottedleaf |  |
 | server |  Optimise portals      | Ivan Pekov |  |
+| server |  Optimise tab complete      | Spottedleaf |  |
 | server |  Optimised hallowen checker      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
@@ -103,44 +263,109 @@ This is an overview over all patches that are currently used.
 | server |  Optimize random calls in chunk ticking      | Paul Sauve |  |
 | server |  Optimize some stuff in WorldServer ticking      | MrIvanPlays |  |
 | server |  Optimize whitelist command for multiple additions / removals      | Ivan Pekov |  |
+| server |  Option for Villager Clerics to farm Nether Wart      | jmp |  |
+| server |  Option for chests to open even with a solid block on top      | jmp |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
+| server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
+| server |  PaperPR - Config option for Piglins guarding chests      | jmp |  |
 | server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
+| api |  PaperPR - PlayerItemCooldownEvent      | KennyTV |  |
+| server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
+| server |  Phantom flames on swoop      | BillyGalbreath |  |
+| api |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
+| server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
+| server |  Phantoms burn in light      | draycia |  |
+| server |  Pigs give saddle back      | William Blake Galbreath |  |
+| api |  Player invulnerabilities      | William Blake Galbreath |  |
+| server |  Player invulnerabilities      | William Blake Galbreath |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
+| api |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
+| server |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
+| api |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
+| server |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
+| server |  Players should not cram to death      | William Blake Galbreath |  |
+| server |  Populator seed controls      | Spottedleaf |  |
+| server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
+| server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
+| server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
+| server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
 | api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  ProxyForwardDataEvent      | Ivan Pekov |  |
+| api |  Purpur config files      | William Blake Galbreath |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
+| server |  Queue lighting update only once      | Paul Sauve |  |
+| server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |
+| api |  Rabid Wolf API      | Encode42 |  |
+| server |  Raid cooldown setting      | jmp |  |
+| server |  Range check flag dirty calls in PlayerChunk      | Spottedleaf |  |
+| server |  Rebrand      | William Blake Galbreath |  |
 | server |  Redirect Configs      | tr7zw |  |
+| server |  Redstone deactivates spawners      | draycia |  |
+| server |  Reduce allocation rate from crammed entities      | Spottedleaf |  |
+| server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
+| server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
+| server |  Remove streams for villager AI      | Spottedleaf |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
+| server |  Revert MC-4 fix      | Spottedleaf |  |
+| server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
+| server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |
+| server |  Rewrite the light engine      | Spottedleaf |  |
+| api |  Ridables      | William Blake Galbreath |  |
+| server |  Ridables      | William Blake Galbreath |  |
+| server |  Separate lookup locking from state access in UserCache      | Spottedleaf |  |
+| server |  Set name visible when using a Name Tag on an Armor Stand      | jmp |  |
+| server |  Short enderman height      | William Blake Galbreath |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Signs allow color codes      | William Blake Galbreath |  |
 | server |  Signs editable on right click      | William Blake Galbreath |  |
+| server |  Silk touch spawners      | William Blake Galbreath |  |
 | server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Smol entity optimisations      | Ivan Pekov |  |
+| server |  Snow Golem rate of fire config      | Simon Gardling |  |
 | server |  Snowman drop and put back pumpkin      | William Blake Galbreath |  |
+| api |  Spigot - Improve output of plugins command      | Parker Hawke |  |
 | server |  Spread out and optimise player list ticks      | James Lyne |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
+| server |  Stonecutter damage      | William Blake Galbreath |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
+| server |  Striders give saddle back      | Ben Kerllenevich |  |
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
-| server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
+| server |  Time scoreboard search      | Spottedleaf |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
+| server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
+| server |  Totems work in inventory      | draycia |  |
+| api |  Tuinity POM Changes      | Spottedleaf |  |
+| server |  Tuinity POM Changes      | Spottedleaf |  |
+| server |  Tuinity Server Config      | Spottedleaf |  |
+| api |  Tuinity config      | Spottedleaf |  |
+| server |  Tulips change fox type      | William Blake Galbreath |  |
+| server |  Update version fetcher repo      | JRoy |  |
+| server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
+| server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
 | server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
+| server |  Util patch      | Spottedleaf |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
-| api |  Yatopia API Bundle      | YatopiaMC |  |
+| api |  Villager#resetOffers      | William Blake Galbreath |  |
+| server |  Villagers farming can bypass mob-griefing gamerule      | William Blake Galbreath |  |
+| server |  Villagers follow emerald blocks      | William Blake Galbreath |  |
+| api |  Yatopia Config &amp; Redirect Config      | YatopiaMC |  |
 | server |  Yatopia configuration      | tr7zw |  |
-| server |  Yatopia-Server-Fixes      | YatopiaMC |  |
+| server |  Zombie break door minimum difficulty option      | BillyGalbreath |  |
+| server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
+| server |  add config for logging login location      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
