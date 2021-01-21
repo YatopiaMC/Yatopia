@@ -34,7 +34,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 781d74cf7e3669d71727cce781a8f8ce088c5547..7a25349d59d454c43453726f6f44b16a3e90e681 100644
+index ae07ea2a34f5cd82ce2eae523359cb7540065335..8b7fd21e6b366196fbc9cd44a340335c4cf9205f 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -53,6 +53,17 @@ public class Chunk implements IChunkAccess {
@@ -68,10 +68,10 @@ index 45db17d2f415197849c1fac5adce46d893e2a81d..ce2864f44dcc2003a85f7a211073b2b0
              boolean flag2 = world.ticksPerAnimalSpawns != 0L && worlddata.getTime() % world.ticksPerAnimalSpawns == 0L; // CraftBukkit
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 451b3eb166faa5db7601e0a3ca598c934d063828..d198c539a1cb731061b1c99558aa5ef69d760b45 100644
+index ca69b5e5126eef423bee24af4f63f4bb442c560f..970a71fb66d235bf772aeddd02c50390ab7e568b 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1204,6 +1204,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1019,6 +1019,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      private final com.destroystokyo.paper.util.math.ThreadUnsafeRandom randomTickRandom = new com.destroystokyo.paper.util.math.ThreadUnsafeRandom();
      // Paper end
  
@@ -80,7 +80,7 @@ index 451b3eb166faa5db7601e0a3ca598c934d063828..d198c539a1cb731061b1c99558aa5ef6
      // AirplaneL start - create version of chunk tick that returns a bool for updating lighting
      public void a(Chunk chunk, int i) { this.abool(chunk, i); }
      public boolean abool(Chunk chunk, int i) { final int randomTickSpeed = i; // Paper
-@@ -1217,7 +1219,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1032,7 +1034,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          gameprofilerfiller.enter("thunder");
          final BlockPosition.MutableBlockPosition blockposition = this.chunkTickMutablePosition; // Paper - use mutable to reduce allocation rate, final to force compile fail on change
  
@@ -89,7 +89,7 @@ index 451b3eb166faa5db7601e0a3ca598c934d063828..d198c539a1cb731061b1c99558aa5ef6
              blockposition.setValues(this.a(this.a(j, 0, k, 15))); // Paper
              if (this.isRainingAt(blockposition)) {
                  DifficultyDamageScaler difficultydamagescaler = this.getDamageScaler(blockposition);
-@@ -1247,7 +1249,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1062,7 +1064,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
  
          gameprofilerfiller.exitEnter("iceandsnow");

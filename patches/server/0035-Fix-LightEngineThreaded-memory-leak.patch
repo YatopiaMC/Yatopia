@@ -5,10 +5,10 @@ Subject: [PATCH] Fix LightEngineThreaded memory leak
 
 
 diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index 2f9c97dd4e1d705a87772d18c7ab4883a876af08..f3494ac1ad659352ca5595adf9e6919bdb4018d0 100644
+index 168fe23177dfaa401396c1e460f56273ee0a59e4..4141cf02690e13350a10cdfa5e09344c56703f04 100644
 --- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
 +++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -104,6 +104,8 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+@@ -110,6 +110,8 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
              }
          }
  
@@ -18,10 +18,10 @@ index 2f9c97dd4e1d705a87772d18c7ab4883a876af08..f3494ac1ad659352ca5595adf9e6919b
              return this.size == 0 && this.pendingTasks.isEmpty();
          }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 8fad39050635f38586831a0433ff7f16ff82c65b..ff4a60ea2d92a93f411de09c67893d8dd4d042ae 100644
+index be58626bdd1591758317c9c81cb3a6f2aecfc099..40e87f3043da14b1265fcdadde02bef3b261a9d1 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1960,6 +1960,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1792,6 +1792,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Paper end
  

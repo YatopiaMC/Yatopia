@@ -161,7 +161,7 @@ index bd0267ee4b3782f6d1ec39cba7966ba4f62f1adf..8b36ac2b0950a827763aa2357700f37e
          this.B = true;
          return this;
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e7173af7f39 100644
+index e59826b3e822a49378ae0d7b7cbca8c5d5ff476d..0115e2c73eff9d5e4c6778e32fc54b9c116b6b22 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -80,7 +80,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -200,7 +200,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
      private float headHeight;
      // CraftBukkit start
      public boolean persist = true;
-@@ -1502,6 +1502,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -1482,6 +1482,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return !this.justCreated && this.M.getDouble(TagsFluid.LAVA) > 0.0D;
      }
  
@@ -208,7 +208,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
      public void a(float f, Vec3D vec3d) {
          Vec3D vec3d1 = a(vec3d, f, this.yaw);
  
-@@ -2258,6 +2259,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2238,6 +2239,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return this.a(entity, false);
      }
  
@@ -216,7 +216,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
      public boolean a(Entity entity, boolean flag) {
          for (Entity entity1 = entity; entity1.vehicle != null; entity1 = entity1.vehicle) {
              if (entity1.vehicle == this) {
-@@ -2353,6 +2355,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2333,6 +2335,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                  this.passengers.add(entity);
              }
  
@@ -230,7 +230,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
          }
          return true; // CraftBukkit
      }
-@@ -2393,6 +2402,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2373,6 +2382,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                  return false;
              }
              // Spigot end
@@ -243,7 +243,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
              this.passengers.remove(entity);
              entity.j = 60;
          }
-@@ -2558,6 +2573,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2538,6 +2553,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          this.setFlag(4, flag);
      }
  
@@ -251,7 +251,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
      public boolean bE() {
          return this.glowing || this.world.isClientSide && this.getFlag(6);
      }
-@@ -2780,6 +2796,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2760,6 +2776,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
  
      public void setHeadRotation(float f) {}
  
@@ -259,7 +259,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
      public void n(float f) {}
  
      public boolean bL() {
-@@ -3221,6 +3238,18 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -3201,6 +3218,18 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return false;
      }
  
@@ -278,7 +278,7 @@ index 34c45c1f788c585a423f636b798125f37b76b3bb..f0b9ed205e8219c8f9502a74b8fd2e71
      @Override
      public void sendMessage(IChatBaseComponent ichatbasecomponent, UUID uuid) {}
  
-@@ -3673,4 +3702,47 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -3653,4 +3682,47 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return ((ChunkProviderServer) world.getChunkProvider()).isInEntityTickingChunk(this);
      }
      // Paper end
@@ -3211,7 +3211,7 @@ index a3a428da99574c485fcf2b8c7944e0d8354146ee..cf7de0127166f6175a6246062c8664e6
          this.targetSelector.a(2, new PathfinderGoalNearestAttackableTarget<>(this, EntityHuman.class, true));
          this.targetSelector.a(3, new PathfinderGoalNearestAttackableTarget<>(this, EntityVillagerAbstract.class, false));
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index a9680184c0f9ff39c37c19e6b4b72664f5237d04..344b06e113f9bfbcaa6931daade0aba31f178c71 100644
+index aba0647c9b297d532a5e7100eb95337e6a0db776..9e3c85d3dd70bccdbff9663e86dd0bb449701085 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -508,6 +508,15 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -4915,7 +4915,7 @@ index dc9f2a1a132b3a7925bd62aa1da0512afd90b8b1..b7e540dfeeabb13227596ecfc6eddabf
              Entity entity1 = this.getShooter();
              // Paper start - Cancel hit for vanished players
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 88ab6a27c296672ba2f265dab678f4b20fdc9daa..a33ac8db476005d4af0c944a34850e8b32d9050a 100644
+index e16f120544ad46995dcf695849d3634c575d65a5..98961e20642e61239a6ad89445f97245aa821919 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1410,6 +1410,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -5041,7 +5041,7 @@ index f260d01aad4db512952e5a53bf5bc01023bbd43d..cf1f4fe5832781df7d0bdd5eb24eff85
      // Purpur end
  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index e6736d08a3202f61aa68a966a2d61bf40707192c..bc5a99b62b437d859227a3b373d76240cd70ffef 100644
+index d5007d00da9a10e99d7fa46a4368d41fb421ac31..79ae47ffafae09059774e45b48a36818e104b036 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -102,6 +102,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
