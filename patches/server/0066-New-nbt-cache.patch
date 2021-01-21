@@ -1,0 +1,137 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Hugo Planque <hookwood01@gmail.com>
+Date: Thu, 21 Jan 2021 17:56:03 +0100
+Subject: [PATCH] New nbt cache
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 87cf9cd88d1fb5ae70d19e5618ebfb67d281304a..fa64b1c7f167d6f2d5a23eba3ac0786ffa982865 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -824,7 +824,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         }
+         // Spigot start
+         MCUtil.asyncExecutor.shutdown(); // Paper
++        this.worldNBTStorage.executorService.shutdown();
+         try { MCUtil.asyncExecutor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS); // Paper
++            this.worldNBTStorage.executorService.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS); // Yatopia - New
+         } catch (java.lang.InterruptedException ignored) {} // Paper
+         if (org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) {
+             LOGGER.info("Saving usercache.json");
+diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..3873e3157fb834b5c914fb00d9fa02da07aa5d1b 100644
+--- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
++++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+@@ -9,7 +9,11 @@ import org.apache.logging.log4j.Logger;
+ // CraftBukkit start
+ import java.io.FileInputStream;
+ import java.io.InputStream;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++
+ import org.bukkit.craftbukkit.entity.CraftPlayer;
++import org.yatopiamc.yatopia.server.cache.NBTCache;
+ // CraftBukkit end
+ 
+ public class WorldNBTStorage {
+@@ -17,6 +21,8 @@ public class WorldNBTStorage {
+     private static final Logger LOGGER = LogManager.getLogger();
+     private final File playerDir;
+     protected final DataFixer a;
++    private final NBTCache<File, NBTTagCompound> dataCache = new NBTCache<>(); // Yatopia - NBT Cache system
++    public final ExecutorService executorService = Executors.newSingleThreadExecutor(); // Yatopia - NBT Cache system
+ 
+     public WorldNBTStorage(Convertable.ConversionSession convertable_conversionsession, DataFixer datafixer) {
+         this.a = datafixer;
+@@ -29,12 +35,21 @@ public class WorldNBTStorage {
+         try {
+             NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
+             File file = File.createTempFile(entityhuman.getUniqueIDString() + "-", ".dat", this.playerDir);
+-
+-            NBTCompressedStreamTools.a(nbttagcompound, file);
++            // Yatopia start - NBT Cache system
++            Runnable task = () -> { try { NBTCompressedStreamTools.a(nbttagcompound, file);
+             File file1 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat");
+             File file2 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat_old");
+ 
+             SystemUtils.a(file1, file, file2);
++            } catch (Exception exception) {
++                WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
++            }
++            };
++            synchronized (this.dataCache){
++                this.dataCache.put(file, nbttagcompound);
++            }
++            this.executorService.execute(task);
++            // Yatopia end
+         } catch (Exception exception) {
+             WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
+         }
+@@ -50,9 +65,17 @@ public class WorldNBTStorage {
+             // Spigot Start
+             boolean usingWrongFile = false;
+             boolean normalFile = file.exists() && file.isFile(); // Akarin - ensures normal file
+-            if ( org.bukkit.Bukkit.getOnlineMode() && !normalFile ) // Paper - Check online mode first // Akarin - ensures normal file
++            // Yatopia start - NBT Cache system
++            NBTTagCompound playerData;
++            synchronized (this.dataCache){
++                playerData = this.dataCache.get(file);
++            }
++            if (playerData == null && org.bukkit.Bukkit.getOnlineMode() && !normalFile ) // Paper - Check online mode first // Akarin - ensures normal file
+             {
+                 file = new File( this.playerDir, java.util.UUID.nameUUIDFromBytes( ( "OfflinePlayer:" + entityhuman.getName() ).getBytes( "UTF-8" ) ).toString() + ".dat");
++                synchronized (this.dataCache){
++                    playerData = this.dataCache.get(file);
++                }
+                 if ( file.exists() )
+                 {
+                     usingWrongFile = true;
+@@ -61,9 +84,12 @@ public class WorldNBTStorage {
+             }
+             // Spigot End
+ 
+-            if (normalFile) { // Akarin - avoid double I/O operation
++            if (playerData != null) {
++                nbttagcompound = playerData;
++            } else if (normalFile) { // Akarin - avoid double I/O operation
+                 nbttagcompound = NBTCompressedStreamTools.a(file);
+             }
++            // Yatopia end
+             // Spigot Start
+             if ( usingWrongFile )
+             {
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/cache/NBTCache.java b/src/main/java/org/yatopiamc/yatopia/server/cache/NBTCache.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..adc5975ded5f655a7b5da59daa1ff3b63697f841
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/cache/NBTCache.java
+@@ -0,0 +1,29 @@
++package org.yatopiamc.yatopia.server.cache;
++
++import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenCustomHashMap;
++import net.minecraft.server.MinecraftServer;
++
++public class NBTCache<K, V> extends Object2ObjectLinkedOpenCustomHashMap<K, V> {
++
++    public NBTCache() {
++        super(100, 0.75F, new Strategy<K>() {
++            @Override
++            public int hashCode(K k) {
++                return k.hashCode();
++            }
++
++            @Override
++            public boolean equals(K k, K k1) {
++                return k.equals(k1);
++            }
++        });
++    }
++
++    @Override
++    public V put(K k, V v) {
++        if (this.size() > MinecraftServer.getServer().getPlayerCount()) {
++            this.removeLast();
++        }
++        return super.putAndMoveToFirst(k, v);
++    }
++}
