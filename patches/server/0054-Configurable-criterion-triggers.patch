@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Sat, 24 Oct 2020 21:08:17 -0500
+Subject: [PATCH] Configurable criterion triggers
+
+This patch adds toggles for three criterion triggers that are called every tick. These can be very unnecessary, and especially in the case of CriterionTriggerEnterBlock, quite heavy.
+
+diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
+index 7596eaf605bf73dd44c06b66bcc0e5a36242fe7a..46813a0a65977233acdabb225552e8cfc5d06ab9 100644
+--- a/src/main/java/net/minecraft/server/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/EntityPlayer.java
+@@ -435,6 +435,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+ 
+     @Override
+     protected void a(IBlockData iblockdata) {
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.criterionTriggerEnterBlock) // Yatopia
+         CriterionTriggers.d.a(this, iblockdata);
+     }
+ 
+@@ -765,7 +766,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+                 this.playerConnection.sendPacket(new PacketPlayOutExperience(this.exp, this.expTotal, this.expLevel));
+             }
+ 
+-            if (this.ticksLived % 20 == 0) {
++            if (org.yatopiamc.yatopia.server.YatopiaConfig.criterionTriggerLocation && this.ticksLived % 20 == 0) { // Yatopia
+                 CriterionTriggers.p.a(this);
+             }
+ 
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 2e08558eef23d40b3a704250dfe12bb7f4b660f3..5578f5784a87019d3f091173b25b5ec1cc059fd6 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -258,4 +258,14 @@ public class YatopiaConfig {
+     private static void intervals() {
+         playerTimeStatisticsInterval = Math.max(1, getInt("settings.intervals.player-time-statistics", 1));
+     }
++
++    public static boolean criterionTriggerLocation = true;
++    public static boolean criterionTriggerEnterBlock = true;
++    public static boolean criterionTriggerTick = true;
++    private static void criterionTriggers() {
++        criterionTriggerLocation = getBoolean("settings.criterion-triggers.location", true);
++        criterionTriggerEnterBlock = getBoolean("settings.criterion-triggers.enter-block", true);
++        criterionTriggerTick = getBoolean("settings.criterion-triggers.tick", true);
++    }
++
+ }

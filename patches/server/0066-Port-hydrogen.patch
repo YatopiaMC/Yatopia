@@ -2,7 +2,7 @@ From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: JellySquid <jellysquid+atwork@protonmail.com>
 Date: Wed, 20 Jan 2021 20:14:55 +0100
 Subject: [PATCH] Port hydrogen
-Co-authored-by: HookWood_ <hookwood@pop-os.localdomain>
+
 
 diff --git a/src/main/java/me/jellysquid/mods/lithium/common/cache/StatePropertyTableCache.java b/src/main/java/me/jellysquid/mods/lithium/common/cache/StatePropertyTableCache.java
 new file mode 100644
@@ -496,10 +496,10 @@ index b7f5c932197529c0ea045cfe696fd5da1ccc7202..69de217db4d1e08c567409a6392686f6
 +    } // Yatopia end
  }
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 7a25349d59d454c43453726f6f44b16a3e90e681..35e982ce2230504d4763f47b03a65afd5fedb5d2 100644
+index 8b7fd21e6b366196fbc9cd44a340335c4cf9205f..8b8ecc2d8925b3c209d99e101f6e478b08d86db9 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
-@@ -290,6 +290,14 @@ public class Chunk implements IChunkAccess {
+@@ -336,6 +336,14 @@ public class Chunk implements IChunkAccess {
  
          // CraftBukkit start
          this.bukkitChunk = new org.bukkit.craftbukkit.CraftChunk(this);
@@ -515,13 +515,13 @@ index 7a25349d59d454c43453726f6f44b16a3e90e681..35e982ce2230504d4763f47b03a65afd
  
      public org.bukkit.Chunk bukkitChunk;
 diff --git a/src/main/java/net/minecraft/server/ChunkRegionLoader.java b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-index 17a5b5b5bab4412242a18224b366674c25cdf286..e2ee223c473e3d10e07058764f6ab3ce4daa0ffa 100644
+index 5f04591193d58ba7897194142da5efcbec3763dd..ff5a63dc5c3b9c86384a06b8f0b0de4edd67701d 100644
 --- a/src/main/java/net/minecraft/server/ChunkRegionLoader.java
 +++ b/src/main/java/net/minecraft/server/ChunkRegionLoader.java
-@@ -63,8 +63,10 @@ public class ChunkRegionLoader {
-     private static final int CURRENT_DATA_VERSION = SharedConstants.getGameVersion().getWorldVersion();
-     private static final boolean JUST_CORRUPT_IT = Boolean.getBoolean("Paper.ignoreWorldDataVersion");
-     // Paper end
+@@ -70,8 +70,10 @@ public class ChunkRegionLoader {
+     private static final String UNINITIALISED_SKYLIGHT_TAG = "starlight.skylight_uninit";
+     private static final String STARLIGHT_VERSION_TAG = "starlight.light_version";
+     // Tuinity end - rewrite light engine
 +    private static final ThreadLocal<NBTTagCompound> CAPTURED_TAGS = new ThreadLocal<>(); // Yatopia - Port Hydrogen
  
      public static InProgressChunkHolder loadChunk(WorldServer worldserver, DefinedStructureManager definedstructuremanager, VillagePlace villageplace, ChunkCoordIntPair chunkcoordintpair, NBTTagCompound nbttagcompound, boolean distinguish) {
@@ -529,23 +529,23 @@ index 17a5b5b5bab4412242a18224b366674c25cdf286..e2ee223c473e3d10e07058764f6ab3ce
          ArrayDeque<Runnable> tasksToExecuteOnMain = new ArrayDeque<>();
          // Paper end
          ChunkGenerator chunkgenerator = worldserver.getChunkProvider().getChunkGenerator();
-@@ -178,9 +180,15 @@ public class ChunkRegionLoader {
+@@ -190,10 +192,15 @@ public class ChunkRegionLoader {
+             } else {
                  object2 = protochunkticklist1;
              }
- 
 +            NBTTagCompound strippedTag = new NBTTagCompound();
 +            strippedTag.set("Entities", nbttagcompound1.getList("Entities", 10));
 +            strippedTag.set("TileEntities", nbttagcompound1.getList("TileEntities", 10));
 +            strippedTag.set("ChunkBukkitValues", nbttagcompound1.get("ChunkBukkitValues"));
-+
+ 
              object = new Chunk(worldserver.getMinecraftWorld(), chunkcoordintpair, biomestorage, chunkconverter, (TickList) object1, (TickList) object2, j, achunksection, // Paper start - fix massive nbt memory leak due to lambda. move lambda into a container method to not leak scope. Only clone needed NBT keys.
 -                createLoadEntitiesConsumer(new SafeNBTCopy(nbttagcompound1, "TileEntities", "Entities", "ChunkBukkitValues")) // Paper - move CB Chunk PDC into here
 +                createLoadEntitiesConsumer(strippedTag) // Paper - move CB Chunk PDC into here // Yatopia - Port Hydrogen
              );// Paper end
 +            CAPTURED_TAGS.remove();
+             ((Chunk)object).setBlockNibbles(blockNibbles); // Tuinity - replace light impl
+             ((Chunk)object).setSkyNibbles(skyNibbles); // Tuinity - replace light impl
          } else {
-             ProtoChunk protochunk = new ProtoChunk(chunkcoordintpair, chunkconverter, achunksection, protochunkticklist, protochunkticklist1, worldserver); // Paper - Anti-Xray - Add parameter
- 
 diff --git a/src/main/java/net/minecraft/server/DataBits.java b/src/main/java/net/minecraft/server/DataBits.java
 index f0c9009fb808ca664a7c3ebaeb8cfa8e2ba7b97e..40e3001bc1742231dcd02cee4423c57d0fd9a991 100644
 --- a/src/main/java/net/minecraft/server/DataBits.java

@@ -10,7 +10,7 @@
 </div>
 
 ## So what is Yatopia?
-Yatopia combines the best patches from many [Paper](https://github.com/PaperMC/Paper) forks and optimization mods, as well as many unique optimizations. We borrow some of our patches from the following repos:
+Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) forks and optimization mods, as well as many unique optimizations. We borrow code from the following repos:
 
 * [Akarin](https://github.com/Akarin-project/Akarin)
 * [EMC](https://github.com/starlis/empirecraft)
@@ -26,37 +26,28 @@ The latest stable builds of Yatopia are always available over at our [downloads 
 
 ## Documentation
 
-You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md). You can also find our recommended config base [here](https://github.com/YatopiaMC/Yatopia/wiki/Configurations-Parameters-recommended)!
-
-## Contributors
-
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/0)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/0)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/1)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/1)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/2)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/2)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/3)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/3)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/4)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/4)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/5)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/5)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/6)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/6)
-[![](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/images/7)](https://sourcerer.io/fame/budgidiere/YatopiaMC/Yatopia/links/7)
-
+ You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md).
 
 ## Building and setting up
 
 Run the following commands in the root directory:
 
 ```shell
-./yatopia init
-./yatopia full
+./gradlew initGitSubmodules
+./gradlew setupUpstream
+./gradlew applyPatches
+./gradlew paperclip
 ```
 
-If you are repatching you need to delete `Yatopia-API` and `Yatopia-Server` folders.
 
 ## Using Yatopia-API
 
 To build your plugin against the Yatopia-API, first add the CodeMC maven repository:
+
+# Maven
+Add the CodeMC Repo:
 ```xml
 <repositories>
-    <!-- CodeMC -->
     <repository>
         <id>codemc-repo</id>
         <url>https://repo.codemc.io/repository/maven-public/</url>
@@ -76,6 +67,42 @@ And then add the Yatopia-API dependency:
 </dependencies>
 ```
 
+# Gradle
+
+> Groovy DSL
+
+Add the CodeMC Repo:
+```groovy
+repositories {
+    maven {
+        url 'https://repo.codemc.io/repository/maven-public/'
+    }
+}
+```
+
+And then add the Yatopia-API dependency:
+```groovy
+dependencies {
+    compileOnly 'org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT'
+}
+```
+
+> Kotlin DSL
+
+Add the CodeMC Repo:
+```kotlin
+repositories {
+    maven("https://repo.codemc.io/repository/maven-public/")
+}
+```
+
+And then add the Yatopia-API dependency:
+```kotlin
+dependencies {
+    compileOnly("org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT")
+}
+```
+
 ## Why aren't there many API additions?
 
 (Modified from [starlis/empirecraft](https://github.com/starlis/empirecraft/))
@@ -91,11 +118,11 @@ That being said we make light API additions when requested.
 
 ## License
 
-License information can be found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.4/Licensing/LICENSE.md).
+License information can be found [here](../Licensing/LICENSE.md).
 
 ## Security
 
-Security information can be found found [here](https://github.com/YatopiaMC/Yatopia/blob/ver/1.16.4/SECURITY.md).
+Security information can be found found [here](../SECURITY.md).
 
 ## Statistics
 [![bStats Graph Data](https://bstats.org/signatures/server-implementation/Yatopia.svg)](https://bstats.org/plugin/server-implementation/Yatopia)

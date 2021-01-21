@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Phoenix616 <mail@moep.tv>
+Date: Tue, 7 Jul 2020 00:22:11 +0100
+Subject: [PATCH] Fix exp drop of zombie pigmen (MC-56653)
+
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index bf6b9f4dbd8c3f649b4e059f41c0e72e0d0f70c6..f452cc575adf9137f3b9f1eef1904f8116c7a7ec 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -132,6 +132,10 @@ public final class OrigamiConfig {
+         private void observerClock() {
+             disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
+         }
++        public boolean pigmenDontTargetUnlessHit = false;
++        private void pigmenDontTargetUnlessHit() {
++            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
++        }
+     }
+ 
+ }
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java
+index 4c050c841f9846cc74fef51d5eb69f4cbb737ef1..7c426f3b1c65f4e2f4997c8b69c27e8df8f334c0 100644
+--- a/src/main/java/net/minecraft/server/EntityPigZombie.java
++++ b/src/main/java/net/minecraft/server/EntityPigZombie.java
+@@ -89,7 +89,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+     protected void mobTick() {
+         AttributeModifiable attributemodifiable = this.getAttributeInstance(GenericAttributes.MOVEMENT_SPEED);
+ 
+-        if (this.isAngry()) {
++        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
+             if (!this.isBaby() && !attributemodifiable.a(EntityPigZombie.c)) {
+                 attributemodifiable.b(EntityPigZombie.c);
+             }
