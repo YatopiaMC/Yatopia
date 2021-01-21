@@ -1,0 +1,133 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Fri, 31 Jul 2020 21:44:22 -0500
+Subject: [PATCH] lithium enum_values
+
+Original code by JellySquid, licensed under GNU Lesser General Public License v3.0
+you can find the original code on https://github.com/jellysquid3/lithium-fabric/tree/1.16.x/fabric (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/server/BlockPiston.java b/src/main/java/net/minecraft/server/BlockPiston.java
+index 5d3bb5f393a1e0e4a2e8b9a466530a91279697a9..7f084e7f11a829c10d113c7fb39eec0b8ad77080 100644
+--- a/src/main/java/net/minecraft/server/BlockPiston.java
++++ b/src/main/java/net/minecraft/server/BlockPiston.java
+@@ -127,9 +127,10 @@ public class BlockPiston extends BlockDirectional {
+         }
+ 
+     }
++    private static final EnumDirection[] aenumdirection = EnumDirection.values(); // Yatopia
+ 
+     private boolean a(World world, BlockPosition blockposition, EnumDirection enumdirection) {
+-        EnumDirection[] aenumdirection = EnumDirection.values();
++        //EnumDirection[] aenumdirection = EnumDirection.values(); // Yatopia
+         int i = aenumdirection.length;
+ 
+         int j;
+@@ -146,12 +147,12 @@ public class BlockPiston extends BlockDirectional {
+             return true;
+         } else {
+             BlockPosition blockposition1 = blockposition.up();
+-            EnumDirection[] aenumdirection1 = EnumDirection.values();
++            //EnumDirection[] aenumdirection1 = EnumDirection.values(); // Yatopia
+ 
+-            j = aenumdirection1.length;
++            j = aenumdirection.length; // Yatopia
+ 
+             for (int k = 0; k < j; ++k) {
+-                EnumDirection enumdirection2 = aenumdirection1[k];
++                EnumDirection enumdirection2 = aenumdirection[k]; // Yatopia
+ 
+                 if (enumdirection2 != EnumDirection.DOWN && world.isBlockFacePowered(blockposition1.shift(enumdirection2), enumdirection2)) {
+                     return true;
+diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
+index ab873b37a818b304d097dbe1958885235ba7077f..62948f586e298d711fbe893ab29d6d61dc6bb62f 100644
+--- a/src/main/java/net/minecraft/server/EntityLiving.java
++++ b/src/main/java/net/minecraft/server/EntityLiving.java
+@@ -2616,10 +2616,12 @@ public abstract class EntityLiving extends Entity {
+ 
+     }
+ 
++    private static final EnumItemSlot[] aenumitemslot = EnumItemSlot.values(); // Yatopia
++
+     @Nullable
+     private Map<EnumItemSlot, ItemStack> q() {
+         Map<EnumItemSlot, ItemStack> map = null;
+-        EnumItemSlot[] aenumitemslot = EnumItemSlot.values();
++        //EnumItemSlot[] aenumitemslot = EnumItemSlot.values(); // Yatopia
+         int i = aenumitemslot.length;
+ 
+         for (int j = 0; j < i; ++j) {
+diff --git a/src/main/java/net/minecraft/server/EnumAxisCycle.java b/src/main/java/net/minecraft/server/EnumAxisCycle.java
+index a7c2543fdd4d5f6a04c45ec42472837ccaea9619..92ab79532d29341e8840341ff5ee8f5203cb4aad 100644
+--- a/src/main/java/net/minecraft/server/EnumAxisCycle.java
++++ b/src/main/java/net/minecraft/server/EnumAxisCycle.java
+@@ -26,12 +26,24 @@ public enum EnumAxisCycle {
+ 
+         @Override
+         public EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis) {
+-            return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() + 1, 3)];
++            // Yatopia start - replace logic
++            //return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() + 1, 3)];
++            switch (enumdirection_enumaxis) {
++                case X:
++                    return EnumDirection.EnumAxis.Y;
++                case Y:
++                    return EnumDirection.EnumAxis.Z;
++                case Z:
++                    return EnumDirection.EnumAxis.X;
++            }
++
++            throw new IllegalArgumentException();
++            // Yatopia end
+         }
+ 
+         @Override
+         public EnumAxisCycle a() {
+-            return null.BACKWARD;
++            return BACKWARD; // Yatopia
+         }
+     },
+     BACKWARD {
+@@ -42,12 +54,24 @@ public enum EnumAxisCycle {
+ 
+         @Override
+         public EnumDirection.EnumAxis a(EnumDirection.EnumAxis enumdirection_enumaxis) {
+-            return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() - 1, 3)];
++            // Yatopia start - replaced logic
++            //return null.d[Math.floorMod(enumdirection_enumaxis.ordinal() - 1, 3)];
++            switch (enumdirection_enumaxis) {
++                case X:
++                    return EnumDirection.EnumAxis.Z;
++                case Y:
++                    return EnumDirection.EnumAxis.X;
++                case Z:
++                    return EnumDirection.EnumAxis.Y;
++            }
++
++            throw new IllegalArgumentException();
++            // Yatopia end
+         }
+ 
+         @Override
+         public EnumAxisCycle a() {
+-            return null.FORWARD;
++            return FORWARD; // Yatopia
+         }
+     };
+ 
+diff --git a/src/main/java/net/minecraft/server/PistonExtendsChecker.java b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
+index ae28b1f6ef56ab2199e1cf8d4f7d3f3e12496545..b684f2b297eda2014962bed36087d08bfcddb119 100644
+--- a/src/main/java/net/minecraft/server/PistonExtendsChecker.java
++++ b/src/main/java/net/minecraft/server/PistonExtendsChecker.java
+@@ -166,10 +166,11 @@ public class PistonExtendsChecker {
+         this.f.addAll(list1);
+         this.f.addAll(list2);
+     }
++    private static final EnumDirection[] aenumdirection = EnumDirection.values(); // Yatopia
+ 
+     private boolean a(BlockPosition blockposition) {
+         IBlockData iblockdata = this.a.getType(blockposition);
+-        EnumDirection[] aenumdirection = EnumDirection.values();
++        //EnumDirection[] aenumdirection = EnumDirection.values(); // Yatopia
+         int i = aenumdirection.length;
+ 
+         for (int j = 0; j < i; ++j) {

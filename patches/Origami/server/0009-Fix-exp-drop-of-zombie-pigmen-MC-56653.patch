@@ -1,0 +1,41 @@
+From d185ee54b2745d2d330d2def300fad4616cb6f2a Mon Sep 17 00:00:00 2001
+From: Phoenix616 <mail@moep.tv>
+Date: Tue, 7 Jul 2020 00:22:11 +0100
+Subject: [PATCH] Fix exp drop of zombie pigmen (MC-56653)
+
+---
+ src/main/java/de/minebench/origami/OrigamiConfig.java   | 4 ++++
+ src/main/java/net/minecraft/server/EntityPigZombie.java | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index a2371c3812..53ddf996ef 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -153,6 +153,10 @@ public final class OrigamiConfig {
+         public int getTickRate(String type, String typeName, String entityType, int def) {
+             return tickRates.getOrDefault(type + "." + entityType + "." + typeName, tickRates.getOrDefault(type + "." + typeName, def));
+         }
++        public boolean pigmenDontTargetUnlessHit = false;
++        private void pigmenDontTargetUnlessHit() {
++            pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
++        }
+         public int pigmenPortalSpawn = 2000;
+         public double pigmenPortalBoost = 0.0;
+         public boolean pigmenFarmsWaterAi = false;
+diff --git a/src/main/java/net/minecraft/server/EntityPigZombie.java b/src/main/java/net/minecraft/server/EntityPigZombie.java
+index 65bae8c9f2..2bb8c483c6 100644
+--- a/src/main/java/net/minecraft/server/EntityPigZombie.java
++++ b/src/main/java/net/minecraft/server/EntityPigZombie.java
+@@ -68,7 +68,7 @@ public class EntityPigZombie extends EntityZombie implements IEntityAngerable {
+             this.eY();
+         }
+ 
+-        if (this.isAngry()) {
++        if (this.isAngry() && !this.world.origamiConfig.pigmenDontTargetUnlessHit) { // Origami - fix MC-56653
+             this.lastDamageByPlayerTime = this.ticksLived;
+         }
+ 
+-- 
+2.25.1.windows.1
+

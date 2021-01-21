@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Phoenix616 <mail@moep.tv>
+Date: Tue, 31 Mar 2020 21:43:04 +0100
+Subject: [PATCH] Add option to disable observer clocks
+
+
+diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
+index 70490d7b7e0dd5fbb5ef475c20223670dc8cf1b2..bf6b9f4dbd8c3f649b4e059f41c0e72e0d0f70c6 100644
+--- a/src/main/java/de/minebench/origami/OrigamiConfig.java
++++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
+@@ -127,6 +127,11 @@ public final class OrigamiConfig {
+             tickEmptyHoppers = getBoolean("tick-empty-hoppers", tickEmptyHoppers);
+             fullHopperCooldown = getInt("ticks-per.full-hopper-cooldown", fullHopperCooldown);
+         }
++
++        public boolean disableObserverClocks = false;
++        private void observerClock() {
++            disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
++        }
+     }
+ 
+ }
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/BlockObserver.java b/src/main/java/net/minecraft/server/BlockObserver.java
+index 7dfe632523f7fc4426a035b6bf23917b2ea80389..29c3f328f512ffc6c423a5996e1377040f6c4712 100644
+--- a/src/main/java/net/minecraft/server/BlockObserver.java
++++ b/src/main/java/net/minecraft/server/BlockObserver.java
+@@ -52,7 +52,8 @@ public class BlockObserver extends BlockDirectional {
+ 
+     @Override
+     public IBlockData updateState(IBlockData iblockdata, EnumDirection enumdirection, IBlockData iblockdata1, GeneratorAccess generatoraccess, BlockPosition blockposition, BlockPosition blockposition1) {
+-        if (iblockdata.get(BlockObserver.FACING) == enumdirection && !(Boolean) iblockdata.get(BlockObserver.b)) {
++        if (iblockdata.get(BlockObserver.FACING) == enumdirection && !(Boolean) iblockdata.get(BlockObserver.b)
++                && (!generatoraccess.getMinecraftWorld().origamiConfig.disableObserverClocks || !(iblockdata1.getBlock() instanceof BlockObserver) || iblockdata1.get(BlockObserver.FACING).opposite() != enumdirection)) { // Origami - disable Observer clocks
+             this.a(generatoraccess, blockposition);
+         }
+ 

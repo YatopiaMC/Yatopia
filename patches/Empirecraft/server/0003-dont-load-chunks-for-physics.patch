@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Aikar <aikar@aikar.co>
+Date: Mon, 16 Mar 2020 03:07:02 -0400
+Subject: [PATCH] dont load chunks for physics
+
+---
+ src/main/java/net/minecraft/server/BlockBase.java | 3 ++-
+ src/main/java/net/minecraft/server/World.java     | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index 1f334d63282bd5c23dc3b275a220f09e60c34537..415d40918331c55a1ea461d84e570bb7655fd494 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -537,7 +537,8 @@ public abstract class BlockBase {
+                 EnumDirection enumdirection = aenumdirection[l];
+ 
+                 blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection);
+-                IBlockData iblockdata = generatoraccess.getType(blockposition_mutableblockposition);
++                IBlockData iblockdata = generatoraccess.getTypeIfLoaded(blockposition_mutableblockposition); // EMC
++                if (iblockdata == null) continue; // EMC
+                 IBlockData iblockdata1 = iblockdata.updateState(enumdirection.opposite(), this.p(), generatoraccess, blockposition_mutableblockposition, blockposition);
+ 
+                 Block.a(iblockdata, iblockdata1, generatoraccess, blockposition_mutableblockposition, i, j);
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 6e8136e85d29001003c24cf1586362f5a36478d0..361b2153363b1aecf54328baeef7419fff9d4f25 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -603,7 +603,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     public void neighborChanged(BlockPosition pos, Block blockIn, BlockPosition fromPos) { a(pos, blockIn, fromPos); } // Paper - OBFHELPER
+     public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
+         if (!this.isClientSide) {
+-            IBlockData iblockdata = this.getType(blockposition);
++            IBlockData iblockdata = this.getTypeIfLoaded(blockposition); // EMC
++            if (iblockdata == null) return; // EMC
+ 
+             try {
+                 // CraftBukkit start
