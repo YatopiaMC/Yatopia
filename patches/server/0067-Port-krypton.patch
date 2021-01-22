@@ -324,17 +324,15 @@ index 847122f76f6d951b24b22c86276140e02aaf37d6..174197f41bedab6a45e96323adff4f3f
          }
  
 diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index 08227ab446d6332af76491a063653f7f13f43560..c02d8f1f29662e6ce02c0a24209bf18d56f7b3a4 100644
+index 08227ab446d6332af76491a063653f7f13f43560..f2a8c317eb8a20a9f9decc36421f98750aa374e3 100644
 --- a/src/main/java/net/minecraft/server/NetworkManager.java
 +++ b/src/main/java/net/minecraft/server/NetworkManager.java
-@@ -20,7 +20,18 @@ import io.netty.util.concurrent.GenericFutureListener;
- import java.net.SocketAddress;
+@@ -21,6 +21,17 @@ import java.net.SocketAddress;
  import java.util.Queue;
  import javax.annotation.Nullable;
--import javax.crypto.Cipher;
+ import javax.crypto.Cipher;
 +// Yatopia start
 +import javax.crypto.SecretKey;
-+
 +import me.steinborn.krypton.mod.shared.network.compression.MinecraftCompressDecoder;
 +import me.steinborn.krypton.mod.shared.network.compression.MinecraftCompressEncoder;
 +import me.steinborn.krypton.mod.shared.network.pipeline.MinecraftCipherDecoder;
@@ -513,19 +511,18 @@ index 2aaa8770edfd8acc6861c23176e405863858b275..b1e1aa95b5d7a1555428327f2e7fd0ea
      }
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 756be0886856aabc31e436f82948d3d069f66fef..ad0494b7eadfa8280af2e784a6507184a4fbbd9a 100644
+index 756be0886856aabc31e436f82948d3d069f66fef..a02964a986aab36d4aa90967923a7e260454670d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -10,6 +10,8 @@ import java.util.List;
+@@ -10,6 +10,7 @@ import java.util.List;
  import java.util.concurrent.TimeUnit;
  import java.util.logging.Level;
  import java.util.logging.Logger;
-+
-+import io.netty.util.ResourceLeakDetector;
++import io.netty.util.ResourceLeakDetector; // Yatopia 
  import joptsimple.OptionParser;
  import joptsimple.OptionSet;
  import net.minecrell.terminalconsole.TerminalConsoleAppender; // Paper
-@@ -289,6 +291,24 @@ public class Main {
+@@ -289,6 +290,24 @@ public class Main {
                          // Paper End
                      }
                  }
