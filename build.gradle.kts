@@ -42,6 +42,7 @@ subprojects {
         maven("https://libraries.minecraft.net")
         maven("https://repo.codemc.io/repository/maven-public/")
         mavenLocal()
+        maven("${rootProjectDir}/.repository")
     }
 
     java {
