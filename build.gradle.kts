@@ -53,9 +53,4 @@ subprojects {
         targetCompatibility = JavaVersion.current()
         withSourcesJar()
     }
-
-    publishing.repositories.maven {
-        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
-        credentials(PasswordCredentials::class)
-    }
 }
