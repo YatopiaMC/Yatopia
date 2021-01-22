@@ -13,7 +13,13 @@ pipeline {
         }
         stage('Init project & submodules') {
             steps {
-                sh './gradlew initGitSubmodules'
+                withMaven(
+                    maven: '3',
+                    mavenLocalRepo: '.repository',
+                    publisherStrategy: 'EXPLICIT',
+                ) {
+                    sh './gradlew initGitSubmodules'
+                }
             }
         }
         stage('Decompile & apply patches') {

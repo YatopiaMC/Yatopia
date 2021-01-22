@@ -42,6 +42,7 @@ subprojects {
         maven("https://libraries.minecraft.net")
         maven("https://repo.codemc.io/repository/maven-public/")
         mavenLocal()
+        maven("${rootProjectDir}/.repository")
     }
 
     java {
@@ -51,10 +52,5 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.current()
         withSourcesJar()
-    }
-
-    publishing.repositories.maven {
-        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
-        credentials(PasswordCredentials::class)
     }
 }
