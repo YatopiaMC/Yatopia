@@ -5,7 +5,7 @@ Subject: [PATCH] Multi-threaded RegionFile IO
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
-index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..874b0ff16eabca1b0c39a275e194c93aa620c478 100644
+index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb51bacf043 100644
 --- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 @@ -35,7 +35,7 @@ import java.util.function.Function;
@@ -17,7 +17,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..874b0ff16eabca1b0c39a275e194c93a
  
      public static final Logger LOGGER = MinecraftServer.LOGGER;
      public static final NBTTagCompound FAILURE_VALUE = new NBTTagCompound();
-@@ -44,23 +44,76 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -44,23 +44,75 @@ public final class PaperFileIOThread extends QueueExecutorThread {
  
          public static final PaperFileIOThread INSTANCE = new PaperFileIOThread();
  
@@ -79,8 +79,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..874b0ff16eabca1b0c39a275e194c93a
 +    }
 +
 +    public void close(final boolean wait) {
-+        receiver.close(wait, false);
-+        queue.shutdown();
++        receiver.close(wait, true);
 +        executor.shutdown();
 +        while (wait && !executor.isTerminated()) {
 +            try {
@@ -100,7 +99,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..874b0ff16eabca1b0c39a275e194c93a
  
      /*
       *
-@@ -394,6 +447,79 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -394,6 +446,79 @@ public final class PaperFileIOThread extends QueueExecutorThread {
          this.queueTask(new GeneralTask(priority, runnable));
      }
  

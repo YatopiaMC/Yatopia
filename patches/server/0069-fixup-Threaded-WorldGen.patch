@@ -1,0 +1,123 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Sat, 23 Jan 2021 09:56:12 +0800
+Subject: [PATCH] fixup! Threaded WorldGen
+
+
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 8212a8799ce09cec99deedb73d1f71480009345a..42a66c5abb8c2b78c64adef362e847e76d297496 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -752,7 +752,7 @@ public class ChunkProviderServer extends IChunkProvider {
+         }
+         // Tuinity end - prevent plugin unloads from removing our ticket
+         if (isUrgent) {
+-            future.thenAccept(either -> this.chunkMapDistance.clearUrgent(chunkcoordintpair));
++            future.thenAcceptAsync(either -> this.chunkMapDistance.clearUrgent(chunkcoordintpair), ChunkProviderServer.this.playerChunkMap.mainInvokingExecutor);
+         }
+         return future;
+         // Paper end
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 576ccc7ebfeb8148dc639c8388f564e0ebbb6f36..16cb546422404e9389a8f9432cb3b579c3c5b401 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -833,9 +833,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         // Spigot end
+         // Paper start - move final shutdown items here
+         LOGGER.info("Flushing Chunk IO");
++        PlayerChunkMap.shutdownScheduler(); // Yatopia
+         com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true); // Paper // Yatopia
+         LOGGER.info("Closing Thread Pool");
+-        PlayerChunkMap.shutdownScheduler(); // Yatopia
+         ChunkStatus.shutdownExecutors(); // Yatopia
+         SystemUtils.shutdownServerThreadPool(); // Paper
+         LOGGER.info("Closing Server");
+diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
+index ac82f1791ce07e9a23cf97ca34974ab25e26be46..9ee1062100ae5255adc4575971f77642793ee053 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunk.java
++++ b/src/main/java/net/minecraft/server/PlayerChunk.java
+@@ -513,6 +513,8 @@ public class PlayerChunk {
+ 
+     public final CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> getOrCreateFuture(ChunkStatus chunkstatus, PlayerChunkMap playerchunkmap) { return this.a(chunkstatus, playerchunkmap); } // Tuinity - OBFHELPER
+     public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(ChunkStatus chunkstatus, PlayerChunkMap playerchunkmap) {
++        if(Thread.currentThread() != PlayerChunkMap.worldGenSchedulerThread)
++            return CompletableFuture.supplyAsync(() -> getOrCreateFuture(chunkstatus, playerchunkmap), PlayerChunkMap.worldGenScheduler).thenCompose(r -> r);
+         int i = chunkstatus.c();
+         CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = (CompletableFuture) this.statusFutures.get(i);
+ 
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index f44cfc1915bb977c42971ac20563dc857b75556f..cad1329f28c69c6279bad081f72e15c753c89c32 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -59,7 +59,17 @@ import org.spigotmc.AsyncCatcher;
+ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+ 
+     // Yatopia start
+-    static final java.util.concurrent.ExecutorService worldGenScheduler = java.util.concurrent.Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("Yatopia Async Chunks Scheduler").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
++    static Thread worldGenSchedulerThread = null;
++    static final java.util.concurrent.ExecutorService worldGenScheduler = java.util.concurrent.Executors.newSingleThreadExecutor(
++            new ThreadFactoryBuilder().setNameFormat("Yatopia Async Chunks Scheduler")
++                    .setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1)
++                    .setThreadFactory(r -> {
++                        Thread thread = new Thread(r);
++                        PlayerChunkMap.worldGenSchedulerThread = thread;
++                        return thread;
++                    })
++                    .build()
++    );
+     static void shutdownScheduler() {
+         worldGenScheduler.shutdown();
+         while (!worldGenScheduler.isTerminated()) {
+@@ -750,6 +760,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     // Paper end
+ 
+     private CompletableFuture<Either<List<IChunkAccess>, PlayerChunk.Failure>> a(ChunkCoordIntPair chunkcoordintpair, int i, IntFunction<ChunkStatus> intfunction) {
++        if(Thread.currentThread() != PlayerChunkMap.worldGenSchedulerThread)
++            return CompletableFuture.supplyAsync(() -> a(chunkcoordintpair, i, intfunction), PlayerChunkMap.worldGenScheduler).thenCompose(r -> r);
+         List<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> list = Lists.newArrayList();
+         int j = chunkcoordintpair.x;
+         int k = chunkcoordintpair.z;
+@@ -1175,6 +1187,12 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+             return this.f(chunkcoordintpair);
+         } else {
+             CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = playerchunk.a(chunkstatus.e(), this);
++            if (chunkstatus == ChunkStatus.LIGHT) {
++                completablefuture = completablefuture.thenApplyAsync(either -> {
++                    this.chunkDistanceManager.a(TicketType.LIGHT, chunkcoordintpair, 33 + ChunkStatus.a(ChunkStatus.FEATURES), chunkcoordintpair);
++                    return either;
++                }, this.mainInvokingExecutor);
++            }
+ 
+             return completablefuture.thenComposeAsync((either) -> {
+                 Optional<IChunkAccess> optional = either.left();
+@@ -1182,10 +1200,6 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                 if (!optional.isPresent()) {
+                     return CompletableFuture.completedFuture(either);
+                 } else {
+-                    if (chunkstatus == ChunkStatus.LIGHT) {
+-                        this.chunkDistanceManager.a(TicketType.LIGHT, chunkcoordintpair, 33 + ChunkStatus.a(ChunkStatus.FEATURES), chunkcoordintpair);
+-                    }
+-
+                     IChunkAccess ichunkaccess = (IChunkAccess) optional.get();
+ 
+                     if (ichunkaccess.getChunkStatus().b(chunkstatus)) {
+@@ -1205,7 +1219,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                         return this.b(playerchunk, chunkstatus);
+                     }
+                 }
+-            }, this.mainInvokingExecutor).thenComposeAsync(CompletableFuture::completedFuture, this.mainInvokingExecutor); // Paper - optimize chunk status progression without jumping through thread pool - ensure main
++            }, PlayerChunkMap.worldGenScheduler).thenComposeAsync(CompletableFuture::completedFuture, this.mainInvokingExecutor); // Paper - optimize chunk status progression without jumping through thread pool - ensure main
+         }
+     }
+ 
+@@ -1333,7 +1347,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                 return;
+             }
+             // Paper end
+-            worldGenScheduler.execute(runnable); // Yatopia
++            if(Thread.currentThread() != worldGenSchedulerThread)
++                worldGenScheduler.execute(runnable);
++            else runnable.run();
+         }).thenComposeAsync((either) -> { // Tuinity start - force competion on the main thread
+             return CompletableFuture.completedFuture(either);
+         }, this.mainInvokingExecutor);
