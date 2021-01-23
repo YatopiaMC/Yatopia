@@ -195,7 +195,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..5e2ae5f4a619d973f8258e2707d025eb
  
          private final Runnable run;
 diff --git a/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java b/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
-index ee906b594b306906c170180a29a8b61997d05168..a2f3ef70d4aafb866525ea1bfb85b1243a9aedca 100644
+index ee906b594b306906c170180a29a8b61997d05168..7e348fcb813707fee830082b826932e0bbba1c49 100644
 --- a/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
 @@ -35,6 +35,7 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
@@ -206,7 +206,7 @@ index ee906b594b306906c170180a29a8b61997d05168..a2f3ef70d4aafb866525ea1bfb85b124
              this.pollTasks(true);
  
              // spinwait
-@@ -81,11 +82,15 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
+@@ -81,11 +82,17 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
              // LockSupport.park() can fail for any reason
              do {
                  Thread.interrupted();
@@ -216,18 +216,33 @@ index ee906b594b306906c170180a29a8b61997d05168..a2f3ef70d4aafb866525ea1bfb85b124
          }
      }
  
++    // Yatopia start
 +    protected void preMainLoop() {
 +        // Used for PaperFileIOThread
 +    }
++    // Yatopia end
 +
      protected boolean handleClose() {
          if (this.closed) {
              this.pollTasks(true); // this ensures we've emptied the queue
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 18673cf38fb785122aaeaa47462a1c4c605fa288..426e0c3859aaf6ed7b84ae2643e59d0b5025dbcf 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -835,7 +835,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         LOGGER.info("Flushing Chunk IO");
+         PlayerChunkMap.shutdownScheduler(); // Yatopia
+         ChunkStatus.shutdownExecutors(); // Yatopia
+-        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true, true); // Paper
++        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true); // Paper // Yatopia
+         LOGGER.info("Closing Thread Pool");
+         SystemUtils.shutdownServerThreadPool(); // Paper
+         LOGGER.info("Closing Server");
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index fe91674b589852583852da2e7b5d4bddfa675718..f44cfc1915bb977c42971ac20563dc857b75556f 100644
+index ef2dd7555df791aa1963176d2a007f87d47a0eff..292c9570cdde584c53e4c1063958baa35024e7a1 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1701,7 +1701,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1700,7 +1700,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
      @Nullable
      @Override
      public NBTTagCompound read(ChunkCoordIntPair chunkcoordintpair) throws IOException {
@@ -236,7 +251,7 @@ index fe91674b589852583852da2e7b5d4bddfa675718..f44cfc1915bb977c42971ac20563dc85
              NBTTagCompound ret = com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE
                  .loadChunkDataAsyncFuture(this.world, chunkcoordintpair.x, chunkcoordintpair.z, com.destroystokyo.paper.io.IOUtil.getPriorityForCurrentThread(),
                      false, true, true).join().chunkData;
-@@ -1716,7 +1716,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1715,7 +1715,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
  
      @Override
      public void write(ChunkCoordIntPair chunkcoordintpair, NBTTagCompound nbttagcompound) throws IOException {

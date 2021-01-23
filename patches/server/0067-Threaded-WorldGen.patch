@@ -24,15 +24,14 @@ index 0fd10a103b8d3e43ab6a45d32dd99c6a8a1f8bda..ca75552df286e56a9e5d934cb84ebd8e
  
      <repositories>
 diff --git a/src/main/java/net/minecraft/server/ChunkGenerator.java b/src/main/java/net/minecraft/server/ChunkGenerator.java
-index 6223d1d9048e31fb10cec7f485d1556aec2c7d5e..aec4d52ced71046b435cd45565124ed02a348b43 100644
+index 6223d1d9048e31fb10cec7f485d1556aec2c7d5e..01caa55482aa963dfe7726e652a1157aa90f5631 100644
 --- a/src/main/java/net/minecraft/server/ChunkGenerator.java
 +++ b/src/main/java/net/minecraft/server/ChunkGenerator.java
-@@ -20,6 +20,8 @@ public abstract class ChunkGenerator {
+@@ -20,6 +20,7 @@ public abstract class ChunkGenerator {
      private final StructureSettings structureSettings;
      private final long e;
      private final List<ChunkCoordIntPair> f;
 +    public final com.ibm.asyncutil.locks.AsyncLock featureGenLock = com.ibm.asyncutil.locks.AsyncLock.createFair(); // Yatopia - threaded WorldGen
-+    public final com.ibm.asyncutil.locks.AsyncLock structureGenLock = com.ibm.asyncutil.locks.AsyncLock.createFair(); // Yatopia - threaded WorldGen
  
      public ChunkGenerator(WorldChunkManager worldchunkmanager, StructureSettings structuresettings) {
          this(worldchunkmanager, worldchunkmanager, structuresettings, 0L);
@@ -159,7 +158,7 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..8daeba67717d65a558fb40e5aaf0f242
  
          void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
 diff --git a/src/main/java/net/minecraft/server/GenLayers.java b/src/main/java/net/minecraft/server/GenLayers.java
-index 7abf0e4b7e96dd367b9d03cbc62ac7bb03542d0a..124eb6bf2cbffd642e7516ad485a95482b6e7402 100644
+index 7abf0e4b7e96dd367b9d03cbc62ac7bb03542d0a..76a76c26650bca73828d7893a537a0235f573e20 100644
 --- a/src/main/java/net/minecraft/server/GenLayers.java
 +++ b/src/main/java/net/minecraft/server/GenLayers.java
 @@ -6,7 +6,7 @@ import java.util.function.LongFunction;
@@ -171,50 +170,41 @@ index 7abf0e4b7e96dd367b9d03cbc62ac7bb03542d0a..124eb6bf2cbffd642e7516ad485a9548
          a(int2intopenhashmap, GenLayers.Type.BEACH, 16);
          a(int2intopenhashmap, GenLayers.Type.BEACH, 26);
          a(int2intopenhashmap, GenLayers.Type.DESERT, 2);
-@@ -154,6 +154,10 @@ public class GenLayers {
+@@ -154,6 +154,11 @@ public class GenLayers {
          return new GenLayer(areafactory);
      }
  
++    // Yatopia start
 +    public static ThreadLocal<GenLayer> genLayerThreadLocal(long i, boolean flag, int j, int k) {
 +        return ThreadLocal.withInitial(() -> new GenLayer(a(flag, j, k, (l) -> new WorldGenContextArea(25, i, l))));
 +    }
-+
++    // Yatopia end
      public static boolean a(int i, int j) {
          return i == j ? true : GenLayers.a.get(i) == GenLayers.a.get(j);
      }
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 706877a6d8a568a3fe8598e51b94dd4ec860f183..426e0c3859aaf6ed7b84ae2643e59d0b5025dbcf 100644
+index 706877a6d8a568a3fe8598e51b94dd4ec860f183..18673cf38fb785122aaeaa47462a1c4c605fa288 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -833,7 +833,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -833,6 +833,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          // Spigot end
          // Paper start - move final shutdown items here
          LOGGER.info("Flushing Chunk IO");
--        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true, true); // Paper
 +        PlayerChunkMap.shutdownScheduler(); // Yatopia
 +        ChunkStatus.shutdownExecutors(); // Yatopia
-+        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true); // Paper // Yatopia
+         com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true, true); // Paper
          LOGGER.info("Closing Thread Pool");
          SystemUtils.shutdownServerThreadPool(); // Paper
-         LOGGER.info("Closing Server");
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 16779ffa00caf32752170700e1d88092802fa932..fe91674b589852583852da2e7b5d4bddfa675718 100644
+index 16779ffa00caf32752170700e1d88092802fa932..ef2dd7555df791aa1963176d2a007f87d47a0eff 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -8,6 +8,7 @@ import com.google.common.collect.ComparisonChain; // Paper
- import com.google.common.collect.Lists;
- import com.google.common.collect.Queues;
- import com.google.common.collect.Sets;
-+import com.google.common.util.concurrent.ThreadFactoryBuilder;
- import com.mojang.datafixers.DataFixer;
- import com.mojang.datafixers.util.Either;
- import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-@@ -57,6 +58,18 @@ import org.spigotmc.AsyncCatcher;
+@@ -57,6 +57,18 @@ import org.spigotmc.AsyncCatcher;
  
  public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
  
 +    // Yatopia start
-+    static final java.util.concurrent.ExecutorService worldGenScheduler = java.util.concurrent.Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("Yatopia Async Chunks Scheduler").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
++    static final java.util.concurrent.ExecutorService worldGenScheduler = java.util.concurrent.Executors.newSingleThreadExecutor(new com.google.common.util.concurrent.ThreadFactoryBuilder().setNameFormat("Yatopia Async Chunks Scheduler").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
 +    static void shutdownScheduler() {
 +        worldGenScheduler.shutdown();
 +        while (!worldGenScheduler.isTerminated()) {
@@ -228,7 +218,7 @@ index 16779ffa00caf32752170700e1d88092802fa932..fe91674b589852583852da2e7b5d4bdd
      private static final Logger LOGGER = LogManager.getLogger();
      public static final int GOLDEN_TICKET = 33 + ChunkStatus.b();
      // Paper start - faster copying
-@@ -1320,7 +1333,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1320,7 +1332,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                  return;
              }
              // Paper end
@@ -250,7 +240,7 @@ index 61d399077f87fc1f198811ee31fc779b6f0ecfa9..98ec9db831697f59ddbefaee7e22d018
          return SystemUtils.e;
      }
 diff --git a/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java b/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java
-index d98ac030e205dbb1512ef6b837e2f3fdd208e231..6ca4d5cf6e352485069af8555e898fb9f7007835 100644
+index d98ac030e205dbb1512ef6b837e2f3fdd208e231..451ea5b703d01664942899ca62cf789e2cd15ab9 100644
 --- a/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java
 +++ b/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java
 @@ -19,7 +19,7 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
@@ -258,7 +248,7 @@ index d98ac030e205dbb1512ef6b837e2f3fdd208e231..6ca4d5cf6e352485069af8555e898fb9
          })).apply(instance, instance.stable(WorldChunkManagerOverworld::new));
      });
 -    private final GenLayer f;
-+    private final ThreadLocal<GenLayer> f;
++    private final ThreadLocal<GenLayer> f; // Yatopia
      private static final List<ResourceKey<BiomeBase>> g = ImmutableList.of(Biomes.OCEAN, Biomes.PLAINS, Biomes.DESERT, Biomes.MOUNTAINS, Biomes.FOREST, Biomes.TAIGA, Biomes.SWAMP, Biomes.RIVER, Biomes.FROZEN_OCEAN, Biomes.FROZEN_RIVER, Biomes.SNOWY_TUNDRA, Biomes.SNOWY_MOUNTAINS, new ResourceKey[]{Biomes.MUSHROOM_FIELDS, Biomes.MUSHROOM_FIELD_SHORE, Biomes.BEACH, Biomes.DESERT_HILLS, Biomes.WOODED_HILLS, Biomes.TAIGA_HILLS, Biomes.MOUNTAIN_EDGE, Biomes.JUNGLE, Biomes.JUNGLE_HILLS, Biomes.JUNGLE_EDGE, Biomes.DEEP_OCEAN, Biomes.STONE_SHORE, Biomes.SNOWY_BEACH, Biomes.BIRCH_FOREST, Biomes.BIRCH_FOREST_HILLS, Biomes.DARK_FOREST, Biomes.SNOWY_TAIGA, Biomes.SNOWY_TAIGA_HILLS, Biomes.GIANT_TREE_TAIGA, Biomes.GIANT_TREE_TAIGA_HILLS, Biomes.WOODED_MOUNTAINS, Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU, Biomes.BADLANDS, Biomes.WOODED_BADLANDS_PLATEAU, Biomes.BADLANDS_PLATEAU, Biomes.WARM_OCEAN, Biomes.LUKEWARM_OCEAN, Biomes.COLD_OCEAN, Biomes.DEEP_WARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN, Biomes.DEEP_COLD_OCEAN, Biomes.DEEP_FROZEN_OCEAN, Biomes.SUNFLOWER_PLAINS, Biomes.DESERT_LAKES, Biomes.GRAVELLY_MOUNTAINS, Biomes.FLOWER_FOREST, Biomes.TAIGA_MOUNTAINS, Biomes.SWAMP_HILLS, Biomes.ICE_SPIKES, Biomes.MODIFIED_JUNGLE, Biomes.MODIFIED_JUNGLE_EDGE, Biomes.TALL_BIRCH_FOREST, Biomes.TALL_BIRCH_HILLS, Biomes.DARK_FOREST_HILLS, Biomes.SNOWY_TAIGA_MOUNTAINS, Biomes.GIANT_SPRUCE_TAIGA, Biomes.GIANT_SPRUCE_TAIGA_HILLS, Biomes.MODIFIED_GRAVELLY_MOUNTAINS, Biomes.SHATTERED_SAVANNA, Biomes.SHATTERED_SAVANNA_PLATEAU, Biomes.ERODED_BADLANDS, Biomes.MODIFIED_WOODED_BADLANDS_PLATEAU, Biomes.MODIFIED_BADLANDS_PLATEAU});
      private final long h;
      private final boolean i;
@@ -267,7 +257,7 @@ index d98ac030e205dbb1512ef6b837e2f3fdd208e231..6ca4d5cf6e352485069af8555e898fb9
          this.j = flag1;
          this.k = iregistry;
 -        this.f = GenLayers.a(i, flag, flag1 ? 6 : 4, 4);
-+        this.f = GenLayers.genLayerThreadLocal(i, flag, flag1 ? 6 : 4, 4);
++        this.f = GenLayers.genLayerThreadLocal(i, flag, flag1 ? 6 : 4, 4); // Yatopia
      }
  
      @Override
@@ -276,18 +266,19 @@ index d98ac030e205dbb1512ef6b837e2f3fdd208e231..6ca4d5cf6e352485069af8555e898fb9
      @Override
      public BiomeBase getBiome(int i, int j, int k) {
 -        return this.f.a(this.k, i, k);
-+        return this.f.get().a(this.k, i, k);
++        return this.f.get().a(this.k, i, k); // Yatopia
      }
  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 40e87f3043da14b1265fcdadde02bef3b261a9d1..07f7b1345e4e13ba55783b764d14b9ef5d4db139 100644
+index 40e87f3043da14b1265fcdadde02bef3b261a9d1..153194af20ee18b83005b753f0ba05aa288932cc 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -2548,28 +2548,24 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -2548,28 +2548,26 @@ public class WorldServer extends World implements GeneratorAccessSeed {
  
          // Paper start
          BlockPosition blockposition1 = blockposition.immutableCopy();
 -        this.getMinecraftServer().execute(() -> {
++        // Yatopia start - reduce scheduling overhead
 +        this.chunkProvider.serverThreadQueue.execute(() -> {
                  if (!optional.isPresent() && this.getPoiStorage().test(blockposition1, com.google.common.base.Predicates.alwaysTrue())) {
                      this.getPoiStorage().remove(blockposition1);
@@ -311,6 +302,7 @@ index 40e87f3043da14b1265fcdadde02bef3b261a9d1..07f7b1345e4e13ba55783b764d14b9ef
              });
          }
 +        });
++        // Yatopia end
      }
  
      public final VillagePlace getPoiStorage() { return this.y(); } // Paper - OBFHELPER
