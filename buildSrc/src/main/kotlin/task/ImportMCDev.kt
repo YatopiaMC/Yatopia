@@ -26,7 +26,10 @@ internal fun Project.createImportMCDevTask(
         val source = toothpick.paperWorkDir.resolve("spigot/net/minecraft/server/$className.java")
         if (!source.exists()) error("Missing NMS: $className")
         val target = upstreamServer.resolve("src/main/java/net/minecraft/server/$className.java")
-        source.copyTo(target)
+        try {
+            source.copyTo(target)
+        } catch (e: FileAlreadyExistsException) {
+        }
     }
 
     fun importLibrary(import: LibraryImport) {
