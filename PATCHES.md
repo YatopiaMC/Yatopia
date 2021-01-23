@@ -291,7 +291,8 @@ This is an overview over all patches that are currently used.
 | server |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
-| server |  Port krypton      | Andrew Steinborn |  |
+| server |  Port hydrogen      | JellySquid |  |
+| server |  Port krypton      | Andrew Steinborn | Hugo Planque |
 | server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
