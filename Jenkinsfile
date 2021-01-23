@@ -71,6 +71,9 @@ pipeline {
                     sh '''
                         mkdir -p "./target"
                         ./gradlew paperclip
+                        basedir=$(pwd)
+                        paperworkdir="$basedir/Paper/work"
+                        mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
                         cp "yatopia-$mcver-paperclip.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
                         '''
                 }
