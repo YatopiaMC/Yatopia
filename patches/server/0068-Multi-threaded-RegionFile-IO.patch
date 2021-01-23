@@ -5,7 +5,7 @@ Subject: [PATCH] Multi-threaded RegionFile IO
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
-index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb51bacf043 100644
+index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..5e2ae5f4a619d973f8258e2707d025ebf4fa9698 100644
 --- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 @@ -35,7 +35,7 @@ import java.util.function.Function;
@@ -17,7 +17,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
  
      public static final Logger LOGGER = MinecraftServer.LOGGER;
      public static final NBTTagCompound FAILURE_VALUE = new NBTTagCompound();
-@@ -44,23 +44,75 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -44,23 +44,84 @@ public final class PaperFileIOThread extends QueueExecutorThread {
  
          public static final PaperFileIOThread INSTANCE = new PaperFileIOThread();
  
@@ -32,7 +32,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +    // Yatopia start - multi-threaded RegionFile IO
 +    private final com.ibm.asyncutil.locks.AsyncNamedLock<RegionFileCoord> regionFileLock = com.ibm.asyncutil.locks.AsyncNamedLock.createFair();
 +    private final PrioritizedTaskQueue<PrioritizedTaskQueue.PrioritizedTask> queue;
-+    private final QueueExecutorThread receiver;
++    private final PaperFileIOThread.FileIOExecutorThread receiver;
 +    private final java.util.Set<Thread> executorThreads = com.google.common.collect.Sets.newConcurrentHashSet();
 +    private final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(
 +            Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
@@ -71,6 +71,14 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +
 +    public void flush() {
 +        receiver.flush();
++        final java.util.Set<CompletableFuture<?>> runningTasks = new java.util.HashSet<>(receiver.runningTasks);
++        LOGGER.debug("Flushing Chunk IO: Waiting for {} futures", runningTasks.size());
++        for(CompletableFuture<?> future: runningTasks) {
++            try {
++                future.join();
++            } catch (Throwable ignored) {
++            }
++        }
 +    }
 +
 +    private void queueTask(PrioritizedTaskQueue.PrioritizedTask newTask) {
@@ -80,6 +88,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +
 +    public void close(final boolean wait) {
 +        receiver.close(wait, true);
++        this.flush();
 +        executor.shutdown();
 +        while (wait && !executor.isTerminated()) {
 +            try {
@@ -87,19 +96,19 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +            } catch (InterruptedException e) {
 +            }
 +        }
-     }
- 
--    /* run() is implemented by superclass */
++    }
++
 +    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
 +    public boolean isOnWorkerThread() {
 +        return executorThreads.contains(Thread.currentThread());
-+    }
-+
+     }
+ 
+-    /* run() is implemented by superclass */
 +    // Yatopia end
  
      /*
       *
-@@ -394,6 +446,79 @@ public final class PaperFileIOThread extends QueueExecutorThread {
+@@ -394,6 +455,85 @@ public final class PaperFileIOThread extends QueueExecutorThread {
          this.queueTask(new GeneralTask(priority, runnable));
      }
  
@@ -129,9 +138,15 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +    }
 +
 +    final class FileIOExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask & Runnable> extends QueueExecutorThread<T> {
++        private final java.util.Set<CompletableFuture<?>> runningTasks = com.google.common.collect.Sets.newConcurrentHashSet();
 +
 +        public FileIOExecutorThread(PrioritizedTaskQueue<T> queue, long spinWaitTime) {
 +            super(queue, spinWaitTime);
++        }
++
++        @Override
++        protected void preMainLoop() {
++            runningTasks.removeIf(CompletableFuture::isDone);
 +        }
 +
 +        @Override
@@ -143,7 +158,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +                ret = true;
 +                if (task instanceof ChunkDataTask) {
 +                    ChunkDataTask chunkDataTask = (ChunkDataTask) task;
-+                    regionFileLock.acquireLock(new RegionFileCoord(chunkDataTask.x >> 5, chunkDataTask.z >> 5))
++                    runningTasks.add(regionFileLock.acquireLock(new RegionFileCoord(chunkDataTask.x >> 5, chunkDataTask.z >> 5))
 +                            .thenApplyAsync(lockToken -> {
 +                                try {
 +                                    chunkDataTask.run();
@@ -152,19 +167,19 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
 +                                }
 +                                return null;
 +                            }, executor)
-+                    .exceptionally(throwable -> {
-+                        LOGGER.fatal("Exception thrown from prioritized runnable task in thread '" + Thread.currentThread().getName() + "': " + IOUtil.genericToString(chunkDataTask), throwable);
-+                        return null;
-+                    });
++                            .exceptionally(throwable -> {
++                                LOGGER.fatal("Exception thrown from prioritized runnable task in thread '" + Thread.currentThread().getName() + "': " + IOUtil.genericToString(chunkDataTask), throwable);
++                                return null;
++                            }).toCompletableFuture());
 +                } else {
 +                    Runnable finalTask = task;
-+                    CompletableFuture.supplyAsync(() -> {
++                    runningTasks.add(CompletableFuture.supplyAsync(() -> {
 +                        finalTask.run();
 +                        return null;
 +                    }).exceptionally(throwable -> {
 +                        LOGGER.fatal("Exception thrown from prioritized runnable task in thread '" + Thread.currentThread().getName() + "': " + IOUtil.genericToString(finalTask), throwable);
 +                        return null;
-+                    });
++                    }));
 +                }
 +            }
 +
@@ -180,10 +195,18 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..c79adda5b191607547c3df401d9f8bb5
  
          private final Runnable run;
 diff --git a/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java b/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
-index ee906b594b306906c170180a29a8b61997d05168..8eab86b48679e23ca084e51f08959a1cc112e8a3 100644
+index ee906b594b306906c170180a29a8b61997d05168..a2f3ef70d4aafb866525ea1bfb85b1243a9aedca 100644
 --- a/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/QueueExecutorThread.java
-@@ -81,7 +81,7 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
+@@ -35,6 +35,7 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
+         final long spinWaitTime = this.spinWaitTime;
+         main_loop:
+         for (;;) {
++            preMainLoop(); // Yatopia
+             this.pollTasks(true);
+ 
+             // spinwait
+@@ -81,11 +82,15 @@ public class QueueExecutorThread<T extends PrioritizedTaskQueue.PrioritizedTask
              // LockSupport.park() can fail for any reason
              do {
                  Thread.interrupted();
@@ -192,6 +215,14 @@ index ee906b594b306906c170180a29a8b61997d05168..8eab86b48679e23ca084e51f08959a1c
              } while (this.parked.get());
          }
      }
+ 
++    protected void preMainLoop() {
++        // Used for PaperFileIOThread
++    }
++
+     protected boolean handleClose() {
+         if (this.closed) {
+             this.pollTasks(true); // this ensures we've emptied the queue
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 index fe91674b589852583852da2e7b5d4bddfa675718..f44cfc1915bb977c42971ac20563dc857b75556f 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
