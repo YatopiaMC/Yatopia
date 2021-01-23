@@ -1,123 +1,166 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: ishland <ishlandmc@yeah.net>
-Date: Sat, 23 Jan 2021 09:56:12 +0800
+Date: Sat, 23 Jan 2021 15:42:26 +0800
 Subject: [PATCH] fixup! Threaded WorldGen
 
 
-diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index 8212a8799ce09cec99deedb73d1f71480009345a..42a66c5abb8c2b78c64adef362e847e76d297496 100644
---- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
-+++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-@@ -752,7 +752,7 @@ public class ChunkProviderServer extends IChunkProvider {
+diff --git a/src/main/java/net/minecraft/server/ChunkStatus.java b/src/main/java/net/minecraft/server/ChunkStatus.java
+index 4afba15d01e86e64ddec3f599a04b7f9afd20b91..8daeba67717d65a558fb40e5aaf0f24276cc4588 100644
+--- a/src/main/java/net/minecraft/server/ChunkStatus.java
++++ b/src/main/java/net/minecraft/server/ChunkStatus.java
+@@ -28,26 +28,27 @@ public class ChunkStatus {
+             new LinkedBlockingQueue<>(),
+             new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks FeatureGen Worker #%d").build()
+     );
+-    private static final ThreadPoolExecutor structureGenExecutor = new ThreadPoolExecutor(
+-            1,
++    private static final ThreadPoolExecutor worldGenExecutor = new ThreadPoolExecutor(
++            Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
+             Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
+             60,
+             TimeUnit.SECONDS,
+             new LinkedBlockingQueue<>(),
+-            new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks StructureGen Worker #%d").build()
++            new com.google.common.util.concurrent.ThreadFactoryBuilder().setDaemon(true).setNameFormat("Yatopia Async Chunks WorldGen Worker #%d").build()
+     );
++
+     static void shutdownExecutors() {
+         featureGenExecutor.shutdown();
+-        structureGenExecutor.shutdown();
++        worldGenExecutor.shutdown();
+         while (!featureGenExecutor.isTerminated()) {
+             try {
+                 featureGenExecutor.awaitTermination(30, TimeUnit.SECONDS);
+             } catch (InterruptedException ignored) {
+             }
          }
-         // Tuinity end - prevent plugin unloads from removing our ticket
-         if (isUrgent) {
--            future.thenAccept(either -> this.chunkMapDistance.clearUrgent(chunkcoordintpair));
-+            future.thenAcceptAsync(either -> this.chunkMapDistance.clearUrgent(chunkcoordintpair), ChunkProviderServer.this.playerChunkMap.mainInvokingExecutor);
+-        while (!structureGenExecutor.isTerminated()) {
++        while (!worldGenExecutor.isTerminated()) {
+             try {
+-                structureGenExecutor.awaitTermination(30, TimeUnit.SECONDS);
++                worldGenExecutor.awaitTermination(30, TimeUnit.SECONDS);
+             } catch (InterruptedException ignored) {
+             }
          }
-         return future;
-         // Paper end
-diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 576ccc7ebfeb8148dc639c8388f564e0ebbb6f36..16cb546422404e9389a8f9432cb3b579c3c5b401 100644
---- a/src/main/java/net/minecraft/server/MinecraftServer.java
-+++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -833,9 +833,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-         // Spigot end
-         // Paper start - move final shutdown items here
-         LOGGER.info("Flushing Chunk IO");
-+        PlayerChunkMap.shutdownScheduler(); // Yatopia
-         com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true); // Paper // Yatopia
-         LOGGER.info("Closing Thread Pool");
--        PlayerChunkMap.shutdownScheduler(); // Yatopia
-         ChunkStatus.shutdownExecutors(); // Yatopia
-         SystemUtils.shutdownServerThreadPool(); // Paper
-         LOGGER.info("Closing Server");
-diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index ac82f1791ce07e9a23cf97ca34974ab25e26be46..9ee1062100ae5255adc4575971f77642793ee053 100644
---- a/src/main/java/net/minecraft/server/PlayerChunk.java
-+++ b/src/main/java/net/minecraft/server/PlayerChunk.java
-@@ -513,6 +513,8 @@ public class PlayerChunk {
- 
-     public final CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> getOrCreateFuture(ChunkStatus chunkstatus, PlayerChunkMap playerchunkmap) { return this.a(chunkstatus, playerchunkmap); } // Tuinity - OBFHELPER
-     public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(ChunkStatus chunkstatus, PlayerChunkMap playerchunkmap) {
-+        if(Thread.currentThread() != PlayerChunkMap.worldGenSchedulerThread)
-+            return CompletableFuture.supplyAsync(() -> getOrCreateFuture(chunkstatus, playerchunkmap), PlayerChunkMap.worldGenScheduler).thenCompose(r -> r);
-         int i = chunkstatus.c();
-         CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = (CompletableFuture) this.statusFutures.get(i);
- 
-diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index f44cfc1915bb977c42971ac20563dc857b75556f..cad1329f28c69c6279bad081f72e15c753c89c32 100644
---- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
-+++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -59,7 +59,17 @@ import org.spigotmc.AsyncCatcher;
- public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
- 
-     // Yatopia start
--    static final java.util.concurrent.ExecutorService worldGenScheduler = java.util.concurrent.Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("Yatopia Async Chunks Scheduler").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
-+    static Thread worldGenSchedulerThread = null;
-+    static final java.util.concurrent.ExecutorService worldGenScheduler = java.util.concurrent.Executors.newSingleThreadExecutor(
-+            new ThreadFactoryBuilder().setNameFormat("Yatopia Async Chunks Scheduler")
-+                    .setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1)
-+                    .setThreadFactory(r -> {
-+                        Thread thread = new Thread(r);
-+                        PlayerChunkMap.worldGenSchedulerThread = thread;
-+                        return thread;
-+                    })
-+                    .build()
-+    );
-     static void shutdownScheduler() {
-         worldGenScheduler.shutdown();
-         while (!worldGenScheduler.isTerminated()) {
-@@ -750,6 +760,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-     // Paper end
- 
-     private CompletableFuture<Either<List<IChunkAccess>, PlayerChunk.Failure>> a(ChunkCoordIntPair chunkcoordintpair, int i, IntFunction<ChunkStatus> intfunction) {
-+        if(Thread.currentThread() != PlayerChunkMap.worldGenSchedulerThread)
-+            return CompletableFuture.supplyAsync(() -> a(chunkcoordintpair, i, intfunction), PlayerChunkMap.worldGenScheduler).thenCompose(r -> r);
-         List<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> list = Lists.newArrayList();
-         int j = chunkcoordintpair.x;
-         int k = chunkcoordintpair.z;
-@@ -1175,6 +1187,12 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-             return this.f(chunkcoordintpair);
-         } else {
-             CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = playerchunk.a(chunkstatus.e(), this);
-+            if (chunkstatus == ChunkStatus.LIGHT) {
-+                completablefuture = completablefuture.thenApplyAsync(either -> {
-+                    this.chunkDistanceManager.a(TicketType.LIGHT, chunkcoordintpair, 33 + ChunkStatus.a(ChunkStatus.FEATURES), chunkcoordintpair);
-+                    return either;
-+                }, this.mainInvokingExecutor);
-+            }
- 
-             return completablefuture.thenComposeAsync((either) -> {
-                 Optional<IChunkAccess> optional = either.left();
-@@ -1182,10 +1200,6 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-                 if (!optional.isPresent()) {
-                     return CompletableFuture.completedFuture(either);
-                 } else {
--                    if (chunkstatus == ChunkStatus.LIGHT) {
--                        this.chunkDistanceManager.a(TicketType.LIGHT, chunkcoordintpair, 33 + ChunkStatus.a(ChunkStatus.FEATURES), chunkcoordintpair);
--                    }
--
-                     IChunkAccess ichunkaccess = (IChunkAccess) optional.get();
- 
-                     if (ichunkaccess.getChunkStatus().b(chunkstatus)) {
-@@ -1205,7 +1219,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-                         return this.b(playerchunk, chunkstatus);
-                     }
+@@ -67,8 +68,7 @@ public class ChunkStatus {
+     });
+     public static final ChunkStatus STRUCTURE_STARTS = a("structure_starts", ChunkStatus.EMPTY, 0, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (chunkstatus, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, ichunkaccess) -> {
+         // Yatopia start - threaded WorldGen
+-        return chunkgenerator.structureGenLock.acquireLock().toCompletableFuture().thenComposeAsync(lockToken -> {
+-        try {
++        return CompletableFuture.supplyAsync(() -> {
+         if (!ichunkaccess.getChunkStatus().b(chunkstatus)) {
+             if (worldserver.worldDataServer.getGeneratorSettings().shouldGenerateMapFeatures()) { // CraftBukkit
+                 chunkgenerator.createStructures(worldserver.r(), worldserver.getStructureManager(), ichunkaccess, definedstructuremanager, worldserver.getSeed());
+@@ -78,11 +78,8 @@ public class ChunkStatus {
+                 ((ProtoChunk) ichunkaccess).a(chunkstatus);
+             }
+         }
+-        } finally {
+-            lockToken.releaseLock();
+-        }
+-        return CompletableFuture.completedFuture(Either.left(ichunkaccess));
+-        }, structureGenExecutor);
++        return Either.left(ichunkaccess);
++        }, worldGenExecutor);
+         // Yatopia end
+     });
+     public static final ChunkStatus STRUCTURE_REFERENCES = a("structure_references", ChunkStatus.STRUCTURE_STARTS, 8, ChunkStatus.n, ChunkStatus.Type.PROTOCHUNK, (worldserver, chunkgenerator, list, ichunkaccess) -> {
+@@ -309,7 +306,7 @@ public class ChunkStatus {
                  }
--            }, this.mainInvokingExecutor).thenComposeAsync(CompletableFuture::completedFuture, this.mainInvokingExecutor); // Paper - optimize chunk status progression without jumping through thread pool - ensure main
-+            }, PlayerChunkMap.worldGenScheduler).thenComposeAsync(CompletableFuture::completedFuture, this.mainInvokingExecutor); // Paper - optimize chunk status progression without jumping through thread pool - ensure main
+             }
+             return Either.left(ichunkaccess);
+-            }, SystemUtils.getMainThreadExecutor());
++            }, worldGenExecutor);
+ 
+             // Yatopia end
          }
+diff --git a/src/main/java/net/minecraft/server/GenLayers.java b/src/main/java/net/minecraft/server/GenLayers.java
+index 7abf0e4b7e96dd367b9d03cbc62ac7bb03542d0a..124eb6bf2cbffd642e7516ad485a95482b6e7402 100644
+--- a/src/main/java/net/minecraft/server/GenLayers.java
++++ b/src/main/java/net/minecraft/server/GenLayers.java
+@@ -6,7 +6,7 @@ import java.util.function.LongFunction;
+ 
+ public class GenLayers {
+ 
+-    private static final Int2IntMap a = (Int2IntMap) SystemUtils.a((Object) (new Int2IntOpenHashMap()), (int2intopenhashmap) -> {
++    private static final Int2IntMap a = (Int2IntMap) SystemUtils.a((new Int2IntOpenHashMap()), (int2intopenhashmap) -> { // Yatopia - decompile fix
+         a(int2intopenhashmap, GenLayers.Type.BEACH, 16);
+         a(int2intopenhashmap, GenLayers.Type.BEACH, 26);
+         a(int2intopenhashmap, GenLayers.Type.DESERT, 2);
+@@ -154,6 +154,10 @@ public class GenLayers {
+         return new GenLayer(areafactory);
      }
  
-@@ -1333,7 +1347,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
-                 return;
-             }
++    public static ThreadLocal<GenLayer> genLayerThreadLocal(long i, boolean flag, int j, int k) {
++        return ThreadLocal.withInitial(() -> new GenLayer(a(flag, j, k, (l) -> new WorldGenContextArea(25, i, l))));
++    }
++
+     public static boolean a(int i, int j) {
+         return i == j ? true : GenLayers.a.get(i) == GenLayers.a.get(j);
+     }
+diff --git a/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java b/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java
+index d98ac030e205dbb1512ef6b837e2f3fdd208e231..6ca4d5cf6e352485069af8555e898fb9f7007835 100644
+--- a/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java
++++ b/src/main/java/net/minecraft/server/WorldChunkManagerOverworld.java
+@@ -19,7 +19,7 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
+             return worldchunkmanageroverworld.k;
+         })).apply(instance, instance.stable(WorldChunkManagerOverworld::new));
+     });
+-    private final GenLayer f;
++    private final ThreadLocal<GenLayer> f;
+     private static final List<ResourceKey<BiomeBase>> g = ImmutableList.of(Biomes.OCEAN, Biomes.PLAINS, Biomes.DESERT, Biomes.MOUNTAINS, Biomes.FOREST, Biomes.TAIGA, Biomes.SWAMP, Biomes.RIVER, Biomes.FROZEN_OCEAN, Biomes.FROZEN_RIVER, Biomes.SNOWY_TUNDRA, Biomes.SNOWY_MOUNTAINS, new ResourceKey[]{Biomes.MUSHROOM_FIELDS, Biomes.MUSHROOM_FIELD_SHORE, Biomes.BEACH, Biomes.DESERT_HILLS, Biomes.WOODED_HILLS, Biomes.TAIGA_HILLS, Biomes.MOUNTAIN_EDGE, Biomes.JUNGLE, Biomes.JUNGLE_HILLS, Biomes.JUNGLE_EDGE, Biomes.DEEP_OCEAN, Biomes.STONE_SHORE, Biomes.SNOWY_BEACH, Biomes.BIRCH_FOREST, Biomes.BIRCH_FOREST_HILLS, Biomes.DARK_FOREST, Biomes.SNOWY_TAIGA, Biomes.SNOWY_TAIGA_HILLS, Biomes.GIANT_TREE_TAIGA, Biomes.GIANT_TREE_TAIGA_HILLS, Biomes.WOODED_MOUNTAINS, Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU, Biomes.BADLANDS, Biomes.WOODED_BADLANDS_PLATEAU, Biomes.BADLANDS_PLATEAU, Biomes.WARM_OCEAN, Biomes.LUKEWARM_OCEAN, Biomes.COLD_OCEAN, Biomes.DEEP_WARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN, Biomes.DEEP_COLD_OCEAN, Biomes.DEEP_FROZEN_OCEAN, Biomes.SUNFLOWER_PLAINS, Biomes.DESERT_LAKES, Biomes.GRAVELLY_MOUNTAINS, Biomes.FLOWER_FOREST, Biomes.TAIGA_MOUNTAINS, Biomes.SWAMP_HILLS, Biomes.ICE_SPIKES, Biomes.MODIFIED_JUNGLE, Biomes.MODIFIED_JUNGLE_EDGE, Biomes.TALL_BIRCH_FOREST, Biomes.TALL_BIRCH_HILLS, Biomes.DARK_FOREST_HILLS, Biomes.SNOWY_TAIGA_MOUNTAINS, Biomes.GIANT_SPRUCE_TAIGA, Biomes.GIANT_SPRUCE_TAIGA_HILLS, Biomes.MODIFIED_GRAVELLY_MOUNTAINS, Biomes.SHATTERED_SAVANNA, Biomes.SHATTERED_SAVANNA_PLATEAU, Biomes.ERODED_BADLANDS, Biomes.MODIFIED_WOODED_BADLANDS_PLATEAU, Biomes.MODIFIED_BADLANDS_PLATEAU});
+     private final long h;
+     private final boolean i;
+@@ -36,7 +36,7 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
+         this.i = flag;
+         this.j = flag1;
+         this.k = iregistry;
+-        this.f = GenLayers.a(i, flag, flag1 ? 6 : 4, 4);
++        this.f = GenLayers.genLayerThreadLocal(i, flag, flag1 ? 6 : 4, 4);
+     }
+ 
+     @Override
+@@ -46,6 +46,6 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
+ 
+     @Override
+     public BiomeBase getBiome(int i, int j, int k) {
+-        return this.f.a(this.k, i, k);
++        return this.f.get().a(this.k, i, k);
+     }
+ }
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index 40e87f3043da14b1265fcdadde02bef3b261a9d1..07f7b1345e4e13ba55783b764d14b9ef5d4db139 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -2548,28 +2548,24 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+         // Paper start
+         BlockPosition blockposition1 = blockposition.immutableCopy();
+-        this.getMinecraftServer().execute(() -> {
++        this.chunkProvider.serverThreadQueue.execute(() -> {
+                 if (!optional.isPresent() && this.getPoiStorage().test(blockposition1, com.google.common.base.Predicates.alwaysTrue())) {
+                     this.getPoiStorage().remove(blockposition1);
+                 }
+-        });
+         if (!Objects.equals(optional, optional1)) {
+             //BlockPosition blockposition1 = blockposition.immutableCopy();
              // Paper end
--            worldGenScheduler.execute(runnable); // Yatopia
-+            if(Thread.currentThread() != worldGenSchedulerThread)
-+                worldGenScheduler.execute(runnable);
-+            else runnable.run();
-         }).thenComposeAsync((either) -> { // Tuinity start - force competion on the main thread
-             return CompletableFuture.completedFuture(either);
-         }, this.mainInvokingExecutor);
+ 
+             optional.ifPresent((villageplacetype) -> {
+-                this.getMinecraftServer().execute(() -> {
+                     this.y().a(blockposition1);
+                     PacketDebug.b(this, blockposition1);
+-                });
+             });
+             optional1.ifPresent((villageplacetype) -> {
+-                this.getMinecraftServer().execute(() -> {
+                     this.y().a(blockposition1, villageplacetype);
+                     PacketDebug.a(this, blockposition1);
+-                });
+             });
+         }
++        });
+     }
+ 
+     public final VillagePlace getPoiStorage() { return this.y(); } // Paper - OBFHELPER

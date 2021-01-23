@@ -5,7 +5,6 @@ Subject: [PATCH] Threaded WorldGen
 
 A massive improvement to world generation.
 This patch actually schedules chunk status upgrade later rather than doing it right away.
-However, feature placements are still on the server thread for now.
 
 diff --git a/pom.xml b/pom.xml
 index 0fd10a103b8d3e43ab6a45d32dd99c6a8a1f8bda..ca75552df286e56a9e5d934cb84ebd8e98e092cc 100644
@@ -162,18 +161,20 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..4afba15d01e86e64ddec3f599a04b7f9
  
          void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 706877a6d8a568a3fe8598e51b94dd4ec860f183..9798289202435317d3b3a9660b82a2b0a92970e0 100644
+index 706877a6d8a568a3fe8598e51b94dd4ec860f183..426e0c3859aaf6ed7b84ae2643e59d0b5025dbcf 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -835,6 +835,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -833,7 +833,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         // Spigot end
+         // Paper start - move final shutdown items here
          LOGGER.info("Flushing Chunk IO");
-         com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true, true); // Paper
-         LOGGER.info("Closing Thread Pool");
+-        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true, true); // Paper
 +        PlayerChunkMap.shutdownScheduler(); // Yatopia
 +        ChunkStatus.shutdownExecutors(); // Yatopia
++        com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.close(true); // Paper // Yatopia
+         LOGGER.info("Closing Thread Pool");
          SystemUtils.shutdownServerThreadPool(); // Paper
          LOGGER.info("Closing Server");
-         org.yatopiamc.yatopia.server.opencl.OpenCompute.release(); // Yatopia
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 index 16779ffa00caf32752170700e1d88092802fa932..fe91674b589852583852da2e7b5d4bddfa675718 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
