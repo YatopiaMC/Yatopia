@@ -49,10 +49,12 @@ pipeline {
                     mavenLocalRepo: '.repository',
                     publisherStrategy: 'EXPLICIT'
                 ) {
-                    sh '''
-                    ./gradlew build
-                    ./gradlew publish
-                    '''
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
+                        sh '''
+                        ./gradlew build
+                        ./gradlew publish
+                        '''
+                    }
                 }
             }
         }
