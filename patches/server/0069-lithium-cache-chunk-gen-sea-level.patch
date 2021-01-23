@@ -10,7 +10,7 @@ This code was originally made by SuperCoder7979 in a Pull Request to lithium (ht
 This code was orignally licensed under the LGPL-3.0 license.
 
 diff --git a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-index fa60285c0c48147ad09b9197bfe577f504dd34bd..79b235e0e5278435f6f8596b1839a0ea7d7c33da 100644
+index fa60285c0c48147ad09b9197bfe577f504dd34bd..51beb6506bd64782d37e5883fb7c633d4e7dfc02 100644
 --- a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 +++ b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 @@ -17,6 +17,7 @@ import javax.annotation.Nullable;
@@ -21,7 +21,7 @@ index fa60285c0c48147ad09b9197bfe577f504dd34bd..79b235e0e5278435f6f8596b1839a0ea
      public static final Codec<ChunkGeneratorAbstract> d = RecordCodecBuilder.create((instance) -> {
          return instance.group(WorldChunkManager.a.fieldOf("biome_source").forGetter((chunkgeneratorabstract) -> {
              return chunkgeneratorabstract.b;
-@@ -688,10 +689,20 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -688,10 +689,19 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          return this.x;
      }
  
@@ -32,11 +32,11 @@ index fa60285c0c48147ad09b9197bfe577f504dd34bd..79b235e0e5278435f6f8596b1839a0ea
 +     *
 +     * @author SuperCoder79
 +     */
-+    public int seaLevel() { return ((GeneratorSettingBase) this.h.get()).g(); } // Yatopia OBFHELPER - Old getSeaLevel method
      @Override
-     public int getSeaLevel() {
+-    public int getSeaLevel() {
 -        return ((GeneratorSettingBase) this.h.get()).g();
-+        if (this.cachedSeaLevel == Integer.MIN_VALUE) this.cachedSeaLevel = seaLevel();
++    public int getSeaLevel() { // Cached method of getting sealevel
++        if (this.cachedSeaLevel == Integer.MIN_VALUE) this.cachedSeaLevel = ((GeneratorSettingBase) this.h.get()).g();
 +        return this.cachedSeaLevel;
      }
 +    // Yatopia end
