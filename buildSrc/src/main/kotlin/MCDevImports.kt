@@ -1,7 +1,7 @@
 /**
  * This is the set of extra NMS files which will be imported as part of the patch process
  *
- * See `./Paper/work/Minecraft/$MCVER/classes/net/minecraft/server` for a list of possible files
+ * See `./Paper/work/Minecraft/$MCVER/spigot/net/minecraft/server` for a list of possible files
  *
  * The `.java` extension is always assumed and should be excluded
  *
