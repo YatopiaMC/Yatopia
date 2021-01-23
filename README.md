@@ -18,6 +18,8 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 * [AirplaneLite](https://github.com/Technove/AirplaneLite)
+* [Hydrogen](https://github.com/jellysquid3/hydrogen-fabric)
+* [Krypton](https://github.com/astei/krypton)
 
 
 ## Try it out 

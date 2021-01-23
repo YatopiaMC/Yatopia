@@ -7,10 +7,10 @@ A massive improvement to world generation.
 This patch actually schedules chunk status upgrade later rather than doing it right away.
 
 diff --git a/pom.xml b/pom.xml
-index 0fd10a103b8d3e43ab6a45d32dd99c6a8a1f8bda..ca75552df286e56a9e5d934cb84ebd8e98e092cc 100644
+index f4c3b857ae58fc83a12b62e6a91902749405833e..5ab07018f03e304379ac84bd29fc18ece0efe6ae 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -193,6 +193,12 @@
+@@ -201,6 +201,12 @@
              <artifactId>jocl-main</artifactId>
              <version>2.3.2</version>
          </dependency>
@@ -161,7 +161,7 @@ index 51ea295d66312c95685b9fe4ee502a029d2fff20..4afba15d01e86e64ddec3f599a04b7f9
  
          void doWork(WorldServer worldserver, ChunkGenerator chunkgenerator, List<IChunkAccess> list, IChunkAccess ichunkaccess);
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 706877a6d8a568a3fe8598e51b94dd4ec860f183..426e0c3859aaf6ed7b84ae2643e59d0b5025dbcf 100644
+index e4116f2a169dd4f1b2c87d23ef0e48a7ca0bbfa1..c7f08d4159f15f3d469e057847af37ee9f217c5f 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -833,7 +833,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
