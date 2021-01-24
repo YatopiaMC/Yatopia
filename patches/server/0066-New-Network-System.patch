@@ -128,21 +128,10 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..d22f0ee3f7f2daa8323d454aca1f9473
      }
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..dc43bc975d4b515a7fa89468f0eadea63b6da76e 100644
+index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..6fb4fdaaba092cce04e3600122e534ce8dff073c 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -47,8 +47,8 @@ public class YatopiaConfig {
-         commands = new HashMap<>();
-         commands.put("nspt", new NSPTCommand("nspt"));
- 
--        version = getInt("config-version", 1);
--        set("config-version", 1);
-+        version = getInt("config-version", 2);
-+        set("config-version", 2);
-         removeLeftovers();
-         readConfig(YatopiaConfig.class, null);
-     }
-@@ -303,4 +303,18 @@ public class YatopiaConfig {
+@@ -303,4 +303,17 @@ public class YatopiaConfig {
          logPlayerLoginLoc = getBoolean("settings.log-player-login-location", logPlayerLoginLoc);
      }
  
@@ -151,12 +140,11 @@ index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..dc43bc975d4b515a7fa89468f0eadea6
 +    public static boolean debugNetwork = false;
 +    private static void newNetworkSystem() {
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
-+        if (version < 2) {
-+            config.set("network.ftp-fastopen", getBoolean("network.ftcp-fastopen", tcpFastOpen));
++        if (config.get("network.ftcp-fastopen") != null) {
++            config.set("network.tcp-fastopen", getBoolean("network.ftcp-fastopen", tcpFastOpen));
 +            config.set("network.ftcp-fastopen", null);
 +        }
-+        tcpFastOpen = getBoolean("network.ftp-fastopen", tcpFastOpen);
-+
++        tcpFastOpen = getBoolean("network.tcp-fastopen", tcpFastOpen);
 +        debugNetwork = getBoolean("network.debug", debugNetwork);
 +    }
 +
