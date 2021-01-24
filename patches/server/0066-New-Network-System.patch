@@ -41,7 +41,7 @@ index 87cf9cd88d1fb5ae70d19e5618ebfb67d281304a..a1c2bea7c93433434b4e4dfd0bb4b962
  
      public boolean getPVP() {
 diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949cb6d1d99 100644
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..d22f0ee3f7f2daa8323d454aca1f94733b249333 100644
 --- a/src/main/java/net/minecraft/server/ServerConnection.java
 +++ b/src/main/java/net/minecraft/server/ServerConnection.java
 @@ -11,6 +11,7 @@ import io.netty.channel.ChannelInitializer;
@@ -52,7 +52,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949
  import io.netty.channel.epoll.EpollEventLoopGroup;
  import io.netty.channel.epoll.EpollServerSocketChannel;
  import io.netty.channel.nio.NioEventLoopGroup;
-@@ -26,16 +27,20 @@ import java.util.List;
+@@ -26,6 +27,7 @@ import java.util.List;
  import javax.annotation.Nullable;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -60,20 +60,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949
  
  public class ServerConnection {
  
-     private static final Logger LOGGER = LogManager.getLogger();
-+    /* // Yatopia Start - New network system - Remove unused fields
-     public static final LazyInitVar<NioEventLoopGroup> a = new LazyInitVar<>(() -> {
-         return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Server IO #%d").setDaemon(true).build());
-     });
-     public static final LazyInitVar<EpollEventLoopGroup> b = new LazyInitVar<>(() -> {
-         return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).build());
-     });
-+     */
-+    // Yatopia end
-     private final MinecraftServer e;
-     public volatile boolean c;
-     private final List<ChannelFuture> listeningChannels = Collections.synchronizedList(Lists.newArrayList());
-@@ -52,15 +57,29 @@ public class ServerConnection {
+@@ -52,15 +54,29 @@ public class ServerConnection {
      }
      // Paper end
  
@@ -87,7 +74,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949
          this.c = true;
 +
 +        // Yatopia start - New network system
-+        this.networkType = NetworkType.bestType(minecraftserver);
++        this.networkType = NetworkType.bestType(minecraftserver, LOGGER);
 +        this.boss = networkType.createEventLoopGroup(NetworkType.LoopGroupType.BOSS);
 +        this.worker = networkType.createEventLoopGroup(NetworkType.LoopGroupType.WORKER);
 +        // Yatopia end
@@ -103,7 +90,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949
              Class oclass;
              LazyInitVar lazyinitvar;
  
-@@ -73,16 +92,25 @@ public class ServerConnection {
+@@ -73,16 +89,25 @@ public class ServerConnection {
                  lazyinitvar = ServerConnection.a;
                  ServerConnection.LOGGER.info("Using default channel type");
              }
@@ -130,7 +117,7 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949
                      } catch (ChannelException channelexception) {
                          ;
                      }
-@@ -97,7 +125,8 @@ public class ServerConnection {
+@@ -97,7 +122,8 @@ public class ServerConnection {
                      channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
                      ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
                  }
@@ -141,18 +128,24 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..f20be527bec58bad8e4a5bb7bb887949
      }
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..c4d0dabd408c7a943dafd6ca89b598cb4afb440e 100644
+index 35f212c2ac43ebea6ce9c4a333738c7a869ebc18..6fb4fdaaba092cce04e3600122e534ce8dff073c 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -303,4 +303,11 @@ public class YatopiaConfig {
+@@ -303,4 +303,17 @@ public class YatopiaConfig {
          logPlayerLoginLoc = getBoolean("settings.log-player-login-location", logPlayerLoginLoc);
      }
  
 +    public static boolean ioUringBeta = false;
 +    public static boolean tcpFastOpen = false;
++    public static boolean debugNetwork = false;
 +    private static void newNetworkSystem() {
 +        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
-+        tcpFastOpen = getBoolean("network.ftcp-fastopen", tcpFastOpen);
++        if (config.get("network.ftcp-fastopen") != null) {
++            config.set("network.tcp-fastopen", getBoolean("network.ftcp-fastopen", tcpFastOpen));
++            config.set("network.ftcp-fastopen", null);
++        }
++        tcpFastOpen = getBoolean("network.tcp-fastopen", tcpFastOpen);
++        debugNetwork = getBoolean("network.debug", debugNetwork);
 +    }
 +
  }
@@ -191,10 +184,10 @@ index 0000000000000000000000000000000000000000..3e74e23f3cc44b7547d9f8575b411059
 +}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..6b9d788dfef2c51111e9f2129a04fce7754c51ba
+index 0000000000000000000000000000000000000000..6c387f29e4db7e1574a2bbb119465c48b8ed2f90
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
-@@ -0,0 +1,110 @@
+@@ -0,0 +1,129 @@
 +package org.yatopiamc.yatopia.server.network;
 +
 +import io.netty.channel.ChannelFactory;
@@ -216,6 +209,8 @@ index 0000000000000000000000000000000000000000..6b9d788dfef2c51111e9f2129a04fce7
 +import java.util.function.BiFunction;
 +
 +import net.minecraft.server.MinecraftServer;
++import org.apache.logging.log4j.Level;
++import org.apache.logging.log4j.Logger;
 +import org.spigotmc.SpigotConfig;
 +import org.yatopiamc.yatopia.server.YatopiaConfig;
 +
@@ -264,7 +259,7 @@ index 0000000000000000000000000000000000000000..6b9d788dfef2c51111e9f2129a04fce7
 +        return new NettyThreadFactory(name, type.toString());
 +    }
 +
-+    public static NetworkType bestType(MinecraftServer minecraftServer) {
++    public static NetworkType bestType(MinecraftServer minecraftServer, Logger logger) {
 +        if (!minecraftServer.isUsingNativeTransport()) {
 +            return NIO;
 +        }
@@ -275,18 +270,35 @@ index 0000000000000000000000000000000000000000..6b9d788dfef2c51111e9f2129a04fce7
 +        if (!SpigotConfig.bungee && YatopiaConfig.ioUringBeta && MinecraftServer.getServer().ax() < 0) {
 +            if (IOUring.isAvailable()) {
 +                return IOURING;
++            } else if (YatopiaConfig.debugNetwork) {
++                logger.log(Level.ERROR, "IOUring is not working: {}", exceptionMessage(IOUring.unavailabilityCause()));
 +            }
 +        }
 +
 +        if (Epoll.isAvailable()) {
 +            return EPOLL;
++        } else if (YatopiaConfig.debugNetwork) {
++            logger.log(Level.ERROR, "Epoll is not working: {}", exceptionMessage(Epoll.unavailabilityCause()));
 +        }
 +
 +        if (KQueue.isAvailable()) {
 +            return KQUEUE;
++        } else if (YatopiaConfig.debugNetwork) {
++            logger.log(Level.ERROR, "KQueue is not working: {}", exceptionMessage(KQueue.unavailabilityCause()));
 +        }
 +
 +        return NIO;
++    }
++
++    private static String exceptionMessage(Throwable throwable) {
++        StackTraceElement[] trace = throwable.getStackTrace();
++        return getClassNameFromString(throwable.getClass().getName()) + " : " + throwable.getMessage() +
++                ((trace.length > 0) ? " @ " + throwable.getStackTrace()[0].getClassName() + ":" + throwable.getStackTrace()[0].getLineNumber() : "");
++    }
++
++    private static String getClassNameFromString(String className) {
++        int i = className.lastIndexOf('.');
++        return i > 0 ? className.substring(i + 1) : className;
 +    }
 +
 +    public enum LoopGroupType {
