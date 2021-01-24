@@ -5,7 +5,7 @@ Subject: [PATCH] Multi-threaded RegionFile IO
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
-index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..5e2ae5f4a619d973f8258e2707d025ebf4fa9698 100644
+index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..69ac57ea55c3199435ebd8dd4f01d70369d99472 100644
 --- a/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 +++ b/src/main/java/com/destroystokyo/paper/io/PaperFileIOThread.java
 @@ -35,7 +35,7 @@ import java.util.function.Function;
@@ -35,7 +35,7 @@ index 1917d7be7dfddc93c95b9fd864cf13f9a24c8f96..5e2ae5f4a619d973f8258e2707d025eb
 +    private final PaperFileIOThread.FileIOExecutorThread receiver;
 +    private final java.util.Set<Thread> executorThreads = com.google.common.collect.Sets.newConcurrentHashSet();
 +    private final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(
-+            Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)),
++            org.yatopiamc.yatopia.server.YatopiaConfig.regionFileIOThreadPoolSize == -1 ? Math.min(Runtime.getRuntime().availableProcessors(), Integer.getInteger("paper.maxChunkThreads", 8)) : org.yatopiamc.yatopia.server.YatopiaConfig.regionFileIOThreadPoolSize,
 +            new com.google.common.util.concurrent.ThreadFactoryBuilder()
 +                    .setNameFormat("Paper RegionFile IO Worker #%d")
 +                    .setPriority(Thread.NORM_PRIORITY - 1)
@@ -282,3 +282,18 @@ index 8849336437d91022cc33c704059d8b075882bbf3..f5e8bbd257578f87af0b2247d52303db
              com.destroystokyo.paper.io.PaperFileIOThread.Holder.INSTANCE.scheduleSave(
                  this.world, chunkcoordintpair.x, chunkcoordintpair.z, nbttagcompound, null,
                  com.destroystokyo.paper.io.PrioritizedTaskQueue.NORMAL_PRIORITY); // Tuinity - writes are async, no need for priority
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 36eda6070775cbe1ddf4748c11a67d77fb226967..013c049ce7746e6dc03fc9b1a7290a0b04e4a356 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -324,4 +324,10 @@ public class YatopiaConfig {
+         Preconditions.checkArgument(worldGenExecutorSize == -1 || worldGenExecutorSize > 0, "Invalid settings.threads.worldgen in yatopia.yml");
+     }
+ 
++    public static int regionFileIOThreadPoolSize = -1;
++    private static void multiThreadedRegionFile() {
++        regionFileIOThreadPoolSize = getInt("settings.threads.regionfile", -1);
++        Preconditions.checkArgument(regionFileIOThreadPoolSize == -1 || regionFileIOThreadPoolSize > 0, "Invalid settings.threads.regionfile in yatopia.yml");
++    }
++
+ }
