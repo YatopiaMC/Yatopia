@@ -306,7 +306,7 @@ index 40e87f3043da14b1265fcdadde02bef3b261a9d1..8a28b98d35dcdfbd4bb55a3b7f2d963c
  
      public final VillagePlace getPoiStorage() { return this.y(); } // Paper - OBFHELPER
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 0db7ae9fa1efdd5a28569140a0b9cf61fdec95ca..2173acd58f84b907c5f7326cdb49ccf69bf7c91d 100644
+index 460d5e44832b55535d691625902c4e7f4a9fce88..7db3b44d6c0dcd374108132ed2382bf900f15779 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -1,5 +1,6 @@
@@ -316,10 +316,10 @@ index 0db7ae9fa1efdd5a28569140a0b9cf61fdec95ca..2173acd58f84b907c5f7326cdb49ccf6
  import com.google.common.base.Throwables;
  import java.io.File;
  import java.io.IOException;
-@@ -321,4 +322,13 @@ public class YatopiaConfig {
-         openCLTestPasses = getInt("settings.opencl.test-passes", openCLTestPasses);
-     }
- 
+@@ -315,6 +316,15 @@ public class YatopiaConfig {
+     public static int openCLTestSize = 8 * 1024 * 1024;
+     public static int openCLTestPasses = 4;
+     private static void opencl() {
 +    public static int featureGenExecutorSize = -1;
 +    public static int worldGenExecutorSize = -1;
 +    private static void multiThreadedWorldGen() {
@@ -329,4 +329,6 @@ index 0db7ae9fa1efdd5a28569140a0b9cf61fdec95ca..2173acd58f84b907c5f7326cdb49ccf6
 +        Preconditions.checkArgument(worldGenExecutorSize == -1 || worldGenExecutorSize > 0, "Invalid settings.threads.worldgen in yatopia.yml");
 +    }
 +
- }
+         useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
+         openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
+         openCLTestSize = getInt("settings.opencl.test-size", openCLTestSize);
