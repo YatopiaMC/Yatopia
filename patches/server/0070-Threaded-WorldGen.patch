@@ -270,16 +270,15 @@ index d98ac030e205dbb1512ef6b837e2f3fdd208e231..451ea5b703d01664942899ca62cf789e
      }
  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 40e87f3043da14b1265fcdadde02bef3b261a9d1..153194af20ee18b83005b753f0ba05aa288932cc 100644
+index 40e87f3043da14b1265fcdadde02bef3b261a9d1..8a28b98d35dcdfbd4bb55a3b7f2d963cf7b997d6 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -2548,28 +2548,26 @@ public class WorldServer extends World implements GeneratorAccessSeed {
  
          // Paper start
          BlockPosition blockposition1 = blockposition.immutableCopy();
--        this.getMinecraftServer().execute(() -> {
 +        // Yatopia start - reduce scheduling overhead
-+        this.chunkProvider.serverThreadQueue.execute(() -> {
+         this.getMinecraftServer().execute(() -> {
                  if (!optional.isPresent() && this.getPoiStorage().test(blockposition1, com.google.common.base.Predicates.alwaysTrue())) {
                      this.getPoiStorage().remove(blockposition1);
                  }
