@@ -283,19 +283,42 @@ index 8849336437d91022cc33c704059d8b075882bbf3..f5e8bbd257578f87af0b2247d52303db
                  this.world, chunkcoordintpair.x, chunkcoordintpair.z, nbttagcompound, null,
                  com.destroystokyo.paper.io.PrioritizedTaskQueue.NORMAL_PRIORITY); // Tuinity - writes are async, no need for priority
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 7db3b44d6c0dcd374108132ed2382bf900f15779..c8dc19eb511e1cf62ad167ef22d7f0a5dbc13b3a 100644
+index 98c639fe71ff74d316052c90837122dc293429ff..d384f4355fc344cee5cd7f6387274a4755c5ac48 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -325,6 +325,12 @@ public class YatopiaConfig {
-         Preconditions.checkArgument(worldGenExecutorSize == -1 || worldGenExecutorSize > 0, "Invalid settings.threads.worldgen in yatopia.yml");
+@@ -305,6 +305,35 @@ public class YatopiaConfig {
      }
  
+     public static boolean ioUringBeta = false;
++<<<<<<< 8bf1ec1bd32caa8d57ecda2b6f68684f0a289225
++=======
++    public static boolean useOpenCL = true;
++    public static int openCLDeviceOverride = -1;
++    public static int openCLTestSize = 8 * 1024 * 1024;
++    public static int openCLTestPasses = 4;
++    private static void opencl() {
++    public static int featureGenExecutorSize = -1;
++    public static int worldGenExecutorSize = -1;
++    private static void multiThreadedWorldGen() {
++        featureGenExecutorSize = getInt("settings.threads.featuregen", -1);
++        Preconditions.checkArgument(featureGenExecutorSize == -1 || featureGenExecutorSize > 0, "Invalid settings.threads.featuregen in yatopia.yml");
++        worldGenExecutorSize = getInt("settings.threads.worldgen", -1);
++        Preconditions.checkArgument(worldGenExecutorSize == -1 || worldGenExecutorSize > 0, "Invalid settings.threads.worldgen in yatopia.yml");
++    }
++
 +    public static int regionFileIOThreadPoolSize = -1;
 +    private static void multiThreadedRegionFile() {
 +        regionFileIOThreadPoolSize = getInt("settings.threads.regionfile", -1);
 +        Preconditions.checkArgument(regionFileIOThreadPoolSize == -1 || regionFileIOThreadPoolSize > 0, "Invalid settings.threads.regionfile in yatopia.yml");
 +    }
 +
-         useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
-         openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
-         openCLTestSize = getInt("settings.opencl.test-size", openCLTestSize);
++        useOpenCL = getBoolean("settings.opencl.enabled", useOpenCL);
++        openCLDeviceOverride = getInt("settings.opencl.device-override", openCLDeviceOverride);
++        openCLTestSize = getInt("settings.opencl.test-size", openCLTestSize);
++        openCLTestPasses = getInt("settings.opencl.test-passes", openCLTestPasses);
++    }
++
++>>>>>>> Multi-threaded RegionFile IO
+     public static boolean tcpFastOpen = false;
+     private static void newNetworkSystem() {
+         ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
