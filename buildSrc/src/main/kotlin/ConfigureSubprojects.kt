@@ -15,6 +15,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.*
+import org.yatopia.yatoclip.gradle.PatchesMetadata
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.*
@@ -85,11 +86,14 @@ private fun Project.configureServerProject() {
             into("META-INF/maven/io.papermc.paper/paper")
         }
 
+        val relocationSet = HashSet<PatchesMetadata.Relocation>()
+
         // Don't like to do this but sadly have to do this for compatibility reasons
         relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.v${toothpick.nmsPackage}") {
             exclude("org.bukkit.craftbukkit.Main*")
         }
         relocate("net.minecraft.server", "net.minecraft.server.v${toothpick.nmsPackage}")
+        relocationSet.add(PatchesMetadata.Relocation("", "net.minecraft.server.v${toothpick.nmsPackage}", false))
 
         // Make sure we relocate deps the same as Paper et al.
         val pomFile = project.projectDir.resolve("pom.xml")
@@ -111,9 +115,11 @@ private fun Project.configureServerProject() {
                         if (pattern != "org.bukkit.craftbukkit" && pattern != "net.minecraft.server") { // We handle these ourselves above
                             logger.debug("Imported relocation to server project shadowJar from ${pomFile.absolutePath}: $pattern to $shadedPattern")
                             relocate(pattern, shadedPattern)
+                            relocationSet.add(PatchesMetadata.Relocation(pattern, shadedPattern, true))
                         }
                     }
         }
+        project.extensions.add("relocations", relocationSet)
     }
     tasks.getByName("build") {
         dependsOn(shadowJar)
