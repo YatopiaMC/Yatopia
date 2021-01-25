@@ -6,6 +6,7 @@ import kotlinx.dom.parseXml
 import kotlinx.dom.search
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
@@ -61,6 +62,12 @@ internal fun Project.configureSubprojects() {
 }
 
 private fun Project.configureYatoclipProject() {
+    try {
+        rootProject.toothpick.serverProject.project.extensions.getByName("relocations")
+    } catch (e: UnknownDomainObjectException) {
+        return
+    }
+
     apply<JavaLibraryPlugin>()
     apply<ShadowPlugin>()
 
