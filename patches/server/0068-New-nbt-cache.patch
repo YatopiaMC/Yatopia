@@ -5,21 +5,21 @@ Subject: [PATCH] New nbt cache
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index a1c2bea7c93433434b4e4dfd0bb4b9620657c40d..43487f6c11fcf1e87f4c154da345fc9ab163ff0c 100644
+index a1c2bea7c93433434b4e4dfd0bb4b9620657c40d..c7f1bf9d7fd86a1afbc1e4bb56dc56cef367283e 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -824,7 +824,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          }
          // Spigot start
          MCUtil.asyncExecutor.shutdown(); // Paper
-+        this.worldNBTStorage.executorService.shutdown();
++        this.worldNBTStorage.executorService.shutdown(); // Yatopia
          try { MCUtil.asyncExecutor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS); // Paper
-+            this.worldNBTStorage.executorService.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS); // Yatopia - New
++            this.worldNBTStorage.executorService.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS); // Yatopia - New async nbt cache
          } catch (java.lang.InterruptedException ignored) {} // Paper
          if (org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) {
              LOGGER.info("Saving usercache.json");
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..3873e3157fb834b5c914fb00d9fa02da07aa5d1b 100644
+index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..63bcaa9634e53318e126dfbb76758a82114ac4a4 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
 @@ -9,7 +9,11 @@ import org.apache.logging.log4j.Logger;
@@ -43,12 +43,12 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..3873e3157fb834b5c914fb00d9fa02da
  
      public WorldNBTStorage(Convertable.ConversionSession convertable_conversionsession, DataFixer datafixer) {
          this.a = datafixer;
-@@ -29,12 +35,21 @@ public class WorldNBTStorage {
-         try {
+@@ -30,11 +36,22 @@ public class WorldNBTStorage {
              NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
              File file = File.createTempFile(entityhuman.getUniqueIDString() + "-", ".dat", this.playerDir);
--
+ 
 -            NBTCompressedStreamTools.a(nbttagcompound, file);
++            // NBTCompressedStreamTools.a(nbttagcompound, file); // Yatopia
 +            // Yatopia start - NBT Cache system
 +            Runnable task = () -> { try { NBTCompressedStreamTools.a(nbttagcompound, file);
              File file1 = new File(this.playerDir, entityhuman.getUniqueIDString() + ".dat");
@@ -67,11 +67,12 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..3873e3157fb834b5c914fb00d9fa02da
          } catch (Exception exception) {
              WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
          }
-@@ -50,9 +65,17 @@ public class WorldNBTStorage {
+@@ -50,9 +67,18 @@ public class WorldNBTStorage {
              // Spigot Start
              boolean usingWrongFile = false;
              boolean normalFile = file.exists() && file.isFile(); // Akarin - ensures normal file
 -            if ( org.bukkit.Bukkit.getOnlineMode() && !normalFile ) // Paper - Check online mode first // Akarin - ensures normal file
++            // if ( org.bukkit.Bukkit.getOnlineMode() && !normalFile ) // Paper - Check online mode first // Akarin - ensures normal file // Yatopia
 +            // Yatopia start - NBT Cache system
 +            NBTTagCompound playerData;
 +            synchronized (this.dataCache){
@@ -86,11 +87,13 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..3873e3157fb834b5c914fb00d9fa02da
                  if ( file.exists() )
                  {
                      usingWrongFile = true;
-@@ -61,9 +84,12 @@ public class WorldNBTStorage {
+@@ -60,10 +86,13 @@ public class WorldNBTStorage {
+                 }
              }
              // Spigot End
- 
+-
 -            if (normalFile) { // Akarin - avoid double I/O operation
++            // if (normalFile) { // Akarin - avoid double I/O operation // Yatopia
 +            if (playerData != null) {
 +                nbttagcompound = playerData;
 +            } else if (normalFile) { // Akarin - avoid double I/O operation
