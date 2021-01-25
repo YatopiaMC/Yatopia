@@ -19,31 +19,19 @@ index a1c2bea7c93433434b4e4dfd0bb4b9620657c40d..c7f1bf9d7fd86a1afbc1e4bb56dc56ce
          if (org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) {
              LOGGER.info("Saving usercache.json");
 diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..63bcaa9634e53318e126dfbb76758a82114ac4a4 100644
+index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..ab43806fc4edbf2d07291f3b147563ba1de48f5d 100644
 --- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
 +++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-@@ -9,7 +9,11 @@ import org.apache.logging.log4j.Logger;
- // CraftBukkit start
- import java.io.FileInputStream;
- import java.io.InputStream;
-+import java.util.concurrent.ExecutorService;
-+import java.util.concurrent.Executors;
-+
- import org.bukkit.craftbukkit.entity.CraftPlayer;
-+import org.yatopiamc.yatopia.server.cache.NBTCache;
- // CraftBukkit end
- 
- public class WorldNBTStorage {
-@@ -17,6 +21,8 @@ public class WorldNBTStorage {
+@@ -17,6 +17,8 @@ public class WorldNBTStorage {
      private static final Logger LOGGER = LogManager.getLogger();
      private final File playerDir;
      protected final DataFixer a;
-+    private final NBTCache<File, NBTTagCompound> dataCache = new NBTCache<>(); // Yatopia - NBT Cache system
-+    public final ExecutorService executorService = Executors.newSingleThreadExecutor(); // Yatopia - NBT Cache system
++    private final org.yatopiamc.yatopia.server.cache.NBTCache<File, NBTTagCompound> dataCache = new org.yatopiamc.yatopia.server.cache.NBTCache<>(); // Yatopia - NBT Cache system
++    public final java.util.concurrent.ExecutorService executorService = java.util.concurrent.Executors.newSingleThreadExecutor(); // Yatopia - NBT Cache system
  
      public WorldNBTStorage(Convertable.ConversionSession convertable_conversionsession, DataFixer datafixer) {
          this.a = datafixer;
-@@ -30,11 +36,22 @@ public class WorldNBTStorage {
+@@ -30,11 +32,22 @@ public class WorldNBTStorage {
              NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
              File file = File.createTempFile(entityhuman.getUniqueIDString() + "-", ".dat", this.playerDir);
  
@@ -67,7 +55,7 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..63bcaa9634e53318e126dfbb76758a82
          } catch (Exception exception) {
              WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
          }
-@@ -50,9 +67,18 @@ public class WorldNBTStorage {
+@@ -50,9 +63,18 @@ public class WorldNBTStorage {
              // Spigot Start
              boolean usingWrongFile = false;
              boolean normalFile = file.exists() && file.isFile(); // Akarin - ensures normal file
@@ -87,7 +75,7 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..63bcaa9634e53318e126dfbb76758a82
                  if ( file.exists() )
                  {
                      usingWrongFile = true;
-@@ -60,10 +86,13 @@ public class WorldNBTStorage {
+@@ -60,10 +82,13 @@ public class WorldNBTStorage {
                  }
              }
              // Spigot End
