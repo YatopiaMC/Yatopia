@@ -199,7 +199,6 @@ This is an overview over all patches that are currently used.
 | server |  Improve abnormal server shutdown process      | Spottedleaf |  |
 | server |  Improve async tp to not load chunks when crossing worlds      | Spottedleaf |  |
 | server |  Improve paper prevent moving into unloaded chunk check      | Spottedleaf |  |
-| server |  Improve task performance      | ishland | Mykyta Komarn |
 | server |  Improved oversized chunk data packet handling      | Spottedleaf |  |
 | server |  Infinite fuel furnace      | William Blake Galbreath |  |
 | server |  Infinity No Arrows      | Zoe |  |
