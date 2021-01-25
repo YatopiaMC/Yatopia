@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sat, 23 Jan 2021 16:42:24 -0600
+Subject: [PATCH] Remove streams
+
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorBetterJob.java b/src/main/java/net/minecraft/server/BehaviorBetterJob.java
+index 19f8cf4384ff7a1515ad33a5f573ea0061bab93d..e6507a9bef705e1496497ad6b58a546348a0779e 100644
+--- a/src/main/java/net/minecraft/server/BehaviorBetterJob.java
++++ b/src/main/java/net/minecraft/server/BehaviorBetterJob.java
+@@ -14,11 +14,31 @@ public class BehaviorBetterJob extends Behavior<EntityVillager> {
+     protected void a(WorldServer worldserver, EntityVillager entityvillager, long i) {
+         GlobalPos globalpos = (GlobalPos) entityvillager.getBehaviorController().getMemory(MemoryModuleType.JOB_SITE).get();
+ 
++        // Airplane start - remove stream
++        /*
+         worldserver.y().c(globalpos.getBlockPosition()).ifPresent((villageplacetype) -> {
+             BehaviorUtil.a(entityvillager, (entityvillager1) -> {
+                 return this.a(globalpos, villageplacetype, entityvillager1);
+             }).reduce(entityvillager, BehaviorBetterJob::a);
+         });
++         */
++        java.util.Optional<VillagePlaceType> optVillagePlaceType = worldserver.y().c(globalpos.getBlockPosition());
++        if (optVillagePlaceType.isPresent()) {
++            VillagePlaceType villageplacetype = optVillagePlaceType.get();
++            java.util.Optional<java.util.List<EntityLiving>> optList = entityvillager.getBehaviorController().getMemory(MemoryModuleType.MOBS);
++            if (optList.isPresent()) {
++                EntityVillager previous = entityvillager;
++                for (EntityLiving entityliving : optList.get()) {
++                    if (entityliving instanceof EntityVillager && entityliving != entityvillager && entityliving.isAlive()) {
++                        EntityVillager entityvillager1 = (EntityVillager) entityliving;
++                        if (this.a(globalpos, villageplacetype, entityvillager1)) {
++                            previous = a(previous, entityvillager1);
++                        }
++                    }
++                }
++            }
++        }
++        // Airplane end
+     }
+ 
+     private static EntityVillager a(EntityVillager entityvillager, EntityVillager entityvillager1) {
