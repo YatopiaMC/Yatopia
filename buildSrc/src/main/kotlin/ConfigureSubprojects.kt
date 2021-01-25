@@ -5,20 +5,25 @@ import kotlinx.dom.elements
 import kotlinx.dom.parseXml
 import kotlinx.dom.search
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.*
+import org.yatopia.yatoclip.gradle.MakePatchesTask
 import org.yatopia.yatoclip.gradle.PatchesMetadata
+import org.yatopia.yatoclip.gradle.PropertiesUtils
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashSet
 
 internal fun Project.configureSubprojects() {
     subprojects {
@@ -48,6 +53,67 @@ internal fun Project.configureSubprojects() {
         when {
             project.name.endsWith("server") -> configureServerProject()
             project.name.endsWith("api") -> configureApiProject()
+        }
+    }
+    rootProject.project("Yatoclip") {
+        configureYatoclipProject()
+    }
+}
+
+private fun Project.configureYatoclipProject() {
+    apply<JavaLibraryPlugin>()
+    apply<ShadowPlugin>()
+
+    tasks.register<MakePatchesTask>("genPatches") {
+        originalJar = rootProject.toothpick.paperDir.resolve("work").resolve("Minecraft")
+            .resolve(rootProject.toothpick.minecraftVersion).resolve("${rootProject.toothpick.minecraftVersion}-m.jar")
+        targetJar = rootProject.toothpick.serverProject.project.tasks.getByName("shadowJar").outputs.files.singleFile
+        setRelocations(rootProject.toothpick.serverProject.project.extensions.getByName("relocations") as HashSet<PatchesMetadata.Relocation>)
+        dependsOn(rootProject.toothpick.serverProject.project.tasks.getByName("shadowJar"))
+        doLast {
+            val prop = Properties()
+            prop.setProperty("minecraftVersion", rootProject.toothpick.minecraftVersion)
+            PropertiesUtils.saveProperties(
+                prop,
+                outputDir.toPath().parent.resolve("yatoclip-launch.properties"),
+                "Yatoclip launch values"
+            )
+        }
+    }
+
+    val shadowJar by tasks.getting(ShadowJar::class) {
+        manifest {
+            attributes(
+                "Main-Class" to "org.yatopia.yatoclip.Yatoclip"
+            )
+        }
+    }
+
+    tasks.register<Copy>("copyJar") {
+        val targetName = "yatopia-${rootProject.toothpick.minecraftVersion}-yatoclip.jar"
+        from(shadowJar.outputs.files.singleFile) {
+            rename { targetName }
+        }
+
+        into(rootProject.projectDir)
+
+        doLast {
+            logger.lifecycle(">>> $targetName saved to root project directory")
+        }
+
+        dependsOn(shadowJar)
+    }
+
+    tasks.getByName("processResources").dependsOn(tasks.getByName("genPatches"))
+    tasks.getByName("assemble").dependsOn(tasks.getByName("copyJar"))
+    tasks.getByName("jar").enabled = false
+    val buildTask = tasks.getByName("build")
+    val buildTaskDependencies = HashSet(buildTask.dependsOn)
+    buildTask.setDependsOn(HashSet<Task>())
+    buildTask.onlyIf { false }
+    tasks.register("yatoclip") {
+        buildTaskDependencies.forEach {
+            dependsOn(it)
         }
     }
 }
