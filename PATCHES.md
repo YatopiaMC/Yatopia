@@ -242,6 +242,7 @@ This is an overview over all patches that are currently used.
 | server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
 | server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
 | server |  New Network System      | Hugo Planque | Ivan Pekov |
+| server |  New nbt cache      | Hugo Planque |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimise EntityInsentient#checkDespawn      | Spottedleaf |  |
