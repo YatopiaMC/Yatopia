@@ -310,6 +310,7 @@ This is an overview over all patches that are currently used.
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
+| server |  Remove streams      | Paul Sauve |  |
 | server |  Remove streams for villager AI      | Spottedleaf |  |
 | server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Revert MC-4 fix      | Spottedleaf |  |
