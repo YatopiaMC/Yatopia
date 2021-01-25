@@ -26,7 +26,6 @@ This is an overview over all patches that are currently used.
 | server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
 | api |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
 | server |  Add Velocity natives for encryption and compression      | Andrew Steinborn |  |
-| server |  Add a special case for floodgate and offline uuids      | Ivan Pekov |  |
 | server |  Add adjustable breeding cooldown to config      | montlikadani |  |
 | server |  Add allow water in end world option      | William Blake Galbreath |  |
 | server |  Add boat fall damage config      | BillyGalbreath |  |
@@ -298,8 +297,6 @@ This is an overview over all patches that are currently used.
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
 | server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
-| server |  ProxyForwardDataEvent      | Ivan Pekov |  |
-| api |  ProxyForwardDataEvent      | Ivan Pekov |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
 | server |  Queue lighting update only once      | Paul Sauve |  |
@@ -357,7 +354,6 @@ This is an overview over all patches that are currently used.
 | server |  Update version fetcher repo      | JRoy |  |
 | server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
 | server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
-| server |  Use offline uuids if we need to      | Ivan Pekov |  |
 | server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Util patch      | Spottedleaf |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
@@ -369,6 +365,7 @@ This is an overview over all patches that are currently used.
 | server |  Zombie break door minimum difficulty option      | BillyGalbreath |  |
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  add config for logging login location      | Simon Gardling |  |
+| server |  add config for sand duping      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
@@ -380,3 +377,4 @@ This is an overview over all patches that are currently used.
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
+| server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
