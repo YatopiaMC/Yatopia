@@ -5,19 +5,26 @@ import kotlinx.dom.elements
 import kotlinx.dom.parseXml
 import kotlinx.dom.search
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.*
+import org.yatopia.yatoclip.gradle.MakePatchesTask
+import org.yatopia.yatoclip.gradle.PatchesMetadata
+import org.yatopia.yatoclip.gradle.PropertiesUtils
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.HashSet
 
 internal fun Project.configureSubprojects() {
     subprojects {
@@ -47,6 +54,73 @@ internal fun Project.configureSubprojects() {
         when {
             project.name.endsWith("server") -> configureServerProject()
             project.name.endsWith("api") -> configureApiProject()
+        }
+    }
+    rootProject.project("Yatoclip") {
+        configureYatoclipProject()
+    }
+}
+
+private fun Project.configureYatoclipProject() {
+    try {
+        rootProject.toothpick.serverProject.project.extensions.getByName("relocations")
+    } catch (e: UnknownDomainObjectException) {
+        return
+    }
+
+    apply<JavaLibraryPlugin>()
+    apply<ShadowPlugin>()
+
+    tasks.register<MakePatchesTask>("genPatches") {
+        originalJar = rootProject.toothpick.paperDir.resolve("work").resolve("Minecraft")
+            .resolve(rootProject.toothpick.minecraftVersion).resolve("${rootProject.toothpick.minecraftVersion}-m.jar")
+        targetJar = rootProject.toothpick.serverProject.project.tasks.getByName("shadowJar").outputs.files.singleFile
+        setRelocations(rootProject.toothpick.serverProject.project.extensions.getByName("relocations") as HashSet<PatchesMetadata.Relocation>)
+        dependsOn(rootProject.toothpick.serverProject.project.tasks.getByName("shadowJar"))
+        doLast {
+            val prop = Properties()
+            prop.setProperty("minecraftVersion", rootProject.toothpick.minecraftVersion)
+            PropertiesUtils.saveProperties(
+                prop,
+                outputDir.toPath().parent.resolve("yatoclip-launch.properties"),
+                "Yatoclip launch values"
+            )
+        }
+    }
+
+    val shadowJar by tasks.getting(ShadowJar::class) {
+        manifest {
+            attributes(
+                "Main-Class" to "org.yatopia.yatoclip.Yatoclip"
+            )
+        }
+    }
+
+    tasks.register<Copy>("copyJar") {
+        val targetName = "yatopia-${rootProject.toothpick.minecraftVersion}-yatoclip.jar"
+        from(shadowJar.outputs.files.singleFile) {
+            rename { targetName }
+        }
+
+        into(rootProject.projectDir)
+
+        doLast {
+            logger.lifecycle(">>> $targetName saved to root project directory")
+        }
+
+        dependsOn(shadowJar)
+    }
+
+    tasks.getByName("processResources").dependsOn(tasks.getByName("genPatches"))
+    tasks.getByName("assemble").dependsOn(tasks.getByName("copyJar"))
+    tasks.getByName("jar").enabled = false
+    val buildTask = tasks.getByName("build")
+    val buildTaskDependencies = HashSet(buildTask.dependsOn)
+    buildTask.setDependsOn(HashSet<Task>())
+    buildTask.onlyIf { false }
+    tasks.register("yatoclip") {
+        buildTaskDependencies.forEach {
+            dependsOn(it)
         }
     }
 }
@@ -85,11 +159,14 @@ private fun Project.configureServerProject() {
             into("META-INF/maven/io.papermc.paper/paper")
         }
 
+        val relocationSet = HashSet<PatchesMetadata.Relocation>()
+
         // Don't like to do this but sadly have to do this for compatibility reasons
         relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.v${toothpick.nmsPackage}") {
             exclude("org.bukkit.craftbukkit.Main*")
         }
         relocate("net.minecraft.server", "net.minecraft.server.v${toothpick.nmsPackage}")
+        relocationSet.add(PatchesMetadata.Relocation("", "net.minecraft.server.v${toothpick.nmsPackage}", false))
 
         // Make sure we relocate deps the same as Paper et al.
         val pomFile = project.projectDir.resolve("pom.xml")
@@ -111,9 +188,11 @@ private fun Project.configureServerProject() {
                         if (pattern != "org.bukkit.craftbukkit" && pattern != "net.minecraft.server") { // We handle these ourselves above
                             logger.debug("Imported relocation to server project shadowJar from ${pomFile.absolutePath}: $pattern to $shadedPattern")
                             relocate(pattern, shadedPattern)
+                            relocationSet.add(PatchesMetadata.Relocation(pattern, shadedPattern, true))
                         }
                     }
         }
+        project.extensions.add("relocations", relocationSet)
     }
     tasks.getByName("build") {
         dependsOn(shadowJar)
