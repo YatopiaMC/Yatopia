@@ -8,6 +8,7 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
+| server |  (PaperPR) Inline shift direction fields      | Andrew Steinborn |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
