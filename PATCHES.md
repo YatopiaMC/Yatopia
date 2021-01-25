@@ -377,3 +377,4 @@ This is an overview over all patches that are currently used.
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
+| server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
