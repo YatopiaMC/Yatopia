@@ -10,18 +10,26 @@ This code was originally made by SuperCoder7979 in a Pull Request to lithium (ht
 This code was orignally licensed under the LGPL-3.0 license.
 
 diff --git a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
-index fa60285c0c48147ad09b9197bfe577f504dd34bd..51beb6506bd64782d37e5883fb7c633d4e7dfc02 100644
+index fa60285c0c48147ad09b9197bfe577f504dd34bd..de469f9b4f0fecc05dca7a5aacd1308db6f80a18 100644
 --- a/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 +++ b/src/main/java/net/minecraft/server/ChunkGeneratorAbstract.java
 @@ -17,6 +17,7 @@ import javax.annotation.Nullable;
  
  public final class ChunkGeneratorAbstract extends ChunkGenerator {
  
-+    private int cachedSeaLevel = Integer.MIN_VALUE; // Yatopia - lithium cache chunk gen settings
++    private int cachedSeaLevel; // Yatopia - lithium cache chunk gen settings
      public static final Codec<ChunkGeneratorAbstract> d = RecordCodecBuilder.create((instance) -> {
          return instance.group(WorldChunkManager.a.fieldOf("biome_source").forGetter((chunkgeneratorabstract) -> {
              return chunkgeneratorabstract.b;
-@@ -688,10 +689,19 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+@@ -101,6 +102,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+         } else {
+             this.v = null;
+         }
++        this.cachedSeaLevel = ((GeneratorSettingBase) this.h.get()).g(); // Yatopia - lithium cache chunk gen settings
+ 
+     }
+ 
+@@ -688,10 +690,18 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
          return this.x;
      }
  
@@ -36,7 +44,6 @@ index fa60285c0c48147ad09b9197bfe577f504dd34bd..51beb6506bd64782d37e5883fb7c633d
 -    public int getSeaLevel() {
 -        return ((GeneratorSettingBase) this.h.get()).g();
 +    public int getSeaLevel() { // Cached method of getting sealevel
-+        if (this.cachedSeaLevel == Integer.MIN_VALUE) this.cachedSeaLevel = ((GeneratorSettingBase) this.h.get()).g();
 +        return this.cachedSeaLevel;
      }
 +    // Yatopia end
