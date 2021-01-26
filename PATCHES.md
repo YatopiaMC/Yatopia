@@ -8,7 +8,6 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
-| server |  (AirplaneLite) Dynamic activation range      | Paul Sauve |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
@@ -153,6 +152,7 @@ This is an overview over all patches that are currently used.
 | server |  DragonEggPlaceEvent      | William Blake Galbreath |  |
 | api |  DragonEggPlaceEvent      | William Blake Galbreath |  |
 | server |  Duplicate paper&#39;s vanilla scoreboard colors patch to sync      | William Blake Galbreath |  |
+| server |  Dynamic activation range      | Paul Sauve |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
