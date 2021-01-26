@@ -65,22 +65,22 @@ public class ServerSetup {
 		final Path memberMappedJar = minecraftDir.resolve(minecraftVersion + "-m.jar");
 		final Path patchedJar = minecraftDir.resolve(minecraftVersion + "-patched.jar");
 		if (!isValidZip(classMappedJar) || !isValidZip(memberMappedJar)) {
-			System.err.println("Applying class mapping...");
 			SpecialSourceLauncher.resetSpecialSourceClassloader();
 			final Path buildData = cacheDirectory.resolve("BuildData");
 			SpecialSourceLauncher.setSpecialSourceJar(buildData.resolve("bin").resolve("SpecialSource-2.jar").toFile());
+			System.err.println("Applying class mapping...");
 			SpecialSourceLauncher.runProcess(
 					"map", "--only", ".", "--only", "net/minecraft", "--auto-lvt", "BASIC", "--auto-member", "SYNTHETIC",
-					"-i", Paths.get(".").relativize(vanillaJar).toString(),
-					"-m", Paths.get(".").relativize(buildData.resolve("mappings").resolve(buildDataInfo.classMappings)).toString(),
-					"-o", Paths.get(".").relativize(classMappedJar).toString()
+					"-i", vanillaJar.toAbsolutePath().toString(),
+					"-m", buildData.resolve("mappings").resolve(buildDataInfo.classMappings).toAbsolutePath().toString(),
+					"-o", classMappedJar.toAbsolutePath().toString()
 			);
 			System.err.println("Applying member mapping...");
 			SpecialSourceLauncher.runProcess(
 					"map", "--only", ".", "--only", "net/minecraft", "--auto-member", "LOGGER", "--auto-member", "TOKENS",
-					"-i", Paths.get(".").relativize(classMappedJar).toString(),
-					"-m", Paths.get(".").relativize(buildData.resolve("mappings").resolve(buildDataInfo.memberMappings)).toString(),
-					"-o", Paths.get(".").relativize(memberMappedJar).toString()
+					"-i", classMappedJar.toAbsolutePath().toString(),
+					"-m", buildData.resolve("mappings").resolve(buildDataInfo.memberMappings).toAbsolutePath().toString(),
+					"-o", memberMappedJar.toAbsolutePath().toString()
 			);
 			SpecialSourceLauncher.resetSpecialSourceClassloader();
 			if (!isValidZip(classMappedJar) || !isValidZip(memberMappedJar))
