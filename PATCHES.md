@@ -67,7 +67,6 @@ This is an overview over all patches that are currently used.
 | server |  Add wither skeleton takes wither damage option      | William Blake Galbreath |  |
 | server |  Advancement API      | William Blake Galbreath |  |
 | api |  Advancement API      | William Blake Galbreath |  |
-| server |  Airplane Configuration      | Paul Sauve |  |
 | server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
 | server |  Allow Entities to be removed from a world while ticking      | Spottedleaf |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
@@ -152,7 +151,6 @@ This is an overview over all patches that are currently used.
 | server |  DragonEggPlaceEvent      | William Blake Galbreath |  |
 | api |  DragonEggPlaceEvent      | William Blake Galbreath |  |
 | server |  Duplicate paper&#39;s vanilla scoreboard colors patch to sync      | William Blake Galbreath |  |
-| server |  Dynamic activation range      | Paul Sauve |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
