@@ -6,7 +6,7 @@ Subject: [PATCH] New nbt cache
 The goal of this patch is to reduce I/O operations from the main thread while saving player data and also to avoid too many I/O operations while reading NBT Player file by using a cache (Which start to delete the oldest data when there is too much player compared to the map size)
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 87cf9cd88d1fb5ae70d19e5618ebfb67d281304a..27cdbcdad0ae7be6a2aa8b9982bcd80205c48c9b 100644
+index 2a06f663ce64529842cfb0f4cf16c28ee143f110..084f7435ce50a10cd22e967f695064fb00c9b165 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -824,7 +824,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
