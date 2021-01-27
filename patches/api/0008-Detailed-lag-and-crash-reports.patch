@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Wed, 27 Jan 2021 23:35:30 +0800
+Subject: [PATCH] Detailed lag and crash reports
+
+Added "Suspected Plugins" to Watchdog and crash reports
+
+diff --git a/src/main/java/org/bukkit/plugin/SimplePluginManager.java b/src/main/java/org/bukkit/plugin/SimplePluginManager.java
+index 26685f59b235ea5b4c4fb7ae21acb5149edaa2b3..a90945e434aa3729e2ec5355a4340c995316a2f7 100644
+--- a/src/main/java/org/bukkit/plugin/SimplePluginManager.java
++++ b/src/main/java/org/bukkit/plugin/SimplePluginManager.java
+@@ -905,4 +905,9 @@ public final class SimplePluginManager implements PluginManager {
+     }
+     // Paper end
+ 
++    // Yatopia start - Accessor
++    public Collection<PluginLoader> getPluginLoaders() {
++        return new HashSet<>(fileAssociations.values());
++    }
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+index 04fa3991f6ce4e9dad804f28fc6c947695857089..cb11eab6e13ed1c395b8f7db033c9a2817f4089c 100644
+--- a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
++++ b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+@@ -111,7 +111,7 @@ public abstract class JavaPlugin extends PluginBase {
+      * @return File containing this plugin
+      */
+     @NotNull
+-    protected File getFile() {
++    public File getFile() { // Yatopia
+         return file;
+     }
+ 
+diff --git a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
+index 384edf9890dfbd1cddfdcac4db1ebe9a4d761f78..6d39959389e2eebb4acf19dfb1efc5cf692db135 100644
+--- a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
+@@ -439,4 +439,9 @@ public final class JavaPluginLoader implements PluginLoader {
+             }
+         }
+     }
++    // Yatopia start - Accessor
++    public List<PluginClassLoader> getClassLoaders() {
++        return java.util.Collections.unmodifiableList(loaders);
++    }
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+index 7760be3e34fa20825faf145d9fb5b2855c1a4602..2e8f3efdb683c44b3e42bb0187bc907e64cde288 100644
+--- a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+@@ -232,4 +232,13 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
+                    '}';
+     }
+     // Paper end
++
++    // Yatopia start - Accessor
++    public java.util.Collection<Class<?>> getLoadedClasses() {
++        return java.util.Collections.unmodifiableCollection(
++                new java.util.HashSet<>(classes.values()).stream()
++                        .filter(clazz -> clazz.getClassLoader() == this).collect(java.util.stream.Collectors.toSet())
++        );
++    }
++    // Yatopia end
+ }
