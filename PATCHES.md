@@ -132,6 +132,8 @@ This is an overview over all patches that are currently used.
 | server |  Delay chunk unloads      | Spottedleaf |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | server |  Detail more information in watchdog dumps      | Spottedleaf |  |
+| server |  Detailed lag and crash reports      | ishland |  |
+| api |  Detailed lag and crash reports      | ishland |  |
 | server |  Disable loot drops on death by cramming      | William Blake Galbreath |  |
 | server |  Disable outdated build check      | William Blake Galbreath |  |
 | api |  Disable reload command      | Ivan Pekov |  |
