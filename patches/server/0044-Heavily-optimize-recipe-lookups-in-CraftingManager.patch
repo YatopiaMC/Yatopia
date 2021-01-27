@@ -11,7 +11,7 @@ Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 Co-authored-by: ishland <ishlandmc@yeah.net>
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..9242fca0377d1b9309fe806acf994120fc73ec4e 100644
+index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2e40f604a 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
 @@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
@@ -155,11 +155,9 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..9242fca0377d1b9309fe806acf994120
      }
  
      public Stream<MinecraftKey> d() {
-@@ -154,7 +211,12 @@ public class CraftingManager extends ResourceDataJson {
- 
+@@ -155,6 +212,10 @@ public class CraftingManager extends ResourceDataJson {
      // CraftBukkit start
      public void clearRecipes() {
-+        org.spigotmc.AsyncCatcher.catchOp("Clear Recipe"); // Yatopia
          this.recipes = Maps.newHashMap();
 +        // Yatopia start - also clear cache
 +        ALL_RECIPES_CACHE.clear();
