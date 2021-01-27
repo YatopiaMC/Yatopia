@@ -5,28 +5,43 @@ Subject: [PATCH] Heavily optimize recipe lookups in CraftingManager
 
 Recipe lookups are now cached in CraftingManager, which prevent unnecessary ArrayLists being created for every lookup. Additionally, an EMPTY_MAP variable was added to prevent bottlenecks during map creation, since that map is only ever iterated.
 
-GlueList was also used as a replacement for ArrayList as it is substantially faster.
-
 These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 running furnaces on a server.
 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
+Co-authored-by: ishland <ishlandmc@yeah.net>
 
 diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696eaf6525a 100644
+index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2e40f604a 100644
 --- a/src/main/java/net/minecraft/server/CraftingManager.java
 +++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -31,6 +31,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap; // CraftBukkit
++import it.unimi.dsi.fastutil.objects.ObjectArrayList; // Yatopia
+ 
+ public class CraftingManager extends ResourceDataJson {
+ 
+@@ -31,6 +32,10 @@ public class CraftingManager extends ResourceDataJson {
      private static final Logger LOGGER = LogManager.getLogger();
      public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
      private boolean d;
 +    // Yatopia start
-+    private static final List<IRecipe<?>> ALL_RECIPES_CACHE = new java.util.ArrayList<>();
-+    private static final Map<Recipes<?>, List<IRecipe<?>>> TYPES_CACHE = new Object2ObjectLinkedOpenHashMap<>();
++    private final List<IRecipe<?>> ALL_RECIPES_CACHE = new ObjectArrayList<>();
++    private final Map<Recipes<?>, List<IRecipe<?>>> TYPES_CACHE = new Object2ObjectLinkedOpenHashMap<>();
 +    // Yatopia end
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -63,9 +67,17 @@ public class CraftingManager extends ResourceDataJson {
+@@ -38,6 +43,7 @@ public class CraftingManager extends ResourceDataJson {
+ 
+     protected void a(Map<MinecraftKey, JsonElement> map, IResourceManager iresourcemanager, GameProfilerFiller gameprofilerfiller) {
+         this.d = false;
++        clearRecipes(); // Yatopia
+         // CraftBukkit start - SPIGOT-5667 make sure all types are populated and mutable
+         Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> map1 = Maps.newHashMap();
+         for (Recipes<?> recipeType : IRegistry.RECIPE_TYPE) {
+@@ -63,9 +69,17 @@ public class CraftingManager extends ResourceDataJson {
              }
          }
  
@@ -44,7 +59,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696
          CraftingManager.LOGGER.info("Loaded {} recipes", map1.size());
      }
  
-@@ -79,33 +91,65 @@ public class CraftingManager extends ResourceDataJson {
+@@ -79,33 +93,65 @@ public class CraftingManager extends ResourceDataJson {
          } else {
              map.putAndMoveToFirst(irecipe.getKey(), irecipe); // CraftBukkit - SPIGOT-4638: last recipe gets priority
          }
@@ -84,7 +99,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696
              return irecipe;
          }).collect(Collectors.toList());
 +         */
-+        return (List) TYPES_CACHE.computeIfAbsent(recipes, recipes1 -> new me.jellysquid.mods.lithium.common.util.collections.HashedList<>(new java.util.ArrayList<>(getRecipesMap(recipes).values())));
++        return (List) TYPES_CACHE.computeIfAbsent(recipes, recipes1 -> new me.jellysquid.mods.lithium.common.util.collections.HashedList<>(new ObjectArrayList<>(getRecipesMap(recipes).values())));
 +        // Yatopia end
      }
  
@@ -97,7 +112,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696
              return irecipe.getResult().j();
          })).collect(Collectors.toList());
 +         */
-+        List<T> ret = new java.util.ArrayList<>();
++        List<T> ret = new ObjectArrayList<>();
 +        for (IRecipe<C> recipe : this.b(recipes).values()) {
 +            recipes.a(recipe, world, c0).ifPresent(ret::add);
 +        }
@@ -110,7 +125,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
          return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
      }
-@@ -127,15 +171,26 @@ public class CraftingManager extends ResourceDataJson {
+@@ -127,15 +173,26 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
@@ -140,7 +155,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..3da86dc56f33e4f1900f6b4f66ca6696
      }
  
      public Stream<MinecraftKey> d() {
-@@ -155,6 +210,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -155,6 +212,10 @@ public class CraftingManager extends ResourceDataJson {
      // CraftBukkit start
      public void clearRecipes() {
          this.recipes = Maps.newHashMap();

@@ -1,0 +1,126 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Wed, 27 Jan 2021 23:35:30 +0800
+Subject: [PATCH] Detailed lag and crash reports
+
+Added "Suspected Plugins" to Watchdog and crash reports
+
+diff --git a/src/main/java/net/minecraft/server/CrashReport.java b/src/main/java/net/minecraft/server/CrashReport.java
+index cc6e6f245ee5e73bd570cf42381bf55ee0b364d3..e52eb754debd3abe02da978825e53839e87302fc 100644
+--- a/src/main/java/net/minecraft/server/CrashReport.java
++++ b/src/main/java/net/minecraft/server/CrashReport.java
+@@ -87,6 +87,8 @@ public class CrashReport {
+         if (this.h != null && this.h.length > 0) {
+             stringbuilder.append("-- Head --\n");
+             stringbuilder.append("Thread: ").append(Thread.currentThread().getName()).append("\n");
++            org.yatopiamc.yatopia.server.util.StackTraceUtils.printPlugins(this.h, stringbuilder::append); // Yatopia
++            stringbuilder.append("\n"); // Yatopia
+             stringbuilder.append("Stacktrace:\n");
+             StackTraceElement[] astacktraceelement = this.h;
+             int i = astacktraceelement.length;
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 084f7435ce50a10cd22e967f695064fb00c9b165..1105ee7274df3f482b816c5f6183ae8594da55be 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1040,6 +1040,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+             }
+             // Paper end
+             MinecraftServer.LOGGER.error("Encountered an unexpected exception", throwable);
++            org.yatopiamc.yatopia.server.util.StackTraceUtils.printPlugins(throwable.getStackTrace(), MinecraftServer.LOGGER::error); // Yatopia
++            MinecraftServer.LOGGER.error(""); // Yatopia
+             // Spigot Start
+             if ( throwable.getCause() != null )
+             {
+diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
+index 476939bde38246eb0fd96e6a4ba8076c9d1b0ff4..469aae7046dd37fd77bcb8ab601ec11a19a92ed4 100644
+--- a/src/main/java/org/spigotmc/WatchdogThread.java
++++ b/src/main/java/org/spigotmc/WatchdogThread.java
+@@ -271,6 +271,10 @@ public class WatchdogThread extends Thread
+                 log.log( Level.SEVERE, "\t\tLocked on:" + monitor.getLockedStackFrame() );
+             }
+         }
++        // Yatopia start - dump plugins info
++        org.yatopiamc.yatopia.server.util.StackTraceUtils.printPlugins(thread.getStackTrace(), msg -> log.log(Level.SEVERE, msg));
++        log.log(Level.SEVERE, "");
++        // Yatopia end
+         log.log( Level.SEVERE, "\tStack:" );
+         //
+         for ( StackTraceElement stack : thread.getStackTrace() )
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/StackTraceUtils.java b/src/main/java/org/yatopiamc/yatopia/server/util/StackTraceUtils.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..627debed74cd8400371de887c2667ff839288de3
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/util/StackTraceUtils.java
+@@ -0,0 +1,72 @@
++package org.yatopiamc.yatopia.server.util;
++
++import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
++import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
++import org.bukkit.Bukkit;
++import org.bukkit.plugin.Plugin;
++import org.bukkit.plugin.PluginLoader;
++import org.bukkit.plugin.SimplePluginManager;
++import org.bukkit.plugin.java.JavaPlugin;
++import org.bukkit.plugin.java.JavaPluginLoader;
++import org.bukkit.plugin.java.PluginClassLoader;
++
++import java.util.Collection;
++import java.util.HashSet;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
++import java.util.function.Consumer;
++
++public class StackTraceUtils {
++
++    public static void printPlugins(StackTraceElement[] stackTrace, Consumer<String> out) {
++        Map<Plugin, Set<Class<?>>> loadedClasses = scanForPluginClasses();
++
++        Set<Plugin> suspectedPlugins = new HashSet<>();
++        for (StackTraceElement stackTraceElement : stackTrace) {
++            for (Map.Entry<Plugin, Set<Class<?>>> pluginSetEntry : loadedClasses.entrySet()) {
++                if (pluginSetEntry.getValue().stream().anyMatch(clazz -> clazz.getName().equals(stackTraceElement.getClassName())))
++                    suspectedPlugins.add(pluginSetEntry.getKey());
++            }
++        }
++
++        if (!suspectedPlugins.isEmpty()) {
++            out.accept("Suspected Plugins: ");
++            for (Plugin plugin : suspectedPlugins) {
++                StringBuilder builder = new StringBuilder("\t");
++                builder.append(plugin.getName())
++                        .append("{")
++                        .append(plugin.isEnabled() ? "enabled" : "disabled")
++                        .append(",").append("ver=").append(plugin.getDescription().getVersion());
++                if (!plugin.isNaggable())
++                    builder.append(",").append("nag");
++                if (plugin instanceof JavaPlugin)
++                    builder.append(",").append("path=").append(((JavaPlugin) plugin).getFile());
++
++                builder.append("}");
++                out.accept(builder.toString());
++            }
++        } else {
++            out.accept("Suspected Plugins: None");
++        }
++    }
++
++    private static Map<Plugin, Set<Class<?>>> scanForPluginClasses() {
++        Map<Plugin, Set<Class<?>>> loadedClasses = new Object2ObjectOpenHashMap<>();
++        if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
++            final SimplePluginManager pluginManager = (SimplePluginManager) Bukkit.getPluginManager();
++            final Collection<PluginLoader> pluginLoaders = pluginManager.getPluginLoaders();
++            for (PluginLoader pluginLoader : pluginLoaders) {
++                if (pluginLoader instanceof JavaPluginLoader) {
++                    JavaPluginLoader javaPluginLoader = (JavaPluginLoader) pluginLoader;
++                    final List<PluginClassLoader> classLoaders = javaPluginLoader.getClassLoaders();
++                    for (PluginClassLoader classLoader : classLoaders) {
++                        loadedClasses.put(classLoader.getPlugin(), new ObjectOpenHashSet<>(classLoader.getLoadedClasses()));
++                    }
++                }
++            }
++        }
++        return loadedClasses;
++    }
++
++}

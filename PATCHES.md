@@ -132,6 +132,8 @@ This is an overview over all patches that are currently used.
 | server |  Delay chunk unloads      | Spottedleaf |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | server |  Detail more information in watchdog dumps      | Spottedleaf |  |
+| server |  Detailed lag and crash reports      | ishland |  |
+| api |  Detailed lag and crash reports      | ishland |  |
 | server |  Disable loot drops on death by cramming      | William Blake Galbreath |  |
 | server |  Disable outdated build check      | William Blake Galbreath |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -187,7 +189,7 @@ This is an overview over all patches that are currently used.
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
-| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov |
+| server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov, ishland |
 | server |  Highly optimise single and multi-AABB VoxelShapes and      | Spottedleaf |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
 | server |  Hopper Optimizations      | Phoenix616 |  |
@@ -242,7 +244,6 @@ This is an overview over all patches that are currently used.
 | server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
 | server |  Multi-threaded RegionFile IO      | ishland |  |
 | server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
-| server |  New Network System      | Hugo Planque | Ivan Pekov |
 | server |  New nbt cache      | Hugo Planque |  |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
@@ -294,7 +295,7 @@ This is an overview over all patches that are currently used.
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
 | server |  Port hydrogen      | JellySquid |  |
-| server |  Port krypton      | Andrew Steinborn | Hugo Planque |
+| server |  Preload ProtocolLib EnumWrappers      | ishland |  |
 | server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |

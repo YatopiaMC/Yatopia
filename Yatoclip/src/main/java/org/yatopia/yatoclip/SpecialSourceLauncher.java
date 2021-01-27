@@ -36,6 +36,7 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class SpecialSourceLauncher {
@@ -45,7 +46,7 @@ public class SpecialSourceLauncher {
 
 	static void setSpecialSourceJar(File specialSourceJar) {
 		synchronized (classLoader) {
-			System.out.println("Setting up SpecialSource: " + specialSourceJar);
+			System.err.println("Setting up SpecialSource: " + specialSourceJar);
 			try {
 				classLoader.get().addURL(specialSourceJar.toURI().toURL());
 				mainClass.set(Yatoclip.getMainClass(specialSourceJar.toPath()));
@@ -57,7 +58,8 @@ public class SpecialSourceLauncher {
 
 	static void resetSpecialSourceClassloader() {
 		synchronized (classLoader) {
-			System.out.println("Releasing SpecialSource");
+			if(!classLoader.get().isLoaded) return;
+			System.err.println("Releasing SpecialSource");
 			try {
 				classLoader.get().close();
 				classLoader.set(new SpecialSourceClassLoader(new URL[0], SpecialSourceLauncher.class.getClassLoader().getParent()));
@@ -71,9 +73,7 @@ public class SpecialSourceLauncher {
 	public static void runProcess(String... command) throws IOException {
 		if (!(command != null && command.length > 0)) throw new IllegalArgumentException();
 
-		if (command[0].equals("java")) {
-			command[0] = System.getProperty("java.home") + "/bin/" + command[0];
-		}
+		System.err.println("Invoking SpecialSource with arguments: " + Arrays.toString(command));
 
 		AtomicReference<Throwable> thrown = new AtomicReference<>(null);
 		final Thread thread = new Thread(() -> {
