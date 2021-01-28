@@ -1,0 +1,102 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Thu, 28 Jan 2021 16:46:34 +0800
+Subject: [PATCH] Handle proxy online mode properly
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+index 44132e902b653b07b21fd01d13a88870290af439..50d2b0c8b99f30bd294b07c2f608882a7b25c45f 100644
+--- a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
++++ b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+@@ -137,7 +137,7 @@ public class CraftPlayerProfile implements PlayerProfile {
+     @Override
+     public boolean completeFromCache() {
+         MinecraftServer server = MinecraftServer.getServer();
+-        return completeFromCache(false, server.getOnlineMode() || (SpigotConfig.bungee && PaperConfig.bungeeOnlineMode));
++        return completeFromCache(false, server.getOnlineMode() || PaperConfig.isProxyOnlineMode());
+     }
+ 
+     public boolean completeFromCache(boolean onlineMode) {
+@@ -182,7 +182,7 @@ public class CraftPlayerProfile implements PlayerProfile {
+ 
+     public boolean complete(boolean textures) {
+         MinecraftServer server = MinecraftServer.getServer();
+-        return complete(textures, server.getOnlineMode() || (SpigotConfig.bungee && PaperConfig.bungeeOnlineMode));
++        return complete(textures, server.getOnlineMode() || PaperConfig.isProxyOnlineMode()); // Yatopia - handle proxy online mode
+     }
+     public boolean complete(boolean textures, boolean onlineMode) {
+         MinecraftServer server = MinecraftServer.getServer();
+diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
+index 2473eb88ec7be3f4935debe04eeabcc0815b3233..f45b11a978addb7f8cf2d659115164e23161cbc9 100644
+--- a/src/main/java/net/minecraft/server/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/DedicatedServer.java
+@@ -231,7 +231,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+             DedicatedServer.LOGGER.warn("**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!");
+             DedicatedServer.LOGGER.warn("The server will make no attempt to authenticate usernames. Beware.");
+             // Spigot start
+-            if (org.spigotmc.SpigotConfig.bungee) {
++            if (org.spigotmc.SpigotConfig.bungee || com.destroystokyo.paper.PaperConfig.velocitySupport) { // Yatopia - Add velocity
+                 DedicatedServer.LOGGER.warn("Whilst this makes it possible to use BungeeCord, unless access to your server is properly restricted, it also opens up the ability for hackers to connect with any username they choose.");
+                 DedicatedServer.LOGGER.warn("Please see http://www.spigotmc.org/wiki/firewall-guide/ for further information.");
+             } else {
+@@ -254,7 +254,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+             this.c(dedicatedserverproperties.maxBuildHeight);
+             TileEntitySkull.a(this.getUserCache());
+             TileEntitySkull.a(this.getMinecraftSessionService());
+-            UserCache.a(this.getOnlineMode());
++            UserCache.a(this.getOnlineMode() || com.destroystokyo.paper.PaperConfig.isProxyOnlineMode());
+             DedicatedServer.LOGGER.info("Preparing level \"{}\"", this.getWorld());
+             this.loadWorld(convertable.getLevelName()); // CraftBukkit
+             long j = SystemUtils.getMonotonicNanos() - i;
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 1105ee7274df3f482b816c5f6183ae8594da55be..c08941c5c3e94b0825081ac0ce444678195f9cb6 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1693,7 +1693,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+             mojangstatisticsgenerator.a("players_seen", this.worldNBTStorage.getSeenPlayers().length);
+         }
+ 
+-        mojangstatisticsgenerator.a("uses_auth", this.onlineMode);
++        mojangstatisticsgenerator.a("uses_auth", this.onlineMode || com.destroystokyo.paper.PaperConfig.isProxyOnlineMode()); // Yatopia - handle proxy online mode
+         mojangstatisticsgenerator.a("gui_state", this.ah() ? "enabled" : "disabled");
+         mojangstatisticsgenerator.a("run_time", (SystemUtils.getMonotonicMillis() - mojangstatisticsgenerator.g()) / 60L * 1000L);
+         mojangstatisticsgenerator.a("avg_tick_ms", (int) (MathHelper.a(this.h) * 1.0E-6D));
+diff --git a/src/main/java/net/minecraft/server/NameReferencingFileConverter.java b/src/main/java/net/minecraft/server/NameReferencingFileConverter.java
+index c5957c2d6c54b076ebe7f9a432e30551d2b6febc..174a6db7b71e1cca31b780d5e33ca8aa216f0433 100644
+--- a/src/main/java/net/minecraft/server/NameReferencingFileConverter.java
++++ b/src/main/java/net/minecraft/server/NameReferencingFileConverter.java
+@@ -268,7 +268,7 @@ public class NameReferencingFileConverter {
+ 
+             if (gameprofile != null && gameprofile.getId() != null) {
+                 return gameprofile.getId();
+-            } else if (!minecraftserver.isEmbeddedServer() && minecraftserver.getOnlineMode()) {
++            } else if (!minecraftserver.isEmbeddedServer() && (minecraftserver.getOnlineMode() || com.destroystokyo.paper.PaperConfig.isProxyOnlineMode())) { // Yatopia - handle proxy online mode
+                 final List<GameProfile> list = Lists.newArrayList();
+                 ProfileLookupCallback profilelookupcallback = new ProfileLookupCallback() {
+                     public void onProfileLookupSucceeded(GameProfile gameprofile1) {
+diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+index ab43806fc4edbf2d07291f3b147563ba1de48f5d..c9c30621e886b47ec636a05c795c9d9aff467591 100644
+--- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
++++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
+@@ -69,7 +69,7 @@ public class WorldNBTStorage {
+             synchronized (this.dataCache){
+                 playerData = this.dataCache.get(file);
+             }
+-            if (playerData == null && org.bukkit.Bukkit.getOnlineMode() && !normalFile ) // Paper - Check online mode first // Akarin - ensures normal file
++            if (playerData == null && (org.bukkit.Bukkit.getOnlineMode() || com.destroystokyo.paper.PaperConfig.isProxyOnlineMode()) && !normalFile ) // Paper - Check online mode first // Akarin - ensures normal file // Yatopia - handle proxy online mode
+             {
+                 file = new File( this.playerDir, java.util.UUID.nameUUIDFromBytes( ( "OfflinePlayer:" + entityhuman.getName() ).getBytes( "UTF-8" ) ).toString() + ".dat");
+                 synchronized (this.dataCache){
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 7d0f73c83a7f7f3c6becf3ed4348c6b2938a86b1..fda6780cd9f1af93f50eedc0bf915025e656a2d0 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -1557,7 +1557,7 @@ public final class CraftServer implements Server {
+         GameProfile profile;
+         // Only fetch an online UUID in online mode
+         if (net.minecraft.server.MinecraftServer.getServer().getOnlineMode()
+-                || (org.spigotmc.SpigotConfig.bungee && com.destroystokyo.paper.PaperConfig.bungeeOnlineMode)) {
++                || (com.destroystokyo.paper.PaperConfig.isProxyOnlineMode())) { // Yatopia - handle proxy online mode
+             profile = console.getUserCache().getProfile( name );
+         } else {
+             // Make an OfflinePlayer using an offline mode UUID since the name has no profile
