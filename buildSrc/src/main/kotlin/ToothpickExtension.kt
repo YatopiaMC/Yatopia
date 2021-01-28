@@ -33,7 +33,9 @@ open class ToothpickExtension(objects: ObjectFactory) {
     lateinit var patchCreditsOutput: String
     lateinit var patchCreditsTemplate: String
 
-    lateinit var currentBranchDisplayName : String
+    lateinit var currentBranch : String
+    val currentBranchDisplayName
+        get() = currentBranch.replace("/${minecraftVersion}", "")
     val calcVersionString
         get() = if(!currentBranchDisplayName.startsWith("ver/")) { "${minecraftVersion}-${nmsRevision}-${currentBranchDisplayName.replace('/', '_')}" } else "${minecraftVersion}-${nmsRevision}"
 
