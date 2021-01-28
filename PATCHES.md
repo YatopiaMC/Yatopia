@@ -188,6 +188,7 @@ This is an overview over all patches that are currently used.
 | api |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
+| server |  Handle proxy online mode properly      | ishland |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov, ishland |
 | server |  Highly optimise single and multi-AABB VoxelShapes and      | Spottedleaf |  |
