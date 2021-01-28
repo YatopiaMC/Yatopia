@@ -33,6 +33,10 @@ open class ToothpickExtension(objects: ObjectFactory) {
     lateinit var patchCreditsOutput: String
     lateinit var patchCreditsTemplate: String
 
+    lateinit var currentBranchDisplayName : String
+    val calcVersionString
+        get() = if(!currentBranchDisplayName.startsWith("ver/")) { "${minecraftVersion}-${nmsRevision}-${currentBranchDisplayName.replace('/', '_')}" } else "${minecraftVersion}-${nmsRevision}"
+
     fun server(receiver: ToothpickSubproject.() -> Unit) {
         serverProject = ToothpickSubproject()
         receiver(serverProject)

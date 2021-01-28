@@ -10,7 +10,7 @@ fun Project.toothpick(receiver: ToothpickExtension.() -> Unit) {
     receiver(toothpick)
     allprojects {
         group = toothpick.groupId
-        version = "${toothpick.minecraftVersion}-${toothpick.nmsRevision}"
+        version = toothpick.calcVersionString
     }
     configureSubprojects()
     initToothpickTasks()

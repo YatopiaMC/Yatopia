@@ -200,9 +200,8 @@ private fun Project.configureServerProject() {
 
     extensions.configure<PublishingExtension> {
         publications {
-            getByName<MavenPublication>("mavenJava") {
-                artifactId = rootProject.name
-                artifact(tasks["shadowJar"])
+            create<MavenPublication>("shadow") {
+                artifact(project.tasks.named("shadowJar"))
             }
         }
     }

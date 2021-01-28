@@ -32,7 +32,7 @@ fun DependencyHandlerScope.loadDependencies(project: Project) {
         val groupId = dependencyElem.search("groupId").first().textContent
         val artifactId = dependencyElem.search("artifactId").first().textContent
         val version = dependencyElem.search("version").first().textContent.applyReplacements(
-                "project.version" to project.version.toString(),
+                "project.version" to "${project.rootProject.toothpick.minecraftVersion}-${project.rootProject.toothpick.nmsRevision}",
                 "minecraft.version" to project.toothpick.minecraftVersion
         )
         val scope = dependencyElem.search("scope").firstOrNull()?.textContent

@@ -32,6 +32,17 @@ toothpick {
         project = project(":$forkNameLowercase-api")
         patchesDir = rootProject.projectDir.resolve("patches/api")
     }
+
+    if(!System.getenv("BRANCH_NAME").isNullOrEmpty()) {
+        currentBranchDisplayName = System.getenv("BRANCH_NAME").replace("/${minecraftVersion}", "");
+    } else if (!System.getenv("GITHUB_REF").isNullOrEmpty()) {
+        currentBranchDisplayName = System.getenv("GITHUB_REF").substring("refs/heads/".length).replace("/${minecraftVersion}", "")
+    } else {
+        currentBranchDisplayName = gitCmd("rev-parse", "--abbrev-ref", "HEAD").output.toString().trim().replace("/${minecraftVersion}", "")
+        if(currentBranchDisplayName == "HEAD") logger.warn("You are currently in \'detached HEAD\' state, branch information isn\'t available")
+    }
+
+    logger.lifecycle("Configured version string: $calcVersionString")
 }
 
 subprojects {
