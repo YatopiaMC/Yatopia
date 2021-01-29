@@ -133,8 +133,7 @@ This is an overview over all patches that are currently used.
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | server |  Detail more information in watchdog dumps      | Spottedleaf |  |
 | server |  Detailed lag and crash reports      | ishland |  |
-| api |  Detailed lag and crash reports      | ishland |  |
-| api |  Detailed lag and crash reports      | ishland |  |
+| api |  Detailed log and crash reports      | ishland |  |
 | server |  Disable loot drops on death by cramming      | William Blake Galbreath |  |
 | server |  Disable outdated build check      | William Blake Galbreath |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -369,7 +368,6 @@ This is an overview over all patches that are currently used.
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  add config for logging login location      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
-| server |  fixup! Detailed lag and crash reports      | ishland |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |

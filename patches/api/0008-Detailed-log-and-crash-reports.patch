@@ -1,35 +1,94 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: ishland <ishlandmc@yeah.net>
-Date: Thu, 28 Jan 2021 20:47:41 +0800
-Subject: [PATCH] Detailed lag and crash reports
+Date: Fri, 29 Jan 2021 09:57:47 +0800
+Subject: [PATCH] Detailed log and crash reports
 
 
 diff --git a/src/main/java/org/bukkit/plugin/SimplePluginManager.java b/src/main/java/org/bukkit/plugin/SimplePluginManager.java
-index a90945e434aa3729e2ec5355a4340c995316a2f7..f99baef549dccff2c503d284cf2b9c9275d34590 100644
+index 26685f59b235ea5b4c4fb7ae21acb5149edaa2b3..ed1c1bf2208177281829b14ebfbc5002efca5102 100644
 --- a/src/main/java/org/bukkit/plugin/SimplePluginManager.java
 +++ b/src/main/java/org/bukkit/plugin/SimplePluginManager.java
-@@ -560,7 +560,9 @@ public final class SimplePluginManager implements PluginManager {
+@@ -560,7 +560,11 @@ public final class SimplePluginManager implements PluginManager {
  
      // Paper start
      private void handlePluginException(String msg, Throwable ex, Plugin plugin) {
 -        server.getLogger().log(Level.SEVERE, msg, ex);
++        // Yatopia start - detailed report
 +        server.getLogger().log(Level.SEVERE, msg);
 +        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(ex, _msg -> server.getLogger().log(Level.SEVERE, _msg));
 +        server.getLogger().log(Level.SEVERE, org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW, ex);
++        // Yatopia end
          callEvent(new ServerExceptionEvent(new ServerPluginEnableDisableException(msg, ex, plugin)));
      }
      // Paper end
-@@ -621,7 +623,9 @@ public final class SimplePluginManager implements PluginManager {
+@@ -621,7 +625,11 @@ public final class SimplePluginManager implements PluginManager {
              } catch (Throwable ex) {
                  // Paper start - error reporting
                  String msg = "Could not pass event " + event.getEventName() + " to " + registration.getPlugin().getDescription().getFullName();
 -                server.getLogger().log(Level.SEVERE, msg, ex);
++                // Yatopia start - detailed report
 +                server.getLogger().log(Level.SEVERE, msg);
 +                org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(ex, _msg -> server.getLogger().log(Level.SEVERE, _msg));
 +                server.getLogger().log(Level.SEVERE, org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW, ex);
++                // Yatopia end
                  if (!(event instanceof ServerExceptionEvent)) { // We don't want to cause an endless event loop
                      callEvent(new ServerExceptionEvent(new ServerEventException(msg, ex, registration.getPlugin(), registration.getListener(), event)));
                  }
+@@ -905,4 +913,9 @@ public final class SimplePluginManager implements PluginManager {
+     }
+     // Paper end
+ 
++    // Yatopia start - Accessor
++    public Collection<PluginLoader> getPluginLoaders() {
++        return new HashSet<>(fileAssociations.values());
++    }
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+index 04fa3991f6ce4e9dad804f28fc6c947695857089..cb11eab6e13ed1c395b8f7db033c9a2817f4089c 100644
+--- a/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
++++ b/src/main/java/org/bukkit/plugin/java/JavaPlugin.java
+@@ -111,7 +111,7 @@ public abstract class JavaPlugin extends PluginBase {
+      * @return File containing this plugin
+      */
+     @NotNull
+-    protected File getFile() {
++    public File getFile() { // Yatopia
+         return file;
+     }
+ 
+diff --git a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
+index 384edf9890dfbd1cddfdcac4db1ebe9a4d761f78..6d39959389e2eebb4acf19dfb1efc5cf692db135 100644
+--- a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
+@@ -439,4 +439,9 @@ public final class JavaPluginLoader implements PluginLoader {
+             }
+         }
+     }
++    // Yatopia start - Accessor
++    public List<PluginClassLoader> getClassLoaders() {
++        return java.util.Collections.unmodifiableList(loaders);
++    }
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+index 7760be3e34fa20825faf145d9fb5b2855c1a4602..2e8f3efdb683c44b3e42bb0187bc907e64cde288 100644
+--- a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+@@ -232,4 +232,13 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
+                    '}';
+     }
+     // Paper end
++
++    // Yatopia start - Accessor
++    public java.util.Collection<Class<?>> getLoadedClasses() {
++        return java.util.Collections.unmodifiableCollection(
++                new java.util.HashSet<>(classes.values()).stream()
++                        .filter(clazz -> clazz.getClassLoader() == this).collect(java.util.stream.Collectors.toSet())
++        );
++    }
++    // Yatopia end
+ }
 diff --git a/src/main/java/org/yatopiamc/yatopia/api/internal/StackTraceUtils.java b/src/main/java/org/yatopiamc/yatopia/api/internal/StackTraceUtils.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..0aa9bc6ad0a85d469b29201b9da29165bafb874c
