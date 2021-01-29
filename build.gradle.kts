@@ -11,6 +11,8 @@ toothpick {
         ?: "\"${gitCmd("rev-parse", "--short", "HEAD").output}\""
     if(!System.getenv("BRANCH_NAME").isNullOrEmpty()) {
         currentBranch = System.getenv("BRANCH_NAME")
+    } else if (!System.getenv("GITHUB_HEAD_REF").isNullOrEmpty()) {
+        currentBranch = System.getenv("GITHUB_HEAD_REF")
     } else if (!System.getenv("GITHUB_REF").isNullOrEmpty()) {
         currentBranch = System.getenv("GITHUB_REF").substring("refs/heads/".length)
     } else {
