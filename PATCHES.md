@@ -132,8 +132,6 @@ This is an overview over all patches that are currently used.
 | server |  Delay chunk unloads      | Spottedleaf |  |
 | server |  Despawn rate config options per projectile type      | jmp |  |
 | server |  Detail more information in watchdog dumps      | Spottedleaf |  |
-| server |  Detailed lag and crash reports      | ishland |  |
-| api |  Detailed lag and crash reports      | ishland |  |
 | server |  Disable loot drops on death by cramming      | William Blake Galbreath |  |
 | server |  Disable outdated build check      | William Blake Galbreath |  |
 | api |  Disable reload command      | Ivan Pekov |  |
@@ -343,6 +341,8 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Striders give saddle back      | Ben Kerllenevich |  |
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
+| server |  Suspected plugins report      | ishland |  |
+| api |  Suspected plugins report      | ishland |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Time scoreboard search      | Spottedleaf |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
