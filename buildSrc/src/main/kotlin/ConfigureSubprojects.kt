@@ -97,16 +97,6 @@ private fun Project.configureYatoclipProject() {
         }
     }
 
-    tasks.getByName<JavaCompile>("compileJava") {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
-    }
-
-    tasks.getByName<JavaCompile>("compileJava9Java") {
-        sourceCompatibility = "9"
-        targetCompatibility = "9"
-    }
-
     val shadowJar by tasks.getting(ShadowJar::class) {
         manifest {
             attributes(
