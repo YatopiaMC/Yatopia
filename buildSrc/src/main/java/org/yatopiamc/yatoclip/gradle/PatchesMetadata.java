@@ -1,4 +1,4 @@
-package org.yatopia.yatoclip.gradle;
+package org.yatopiamc.yatoclip.gradle;
 
 import java.io.Serializable;
 import java.util.Collections;

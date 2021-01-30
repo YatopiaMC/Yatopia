@@ -8,6 +8,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.JavaLibraryPlugin
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -18,9 +19,9 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.*
-import org.yatopia.yatoclip.gradle.MakePatchesTask
-import org.yatopia.yatoclip.gradle.PatchesMetadata
-import org.yatopia.yatoclip.gradle.PropertiesUtils
+import org.yatopiamc.yatoclip.gradle.MakePatchesTask
+import org.yatopiamc.yatoclip.gradle.PatchesMetadata
+import org.yatopiamc.yatoclip.gradle.PropertiesUtils
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.*
@@ -88,11 +89,35 @@ private fun Project.configureYatoclipProject() {
         }
     }
 
+    val sourceSets = extensions.getByName("sourceSets") as org.gradle.api.tasks.SourceSetContainer
+
+    sourceSets.create("java9") {
+        java {
+            srcDir("src/java9")
+        }
+    }
+
+    tasks.getByName<JavaCompile>("compileJava") {
+        sourceCompatibility = "1.8"
+        targetCompatibility = "1.8"
+    }
+
+    tasks.getByName<JavaCompile>("compileJava9Java") {
+        sourceCompatibility = "9"
+        targetCompatibility = "9"
+    }
+
     val shadowJar by tasks.getting(ShadowJar::class) {
         manifest {
             attributes(
-                "Main-Class" to "org.yatopia.yatoclip.Yatoclip"
+                "Main-Class" to "org.yatopiamc.yatoclip.Yatoclip",
+                "Launcher-Agent-Class" to "org.yatopiamc.yatoclip.YatoclipLaunch",
+                "Premain-Class" to "org.yatopiamc.yatoclip.YatoclipLaunch",
+                "Multi-Release" to "true"
             )
+        }
+        into("META-INF/versions/9") {
+            from(sourceSets.getByName("java9").output)
         }
     }
 

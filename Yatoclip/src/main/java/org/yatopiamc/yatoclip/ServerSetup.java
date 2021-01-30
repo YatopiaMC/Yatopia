@@ -1,4 +1,4 @@
-package org.yatopia.yatoclip;
+package org.yatopiamc.yatoclip;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;

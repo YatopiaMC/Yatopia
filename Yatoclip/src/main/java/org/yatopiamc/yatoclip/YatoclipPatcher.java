@@ -1,4 +1,4 @@
-package org.yatopia.yatoclip;
+package org.yatopiamc.yatoclip;
 
 import com.google.gson.Gson;
 import io.sigpipe.jbsdiff.InvalidHeaderException;
@@ -33,7 +33,6 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import static java.util.Objects.requireNonNull;
-import static org.yatopia.yatoclip.ServerSetup.toHex;
 
 public class YatoclipPatcher {
 
@@ -59,7 +58,7 @@ public class YatoclipPatcher {
 			try (ZipFile patchedZip = new ZipFile(patchedJar.toFile())) {
 				for (PatchesMetadata.PatchMetadata patchMetadata : patchesMetadata.patches) {
 					ZipEntry zipEntry = patchedZip.getEntry(patchMetadata.name);
-					if (zipEntry == null || !patchMetadata.targetHash.equals(toHex(digest.digest(IOUtils.toByteArray(patchedZip.getInputStream(zipEntry))))))
+					if (zipEntry == null || !patchMetadata.targetHash.equals(ServerSetup.toHex(digest.digest(IOUtils.toByteArray(patchedZip.getInputStream(zipEntry))))))
 						return false;
 				}
 			}
@@ -167,13 +166,13 @@ public class YatoclipPatcher {
 				throw new FileNotFoundException();
 			patchBytes = IOUtils.toByteArray(in);
 		}
-		if (!patchMetadata.originalHash.equals(toHex(digest.digest(originalBytes))) || !patchMetadata.patchHash.equals(toHex(digest.digest(patchBytes))))
+		if (!patchMetadata.originalHash.equals(ServerSetup.toHex(digest.digest(originalBytes))) || !patchMetadata.patchHash.equals(ServerSetup.toHex(digest.digest(patchBytes))))
 			throw new FileNotFoundException("Hash do not match");
 
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		Patch.patch(originalBytes, patchBytes, byteOut);
 		final byte[] patchedBytes = byteOut.toByteArray();
-		if (!patchMetadata.targetHash.equals(toHex(digest.digest(patchedBytes))))
+		if (!patchMetadata.targetHash.equals(ServerSetup.toHex(digest.digest(patchedBytes))))
 			throw new FileNotFoundException("Hash do not match");
 		return patchedBytes;
 	}

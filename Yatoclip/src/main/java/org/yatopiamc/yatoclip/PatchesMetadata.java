@@ -1,4 +1,4 @@
-package org.yatopia.yatoclip;
+package org.yatopiamc.yatoclip;
 
 import java.io.Serializable;
 import java.util.Collections;

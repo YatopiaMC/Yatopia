@@ -1,4 +1,4 @@
-package org.yatopia.yatoclip.gradle;
+package org.yatopiamc.yatoclip.gradle;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
