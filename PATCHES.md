@@ -161,8 +161,6 @@ This is an overview over all patches that are currently used.
 | server |  Entities can use portals configuration      | William Blake Galbreath |  |
 | server |  Entities pick up loot bypass mob-griefing gamerule      | William Blake Galbreath |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
-| server |  EntityMoveEvent      | William Blake Galbreath |  |
-| api |  EntityMoveEvent      | William Blake Galbreath |  |
 | server |  Execute chunk tasks mid-tick      | Spottedleaf |  |
 | api |  ExecuteCommandEvent      | William Blake Galbreath |  |
 | server |  Farmland trampling changes      | Mariell Hoversholm |  |
