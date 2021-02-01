@@ -8,6 +8,7 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
+| server |  (PaperPR) Inline shift direction fields      | Andrew Steinborn |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
@@ -240,6 +241,7 @@ This is an overview over all patches that are currently used.
 | server |  Multi-Threaded Server Ticking Vanilla      | Spottedleaf |  |
 | server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
 | server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
+| server |  New nbt cache      | Hugo Planque | ishland |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Optimise EntityInsentient#checkDespawn      | Spottedleaf |  |
@@ -339,6 +341,8 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Striders give saddle back      | Ben Kerllenevich |  |
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
+| server |  Suspected plugins report      | ishland |  |
+| api |  Suspected plugins report      | ishland |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Time scoreboard search      | Spottedleaf |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
@@ -374,3 +378,4 @@ This is an overview over all patches that are currently used.
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
+| server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |

@@ -161,30 +161,34 @@ index 58d01c6f8abcd9e1792495abd08b186f9d03f834..476939bde38246eb0fd96e6a4ba8076c
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..db0f7b1acf28ebe486026b8a7507ed4c7e26fb0f
+index 0000000000000000000000000000000000000000..2898bfb109c63a93971bd38cc4778da1dc37c445
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-@@ -0,0 +1,96 @@
+@@ -0,0 +1,123 @@
 +package org.yatopiamc.yatopia.server;
 +
 +import com.destroystokyo.paper.VersionHistoryManager;
 +import com.google.common.base.Charsets;
++import com.google.common.io.Resources;
 +import com.google.gson.Gson;
 +import com.google.gson.JsonObject;
 +import com.google.gson.JsonSyntaxException;
 +import java.io.BufferedReader;
 +import java.io.IOException;
++import java.io.InputStream;
 +import java.io.InputStreamReader;
 +import java.net.HttpURLConnection;
 +import java.net.URL;
++import java.net.URLEncoder;
++import java.util.Arrays;
++import java.util.Objects;
++import java.util.jar.Manifest;
 +import javax.annotation.Nonnull;
 +
 +import com.destroystokyo.paper.util.VersionFetcher;
 +import javax.annotation.Nullable;
 +
 +public class YatopiaVersionFetcher implements VersionFetcher {
-+
-+    private static final String GITHUB_BRANCH_NAME = "ver/1.16.5";
 +
 +    @Override
 +    public long getCacheTime() {
@@ -194,15 +198,23 @@ index 0000000000000000000000000000000000000000..db0f7b1acf28ebe486026b8a7507ed4c
 +    @Nonnull
 +    @Override
 +    public String getVersionMessage(@Nonnull String serverVersion) {
++        if(serverVersion.equals("null")) return "Custom build";
 +        String[] parts = serverVersion.substring("git-Yatopia-".length()).split("[-\\s]");
-+        String updateMessage = getUpdateStatusMessage("YatopiaMC/Yatopia", GITHUB_BRANCH_NAME, parts[0]);
++        String branch = String.join("-", Arrays.copyOfRange(parts, 0, parts.length - 3));
++        String version = parts[parts.length - 3];
++        String updateMessage = getUpdateStatusMessage("YatopiaMC/Yatopia", branch, version);
 +        String history = getHistory();
 +        return history != null ? history + "\n" + updateMessage : updateMessage;
 +    }
 +
 +    private String getUpdateStatusMessage(String repo, String branch, String versionInfo) {
-+        versionInfo = versionInfo.replace("\"", "");
-+        int distance = fetchDistanceFromGitHub(repo, branch, versionInfo);
++        int distance;
++        try {
++            int jenkinsBuild = Integer.parseInt(versionInfo);
++            distance = fetchDistanceFromJenkins(branch, jenkinsBuild);
++        } catch (NumberFormatException ignored) {
++            distance = fetchDistanceFromGitHub(repo, branch, versionInfo.replace("\"", ""));
++        }
 +
 +        switch (distance) {
 +            case -1:
@@ -213,6 +225,21 @@ index 0000000000000000000000000000000000000000..db0f7b1acf28ebe486026b8a7507ed4c
 +                return "\u00AF\\_(\u30C4)_/\u00AF";
 +            default:
 +                return "You are " + distance + " version(s) behind";
++        }
++    }
++
++    // modified from PurpurVersionFetcher
++    private static int fetchDistanceFromJenkins(String branch, int jenkinsBuild) {
++        try {
++            try (BufferedReader reader = Resources.asCharSource(new URL("https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/" + URLEncoder.encode(branch, Charsets.UTF_8.name()) + "/lastStableBuild/buildNumber"), Charsets.UTF_8).openBufferedStream()) {
++                return Integer.decode(reader.readLine()) - jenkinsBuild;
++            } catch (NumberFormatException ex) {
++                ex.printStackTrace();
++                return -2;
++            }
++        } catch (IOException e) {
++            e.printStackTrace();
++            return -1;
 +        }
 +    }
 +
