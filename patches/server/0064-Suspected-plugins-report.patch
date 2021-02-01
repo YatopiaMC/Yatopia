@@ -1,0 +1,207 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Wed, 27 Jan 2021 23:35:30 +0800
+Subject: [PATCH] Suspected plugins report
+
+Added "Suspected Plugins" to Watchdog, crash reports and exception messages
+
+diff --git a/src/main/java/net/minecraft/server/CrashReport.java b/src/main/java/net/minecraft/server/CrashReport.java
+index cc6e6f245ee5e73bd570cf42381bf55ee0b364d3..2f8ec64c26f5ed239b4dd9f9532c402d7081f9ed 100644
+--- a/src/main/java/net/minecraft/server/CrashReport.java
++++ b/src/main/java/net/minecraft/server/CrashReport.java
+@@ -87,6 +87,8 @@ public class CrashReport {
+         if (this.h != null && this.h.length > 0) {
+             stringbuilder.append("-- Head --\n");
+             stringbuilder.append("Thread: ").append(Thread.currentThread().getName()).append("\n");
++            org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(this.h, stringbuilder::append); // Yatopia - detailed report
++            stringbuilder.append("\n"); // Yatopia
+             stringbuilder.append("Stacktrace:\n");
+             StackTraceElement[] astacktraceelement = this.h;
+             int i = astacktraceelement.length;
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 1dcc3c19b7bb88d0c03dd74b5ab1a3245bb94450..e358e797c87584891d1ffbaf3604c5db6768ca58 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1040,7 +1040,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+                 return;
+             }
+             // Paper end
+-            MinecraftServer.LOGGER.error("Encountered an unexpected exception", throwable);
++            // Yatopia start - detailed report
++            MinecraftServer.LOGGER.error("Encountered an unexpected exception");
++            org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(throwable.getStackTrace(), MinecraftServer.LOGGER::error);
++            MinecraftServer.LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW, throwable);
++            // Yatopia end
+             // Spigot Start
+             if ( throwable.getCause() != null )
+             {
+diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
+index 548c62a838848a9183e14f91b21a9dc309d8a3b2..acded2b5ef02c24f52050fcc8f06ccb5a82acfc9 100644
+--- a/src/main/java/net/minecraft/server/NetworkManager.java
++++ b/src/main/java/net/minecraft/server/NetworkManager.java
+@@ -382,6 +382,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+             channelfuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+             // Paper start
+             } catch (Exception e) {
++                // Yatopia - detailed report
++                LOGGER.error("Encountered unexpected exception sending packets");
++                org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                // Yatopia end
+                 LOGGER.error("NetworkException: " + player, e);
+                 close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
+                 packet.onPacketDispatchFinish(player, null);
+@@ -421,6 +426,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+                         // Paper start
+                     } catch (Exception e) {
++                        // Yatopia start - detailed report
++                        LOGGER.error("Encountered unexpected exception sending packets");
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         LOGGER.error("NetworkException: " + player, e);
+                         close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
+                         packet.onPacketDispatchFinish(player, null);
+@@ -456,6 +466,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+                         // Paper start
+                     } catch (Exception e) {
++                        // Yatopia start - detailed report
++                        LOGGER.error("Encountered unexpected exception sending packets");
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         LOGGER.error("NetworkException: " + player, e);
+                         close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
+                         packet.onPacketDispatchFinish(player, null);
+diff --git a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
+index e698dd22607b2b2c4068c5bfb03ac53eb5bac080..4e545e467042772d49ac82492694824576dcd139 100644
+--- a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
++++ b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
+@@ -45,6 +45,11 @@ public class PlayerConnectionUtils {
+                     // Paper start
+                     catch (Exception e) {
+                         NetworkManager networkmanager = t0.a();
++                        // Yatopia start - detailed report
++                        LOGGER.error("Encountered unexpected exception sending packets");
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         if (networkmanager.getPlayer() != null) {
+                             LOGGER.error("Error whilst processing packet {} for {}[{}]", packet, networkmanager.getPlayer().getName(), networkmanager.getSocketAddress(), e);
+                         } else {
+diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..7b9f83e63d0f9cd83a246be33af4ab91da6b2151 100644
+--- a/src/main/java/net/minecraft/server/ServerConnection.java
++++ b/src/main/java/net/minecraft/server/ServerConnection.java
+@@ -153,6 +153,11 @@ public class ServerConnection {
+                                 throw new ReportedException(CrashReport.a(exception, "Ticking memory connection"));
+                             }
+ 
++                            // Yatopia start - detailed report
++                            ServerConnection.LOGGER.error("Encountered unexpected exception sending packets");
++                            org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(exception, ServerConnection.LOGGER::error);
++                            ServerConnection.LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                            // Yatopia end
+                             ServerConnection.LOGGER.warn("Failed to handle packet for {}", networkmanager.getSocketAddress(), exception);
+                             ChatComponentText chatcomponenttext = new ChatComponentText("Internal server error");
+ 
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 626fab23a727073f502d934fc8f8616326ee8b52..ccf13e4daf0524c7a0c8de3b574cea8c188011ce 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -988,6 +988,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+                         // Paper start - Prevent tile entity and entity crashes
+                         String msg = "TileEntity threw exception at " + tileentity.world.getWorld().getName() + ":" + tileentity.position.getX() + "," + tileentity.position.getY() + "," + tileentity.position.getZ();
+                         System.err.println(msg);
++                        // Yatopia start - detailed report
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(throwable, System.err::println);
++                        System.err.println(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         throwable.printStackTrace();
+                         getServer().getPluginManager().callEvent(new ServerExceptionEvent(new ServerInternalException(msg, throwable)));
+                         // Paper end
+diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
+index 0be39dac4b9dd69d7d73d86d64cf1e33e4086e81..c53531bc769ecd39c4f03b7a10c5bc6a48ace081 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
++++ b/src/main/java/org/bukkit/craftbukkit/scheduler/CraftScheduler.java
+@@ -455,6 +455,7 @@ public class CraftScheduler implements BukkitScheduler {
+         parsePending();
+         while (isReady(currentTick)) {
+             final CraftTask task = pending.remove();
++            lastSyncTask = task; // Yatopia - detailed report
+             if (task.getPeriod() < CraftTask.NO_REPEATING) {
+                 if (task.isSync()) {
+                     runners.remove(task.getTaskId(), task);
+@@ -473,12 +474,15 @@ public class CraftScheduler implements BukkitScheduler {
+                         task.getTaskId(),
+                         task.getOwner().getDescription().getFullName());
+                     if (task.getOwner() == MINECRAFT) {
+-                        net.minecraft.server.MinecraftServer.LOGGER.error(msg, throwable);
++                        // Yatopia start - detailed report
++                        net.minecraft.server.MinecraftServer.LOGGER.error(msg);
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(throwable, net.minecraft.server.MinecraftServer.LOGGER::error);
++                        net.minecraft.server.MinecraftServer.LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW, throwable);
+                     } else {
+-                        task.getOwner().getLogger().log(
+-                            Level.WARNING,
+-                            msg,
+-                            throwable);
++                        task.getOwner().getLogger().log(Level.SEVERE, msg);
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(throwable, _msg -> task.getOwner().getLogger().log(Level.SEVERE, _msg));
++                        task.getOwner().getLogger().log(Level.SEVERE, org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW, throwable);
++                        // Yatopia end
+                     }
+                     org.bukkit.Bukkit.getServer().getPluginManager().callEvent(
+                         new ServerExceptionEvent(new ServerSchedulerException(msg, throwable, task)));
+@@ -493,6 +497,7 @@ public class CraftScheduler implements BukkitScheduler {
+                 // We don't need to parse pending
+                 // (async tasks must live with race-conditions if they attempt to cancel between these few lines of code)
+             }
++            lastSyncTask = null; // Yatopia - detailed report
+             final long period = task.getPeriod(); // State consistency
+             if (period > 0) {
+                 task.setNextRun(currentTick + period);
+@@ -646,4 +651,10 @@ public class CraftScheduler implements BukkitScheduler {
+         };
+     }
+     // Paper end
++    // Yatopia start - detailed report
++    private volatile CraftTask lastSyncTask = null;
++    public CraftTask getLastSyncTask() {
++        return lastSyncTask;
++    }
++    // Yatopia end
+ }
+diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
+index 476939bde38246eb0fd96e6a4ba8076c9d1b0ff4..d13bd96716db90a5d9ab65f3c7d025b75947b71a 100644
+--- a/src/main/java/org/spigotmc/WatchdogThread.java
++++ b/src/main/java/org/spigotmc/WatchdogThread.java
+@@ -140,6 +140,15 @@ public class WatchdogThread extends Thread
+                 log.log(Level.SEVERE, "Handling packet for connection: " + packetListener);
+             }
+         }
++        // Yatopia start - detailed report - Scheduler
++        if (Bukkit.getScheduler() instanceof org.bukkit.craftbukkit.scheduler.CraftScheduler) {
++            final org.bukkit.craftbukkit.scheduler.CraftScheduler scheduler = (org.bukkit.craftbukkit.scheduler.CraftScheduler) Bukkit.getScheduler();
++            final org.bukkit.craftbukkit.scheduler.CraftTask lastSyncTask = scheduler.getLastSyncTask();
++            if (lastSyncTask != null) {
++                log.log(Level.SEVERE, "Running task " + lastSyncTask.getTaskId() + " for '" + lastSyncTask.getOwner().getDescription().getFullName() + "', TaskClass: " + lastSyncTask.getTaskClass());
++            }
++        } else log.log(Level.SEVERE, "Unofficial scheduler, unable to get task information");
++        // Yatopia end
+     }
+     // Tuinity end - log detailed tick information
+ 
+@@ -271,6 +280,10 @@ public class WatchdogThread extends Thread
+                 log.log( Level.SEVERE, "\t\tLocked on:" + monitor.getLockedStackFrame() );
+             }
+         }
++        // Yatopia start - dump plugins info
++        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(thread.getStackTrace(), msg -> log.log(Level.SEVERE, msg));
++        log.log(Level.SEVERE, "");
++        // Yatopia end
+         log.log( Level.SEVERE, "\tStack:" );
+         //
+         for ( StackTraceElement stack : thread.getStackTrace() )

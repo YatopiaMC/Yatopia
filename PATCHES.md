@@ -8,7 +8,6 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
-| server |  (PaperPR) Inline shift direction fields      | Andrew Steinborn |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
@@ -149,8 +148,6 @@ This is an overview over all patches that are currently used.
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
-| server |  DragonEggPlaceEvent      | William Blake Galbreath |  |
-| api |  DragonEggPlaceEvent      | William Blake Galbreath |  |
 | server |  Duplicate paper&#39;s vanilla scoreboard colors patch to sync      | William Blake Galbreath |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
@@ -161,8 +158,6 @@ This is an overview over all patches that are currently used.
 | server |  Entities can use portals configuration      | William Blake Galbreath |  |
 | server |  Entities pick up loot bypass mob-griefing gamerule      | William Blake Galbreath |  |
 | server |  Entity lifespan      | William Blake Galbreath |  |
-| server |  EntityMoveEvent      | William Blake Galbreath |  |
-| api |  EntityMoveEvent      | William Blake Galbreath |  |
 | server |  Execute chunk tasks mid-tick      | Spottedleaf |  |
 | api |  ExecuteCommandEvent      | William Blake Galbreath |  |
 | server |  Farmland trampling changes      | Mariell Hoversholm |  |

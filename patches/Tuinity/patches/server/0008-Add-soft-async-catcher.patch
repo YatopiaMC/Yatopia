@@ -324,17 +324,17 @@ index 38c49d04d7bfb9c116a3b6eb87daaad2c75040cf..ab8a5c00e383ef84cb3e5acf9ac9221f
          IBlockData iblockdata1 = oldBlock;
          IBlockData iblockdata2 = actualBlock;
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 603935fef6211bd4addcd3bac58ebc0729e387c3..969902a5c498114d93c3e956a01066343afca14c 100644
+index 2abce373f7dc4223f40b900e2e2b2e1aa8f0a6bf..bc324860305c216c18f52f34dbf2564f61067bd5 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1660,6 +1660,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1661,6 +1661,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
  
      @Override
      public void notify(BlockPosition blockposition, IBlockData iblockdata, IBlockData iblockdata1, int i) {
 +        org.spigotmc.AsyncCatcher.catchOp("notify call"); // Tuinity
          this.getChunkProvider().flagDirty(blockposition);
+         if(this.paperConfig.updatePathfindingOnBlockUpdate) { // Paper - option to disable pathfinding updates
          VoxelShape voxelshape = iblockdata.getCollisionShape(this, blockposition);
-         VoxelShape voxelshape1 = iblockdata1.getCollisionShape(this, blockposition);
 diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
 index 10606ed03e88e4e467de2d5424df12466c4e7873..51e9c54cddf4b28ba3d3d892322c487774bdab70 100644
 --- a/src/main/java/org/spigotmc/AsyncCatcher.java
