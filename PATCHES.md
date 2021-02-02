@@ -115,6 +115,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable entity base attributes      | BillyGalbreath |  |
 | server |  Configurable flight checks      | l_MrBoom_l |  |
 | server |  Configurable jockey options      | William Blake Galbreath |  |
+| server |  Configurable max world size      | Simon Gardling |  |
 | server |  Configurable movement checks      | l_MrBoom_l |  |
 | api |  Configurable permission message upgrades      | William Blake Galbreath |  |
 | server |  Configurable server mod name      | William Blake Galbreath |  |
