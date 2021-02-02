@@ -1,0 +1,1177 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Thu, 7 Jan 2021 00:24:16 -0500
+Subject: [PATCH] Cadmium
+
+Code from LucilleTea's port of cadmium to 1.16: https://github.com/LucilleTea/DataFixerUpper
+
+diff --git a/src/main/java/com/mojang/datafixers/DataFixUtils.java b/src/main/java/com/mojang/datafixers/DataFixUtils.java
+index cf8959aea3e48c1276ae9536d4de0f0127e1801e..3c67e3ae68aa5f0384c85858a5557f48e7ee0298 100644
+--- a/src/main/java/com/mojang/datafixers/DataFixUtils.java
++++ b/src/main/java/com/mojang/datafixers/DataFixUtils.java
+@@ -54,6 +54,13 @@ public class DataFixUtils {
+         return other;
+     }
+ 
++    public static <U> U orElse(final U nullable, final U other) {
++        if (nullable!=null) {
++            return nullable;
++        }
++        return other;
++    }
++
+     public static <U> U orElseGet(final Optional<? extends U> optional, final Supplier<? extends U> other) {
+         if (optional.isPresent()) {
+             return optional.get();
+diff --git a/src/main/java/com/mojang/datafixers/DataFixerBuilder.java b/src/main/java/com/mojang/datafixers/DataFixerBuilder.java
+index abc265b00044b14abb55c2628d454ee01fef467b..d9278be97135bd1d9233105fa4432ec4258210bb 100644
+--- a/src/main/java/com/mojang/datafixers/DataFixerBuilder.java
++++ b/src/main/java/com/mojang/datafixers/DataFixerBuilder.java
+@@ -64,13 +64,15 @@ public class DataFixerBuilder {
+     public DataFixer build(final Executor executor) {
+         final DataFixerUpper fixerUpper = new DataFixerUpper(new Int2ObjectAVLTreeMap<>(schemas), new ArrayList<>(globalList), new IntAVLTreeSet(fixerVersions));
+ 
++        long startTime = System.nanoTime();
++        final List<CompletableFuture<?>> futures = Lists.newArrayList();
+         final IntBidirectionalIterator iterator = fixerUpper.fixerVersions().iterator();
+         while (iterator.hasNext()) {
+             final int versionKey = iterator.nextInt();
+             if (versionKey < minDataFixPrecacheVersion) continue; // Paper
+             final Schema schema = schemas.get(versionKey);
+             for (final String typeName : schema.types()) {
+-                CompletableFuture.runAsync(() -> {
++                futures.add(CompletableFuture.runAsync(() -> {
+                     final Type<?> dataType = schema.getType(() -> typeName);
+                     final TypeRewriteRule rule = fixerUpper.getRule(DataFixUtils.getVersion(versionKey), dataVersion);
+                     dataType.rewrite(rule, DataFixerUpper.OPTIMIZATION_RULE);
+@@ -78,10 +80,16 @@ public class DataFixerBuilder {
+                     LOGGER.error("Unable to build datafixers", e);
+                     Runtime.getRuntime().exit(1);
+                     return null;
+-                });
++                }));
+             }
+         }
+ 
++        CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0]))
++                .thenAccept((res) -> {
++                    long endTime = System.nanoTime();
++                    LOGGER.info("Finished building data fixers after {}ms", (endTime - startTime) / 1_000_000);
++                });
++
+         return fixerUpper;
+     }
+ }
+diff --git a/src/main/java/com/mojang/datafixers/FieldFinder.java b/src/main/java/com/mojang/datafixers/FieldFinder.java
+index a20a9dedcff2f3d633c5fd09d238a98fe18968c0..5c7bd4e64fa5565e9f8d4260b8287c9131677228 100644
+--- a/src/main/java/com/mojang/datafixers/FieldFinder.java
++++ b/src/main/java/com/mojang/datafixers/FieldFinder.java
+@@ -118,7 +118,7 @@ public final class FieldFinder<FT> implements OpticFinder<FT> {
+                 (Type<Pair<FT, V>>) choiceType,
+                 type,
+                 type,
+-                new Proj1<>()
++                Proj1.instance()
+             );
+         }
+ 
+diff --git a/src/main/java/com/mojang/datafixers/TypeRewriteRule.java b/src/main/java/com/mojang/datafixers/TypeRewriteRule.java
+index 6f836c3382ed83e07000c0a5e4b6e9b69f8c45bf..8512979f636bb6f70900f47cf29177bbe0ffc6f3 100644
+--- a/src/main/java/com/mojang/datafixers/TypeRewriteRule.java
++++ b/src/main/java/com/mojang/datafixers/TypeRewriteRule.java
+@@ -106,19 +106,15 @@ public interface TypeRewriteRule {
+     }
+ 
+     static TypeRewriteRule orElse(final TypeRewriteRule first, final TypeRewriteRule second) {
+-        return orElse(first, () -> second);
+-    }
+-
+-    static TypeRewriteRule orElse(final TypeRewriteRule first, final Supplier<TypeRewriteRule> second) {
+         return new OrElse(first, second);
+     }
+ 
+     final class OrElse implements TypeRewriteRule {
+         protected final TypeRewriteRule first;
+-        protected final Supplier<TypeRewriteRule> second;
++        protected final TypeRewriteRule second;
+         private final int hashCode;
+ 
+-        public OrElse(final TypeRewriteRule first, final Supplier<TypeRewriteRule> second) {
++        public OrElse(final TypeRewriteRule first, final TypeRewriteRule second) {
+             this.first = first;
+             this.second = second;
+             hashCode = Objects.hash(first, second);
+@@ -130,7 +126,7 @@ public interface TypeRewriteRule {
+             if (view.isPresent()) {
+                 return view;
+             }
+-            return second.get().rewrite(type);
++            return second.rewrite(type);
+         }
+ 
+         @Override
+@@ -159,10 +155,6 @@ public interface TypeRewriteRule {
+         return new One(rule);
+     }
+ 
+-    static TypeRewriteRule once(final TypeRewriteRule rule) {
+-        return orElse(rule, () -> one(once(rule)));
+-    }
+-
+     static TypeRewriteRule checkOnce(final TypeRewriteRule rule, final Consumer<Type<?>> onFail) {
+         // TODO: toggle somehow
+ //        return new CheckOnce(rule, onFail);
+diff --git a/src/main/java/com/mojang/datafixers/Typed.java b/src/main/java/com/mojang/datafixers/Typed.java
+index 55c55beba58fb0505ccf8270a27d6c6ffc01c629..6aef2d7c1bfe1a58f7323f0802c2b345ba6a3f84 100644
+--- a/src/main/java/com/mojang/datafixers/Typed.java
++++ b/src/main/java/com/mojang/datafixers/Typed.java
+@@ -184,11 +184,11 @@ public final class Typed<A> {
+     }
+ 
+     public <B> Typed<Either<A, B>> inj1(final Type<B> type) {
+-        return new Typed<>(DSL.or(this.type, type), ops, new Inj1<A, B, A>().build(value));
++        return new Typed<>(DSL.or(this.type, type), ops, Inj1.<A, B, A>instance().build(value));
+     }
+ 
+     public <B> Typed<Either<B, A>> inj2(final Type<B> type) {
+-        return new Typed<>(DSL.or(type, this.type), ops, new Inj2<B, A, A>().build(value));
++        return new Typed<>(DSL.or(type, this.type), ops, Inj2.<B, A, A>instance().build(value));
+     }
+ 
+     public static <A, B> Typed<Pair<A, B>> pair(final Typed<A> first, final Typed<B> second) {
+diff --git a/src/main/java/com/mojang/datafixers/TypedOptic.java b/src/main/java/com/mojang/datafixers/TypedOptic.java
+index 10c5565709510609f8b6c4c39bb25b163dd878bc..cedc86f48a1da01ebd48ebb171a0cd9cb60ce02b 100644
+--- a/src/main/java/com/mojang/datafixers/TypedOptic.java
++++ b/src/main/java/com/mojang/datafixers/TypedOptic.java
+@@ -131,7 +131,7 @@ public final class TypedOptic<S, T, A, B> {
+             DSL.and(newType, gType),
+             fType,
+             newType,
+-            new Proj1<>()
++            Proj1.instance()
+         );
+     }
+ 
+@@ -142,7 +142,7 @@ public final class TypedOptic<S, T, A, B> {
+             DSL.and(fType, newType),
+             gType,
+             newType,
+-            new Proj2<>()
++            Proj2.instance()
+         );
+     }
+ 
+@@ -153,7 +153,7 @@ public final class TypedOptic<S, T, A, B> {
+             DSL.or(newType, gType),
+             fType,
+             newType,
+-            new Inj1<>()
++            Inj1.instance()
+         );
+     }
+ 
+@@ -164,7 +164,7 @@ public final class TypedOptic<S, T, A, B> {
+             DSL.or(fType, newType),
+             gType,
+             newType,
+-            new Inj2<>()
++            Inj2.instance()
+         );
+     }
+ 
+diff --git a/src/main/java/com/mojang/datafixers/View.java b/src/main/java/com/mojang/datafixers/View.java
+index 4139dc999917d84c7dea5b02117a50af51206f04..010f634ac6439be15a27768a22c233134c735d0c 100644
+--- a/src/main/java/com/mojang/datafixers/View.java
++++ b/src/main/java/com/mojang/datafixers/View.java
+@@ -11,7 +11,6 @@ import com.mojang.datafixers.types.Type;
+ import com.mojang.serialization.DynamicOps;
+ 
+ import java.util.Objects;
+-import java.util.Optional;
+ import java.util.function.Function;
+ 
+ public final class View<A, B> implements App2<View.Mu, A, B> {
+@@ -73,8 +72,12 @@ public final class View<A, B> implements App2<View.Mu, A, B> {
+         return Objects.hash(type, newType, function);
+     }
+ 
+-    public Optional<? extends View<A, B>> rewrite(final PointFreeRule rule) {
+-        return rule.rewrite(DSL.func(type, newType), function()).map(f -> create(type, newType, f));
++    public View<A, B> rewrite(final PointFreeRule rule) {
++        PointFree<Function<A, B>> result = rule.rewrite(DSL.func(type, newType), function());
++        if (result!=null) {
++            return create(type, newType, result);
++        }
++        return null;
+     }
+ 
+     public View<A, B> rewriteOrNop(final PointFreeRule rule) {
+diff --git a/src/main/java/com/mojang/datafixers/functions/Apply.java b/src/main/java/com/mojang/datafixers/functions/Apply.java
+index 32c55622c7a6de4d4eb4c70c62f4fbf11385667b..6aeebdb217dc191f78bd4f0878b92485983e6feb 100644
+--- a/src/main/java/com/mojang/datafixers/functions/Apply.java
++++ b/src/main/java/com/mojang/datafixers/functions/Apply.java
+@@ -3,11 +3,11 @@
+ package com.mojang.datafixers.functions;
+ 
+ import com.mojang.datafixers.DSL;
++import com.mojang.datafixers.DataFixUtils;
+ import com.mojang.datafixers.types.Type;
+ import com.mojang.serialization.DynamicOps;
+ 
+ import java.util.Objects;
+-import java.util.Optional;
+ import java.util.function.Function;
+ 
+ final class Apply<A, B> extends PointFree<B> {
+@@ -32,18 +32,29 @@ final class Apply<A, B> extends PointFree<B> {
+     }
+ 
+     @Override
+-    public Optional<? extends PointFree<B>> all(final PointFreeRule rule, final Type<B> type) {
+-        return Optional.of(Functions.app(
+-            rule.rewrite(DSL.func(argType, type), func).map(f1 -> (PointFree<Function<A, B>>) f1).orElse(func),
+-            rule.rewrite(argType, arg).map(f -> (PointFree<A>) f).orElse(arg),
+-            argType
+-        ));
++    public PointFree<B> all(final PointFreeRule rule, final Type<B> type) {
++        return Functions.app(
++                DataFixUtils.orElse(rule.rewrite(DSL.func(argType, type), func), func),
++                DataFixUtils.orElse(rule.rewrite(argType, arg), arg),
++                argType
++        );
+     }
+ 
+     @Override
+-    public Optional<? extends PointFree<B>> one(final PointFreeRule rule, final Type<B> type) {
+-        return rule.rewrite(DSL.func(argType, type), func).map(f -> Optional.of(Functions.app(f, arg, argType)))
+-            .orElseGet(() -> rule.rewrite(argType, arg).map(a -> Functions.app(func, a, argType)));
++    public PointFree<B> one(final PointFreeRule rule, final Type<B> type) {
++        final PointFree<Function<A, B>> result1 = rule.rewrite(DSL.func(argType, type), func);
++
++        if (result1!=null) {
++            return Functions.app(result1, arg, argType);
++        }
++
++        final PointFree<A> result2 = rule.rewrite(argType, arg);
++
++        if (result2!=null) {
++            return Functions.app(func, result2, argType);
++        }
++
++        return null;
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/mojang/datafixers/functions/Comp.java b/src/main/java/com/mojang/datafixers/functions/Comp.java
+index a7a0ba66c715709801c2839018a6bb19df5cfdc6..d88f22ba00008af7b8bbc893aa3e8c17cccab253 100644
+--- a/src/main/java/com/mojang/datafixers/functions/Comp.java
++++ b/src/main/java/com/mojang/datafixers/functions/Comp.java
+@@ -3,12 +3,12 @@
+ package com.mojang.datafixers.functions;
+ 
+ import com.mojang.datafixers.DSL;
++import com.mojang.datafixers.DataFixUtils;
+ import com.mojang.datafixers.types.Func;
+ import com.mojang.datafixers.types.Type;
+ import com.mojang.serialization.DynamicOps;
+ 
+ import java.util.Objects;
+-import java.util.Optional;
+ import java.util.function.Function;
+ 
+ final class Comp<A, B, C> extends PointFree<Function<A, C>> {
+@@ -28,20 +28,31 @@ final class Comp<A, B, C> extends PointFree<Function<A, C>> {
+     }
+ 
+     @Override
+-    public Optional<? extends PointFree<Function<A, C>>> all(final PointFreeRule rule, final Type<Function<A, C>> type) {
++    public PointFree<Function<A, C>> all(final PointFreeRule rule, final Type<Function<A, C>> type) {
+         final Func<A, C> funcType = (Func<A, C>) type;
+-        return Optional.of(Functions.comp(
+-            middleType,
+-            rule.rewrite(DSL.func(middleType, funcType.second()), first).map(f -> (PointFree<Function<B, C>>) f).orElse(first),
+-            rule.rewrite(DSL.func(funcType.first(), middleType), second).map(f1 -> (PointFree<Function<A, B>>) f1).orElse(second)
+-        ));
++        return Functions.comp(
++                middleType,
++                DataFixUtils.orElse(rule.rewrite(DSL.func(middleType, funcType.second()), first), first),
++                DataFixUtils.orElse(rule.rewrite(DSL.func(funcType.first(), middleType), second), second)
++        );
+     }
+ 
+     @Override
+-    public Optional<? extends PointFree<Function<A, C>>> one(final PointFreeRule rule, final Type<Function<A, C>> type) {
++    public PointFree<Function<A, C>> one(final PointFreeRule rule, final Type<Function<A, C>> type) {
+         final Func<A, C> funcType = (Func<A, C>) type;
+-        return rule.rewrite(DSL.func(middleType, funcType.second()), first).map(f -> Optional.of(Functions.comp(middleType, f, second)))
+-            .orElseGet(() -> rule.rewrite(DSL.func(funcType.first(), middleType), second).map(s -> Functions.comp(middleType, first, s)));
++        final PointFree<Function<B, C>> result1 = rule.rewrite(DSL.func(middleType, funcType.second()), first);
++
++        if (result1!=null) {
++            return Functions.comp(middleType, result1, second);
++        }
++
++        final PointFree<Function<A, B>> result2 = rule.rewrite(DSL.func(funcType.first(), middleType), second);
++
++        if (result2!=null) {
++            return Functions.comp(middleType, first, result2);
++        }
++
++        return null;
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/mojang/datafixers/functions/PointFree.java b/src/main/java/com/mojang/datafixers/functions/PointFree.java
+index f7593e3baf71a8992aa094719d9a369399996d46..6da563afe44b0d17a55d4f86f7d7f1e3e7a6140a 100644
+--- a/src/main/java/com/mojang/datafixers/functions/PointFree.java
++++ b/src/main/java/com/mojang/datafixers/functions/PointFree.java
+@@ -7,7 +7,6 @@ import com.mojang.serialization.DynamicOps;
+ import org.apache.commons.lang3.StringUtils;
+ 
+ import javax.annotation.Nullable;
+-import java.util.Optional;
+ import java.util.function.Function;
+ 
+ public abstract class PointFree<T> {
+@@ -30,12 +29,12 @@ public abstract class PointFree<T> {
+ 
+     public abstract Function<DynamicOps<?>, T> eval();
+ 
+-    Optional<? extends PointFree<T>> all(final PointFreeRule rule, final Type<T> type) {
+-        return Optional.of(this);
++    PointFree<T> all(final PointFreeRule rule, final Type<T> type) {
++        return this;
+     }
+ 
+-    Optional<? extends PointFree<T>> one(final PointFreeRule rule, final Type<T> type) {
+-        return Optional.empty();
++   PointFree<T> one(final PointFreeRule rule, final Type<T> type) {
++        return null;
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/mojang/datafixers/functions/PointFreeRule.java b/src/main/java/com/mojang/datafixers/functions/PointFreeRule.java
+index eaee52d2eb5c9051b1114ae307022d83984e5840..2796f4ada19b4195be906f76e70e2c215e3cd7a3 100644
+--- a/src/main/java/com/mojang/datafixers/functions/PointFreeRule.java
++++ b/src/main/java/com/mojang/datafixers/functions/PointFreeRule.java
+@@ -25,15 +25,20 @@ import org.apache.commons.lang3.ObjectUtils;
+ import java.util.BitSet;
+ import java.util.List;
+ import java.util.Objects;
+-import java.util.Optional;
+ import java.util.function.Function;
+ import java.util.function.Supplier;
+ 
+ public interface PointFreeRule {
+-    <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr);
++    <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr);
+ 
+-    default <A, B> Optional<View<A, B>> rewrite(final View<A, B> view) {
+-        return rewrite(view.getFuncType(), view.function()).map(pf -> View.create(view.type(), view.newType(), pf));
++    default <A, B> View<A, B> rewrite(final View<A, B> view) {
++        PointFree<Function<A, B>> result = rewrite(view.getFuncType(), view.function());
++
++        if (result!=null) {
++            return View.create(view.type(), view.newType(), result);
++        }
++
++        return null;
+     }
+ 
+     default <A> PointFree<A> rewriteOrNop(final Type<A> type, final PointFree<A> expr) {
+@@ -52,8 +57,8 @@ public interface PointFreeRule {
+         INSTANCE;
+ 
+         @Override
+-        public <A> Optional<PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
+-            return Optional.of(expr);
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
++            return expr;
+         }
+ 
+         @Override
+@@ -67,17 +72,17 @@ public interface PointFreeRule {
+ 
+         @SuppressWarnings("unchecked")
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Bang) {
+-                return Optional.empty();
++                return null;
+             }
+             if (type instanceof Func<?, ?>) {
+                 final Func<?, ?> func = (Func<?, ?>) type;
+                 if (func.second() instanceof EmptyPart) {
+-                    return Optional.of((PointFree<A>) Functions.bang());
++                    return (PointFree<A>) Functions.bang();
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+     }
+ 
+@@ -85,7 +90,7 @@ public interface PointFreeRule {
+         INSTANCE;
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Comp<?, ?, ?>) {
+                 final Comp<?, ?, ?> comp2 = (Comp<?, ?, ?>) expr;
+                 final PointFree<? extends Function<?, ?>> second = comp2.second;
+@@ -94,13 +99,13 @@ public interface PointFreeRule {
+                     return swap(comp1, comp2);
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+-        private static <A, B, C, D, E> Optional<PointFree<E>> swap(final Comp<A, B, C> comp1, final Comp<?, ?, D> comp2raw) {
++        private static <A, B, C, D, E> PointFree<E> swap(final Comp<A, B, C> comp1, final Comp<?, ?, D> comp2raw) {
+             final Comp<A, C, D> comp2 = (Comp<A, C, D>) comp2raw;
+-            return Optional.of((PointFree<E>) new Comp<>(comp1.middleType, new Comp<>(comp2.middleType, comp2.first, comp1.first), comp1.second));
++            return (PointFree<E>) new Comp<>(comp1.middleType, new Comp<>(comp2.middleType, comp2.first, comp1.first), comp1.second);
+         }
+     }
+ 
+@@ -108,7 +113,7 @@ public interface PointFreeRule {
+         INSTANCE;
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Comp<?, ?, ?>) {
+                 final Comp<?, ?, ?> comp1 = (Comp<?, ?, ?>) expr;
+                 final PointFree<? extends Function<?, ?>> first = comp1.first;
+@@ -117,13 +122,13 @@ public interface PointFreeRule {
+                     return swap(comp1, comp2);
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+-        private static <A, B, C, D, E> Optional<PointFree<E>> swap(final Comp<A, B, D> comp1, final Comp<?, C, ?> comp2raw) {
++        private static <A, B, C, D, E> PointFree<E> swap(final Comp<A, B, D> comp1, final Comp<?, C, ?> comp2raw) {
+             final Comp<B, C, D> comp2 = (Comp<B, C, D>) comp2raw;
+-            return Optional.of((PointFree<E>) new Comp<>(comp2.middleType, comp2.first, new Comp<>(comp1.middleType, comp2.second, comp1.second)));
++            return (PointFree<E>) new Comp<>(comp2.middleType, comp2.first, new Comp<>(comp1.middleType, comp2.second, comp1.second));
+         }
+     }
+ 
+@@ -133,15 +138,15 @@ public interface PointFreeRule {
+         // (ap lens id) -> id
+         @SuppressWarnings("unchecked")
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Apply<?, ?>) {
+                 final Apply<?, A> apply = (Apply<?, A>) expr;
+                 final PointFree<? extends Function<?, A>> func = apply.func;
+                 if (func instanceof ProfunctorTransformer<?, ?, ?, ?> && Objects.equals(apply.arg, Functions.id())) {
+-                    return Optional.of((PointFree<A>) Functions.id());
++                    return (PointFree<A>) Functions.id();
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+     }
+ 
+@@ -150,7 +155,7 @@ public interface PointFreeRule {
+ 
+         // (ap f1 (ap f2 arg)) -> (ap (f1 ◦ f2) arg)
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Apply<?, ?>) {
+                 final Apply<?, ?> applyFirst = (Apply<?, ?>) expr;
+                 if (applyFirst.arg instanceof Apply<?, ?>) {
+@@ -158,46 +163,54 @@ public interface PointFreeRule {
+                     return cap(applyFirst, applySecond);
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+-        private <A, B, C, D, E> Optional<? extends PointFree<A>> cap(final Apply<D, E> applyFirst, final Apply<B, C> applySecond) {
++        private <A, B, C, D, E> PointFree<A> cap(final Apply<D, E> applyFirst, final Apply<B, C> applySecond) {
+             final PointFree<?> func = applySecond.func;
+-            return Optional.of((PointFree<A>) Functions.app(Functions.comp(applyFirst.argType, applyFirst.func, (PointFree<Function<B, D>>) func), applySecond.arg, applySecond.argType));
++            return (PointFree<A>) Functions.app(Functions.comp(applyFirst.argType, applyFirst.func, (PointFree<Function<B, D>>) func), applySecond.arg, applySecond.argType);
+         }
+     }
+ 
+     interface CompRewrite extends PointFreeRule {
+         @Override
+-        default <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        default <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Comp<?, ?, ?>) {
+                 final Comp<?, ?, ?> comp = (Comp<?, ?, ?>) expr;
+                 final PointFree<? extends Function<?, ?>> first = comp.first;
+                 final PointFree<? extends Function<?, ?>> second = comp.second;
+                 if (first instanceof Comp<?, ?, ?>) {
+                     final Comp<?, ?, ?> firstComp = (Comp<?, ?, ?>) first;
+-                    return doRewrite(type, comp.middleType, firstComp.second, comp.second).map(result -> {
++                    final PointFree<?> result = doRewrite(type, comp.middleType, firstComp.second, comp.second);
++
++                    if (result!=null) {
+                         if (result instanceof Comp<?, ?, ?>) {
+                             final Comp<?, ?, ?> resultComp = (Comp<?, ?, ?>) result;
+                             return buildLeftNested(resultComp, firstComp);
+                         }
+                         return buildRight(firstComp, result);
+-                    });
++                    }
++
++                    return null;
+                 }
+                 if (second instanceof Comp<?, ?, ?>) {
+                     final Comp<?, ?, ?> secondComp = (Comp<?, ?, ?>) second;
+-                    return doRewrite(type, comp.middleType, comp.first, secondComp.first).map(result -> {
++                    final PointFree<?> result = doRewrite(type, comp.middleType, comp.first, secondComp.first);
++
++                    if (result!=null) {
+                         if (result instanceof Comp<?, ?, ?>) {
+                             final Comp<?, ?, ?> resultComp = (Comp<?, ?, ?>) result;
+                             return buildRightNested(secondComp, resultComp);
+                         }
+                         return buildLeft(result, secondComp);
+-                    });
++                    }
++
++                    return null;
+                 }
+-                return (Optional<? extends PointFree<A>>) doRewrite(type, comp.middleType, comp.first, comp.second);
++                return (PointFree<A>) doRewrite(type, comp.middleType, comp.first, comp.second);
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+@@ -222,7 +235,7 @@ public interface PointFreeRule {
+             return (PointFree<E>) new Comp<>(comp2.middleType, comp2.first, new Comp<>(comp1.middleType, comp2.second, comp1.second));
+         }
+ 
+-        <A> Optional<? extends PointFree<?>> doRewrite(Type<A> type, Type<?> middleType, PointFree<? extends Function<?, ?>> first, PointFree<? extends Function<?, ?>> second);
++        <A> PointFree<?> doRewrite(Type<A> type, Type<?> middleType, PointFree<? extends Function<?, ?>> first, PointFree<? extends Function<?, ?>> second);
+     }
+ 
+     enum SortProj implements CompRewrite {
+@@ -230,7 +243,7 @@ public interface PointFreeRule {
+ 
+         // (ap π1 f)◦(ap π2 g) -> (ap π2 g)◦(ap π1 f)
+         @Override
+-        public <A> Optional<? extends PointFree<?>> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
++        public <A> PointFree<?> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
+             if (first instanceof Apply<?, ?> && second instanceof Apply<?, ?>) {
+                 final Apply<?, ?> applyFirst = (Apply<?, ?>) first;
+                 final Apply<?, ?> applySecond = (Apply<?, ?>) second;
+@@ -253,11 +266,11 @@ public interface PointFreeRule {
+                     if (Objects.equals(fo, Optics.proj2()) && Objects.equals(so, Optics.proj1())) {
+                         final Func<?, ?> firstArg = (Func<?, ?>) applyFirst.argType;
+                         final Func<?, ?> secondArg = (Func<?, ?>) applySecond.argType;
+-                        return Optional.of(cap(firstArg, secondArg, applyFirst, applySecond));
++                        return cap(firstArg, secondArg, applyFirst, applySecond);
+                     }
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+@@ -275,7 +288,7 @@ public interface PointFreeRule {
+ 
+         // (ap i1 f)◦(ap i2 g) -> (ap i2 g)◦(ap i1 f)
+         @Override
+-        public <A> Optional<? extends PointFree<?>> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
++        public <A> PointFree<?> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
+             if (first instanceof Apply<?, ?> && second instanceof Apply<?, ?>) {
+                 final Apply<?, ?> applyFirst = (Apply<?, ?>) first;
+                 final Apply<?, ?> applySecond = (Apply<?, ?>) second;
+@@ -298,11 +311,11 @@ public interface PointFreeRule {
+                     if (Objects.equals(fo, Optics.inj2()) && Objects.equals(so, Optics.inj1())) {
+                         final Func<?, ?> firstArg = (Func<?, ?>) applyFirst.argType;
+                         final Func<?, ?> secondArg = (Func<?, ?>) applySecond.argType;
+-                        return Optional.of(cap(firstArg, secondArg, applyFirst, applySecond));
++                        return cap(firstArg, secondArg, applyFirst, applySecond);
+                     }
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+@@ -320,7 +333,7 @@ public interface PointFreeRule {
+ 
+         // Optic[o1] ◦ Optic[o2] -> Optic[o1 ◦ o2]
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             if (expr instanceof Comp<?, ?, ?>) {
+                 final Comp<?, ?, ?> comp = (Comp<?, ?, ?>) expr;
+                 final PointFree<? extends Function<?, ?>> first = comp.first;
+@@ -328,10 +341,10 @@ public interface PointFreeRule {
+                 if (first instanceof ProfunctorTransformer<?, ?, ?, ?> && second instanceof ProfunctorTransformer<?, ?, ?, ?>) {
+                     final ProfunctorTransformer<?, ?, ?, ?> firstOptic = (ProfunctorTransformer<?, ?, ?, ?>) first;
+                     final ProfunctorTransformer<?, ?, ?, ?> secondOptic = (ProfunctorTransformer<?, ?, ?, ?>) second;
+-                    return Optional.of(cap(firstOptic, secondOptic));
++                    return cap(firstOptic, secondOptic);
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+@@ -345,9 +358,8 @@ public interface PointFreeRule {
+         INSTANCE;
+ 
+         // (ap lens f)◦(ap lens g) -> (ap lens (f ◦ g))
+-        @SuppressWarnings("unchecked")
+         @Override
+-        public <A> Optional<? extends PointFree<?>> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
++        public <A> PointFree<?> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
+             if (first instanceof Apply<?, ?> && second instanceof Apply<?, ?>) {
+                 final Apply<?, ?> applyFirst = (Apply<?, ?>) first;
+                 final Apply<?, ?> applySecond = (Apply<?, ?>) second;
+@@ -364,17 +376,17 @@ public interface PointFreeRule {
+                     }
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+-        private <R, A, B, C, S, T, U> Optional<? extends PointFree<R>> cap(final ProfunctorTransformer<S, T, A, B> l1, final ProfunctorTransformer<?, U, ?, C> l2, final PointFree<?> f1, final PointFree<?> f2, final Func<?, ?> firstType, final Func<?, ?> secondType) {
++        private <R, A, B, C, S, T, U> PointFree<R> cap(final ProfunctorTransformer<S, T, A, B> l1, final ProfunctorTransformer<?, U, ?, C> l2, final PointFree<?> f1, final PointFree<?> f2, final Func<?, ?> firstType, final Func<?, ?> secondType) {
+             return cap2(l1, (ProfunctorTransformer<T, U, B, C>) l2, (PointFree<Function<B, C>>) f1, (PointFree<Function<A, B>>) f2, (Func<B, C>) firstType, (Func<A, B>) secondType);
+         }
+ 
+-        private <R, P extends K2, Proof extends K1, A, B, C, S, T, U> Optional<? extends PointFree<R>> cap2(final ProfunctorTransformer<S, T, A, B> l1, final ProfunctorTransformer<T, U, B, C> l2, final PointFree<Function<B, C>> f1, final PointFree<Function<A, B>> f2, final Func<B, C> firstType, final Func<A, B> secondType) {
++        private <R, P extends K2, Proof extends K1, A, B, C, S, T, U> PointFree<R> cap2(final ProfunctorTransformer<S, T, A, B> l1, final ProfunctorTransformer<T, U, B, C> l2, final PointFree<Function<B, C>> f1, final PointFree<Function<A, B>> f2, final Func<B, C> firstType, final Func<A, B> secondType) {
+             final PointFree<Function<Function<A, C>, Function<S, U>>> lens = (PointFree<Function<Function<A, C>, Function<S, U>>>) (PointFree<?>) l1;
+             final PointFree<Function<A, C>> arg = Functions.comp(firstType.first(), f1, f2);
+-            return Optional.of((PointFree<R>) Functions.app(lens, arg, DSL.func(secondType.first(), firstType.second())));
++            return (PointFree<R>) Functions.app(lens, arg, DSL.func(secondType.first(), firstType.second()));
+         }
+     }
+ 
+@@ -382,15 +394,14 @@ public interface PointFreeRule {
+         INSTANCE;
+ 
+         // (fold g ◦ in) ◦ fold (f ◦ in) -> fold ( g ◦ f ◦ in), <== g ◦ in ◦ fold (f ◦ in) ◦ out == in ◦ fold (f ◦ in) ◦ out ◦ g <== g doesn't touch fold's index
+-        @SuppressWarnings("unchecked")
+         @Override
+-        public <A> Optional<? extends PointFree<?>> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
++        public <A> PointFree<?> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
+             if (first instanceof Fold<?, ?> && second instanceof Fold<?, ?>) {
+                 // fold (_) ◦ fold (_)
+                 final Fold<?, ?> firstFold = (Fold<?, ?>) first;
+                 final Fold<?, ?> secondFold = (Fold<?, ?>) second;
+                 final RecursiveTypeFamily family = firstFold.aType.family();
+-                if (Objects.equals(family, secondFold.aType.family()) && firstFold.index == secondFold.index) {
++                if (firstFold.index==secondFold.index && Objects.equals(family, secondFold.aType.family())) {
+                     // same fold
+                     final List<RewriteResult<?, ?>> newAlgebra = Lists.newArrayList();
+ 
+@@ -399,24 +410,36 @@ public interface PointFreeRule {
+                     boolean foundOne = false;
+                     for (int i = 0; i < family.size(); i++) {
+                         final RewriteResult<?, ?> firstAlgFunc = firstFold.algebra.apply(i);
+-                        final RewriteResult<?, ?> secondAlgFunc = secondFold.algebra.apply(i);
+                         final boolean firstId = Objects.equals(CompAssocRight.INSTANCE.rewriteOrNop(firstAlgFunc.view()).function(), Functions.id());
+-                        final boolean secondId = Objects.equals(secondAlgFunc.view().function(), Functions.id());
+ 
+-                        if (firstId && secondId) {
+-                            newAlgebra.add(firstFold.algebra.apply(i));
+-                        } else if (!foundOne && !firstId && !secondId) {
+-                            newAlgebra.add(getCompose(firstAlgFunc, secondAlgFunc));
+-                            foundOne = true;
++                        if (firstId) {
++                            final RewriteResult<?, ?> secondAlgFunc = secondFold.algebra.apply(i);
++                            final boolean secondId = Objects.equals(secondAlgFunc.view().function(), Functions.id());
++
++                            if (secondId) {
++                                newAlgebra.add(firstFold.algebra.apply(i));
++                            } else {
++                                return null;
++                            }
++                        } else if (!foundOne) {
++                            final RewriteResult<?, ?> secondAlgFunc = secondFold.algebra.apply(i);
++                            final boolean secondId = Objects.equals(secondAlgFunc.view().function(), Functions.id());
++
++                            if (!secondId) {
++                                newAlgebra.add(getCompose(firstAlgFunc, secondAlgFunc));
++                                foundOne = true;
++                            } else {
++                                return null;
++                            }
+                         } else {
+-                            return Optional.empty();
++                            return null;
+                         }
+                     }
+                     final Algebra algebra = new ListAlgebra("FusedSame", newAlgebra);
+-                    return Optional.of((PointFree<A>) family.fold(algebra).apply(firstFold.index).view().function());
++                    return family.fold(algebra).apply(firstFold.index).view().function();
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+ 
+         @SuppressWarnings("unchecked")
+@@ -431,13 +454,13 @@ public interface PointFreeRule {
+         // (fold g ◦ in) ◦ fold (f ◦ in) -> fold ( g ◦ f ◦ in), <== g ◦ in ◦ fold (f ◦ in) ◦ out == in ◦ fold (f ◦ in) ◦ out ◦ g <== g doesn't touch fold's index
+         @SuppressWarnings("unchecked")
+         @Override
+-        public <A> Optional<? extends PointFree<?>> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
++        public <A> PointFree<?> doRewrite(final Type<A> type, final Type<?> middleType, final PointFree<? extends Function<?, ?>> first, final PointFree<? extends Function<?, ?>> second) {
+             if (first instanceof Fold<?, ?> && second instanceof Fold<?, ?>) {
+                 // fold (_) ◦ fold (_)
+                 final Fold<?, ?> firstFold = (Fold<?, ?>) first;
+                 final Fold<?, ?> secondFold = (Fold<?, ?>) second;
+                 final RecursiveTypeFamily family = firstFold.aType.family();
+-                if (Objects.equals(family, secondFold.aType.family()) && firstFold.index == secondFold.index) {
++                if (firstFold.index==secondFold.index && Objects.equals(family, secondFold.aType.family())) {
+                     // same fold
+                     final List<RewriteResult<?, ?>> newAlgebra = Lists.newArrayList();
+ 
+@@ -460,46 +483,46 @@ public interface PointFreeRule {
+                     // TODO: verify that this is enough
+                     for (int i = 0; i < family.size(); i++) {
+                         final RewriteResult<?, ?> firstAlgFunc = firstFold.algebra.apply(i);
++                        if (firstAlgFunc.recData().intersects(secondModifies)) {
++                            // outer function depends on the result of the inner one
++                            return null;
++                        }
+                         final RewriteResult<?, ?> secondAlgFunc = secondFold.algebra.apply(i);
+-                        final PointFree<?> firstF = CompAssocRight.INSTANCE.rewriteOrNop(firstAlgFunc.view()).function();
+-                        final PointFree<?> secondF = CompAssocRight.INSTANCE.rewriteOrNop(secondAlgFunc.view()).function();
+-                        final boolean firstId = Objects.equals(firstF, Functions.id());
+-                        final boolean secondId = Objects.equals(secondF, Functions.id());
+-                        if (firstAlgFunc.recData().intersects(secondModifies) || secondAlgFunc.recData().intersects(firstModifies)) {
++                        if (secondAlgFunc.recData().intersects(firstModifies)) {
+                             // outer function depends on the result of the inner one
+-                            return Optional.empty();
++                            return null;
+                         }
+-                        if (firstId) {
++                        if (Objects.equals(CompAssocRight.INSTANCE.rewriteOrNop(firstAlgFunc.view()).function(), Functions.id())) {
+                             newAlgebra.add(secondAlgFunc);
+-                        } else if (secondId) {
++                        } else if (Objects.equals(CompAssocRight.INSTANCE.rewriteOrNop(secondAlgFunc.view()).function(), Functions.id())) {
+                             newAlgebra.add(firstAlgFunc);
+                         } else {
+-                            return Optional.empty();
++                            return null;
+                         }
+                     }
+                     // have new algebra - make a new fold
+ 
+                     final Algebra algebra = new ListAlgebra("FusedDifferent", newAlgebra);
+-                    return Optional.of((PointFree<A>) family.fold(algebra).apply(firstFold.index).view().function());
++                    return family.fold(algebra).apply(firstFold.index).view().function();
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+     }
+ 
+     /*final class ReflexCata implements Rule {
+         @SuppressWarnings("unchecked")
+         @Override
+-        public <A> Optional<? extends PF<A>> rewrite(final Type<A> type, final PF<A> expr) {
++        public <A> PF<A> rewrite(final Type<A> type, final PF<A> expr) {
+             if (type instanceof Type.Func<?, ?> && expr instanceof PF.Cata<?, ?, ?, ?>) {
+                 final Type.Func<?, ?> funcType = (Type.Func<?, ?>) type;
+                 final PF.Cata<?, ?, ?, ?> cata = (PF.Cata<?, ?, ?, ?>) expr;
+                 // TODO better equality
+                 if (Objects.equals(cata.alg, PF.genBF(cata.family.to)) && Objects.equals(funcType.first, funcType.second)) {
+-                    return Optional.of((PF<A>) PF.id());
++                    return (PF<A>) PF.id();
+                 }
+             }
+-            return Optional.empty();
++            return null;
+         }
+     }*/
+ 
+@@ -519,10 +542,14 @@ public interface PointFreeRule {
+         }
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
+-            Optional<? extends PointFree<A>> result = Optional.of(expr);
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
++            PointFree<A> result = expr;
+             for (final Supplier<PointFreeRule> rule : rules) {
+-                result = result.flatMap(pf -> rule.get().<A>rewrite(type, pf));
++                if (result==null) {
++                    return null;
++                }
++
++                result = rule.get().rewrite(type, result);
+             }
+             return result;
+         }
+@@ -546,29 +573,25 @@ public interface PointFreeRule {
+     }
+ 
+     static PointFreeRule orElse(final PointFreeRule first, final PointFreeRule second) {
+-        return new OrElse(first, () -> second);
+-    }
+-
+-    static PointFreeRule orElseStrict(final PointFreeRule first, final Supplier<PointFreeRule> second) {
+         return new OrElse(first, second);
+     }
+ 
+     final class OrElse implements PointFreeRule {
+         protected final PointFreeRule first;
+-        protected final Supplier<PointFreeRule> second;
++        protected final PointFreeRule second;
+ 
+-        public OrElse(final PointFreeRule first, final Supplier<PointFreeRule> second) {
++        public OrElse(final PointFreeRule first, final PointFreeRule second) {
+             this.first = first;
+             this.second = second;
+         }
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
+-            final Optional<? extends PointFree<A>> view = first.rewrite(type, expr);
+-            if (view.isPresent()) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
++            final PointFree<A> view = first.rewrite(type, expr);
++            if (view!=null) {
+                 return view;
+             }
+-            return second.get().rewrite(type, expr);
++            return second.rewrite(type, expr);
+         }
+ 
+         @Override
+@@ -589,6 +612,41 @@ public interface PointFreeRule {
+         }
+     }
+ 
++
++    final class OrElseStrict implements PointFreeRule {
++        protected final PointFreeRule rule;
++
++        public OrElseStrict(final PointFreeRule rule) {
++            this.rule = rule;
++        }
++
++        @Override
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
++            final PointFree<A> view = rule.rewrite(type, expr);
++            if (view!=null) {
++                return view;
++            }
++            return expr.one(this, type);
++        }
++
++        @Override
++        public boolean equals(final Object obj) {
++            if (obj == this) {
++                return true;
++            }
++            if (!(obj instanceof OrElse)) {
++                return false;
++            }
++            final OrElse that = (OrElse) obj;
++            return Objects.equals(rule, that.first);
++        }
++
++        @Override
++        public int hashCode() {
++            return Objects.hash(rule);
++        }
++    }
++
+     static PointFreeRule all(final PointFreeRule rule) {
+         return new All(rule);
+     }
+@@ -598,7 +656,7 @@ public interface PointFreeRule {
+     }
+ 
+     static PointFreeRule once(final PointFreeRule rule) {
+-        return orElseStrict(rule, () -> one(once(rule)));
++        return new OrElseStrict(rule);
+     }
+ 
+     static PointFreeRule many(final PointFreeRule rule) {
+@@ -617,7 +675,7 @@ public interface PointFreeRule {
+         }
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             return expr.all(rule, type);
+         }
+ 
+@@ -647,7 +705,7 @@ public interface PointFreeRule {
+         }
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
+             return expr.one(rule, type);
+         }
+ 
+@@ -677,11 +735,14 @@ public interface PointFreeRule {
+         }
+ 
+         @Override
+-        public <A> Optional<? extends PointFree<A>> rewrite(final Type<A> type, final PointFree<A> expr) {
+-            Optional<? extends PointFree<A>> result = Optional.of(expr);
++        public <A> PointFree<A> rewrite(final Type<A> type, final PointFree<A> expr) {
++            PointFree<A> result = expr;
+             while (true) {
+-                final Optional<? extends PointFree<A>> newResult = result.flatMap(e -> rule.rewrite(type, e).map(r -> r));
+-                if (!newResult.isPresent()) {
++                if (result==null) {
++                    return null;
++                }
++                final PointFree<A> newResult = rule.rewrite(type, result);
++                if (newResult==null) {
+                     return result;
+                 }
+                 result = newResult;
+diff --git a/src/main/java/com/mojang/datafixers/optics/IdAdapter.java b/src/main/java/com/mojang/datafixers/optics/IdAdapter.java
+index 3f1793aca685a627d0e925d037f663a257522d8d..35519790362dfe49be4b125563e0ac76eebd3603 100644
+--- a/src/main/java/com/mojang/datafixers/optics/IdAdapter.java
++++ b/src/main/java/com/mojang/datafixers/optics/IdAdapter.java
+@@ -3,6 +3,12 @@
+ package com.mojang.datafixers.optics;
+ 
+ class IdAdapter<S, T> implements Adapter<S, T, S, T> {
++    private static final Adapter<?, ?, ?, ?> INSTANCE = new IdAdapter<>();
++
++    private IdAdapter() {
++
++    }
++
+     @Override
+     public S from(final S s) {
+         return s;
+@@ -22,4 +28,9 @@ class IdAdapter<S, T> implements Adapter<S, T, S, T> {
+     public String toString() {
+         return "id";
+     }
++
++    @SuppressWarnings("unchecked")
++    public static <S, T> Adapter<S, T, S, T> instance() {
++        return (Adapter<S, T, S, T>) INSTANCE;
++    }
+ }
+diff --git a/src/main/java/com/mojang/datafixers/optics/Inj1.java b/src/main/java/com/mojang/datafixers/optics/Inj1.java
+index 8c56955c9d6c3d6021d5c9fda452e39774ac587c..00d09060ccfe71f785f4ecc47627d0a2ef3f3509 100644
+--- a/src/main/java/com/mojang/datafixers/optics/Inj1.java
++++ b/src/main/java/com/mojang/datafixers/optics/Inj1.java
+@@ -5,6 +5,12 @@ package com.mojang.datafixers.optics;
+ import com.mojang.datafixers.util.Either;
+ 
+ public final class Inj1<F, G, F2> implements Prism<Either<F, G>, Either<F2, G>, F, F2> {
++    private static final Inj1<?, ?, ?> INSTANCE = new Inj1<>();
++
++    private Inj1() {
++
++    }
++
+     @Override
+     public Either<Either<F2, G>, F> match(final Either<F, G> either) {
+         return either.map(Either::right, g -> Either.left(Either.right(g)));
+@@ -24,4 +30,9 @@ public final class Inj1<F, G, F2> implements Prism<Either<F, G>, Either<F2, G>,
+     public boolean equals(final Object obj) {
+         return obj instanceof Inj1<?, ?, ?>;
+     }
++
++    @SuppressWarnings("unchecked")
++    public static <F, G, F2> Inj1<F, G, F2> instance() {
++        return (Inj1<F, G, F2>) INSTANCE;
++    }
+ }
+diff --git a/src/main/java/com/mojang/datafixers/optics/Inj2.java b/src/main/java/com/mojang/datafixers/optics/Inj2.java
+index 2f95715f310faec6e43c715cbf204a092bfc107e..f59574ea0a4abc3ed58ce8d090085e2b7fa2e252 100644
+--- a/src/main/java/com/mojang/datafixers/optics/Inj2.java
++++ b/src/main/java/com/mojang/datafixers/optics/Inj2.java
+@@ -2,9 +2,16 @@
+ // Licensed under the MIT license.
+ package com.mojang.datafixers.optics;
+ 
++import com.mojang.datafixers.DataFixerBuilder;
+ import com.mojang.datafixers.util.Either;
+ 
+ public final class Inj2<F, G, G2> implements Prism<Either<F, G>, Either<F, G2>, G, G2> {
++    private static final Inj2<?, ?, ?> INSTANCE = new Inj2<>();
++
++    private Inj2() {
++
++    }
++
+     @Override
+     public Either<Either<F, G2>, G> match(final Either<F, G> either) {
+         return either.map(f -> Either.left(Either.left(f)), Either::right);
+@@ -24,4 +31,9 @@ public final class Inj2<F, G, G2> implements Prism<Either<F, G>, Either<F, G2>,
+     public boolean equals(final Object obj) {
+         return obj instanceof Inj2<?, ?, ?>;
+     }
++
++    @SuppressWarnings("unchecked")
++    public static <F, G, G2> Inj2<F, G, G2> instance() {
++        return (Inj2<F, G, G2>) INSTANCE;
++    }
+ }
+diff --git a/src/main/java/com/mojang/datafixers/optics/Optics.java b/src/main/java/com/mojang/datafixers/optics/Optics.java
+index 4bf469df6a9092a554df4dafdbfe37f51da28f32..bc6b60baf2a4cef94da9e1beaafca36d9378641f 100644
+--- a/src/main/java/com/mojang/datafixers/optics/Optics.java
++++ b/src/main/java/com/mojang/datafixers/optics/Optics.java
+@@ -65,7 +65,7 @@ public abstract class Optics {
+     }
+ 
+     public static <S, T> Adapter<S, T, S, T> id() {
+-        return new IdAdapter<>();
++        return IdAdapter.instance();
+     }
+ 
+     public static <S, T, A, B> Adapter<S, T, A, B> adapter(final Function<S, A> from, final Function<B, T> to) {
+@@ -223,19 +223,19 @@ public abstract class Optics {
+     }
+ 
+     public static <F, G, F2> Proj1<F, G, F2> proj1() {
+-        return new Proj1<>();
++        return Proj1.instance();
+     }
+ 
+     public static <F, G, G2> Proj2<F, G, G2> proj2() {
+-        return new Proj2<>();
++        return Proj2.instance();
+     }
+ 
+     public static <F, G, F2> Inj1<F, G, F2> inj1() {
+-        return new Inj1<>();
++        return Inj1.instance();
+     }
+ 
+     public static <F, G, G2> Inj2<F, G, G2> inj2() {
+-        return new Inj2<>();
++        return Inj2.instance();
+     }
+ 
+     /*public static <Proof extends Cartesian.Mu, S1, S2, T1, T2, A, B> Optic<Proof, Either<S1, S2>, Either<T1, T2>, A, B> choosing(final Optic<? super Profunctor.Mu, S1, T1, A, B> first, final Optic<? super Profunctor.Mu, S2, T2, A, B> second) {
+diff --git a/src/main/java/com/mojang/datafixers/optics/Proj1.java b/src/main/java/com/mojang/datafixers/optics/Proj1.java
+index 488e4cd9a87178a441eda0ee5bff9c5feca69e6d..947804cba932559edcc6b066acc27f8daaed24b2 100644
+--- a/src/main/java/com/mojang/datafixers/optics/Proj1.java
++++ b/src/main/java/com/mojang/datafixers/optics/Proj1.java
+@@ -5,6 +5,12 @@ package com.mojang.datafixers.optics;
+ import com.mojang.datafixers.util.Pair;
+ 
+ public final class Proj1<F, G, F2> implements Lens<Pair<F, G>, Pair<F2, G>, F, F2> {
++    private static final Proj1<?, ?, ?> INSTANCE = new Proj1<>();
++
++    private Proj1() {
++
++    }
++
+     @Override
+     public F view(final Pair<F, G> pair) {
+         return pair.getFirst();
+@@ -24,4 +30,9 @@ public final class Proj1<F, G, F2> implements Lens<Pair<F, G>, Pair<F2, G>, F, F
+     public boolean equals(final Object obj) {
+         return obj instanceof Proj1<?, ?, ?>;
+     }
++
++    @SuppressWarnings("unchecked")
++    public static <F, G, F2> Proj1<F, G, F2> instance() {
++        return (Proj1<F, G, F2>) INSTANCE;
++    }
+ }
+diff --git a/src/main/java/com/mojang/datafixers/optics/Proj2.java b/src/main/java/com/mojang/datafixers/optics/Proj2.java
+index 3bd3689115f25d34fceaa8f8f915c21656267af5..ad756d1350afd4d47adc17e4ff35f6ac99d276f3 100644
+--- a/src/main/java/com/mojang/datafixers/optics/Proj2.java
++++ b/src/main/java/com/mojang/datafixers/optics/Proj2.java
+@@ -5,6 +5,12 @@ package com.mojang.datafixers.optics;
+ import com.mojang.datafixers.util.Pair;
+ 
+ public final class Proj2<F, G, G2> implements Lens<Pair<F, G>, Pair<F, G2>, G, G2> {
++    private static final Proj2<?, ?, ?> INSTANCE = new Proj2<>();
++
++    private Proj2() {
++
++    }
++
+     @Override
+     public G view(final Pair<F, G> pair) {
+         return pair.getSecond();
+@@ -24,4 +30,9 @@ public final class Proj2<F, G, G2> implements Lens<Pair<F, G>, Pair<F, G2>, G, G
+     public boolean equals(final Object obj) {
+         return obj instanceof Proj2<?, ?, ?>;
+     }
++
++    @SuppressWarnings("unchecked")
++    public static <F, G2, G> Proj2<F, G, G2> instance() {
++        return (Proj2<F, G, G2>) INSTANCE;
++    }
+ }
+diff --git a/src/main/java/com/mojang/datafixers/types/Type.java b/src/main/java/com/mojang/datafixers/types/Type.java
+index 4592da3c75e639164d10cc05518c27d8f488a103..164879a1d4d7595121cff7cf67dd351703e99824 100644
+--- a/src/main/java/com/mojang/datafixers/types/Type.java
++++ b/src/main/java/com/mojang/datafixers/types/Type.java
+@@ -3,16 +3,7 @@
+ package com.mojang.datafixers.types;
+ 
+ import com.google.common.collect.Maps;
+-import com.mojang.datafixers.DSL;
+-import com.mojang.datafixers.DataFixUtils;
+-import com.mojang.datafixers.FieldFinder;
+-import com.mojang.datafixers.FunctionType;
+-import com.mojang.datafixers.OpticFinder;
+-import com.mojang.datafixers.RewriteResult;
+-import com.mojang.datafixers.TypeRewriteRule;
+-import com.mojang.datafixers.Typed;
+-import com.mojang.datafixers.TypedOptic;
+-import com.mojang.datafixers.View;
++import com.mojang.datafixers.*;
+ import com.mojang.datafixers.functions.Functions;
+ import com.mojang.datafixers.functions.PointFreeRule;
+ import com.mojang.datafixers.kinds.App;
+@@ -87,7 +78,7 @@ public abstract class Type<A> implements App<Type.Mu, A> {
+     }
+ 
+     public Optional<RewriteResult<A, ?>> everywhere(final TypeRewriteRule rule, final PointFreeRule optimizationRule, final boolean recurse, final boolean checkIndex) {
+-        final TypeRewriteRule rule2 = TypeRewriteRule.seq(TypeRewriteRule.orElse(rule, TypeRewriteRule::nop), TypeRewriteRule.all(TypeRewriteRule.everywhere(rule, optimizationRule, recurse, checkIndex), recurse, checkIndex));
++        final TypeRewriteRule rule2 = TypeRewriteRule.seq(TypeRewriteRule.orElse(rule, TypeRewriteRule.Nop.INSTANCE), TypeRewriteRule.all(TypeRewriteRule.everywhere(rule, optimizationRule, recurse, checkIndex), recurse, checkIndex));
+         return rewrite(rule2, optimizationRule);
+     }
+ 
+@@ -187,7 +178,15 @@ public abstract class Type<A> implements App<Type.Mu, A> {
+         });
+ 
+         if (ref.getValue() != null) {
+-            Optional<RewriteResult<A, ?>> result = rule.rewrite(this).flatMap(r -> r.view().rewrite(fRule).map(view -> RewriteResult.create(view, r.recData())));
++            Optional<RewriteResult<A, ?>> result = rule.rewrite(this).flatMap(r -> {
++                View<A, ?> view = r.view().rewrite(fRule);
++
++                if (view!=null) {
++                    return Optional.of(RewriteResult.create(view, r.recData()));
++                }
++
++                return Optional.empty();
++            });
+             REWRITE_CACHE.put(key, result);
+             pending.complete(result);
+             PENDING_REWRITE_CACHE.remove(key);
