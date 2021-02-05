@@ -67,7 +67,7 @@ This is an overview over all patches that are currently used.
 | server |  Add wither skeleton takes wither damage option      | William Blake Galbreath |  |
 | server |  Advancement API      | William Blake Galbreath |  |
 | api |  Advancement API      | William Blake Galbreath |  |
-| server |  AirplaneLite MC Dev Fixes      | Paul Sauve |  |
+| server |  Airplane MC Dev Fixes      | Paul Sauve |  |
 | server |  Allow Entities to be removed from a world while ticking      | Spottedleaf |  |
 | server |  Allow anvil colors      | William Blake Galbreath |  |
 | server |  Allow color codes in books      | William Blake Galbreath |  |
@@ -343,6 +343,7 @@ This is an overview over all patches that are currently used.
 | server |  Time scoreboard search      | Spottedleaf |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
+| server |  Toggle for water sensitive mob damage      | YouHaveTrouble |  |
 | server |  Totems work in inventory      | draycia |  |
 | server |  Tuinity POM Changes      | Spottedleaf |  |
 | api |  Tuinity POM Changes      | Spottedleaf |  |

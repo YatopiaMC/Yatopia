@@ -6,7 +6,7 @@ Subject: [PATCH] Swap priority of checks in chunk ticking
 World.V showed up a lot in lag spikes for some reason, although I wonder
 if it's just Spark getting JVM safe points.
 
-Airplane Lite
+Airplane
 Copyright (C) 2020 Technove LLC
 
 This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 1b9ca06c9bb9dd288570d6fae0c30952d0b7f488..4ba2e7fc8d90ec582b5976f4a99c70240e0cac50 100644
+index 7e48b44047b09b44b2005e67ea1ef6bb2f2de6bc..994c1822a4b53552befc64d88e922285715fa31d 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -1032,7 +1032,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -31,7 +31,7 @@ index 1b9ca06c9bb9dd288570d6fae0c30952d0b7f488..4ba2e7fc8d90ec582b5976f4a99c7024
          final BlockPosition.MutableBlockPosition blockposition = this.chunkTickMutablePosition; // Paper - use mutable to reduce allocation rate, final to force compile fail on change
  
 -        if (!this.paperConfig.disableThunder && flag && this.W() && this.random.nextInt(100000) == 0) { // Paper - Disable thunder
-+        if (!this.paperConfig.disableThunder && flag && this.random.nextInt(100000) == 0 && this.W()) { // Paper - Disable thunder // AirplaneL - check this.W last
++        if (!this.paperConfig.disableThunder && flag && this.random.nextInt(100000) == 0 && this.W()) { // Paper - Disable thunder // Airplane - check this.W last
              blockposition.setValues(this.a(this.a(j, 0, k, 15))); // Paper
              if (this.isRainingAt(blockposition)) {
                  DifficultyDamageScaler difficultydamagescaler = this.getDamageScaler(blockposition);

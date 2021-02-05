@@ -3,7 +3,7 @@ From: Paul Sauve <paul@technove.co>
 Date: Sun, 13 Dec 2020 17:52:35 -0600
 Subject: [PATCH] Reduce projectile chunk loading
 
-Airplane Lite
+Airplane
 Copyright (C) 2020 Technove LLC
 
 This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/EntityProjectile.java b/src/main/java/net/minecraft/server/EntityProjectile.java
-index d85a19905efab7189e461a61becb6ca2b8c50803..71ff64c09858890b61b1cc9ea8e591ff4cf6c28b 100644
+index d85a19905efab7189e461a61becb6ca2b8c50803..4b3d5731a18177c74f02eef91820720104145d1c 100644
 --- a/src/main/java/net/minecraft/server/EntityProjectile.java
 +++ b/src/main/java/net/minecraft/server/EntityProjectile.java
 @@ -85,6 +85,37 @@ public abstract class EntityProjectile extends IProjectile {
@@ -32,7 +32,7 @@ index d85a19905efab7189e461a61becb6ca2b8c50803..71ff64c09858890b61b1cc9ea8e591ff
 +
 +    private int buffered = 0;
 +
-+    // AirplaneL start
++    // Airplane start
 +    @Override
 +    public void setPosition(double d0, double d1, double d2) {
 +        if (loadedTick != MinecraftServer.currentTick) {
@@ -44,8 +44,8 @@ index d85a19905efab7189e461a61becb6ca2b8c50803..71ff64c09858890b61b1cc9ea8e591ff
 +        if (previousX != newX || previousZ != newZ) {
 +            boolean isLoaded = this.world.isChunkLoaded(newX, newZ);
 +            if (!isLoaded) {
-+                if (loadedThisTick > 10) { // AirplaneL 10 = max chunks to load from projectiles in a tick todo config
-+                    if (++buffered > 20) { // AirplaneL 20 = max chunks  a single projectile loads overall todo config
++                if (loadedThisTick > 10) { // Airplane 10 = max chunks to load from projectiles in a tick todo config
++                    if (++buffered > 20) { // Airplane 20 = max chunks  a single projectile loads overall todo config
 +                        this.die();
 +                    }
 +                    return;
@@ -56,7 +56,7 @@ index d85a19905efab7189e461a61becb6ca2b8c50803..71ff64c09858890b61b1cc9ea8e591ff
 +        }
 +        super.setPosition(d0, d1, d2);
 +    }
-+    // AirplaneL end
++    // Airplane end
 +
      protected float k() {
          return 0.03F;
