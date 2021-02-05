@@ -10,7 +10,7 @@ a lot of dynamic checks for both of these, which result in extra work.
 As well, since the fluid collision option is set to NONE, the entire
 fluid collision system is completely unneeded, yet used anyways.
 
-Airplane Lite
+Airplane
 Copyright (C) 2020 Technove LLC
 
 This program is free software: you can redistribute it and/or modify
@@ -27,47 +27,47 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 330f27f649a2ab1567ebc1b547f1f2a5ce645055..f4822131f544a335d5db1d8e928a24409027924e 100644
+index 5f9d8999ae7a1d742918e58c0f1bb36fc74d45fe..15d74cb75725b4c53747848ca9b034c95a372a2f 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -3053,7 +3053,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3054,7 +3054,7 @@ public abstract class EntityLiving extends Entity {
          Vec3D vec3d = new Vec3D(this.locX(), this.getHeadY(), this.locZ());
          Vec3D vec3d1 = new Vec3D(entity.locX(), entity.getHeadY(), entity.locZ());
  
 -        return this.world.rayTrace(new RayTrace(vec3d, vec3d1, RayTrace.BlockCollisionOption.COLLIDER, RayTrace.FluidCollisionOption.NONE, this)).getType() == MovingObjectPosition.EnumMovingObjectType.MISS;
-+        return this.world.rayTraceDirect(vec3d, vec3d1, VoxelShapeCollision.a(this)) == MovingObjectPosition.EnumMovingObjectType.MISS; // AirplaneL - use direct method
++        return this.world.rayTraceDirect(vec3d, vec3d1, VoxelShapeCollision.a(this)) == MovingObjectPosition.EnumMovingObjectType.MISS; // Airplane - use direct method
      }
  
      @Override
 diff --git a/src/main/java/net/minecraft/server/IBlockAccess.java b/src/main/java/net/minecraft/server/IBlockAccess.java
-index 5c3eb4fc7e5aec2ad8d0050673fc8f4d2bff6a71..376ff36062d85b8ea8b004d9266ee9ee382b2942 100644
+index 5c3eb4fc7e5aec2ad8d0050673fc8f4d2bff6a71..15f20132d5777c5e0162aa91e6e968e1e8b1cc2d 100644
 --- a/src/main/java/net/minecraft/server/IBlockAccess.java
 +++ b/src/main/java/net/minecraft/server/IBlockAccess.java
 @@ -44,6 +44,15 @@ public interface IBlockAccess {
          return BlockPosition.a(axisalignedbb).map(this::getType);
      }
  
-+    // AirplaneL start - broken down variant of below rayTraceBlock, used by World#rayTraceDirect
++    // Airplane start - broken down variant of below rayTraceBlock, used by World#rayTraceDirect
 +    default MovingObjectPosition.EnumMovingObjectType rayTraceBlockDirect(Vec3D vec3d, Vec3D vec3d1, BlockPosition blockposition, IBlockData iblockdata, VoxelShapeCollision voxelshapecoll) {
 +        VoxelShape voxelshape = RayTrace.BlockCollisionOption.COLLIDER.get(iblockdata, this, blockposition, voxelshapecoll);
 +        MovingObjectPositionBlock movingobjectpositionblock = this.rayTrace(vec3d, vec3d1, blockposition, voxelshape, iblockdata);
 +
 +        return movingobjectpositionblock == null ? null : movingobjectpositionblock.getType();
 +    }
-+    // AirplaneL end
++    // Airplane end
 +
      // CraftBukkit start - moved block handling into separate method for use by Block#rayTrace
      default MovingObjectPositionBlock rayTraceBlock(RayTrace raytrace1, BlockPosition blockposition) {
              // Paper start - Prevent raytrace from loading chunks
 diff --git a/src/main/java/net/minecraft/server/MathHelper.java b/src/main/java/net/minecraft/server/MathHelper.java
-index 2e7721a650c5a351b3584665bd236f92ef577761..8a6b623084fdc5ee2b0718f9e72f7c52a0d58d91 100644
+index 2e7721a650c5a351b3584665bd236f92ef577761..b3c2b461b2a654a9e37a57f2f62b3ba8b5bb1634 100644
 --- a/src/main/java/net/minecraft/server/MathHelper.java
 +++ b/src/main/java/net/minecraft/server/MathHelper.java
 @@ -238,6 +238,7 @@ public class MathHelper {
          return f - (float) d(f);
      }
  
-+    public static double getDecimals(double num) { return h(num); } // AirplaneL
++    public static double getDecimals(double num) { return h(num); } // Airplane
      public static double h(double d0) {
          return d0 - (double) d(d0);
      }
@@ -75,7 +75,7 @@ index 2e7721a650c5a351b3584665bd236f92ef577761..8a6b623084fdc5ee2b0718f9e72f7c52
          return f1 + f * (f2 - f1);
      }
  
-+    public static double linearInterpolation(double value1, double value2, double amount) { return d(value1, value2, amount); } // AirplaneL - OBFHELPER
++    public static double linearInterpolation(double value1, double value2, double amount) { return d(value1, value2, amount); } // Airplane - OBFHELPER
      public static double d(double d0, double d1, double d2) {
          return d1 + d0 * (d2 - d1);
      }
@@ -83,19 +83,19 @@ index 2e7721a650c5a351b3584665bd236f92ef577761..8a6b623084fdc5ee2b0718f9e72f7c52
          return d0 * d0 * d0 * (d0 * (d0 * 6.0D - 15.0D) + 10.0D);
      }
  
-+    public static int sign(double num) { return k(num); } // AirplaneL - OBFHELPER
++    public static int sign(double num) { return k(num); } // Airplane - OBFHELPER
      public static int k(double d0) {
          return d0 == 0.0D ? 0 : (d0 > 0.0D ? 1 : -1);
      }
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 91aa8a2bc111ee6935ada0ae471fe1a3bc8fad80..87a4e53ad1ea1978bc9a0c335293190460efde8b 100644
+index 91aa8a2bc111ee6935ada0ae471fe1a3bc8fad80..0e6813601f082a9e81278cebbfadbaca5769802a 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -332,6 +332,91 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          return null;
      }
  
-+    // AirplaneL start - broken down method of raytracing for EntityLiving#hasLineOfSight, replaces IBlockAccess#rayTrace(RayTrace)
++    // Airplane start - broken down method of raytracing for EntityLiving#hasLineOfSight, replaces IBlockAccess#rayTrace(RayTrace)
 +    protected MovingObjectPosition.EnumMovingObjectType rayTraceDirect(Vec3D vec3d, Vec3D vec3d1, VoxelShapeCollision voxelshapecoll) {
 +        // most of this code comes from IBlockAccess#a(RayTrace, BiFunction, Function), but removes the needless functions
 +        if (vec3d.equals(vec3d1)) {
@@ -178,7 +178,7 @@ index 91aa8a2bc111ee6935ada0ae471fe1a3bc8fad80..87a4e53ad1ea1978bc9a0c3352931904
 +
 +        return result;
 +    }
-+    // AirplaneL end
++    // Airplane end
 +
      public static boolean isValidLocation(BlockPosition blockposition) {
          return blockposition.isValidLocation(); // Paper - use better/optimized check
