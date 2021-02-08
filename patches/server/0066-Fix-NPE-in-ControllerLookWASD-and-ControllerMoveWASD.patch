@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Mon, 1 Feb 2021 20:16:36 +0800
+Subject: [PATCH] Fix NPE in ControllerLookWASD and ControllerMoveWASD
+
+
+diff --git a/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java b/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
+index 0b16a7b6345ff42ea0f42ca79155a50e2fe4926b..13f54cdda27fb92dcb72f386cefdee457dc86076 100644
+--- a/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
++++ b/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
+@@ -19,8 +19,11 @@ public class ControllerLookWASD extends ControllerLook {
+     // tick
+     @Override
+     public void a() {
+-        if (entity.hasRider()) {
+-            tick(entity.getRider());
++        // Yatopia start - better null check - fix NPE with some plugins
++        final EntityHuman rider = entity.getRider();
++        if (rider != null) {
++            tick(rider);
++        // Yatopia end
+         } else {
+             tick();
+         }
+diff --git a/src/main/java/net/pl3x/purpur/controller/ControllerMoveWASD.java b/src/main/java/net/pl3x/purpur/controller/ControllerMoveWASD.java
+index 426688b3a6dc197b41ddc4d1efed0405614f0f3b..66d87e39f42cac1b3e3142ea1ebfee60788d5251 100644
+--- a/src/main/java/net/pl3x/purpur/controller/ControllerMoveWASD.java
++++ b/src/main/java/net/pl3x/purpur/controller/ControllerMoveWASD.java
+@@ -30,8 +30,11 @@ public class ControllerMoveWASD extends ControllerMove {
+     // tick
+     @Override
+     public void a() {
+-        if (entity.hasRider()) {
+-            tick(entity.getRider());
++        // Yatopia start - better null check - fix NPE with some plugins
++        final EntityHuman rider = entity.getRider();
++        if (rider != null) {
++            tick(rider);
++        // Yatopia end
+         } else {
+             tick();
+         }

@@ -7,7 +7,7 @@ Paper added a fancy sorting comparison due to Bukkit recipes breaking
 the vanilla one, however this is far more advanced than what you need
 for all the vanilla recipes.
 
-Airplane Lite
+Airplane
 Copyright (C) 2020 Technove LLC
 
 This program is free software: you can redistribute it and/or modify
@@ -24,23 +24,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/ShapelessRecipes.java b/src/main/java/net/minecraft/server/ShapelessRecipes.java
-index 61d88dbaa1f5c543be610ce0914b2c89d8ad40ee..e7870de2467ca28070c234a39452778a3ac08862 100644
+index 61d88dbaa1f5c543be610ce0914b2c89d8ad40ee..11fbbe86978055ece0cb47eee531093e59f61dcf 100644
 --- a/src/main/java/net/minecraft/server/ShapelessRecipes.java
 +++ b/src/main/java/net/minecraft/server/ShapelessRecipes.java
 @@ -17,8 +17,16 @@ public class ShapelessRecipes implements RecipeCrafting {
      private final String group;
      private final ItemStack result;
      private final NonNullList<RecipeItemStack> ingredients;
-+    private final boolean isBukkit; // AirplaneL
++    private final boolean isBukkit; // Airplane
  
-+    // AirplaneL start - add isBukkit constructor param
++    // Airplane start - add isBukkit constructor param
      public ShapelessRecipes(MinecraftKey minecraftkey, String s, ItemStack itemstack, NonNullList<RecipeItemStack> nonnulllist) {
 +        this(minecraftkey, s, itemstack, nonnulllist, false);
 +    }
 +
 +    public ShapelessRecipes(MinecraftKey minecraftkey, String s, ItemStack itemstack, NonNullList<RecipeItemStack> nonnulllist, boolean isBukkit) {
 +        this.isBukkit = isBukkit;
-+        // AirplaneL end
++        // Airplane end
          this.key = minecraftkey;
          this.group = s;
          this.result = itemstack;
@@ -48,7 +48,7 @@ index 61d88dbaa1f5c543be610ce0914b2c89d8ad40ee..e7870de2467ca28070c234a39452778a
      }
  
      public boolean a(InventoryCrafting inventorycrafting, World world) {
-+        // AirplaneL start
++        // Airplane start
 +        if (!this.isBukkit) {
 +            java.util.List<RecipeItemStack> ingredients = com.google.common.collect.Lists.newArrayList(this.ingredients.toArray(new RecipeItemStack[0]));
 +
@@ -68,13 +68,13 @@ index 61d88dbaa1f5c543be610ce0914b2c89d8ad40ee..e7870de2467ca28070c234a39452778a
 +
 +            return ingredients.isEmpty();
 +        }
-+        // AirplaneL end
++        // Airplane end
 +
          AutoRecipeStackManager autorecipestackmanager = new AutoRecipeStackManager();
          int i = 0;
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/CraftShapelessRecipe.java b/src/main/java/org/bukkit/craftbukkit/inventory/CraftShapelessRecipe.java
-index 4aba511fe8078164bf1467b39645dd9bf6a931e7..e1a8f54450de4f173e59cd1851124b7b8621af7d 100644
+index 4aba511fe8078164bf1467b39645dd9bf6a931e7..56b781e438f0cf1c12dd55eb37356601e47de47f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/inventory/CraftShapelessRecipe.java
 +++ b/src/main/java/org/bukkit/craftbukkit/inventory/CraftShapelessRecipe.java
 @@ -44,6 +44,6 @@ public class CraftShapelessRecipe extends ShapelessRecipe implements CraftRecipe
@@ -82,6 +82,6 @@ index 4aba511fe8078164bf1467b39645dd9bf6a931e7..e1a8f54450de4f173e59cd1851124b7b
          }
  
 -        MinecraftServer.getServer().getCraftingManager().addRecipe(new ShapelessRecipes(CraftNamespacedKey.toMinecraft(this.getKey()), this.getGroup(), CraftItemStack.asNMSCopy(this.getResult()), data));
-+        MinecraftServer.getServer().getCraftingManager().addRecipe(new ShapelessRecipes(CraftNamespacedKey.toMinecraft(this.getKey()), this.getGroup(), CraftItemStack.asNMSCopy(this.getResult()), data, true)); // AirplaneL
++        MinecraftServer.getServer().getCraftingManager().addRecipe(new ShapelessRecipes(CraftNamespacedKey.toMinecraft(this.getKey()), this.getGroup(), CraftItemStack.asNMSCopy(this.getResult()), data, true)); // Airplane
      }
  }
