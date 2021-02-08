@@ -93,6 +93,7 @@ This is an overview over all patches that are currently used.
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
 | server |  Bring back server name      | William Blake Galbreath |  |
 | api |  Bring back server name      | William Blake Galbreath |  |
+| server |  Cache palette array      | Paul Sauve |  |
 | server |  Cat spawning options      | William Blake Galbreath |  |
 | server |  Change writes to use NORMAL priority rather than LOW      | Spottedleaf |  |
 | server |  Changeable Mob Left Handed Chance      | Ben Kerllenevich |  |
@@ -305,6 +306,8 @@ This is an overview over all patches that are currently used.
 | server |  Redirect Configs      | tr7zw |  |
 | server |  Redstone deactivates spawners      | draycia |  |
 | server |  Reduce allocation rate from crammed entities      | Spottedleaf |  |
+| server |  Reduce allocs &amp; improve perf of StructureManager      | Paul Sauve |  |
+| server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
