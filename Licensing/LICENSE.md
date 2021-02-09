@@ -1,7 +1,7 @@
 The project without the build tools (Everything that is not a .patch file or in the buildSrc folder) are licensed under the MIT license found [here](MIT.md).<br>
 All files in the buildSrc folder are licensed under MIT found [here](../buildSrc/license.txt).<br>
-All patches (.patch files) marked with "lithium" are licensed under LGPL3 found [here](https://github.com/jellysquid3/lithium-fabric/blob/1.16.x/dev/LICENSE.txt).<br>
-All patches (.patch files) marked with "hydrogen" are licensed under LGPL3 found [here](https://github.com/jellysquid3/hydrogen-fabric/blob/1.16.x/LICENSE.txt).<br>
+All patches (.patch files) marked with "lithium" are licensed under LGPL3 found [here](https://github.com/CaffeineMC/lithium-fabric/blob/1.16.x/dev/LICENSE.txt).<br>
+All patches (.patch files) marked with "hydrogen" are licensed under LGPL3 found [here](https://github.com/CaffeineMC/hydrogen-fabric/blob/1.16.x/LICENSE.txt).<br>
 All patches (.patch files) marked with "krypton" are licensed under MIT found [here](https://github.com/astei/krypton/blob/master/LICENSE).<br>
 All patches (.patch files) marked with "Cadmium" are licensed under MIT found [here](https://github.com/LucilleTea/cadmium-fabric/blob/1.16.x/dev-my-fork/LICENSE.txt).<br>
 All patches (.patch files) marked with "LazyDFU" are licensed under MIT found [here](https://github.com/astei/lazydfu/blob/master/LICENSE).<br>
