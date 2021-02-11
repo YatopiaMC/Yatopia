@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Thu, 4 Feb 2021 23:24:20 -0600
+Subject: [PATCH] Reduce allocs & improve perf of StructureManager
+
+Focuses on two methods, getStructureStarts & getFeatureStarts. For
+getStructureStarts, it inlines getFeatureStarts so it doesn't have to
+calculate an entire list when it returns early. As well, it uses a
+LongIterator in order to not allocate longs for each position.
+
+diff --git a/src/main/java/net/minecraft/server/StructureManager.java b/src/main/java/net/minecraft/server/StructureManager.java
+index 2598ae3710d46c2cfd2be5d6be2a56e59ceef6ea..fd1f1e2d7e4be227697f534bdc6d9c52ceeeda4b 100644
+--- a/src/main/java/net/minecraft/server/StructureManager.java
++++ b/src/main/java/net/minecraft/server/StructureManager.java
+@@ -5,6 +5,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList; // Paper
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+ 
++// Airplane start
++import it.unimi.dsi.fastutil.longs.LongIterator;
++import it.unimi.dsi.fastutil.longs.LongSet;
++// Airplane end
++
+ public class StructureManager {
+ 
+     private final GeneratorAccess a; public GeneratorAccess getLevel() { return a; } // Paper - OBFHELPER
+@@ -41,13 +46,15 @@ public class StructureManager {
+     public java.util.List<StructureStart<?>> getFeatureStarts(SectionPosition sectionPosition, StructureGenerator<?> structureGenerator, IWorldReader world) {
+         // Tuinity end - add world parameter
+         java.util.List<StructureStart<?>> list = new ObjectArrayList<>();
+-        for (Long curLong: (world == null ? getLevel() : world).getChunkAt(sectionPosition.a(), sectionPosition.c(), ChunkStatus.STRUCTURE_REFERENCES).b(structureGenerator)) { // Tuinity - fix deadlock on world gen - chunk can be unloaded while generating, so we should be using the generator's regionlimitedaccess so we always get the chunk
+-            SectionPosition sectionPosition1 = SectionPosition.a(new ChunkCoordIntPair(curLong), 0);
++        // Airplane start - skip allocating Longs
++        (world == null ? getLevel() : world).getChunkAt(sectionPosition.a(), sectionPosition.c(), ChunkStatus.STRUCTURE_REFERENCES).b(structureGenerator).forEach((java.util.function.LongConsumer) curLong -> {
++            SectionPosition sectionPosition1 = SectionPosition.a(ChunkCoordIntPair.getX(curLong), 0, ChunkCoordIntPair.getZ(curLong)); // don't allocate ChunkCoordIntPair
+             StructureStart<?> structurestart = a(sectionPosition1, structureGenerator, getLevel().getChunkAt(sectionPosition1.a(), sectionPosition1.c(), ChunkStatus.STRUCTURE_STARTS));
+             if (structurestart != null && structurestart.e()) {
+                 list.add(structurestart);
+             }
+-        }
++        });
++        // Airplane end
+         return list;
+     }
+     // Paper end
+@@ -75,7 +82,18 @@ public class StructureManager {
+     }
+     public StructureStart<?> getStructureStarts(BlockPosition blockposition, boolean flag, StructureGenerator<?> structuregenerator, IWorldReader world) {
+         // Paper start - remove structure streams
+-        for (StructureStart<?> structurestart : getFeatureStarts(SectionPosition.a(blockposition), structuregenerator, world)) { // Tuinity end - add world parameter
++        // Airplane start - inline getFeatureStarts to skip creating the list
++        SectionPosition sectionPosition = SectionPosition.a(blockposition);
++
++        // use iterator here instead of forEach like in getFeatureStarts so we can return early
++        LongSet longSet = (world == null ? getLevel() : world).getChunkAt(sectionPosition.a(), sectionPosition.c(), ChunkStatus.STRUCTURE_REFERENCES).b(structuregenerator);
++        LongIterator iterator = longSet.iterator();
++        while (iterator.hasNext()) {
++            long curLong = iterator.nextLong();
++            SectionPosition sectionPosition1 = SectionPosition.a(ChunkCoordIntPair.getX(curLong), 0, ChunkCoordIntPair.getZ(curLong)); // don't allocate ChunkCoordIntPair
++            StructureStart<?> structurestart = a(sectionPosition1, structuregenerator, getLevel().getChunkAt(sectionPosition1.a(), sectionPosition1.c(), ChunkStatus.STRUCTURE_STARTS));
++            if (structurestart != null && structurestart.e()) {
++
+             if (structurestart.c().b(blockposition)) {
+                 if (!flag) {
+                     return structurestart;
+@@ -86,7 +104,10 @@ public class StructureManager {
+                     }
+                 }
+             }
++
++            }
+         }
++        // Airplane end
+         return StructureStart.a;
+         // Paper end
+     }
