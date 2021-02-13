@@ -63,6 +63,8 @@ This is an overview over all patches that are currently used.
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
+| server |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
+| api |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
 | server |  Add vindicator johnny spawn chance      | William Blake Galbreath |  |
 | server |  Add wither skeleton takes wither damage option      | William Blake Galbreath |  |
 | server |  Advancement API      | William Blake Galbreath |  |
@@ -103,6 +105,7 @@ This is an overview over all patches that are currently used.
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
+| server |  Config to always tame in Creative      | Encode42 |  |
 | server |  Config to use infinity bows without arrows      | Encode42 |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
@@ -155,6 +158,7 @@ This is an overview over all patches that are currently used.
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
+| server |  End crystal explosion options      | Ben Kerllenevich |  |
 | server |  End gateway should check if entity can use portal      | William Blake Galbreath |  |
 | server |  Ender dragon always drop full exp      | William Blake Galbreath |  |
 | server |  Ensure pools create daemon threads      | Ivan Pekov |  |

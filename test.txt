@@ -1,12 +1,5 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Spottedleaf <Spottedleaf@users.noreply.github.com>
-Date: Sat, 17 Aug 2019 18:06:04 -0700
-Subject: [PATCH] Add soft async catcher
-
-Must be enabled via -Dtuinity.strict-thread-checks=true
-
 diff --git a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
-index e7624948ea4aa1a07d84ed3d295cfe2dd354fd14..a263cd7a0680e0cc3517f84308118eb32c487732 100644
+index e7624948e..a263cd7a0 100644
 --- a/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 +++ b/src/main/java/com/destroystokyo/paper/server/ticklist/PaperTickList.java
 @@ -186,6 +186,7 @@ public final class PaperTickList<T> extends TickListServer<T> { // extend to avo
@@ -82,7 +75,7 @@ index e7624948ea4aa1a07d84ed3d295cfe2dd354fd14..a263cd7a0680e0cc3517f84308118eb3
          int ret = 0;
  
 diff --git a/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java b/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java
-index 20150ad0750a648d349701a09b31881be124e46c..cae06962d80cdd00962236891472ba815b0ab8cd 100644
+index 20150ad07..cae06962d 100644
 --- a/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java
 +++ b/src/main/java/com/tuinity/tuinity/chunk/SingleThreadChunkRegionManager.java
 @@ -162,6 +162,7 @@ public final class SingleThreadChunkRegionManager<T extends Enum<T> & SingleThre
@@ -110,7 +103,7 @@ index 20150ad0750a648d349701a09b31881be124e46c..cae06962d80cdd00962236891472ba81
              final Region<T> region = this.needsRecalculation.removeFirst();
  
 diff --git a/src/main/java/com/tuinity/tuinity/util/TickThread.java b/src/main/java/com/tuinity/tuinity/util/TickThread.java
-index 033548a58d27f64d3954206d267783c0437d4019..08ed243259f052165c6f75aed1d1d65a14219715 100644
+index 033548a58..08ed24325 100644
 --- a/src/main/java/com/tuinity/tuinity/util/TickThread.java
 +++ b/src/main/java/com/tuinity/tuinity/util/TickThread.java
 @@ -1,7 +1,33 @@
@@ -148,7 +141,7 @@ index 033548a58d27f64d3954206d267783c0437d4019..08ed243259f052165c6f75aed1d1d65a
  
      public TickThread(final Runnable run, final String name, final int id) {
 diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
-index 76f9bb728def91744910d0b680b73e753f1a2b26..84ff9cfe89defad2e907708f837d33f620a84ef3 100644
+index 76f9bb728..84ff9cfe8 100644
 --- a/src/main/java/net/minecraft/server/ChunkMapDistance.java
 +++ b/src/main/java/net/minecraft/server/ChunkMapDistance.java
 @@ -65,6 +65,7 @@ public abstract class ChunkMapDistance {
@@ -200,7 +193,7 @@ index 76f9bb728def91744910d0b680b73e753f1a2b26..84ff9cfe89defad2e907708f837d33f6
  
          for (java.util.Iterator<Entry<ArraySetSorted<Ticket<?>>>> iterator = this.tickets.long2ObjectEntrySet().fastIterator(); iterator.hasNext();) {
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index a4bbf3d9520db9911a5709d8d8c60322ee2fb8e2..a61a9e71c435000eab1b906026767a45c998dafa 100644
+index a4bbf3d95..a61a9e71c 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
 @@ -1190,6 +1190,7 @@ public class ChunkProviderServer extends IChunkProvider {
@@ -212,7 +205,7 @@ index a4bbf3d9520db9911a5709d8d8c60322ee2fb8e2..a61a9e71c435000eab1b906026767a45
          try {
              boolean execChunkTask = com.destroystokyo.paper.io.chunk.ChunkTaskManager.pollChunkWaitQueue() || ChunkProviderServer.this.world.asyncChunkTaskManager.pollNextChunkTask(); // Paper
 diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
-index 3960a975e74ed81c45819fe5e0f01c6c18252982..526c1419af7bd0b6098a8f9a0a24a64ba61c6ebc 100644
+index 3960a975e..526c1419a 100644
 --- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
 @@ -74,6 +74,7 @@ public class EntityTrackerEntry {
@@ -224,7 +217,7 @@ index 3960a975e74ed81c45819fe5e0f01c6c18252982..526c1419af7bd0b6098a8f9a0a24a64b
  
          if (!list.equals(this.p)) {
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index fb46fdeb22a7c31c8d132bdc80d657ae82c191be..2be8c1b7974f3f6271be60872d45123ba9743672 100644
+index fb46fdeb2..2be8c1b79 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -200,6 +200,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -284,7 +277,7 @@ index fb46fdeb22a7c31c8d132bdc80d657ae82c191be..2be8c1b7974f3f6271be60872d45123b
  
          this.noTickViewDistance = viewDistance;
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 8efdd9bd0827d1f6a31d5f943f986dabe7d05137..43b5fa67a6b6e778a059063390fb47d6a599a948 100644
+index 8efdd9bd0..43b5fa67a 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -363,6 +363,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -304,7 +297,7 @@ index 8efdd9bd0827d1f6a31d5f943f986dabe7d05137..43b5fa67a6b6e778a059063390fb47d6
          IBlockData iblockdata1 = oldBlock;
          IBlockData iblockdata2 = actualBlock;
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 2abce373f7dc4223f40b900e2e2b2e1aa8f0a6bf..bc324860305c216c18f52f34dbf2564f61067bd5 100644
+index 2abce373f..bc3248603 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -1661,6 +1661,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -316,7 +309,7 @@ index 2abce373f7dc4223f40b900e2e2b2e1aa8f0a6bf..bc324860305c216c18f52f34dbf2564f
          if(this.paperConfig.updatePathfindingOnBlockUpdate) { // Paper - option to disable pathfinding updates
          VoxelShape voxelshape = iblockdata.getCollisionShape(this, blockposition);
 diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
-index 10606ed03e88e4e467de2d5424df12466c4e7873..51e9c54cddf4b28ba3d3d892322c487774bdab70 100644
+index 10606ed03..51e9c54cd 100644
 --- a/src/main/java/org/spigotmc/AsyncCatcher.java
 +++ b/src/main/java/org/spigotmc/AsyncCatcher.java
 @@ -10,8 +10,9 @@ public class AsyncCatcher
