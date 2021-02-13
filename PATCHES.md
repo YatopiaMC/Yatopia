@@ -37,6 +37,7 @@ This is an overview over all patches that are currently used.
 | api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | server |  Add demo command      | BillyGalbreath |  |
 | server |  Add enderman and creeper griefing controls      | William Blake Galbreath |  |
+| server |  Add ghast allow-griefing option      | BillyGalbreath |  |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add mobGriefing bypass to everything affected      | Encode42 |  |
