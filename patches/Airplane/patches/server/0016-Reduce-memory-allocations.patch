@@ -1,0 +1,190 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Tue, 9 Feb 2021 19:05:58 -0600
+Subject: [PATCH] Reduce memory allocations
+
+
+diff --git a/src/main/java/net/minecraft/server/BlockDirtSnowSpreadable.java b/src/main/java/net/minecraft/server/BlockDirtSnowSpreadable.java
+index 7b29d47dfdef7611db58068af285f76d92a9f12a..7009586430649a87722f6c73cd5a311d7c977196 100644
+--- a/src/main/java/net/minecraft/server/BlockDirtSnowSpreadable.java
++++ b/src/main/java/net/minecraft/server/BlockDirtSnowSpreadable.java
+@@ -43,8 +43,14 @@ public abstract class BlockDirtSnowSpreadable extends BlockDirtSnow {
+             if (worldserver.getLightLevel(blockposition.up()) >= 9) {
+                 IBlockData iblockdata1 = this.getBlockData();
+ 
++                // Airplane start - use mutable position
++                BlockPosition.MutableBlockPosition blockposition1 = new BlockPosition.MutableBlockPosition();
+                 for (int i = 0; i < 4; ++i) {
++                    blockposition1.setValues(blockposition).add(random.nextInt(3) - 1, random.nextInt(5) - 3, random.nextInt(3) - 1);
++                    /*
+                     BlockPosition blockposition1 = blockposition.b(random.nextInt(3) - 1, random.nextInt(5) - 3, random.nextInt(3) - 1);
++                     */
++                    // Airplane end
+ 
+                     if (worldserver.getType(blockposition1).a(Blocks.DIRT) && c(iblockdata1, (IWorldReader) worldserver, blockposition1)) {
+                         org.bukkit.craftbukkit.event.CraftEventFactory.handleBlockSpreadEvent(worldserver, blockposition, blockposition1, (IBlockData) iblockdata1.set(BlockDirtSnowSpreadable.a, worldserver.getType(blockposition1.up()).a(Blocks.SNOW))); // CraftBukkit
+diff --git a/src/main/java/net/minecraft/server/EntityTypes.java b/src/main/java/net/minecraft/server/EntityTypes.java
+index 631eb682e81e30d2a937fd1eafccd8a9ab82d21e..dc07376845f84ea949a2153cb75d2cd9d46a419e 100644
+--- a/src/main/java/net/minecraft/server/EntityTypes.java
++++ b/src/main/java/net/minecraft/server/EntityTypes.java
+@@ -140,6 +140,8 @@ public class EntityTypes<T extends Entity> {
+     public void setEntitySize(EntitySize entitySize) { this.br = entitySize; } // Purpur - OBFHELPER
+     private EntitySize br; // Purpur - remove final
+ 
++    public java.util.function.Supplier<String> getEntityName = () -> IRegistry.ENTITY_TYPE.getKey(this).toString(); // Airplane - create lambda ones
++
+     private static <T extends Entity> EntityTypes<T> a(String s, EntityTypes.Builder entitytypes_builder) { // CraftBukkit - decompile error
+         return (EntityTypes) IRegistry.a((IRegistry) IRegistry.ENTITY_TYPE, s, (Object) entitytypes_builder.a(s));
+     }
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index a42571cfd2c9c80df27e59db832cb64c2a64e141..c5546838187e3dc0d752e69c1eafa0dbc3804b0c 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -638,7 +638,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         return d2 * d2 + d3 * d3;
+     }
+ 
+-    private static int b(ChunkCoordIntPair chunkcoordintpair, EntityPlayer entityplayer, boolean flag) {
++    // Airplane start - create copy that accepts x/z instead of allocating pair
++    private static int b(ChunkCoordIntPair chunkcoordintpair, EntityPlayer entityplayer, boolean flag) { return someDistanceCalculation(chunkcoordintpair.x, chunkcoordintpair.z, entityplayer, flag); }
++    private static int someDistanceCalculation(int x, int z, EntityPlayer entityplayer, boolean flag) {
+         int i;
+         int j;
+ 
+@@ -652,12 +654,16 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+             j = MathHelper.floor(entityplayer.locZ() / 16.0D);
+         }
+ 
+-        return a(chunkcoordintpair, i, j);
++        return someOtherDistanceCalculation(x, z, i, j);
++        // Airplane end
+     }
+ 
+-    private static int a(ChunkCoordIntPair chunkcoordintpair, int i, int j) {
+-        int k = chunkcoordintpair.x - i;
+-        int l = chunkcoordintpair.z - j;
++    // Airplane start - create copy that accepts x/z instead of allocating pair
++    private static int a(ChunkCoordIntPair chunkcoordintpair, int i, int j) { return someOtherDistanceCalculation(chunkcoordintpair.x, chunkcoordintpair.z, i, j); }
++    private static int someOtherDistanceCalculation(int x, int z, int i, int j) {
++        int k = x - i;
++        int l = z - j;
++        // Airplane end
+ 
+         return Math.max(Math.abs(k), Math.abs(l));
+     }
+@@ -2498,11 +2504,17 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                     boolean flag1 = this.tracker.attachedToPlayer;
+ 
+                     if (!flag1) {
++                        // Airplane start - use int/longs instead of ChunkCoordIntPair
++                        /*
+                         ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(this.tracker.chunkX, this.tracker.chunkZ);
+-                        PlayerChunk playerchunk = PlayerChunkMap.this.getVisibleChunk(chunkcoordintpair.pair());
++                         */
++                        int x = this.tracker.chunkX, z = this.tracker.chunkZ;
++                        long chunkcoordintpair = ChunkCoordIntPair.pair(x, z);
++                        PlayerChunk playerchunk = PlayerChunkMap.this.getVisibleChunk(chunkcoordintpair);
+ 
+                         if (playerchunk != null && playerchunk.getSendingChunk() != null) { // Paper - no-tick view distance
+-                            flag1 = PlayerChunkMap.b(chunkcoordintpair, entityplayer, false) <= PlayerChunkMap.this.viewDistance;
++                            flag1 = PlayerChunkMap.someDistanceCalculation(x, z, entityplayer, false) <= PlayerChunkMap.this.viewDistance;
++                            // Airplane end
+                         }
+                     }
+ 
+@@ -2532,8 +2544,10 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+         }
+ 
+         private int b() {
++            // Airplane start
++            int i = this.trackingDistance; // move out of if statement
++            if (!this.tracker.passengers.isEmpty()) {
+             Collection<Entity> collection = this.tracker.getAllPassengers();
+-            int i = this.trackingDistance;
+             Iterator iterator = collection.iterator();
+ 
+             while (iterator.hasNext()) {
+@@ -2545,6 +2559,8 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+                     i = j;
+                 }
+             }
++            }
++            // Airplane end
+ 
+             return this.a(i);
+         }
+diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
+index 6e6059daba05d7ce3aabeed85cc0e0d2daa04f92..6e4c7a9b32c9e8057db3cbcead0b75d858fd6e18 100644
+--- a/src/main/java/net/minecraft/server/World.java
++++ b/src/main/java/net/minecraft/server/World.java
+@@ -1055,19 +1055,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+ 
+     public void a(Consumer<Entity> consumer, Entity entity) {
+         try {
+-            consumer.accept(entity);
++            consumer.accept(entity); // Airplane - error on change
+         } catch (Throwable throwable) {
+             if (throwable instanceof ThreadDeath) throw throwable; // Paper
+             // Paper start - Prevent tile entity and entity crashes
+             String msg = "Entity threw exception at " + entity.world.getWorld().getName() + ":" + entity.locX() + "," + entity.locY() + "," + entity.locZ();
+             System.err.println(msg);
+             throwable.printStackTrace();
+-            getServer().getPluginManager().callEvent(new ServerExceptionEvent(new ServerInternalException(msg, throwable)));
++            getServer().getPluginManager().callEvent(new ServerExceptionEvent(new ServerInternalException(msg, throwable))); // Airplane - error on change
+             entity.dead = true;
+             return;
+             // Paper end
+         }
+-        MinecraftServer.getServer().executeMidTickTasks(); // Tuinity - execute chunk tasks mid tick
++        MinecraftServer.getServer().executeMidTickTasks(); // Tuinity - execute chunk tasks mid tick // Airplane - error on change
+     }
+     // Paper start - Prevent armor stands from doing entity lookups
+     @Override
+diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
+index f3e8e5dafa528075acc76fa2e75907f63438a93d..4d47cca6db7a771677c31ade9425ed3ad83393ea 100644
+--- a/src/main/java/net/minecraft/server/WorldServer.java
++++ b/src/main/java/net/minecraft/server/WorldServer.java
+@@ -907,7 +907,28 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+ 
+                 gameprofilerfiller.enter("tick");
+                 if (!entity.dead && !(entity instanceof EntityComplexPart)) {
++                    // Airplane start - inline this.a to prevent creation of lambda
++                    /*
+                     this.a(this::entityJoinedWorld, entity);
++                     */
++                    boolean doMidTick = false; // usually there's a returns in the catch, so treat it like that
++                    try {
++                        this.entityJoinedWorld(entity);
++                        doMidTick = true;
++                    } catch (Throwable throwable) {
++                        if (throwable instanceof ThreadDeath) throw throwable; // Paper
++                        // Paper start - Prevent tile entity and entity crashes
++                        String msg = "Entity threw exception at " + entity.world.getWorld().getName() + ":" + entity.locX() + "," + entity.locY() + "," + entity.locZ();
++                        System.err.println(msg);
++                        throwable.printStackTrace();
++                        getServer().getPluginManager().callEvent(new com.destroystokyo.paper.event.server.ServerExceptionEvent(new com.destroystokyo.paper.exception.ServerInternalException(msg, throwable)));
++                        entity.dead = true;
++                        // Paper end
++                    }
++                    if (doMidTick) {
++                        MinecraftServer.getServer().executeMidTickTasks(); // Tuinity - execute chunk tasks mid tick
++                    }
++                    // Airplane end
+                 }
+ 
+                 gameprofilerfiller.exit();
+@@ -1278,9 +1299,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 ++entity.ticksLived;
+                 GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
+ 
++                // Airplane start - create debug lambda once, todo do we even WANT the method profiler?
++                /*
+                 gameprofilerfiller.a(() -> {
+                     return IRegistry.ENTITY_TYPE.getKey(entity.getEntityType()).toString();
+                 });
++                 */
++                gameprofilerfiller.a(entity.getEntityType().getEntityName);
++                // Airplane end
+                 gameprofilerfiller.c("tickNonPassenger");
+                 if (isActive) { // Paper - EAR 2
+                     TimingHistory.activatedEntityTicks++; // Paper
