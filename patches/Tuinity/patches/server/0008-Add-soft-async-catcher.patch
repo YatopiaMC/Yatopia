@@ -147,26 +147,6 @@ index 033548a58d27f64d3954206d267783c0437d4019..08ed243259f052165c6f75aed1d1d65a
      public final int id; /* We don't override getId as the spec requires that it be unique (with respect to all other threads) */
  
      public TickThread(final Runnable run, final String name, final int id) {
-diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index af9d54ef057d5f6977cf77c57cde25b6b0d1f39d..8816d3326af25431e2235c5e735e86c7335f60dc 100644
---- a/src/main/java/net/minecraft/server/Chunk.java
-+++ b/src/main/java/net/minecraft/server/Chunk.java
-@@ -548,6 +548,7 @@ public class Chunk implements IChunkAccess {
- 
-     @Override
-     public void a(Entity entity) {
-+        org.spigotmc.AsyncCatcher.catchOp("Chunk add entity"); // Tuinity
-         this.q = true;
-         int i = MathHelper.floor(entity.locX() / 16.0D);
-         int j = MathHelper.floor(entity.locZ() / 16.0D);
-@@ -617,6 +618,7 @@ public class Chunk implements IChunkAccess {
-     }
- 
-     public void a(Entity entity, int i) {
-+        org.spigotmc.AsyncCatcher.catchOp("Chunk remove entity"); // Tuinity // Tuinity
-         if (i < 0) {
-             i = 0;
-         }
 diff --git a/src/main/java/net/minecraft/server/ChunkMapDistance.java b/src/main/java/net/minecraft/server/ChunkMapDistance.java
 index 76f9bb728def91744910d0b680b73e753f1a2b26..84ff9cfe89defad2e907708f837d33f620a84ef3 100644
 --- a/src/main/java/net/minecraft/server/ChunkMapDistance.java

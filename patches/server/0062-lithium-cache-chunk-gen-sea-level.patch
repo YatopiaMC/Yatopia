@@ -5,7 +5,7 @@ Subject: [PATCH] lithium: cache chunk gen sea level
 
 Chunk generator settings are passed to the noise chunk generator through a supplier, which retrieves a given chunk generator settings registry key from the registry. The problem arises as this setting is retrieved from the supplier to get the sea level, which is called every single time a block is placed by the generator, for a total of 65536 registry lookups per chunk. As you can imagine this isn't all that fast and removing it speeds up the chunk generation time by a moderate amount (13% of CPU time spent in populateNoise without the patch vs 10% with the patch). My solution to this was to stick the supplier into a Lazy<> so it's computed once and then cached, but I'm open to suggestions. (The sea level can't be computed ahead of time due to a quirk in the new registry system, which would have been the best option here.)
 
-This code was originally made by SuperCoder7979 in a Pull Request to lithium (https://github.com/jellysquid3/lithium-fabric/pull/179)
+This code was originally made by SuperCoder7979 in a Pull Request to lithium (https://github.com/CaffeineMC/lithium-fabric/pull/179)
 
 This code was orignally licensed under the LGPL-3.0 license.
 
