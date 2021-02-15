@@ -13,7 +13,13 @@ pipeline {
         }
         stage('Init project & submodules') {
             steps {
-                sh './gradlew initGitSubmodules'
+                withMaven(
+                    maven: '3',
+                    mavenLocalRepo: '.repository',
+                    publisherStrategy: 'EXPLICIT',
+                ) {
+                    sh './gradlew initGitSubmodules'
+                }
             }
         }
         stage('Decompile & apply patches') {
@@ -43,28 +49,16 @@ pipeline {
                     mavenLocalRepo: '.repository',
                     publisherStrategy: 'EXPLICIT'
                 ) {
-                    sh '''
-                    ./gradlew build
-                    ./gradlew publish
-                    '''
-                }
-            }
-        }
-        stage('Build Launcher') {
-            tools {
-                jdk "OpenJDK 8"
-            }
-            steps {
-                withMaven(
-                    maven: '3',
-                    mavenLocalRepo: '.repository',
-                    publisherStrategy: 'EXPLICIT'
-                ) {
-                    sh '''
+                    withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
+                        sh '''
+                        ./gradlew clean build yatoclip publish
                         mkdir -p "./target"
-                        ./gradlew paperclip
-                        cp "yatopia-$mcver-paperclip.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
+                        basedir=$(pwd)
+                        paperworkdir="$basedir/Paper/work"
+                        mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
+                        cp "yatopia-$mcver-yatoclip.jar" "./target/yatopia-$mcver-yatoclip-b$BUILD_NUMBER.jar"
                         '''
+                    }
                 }
             }
             post {

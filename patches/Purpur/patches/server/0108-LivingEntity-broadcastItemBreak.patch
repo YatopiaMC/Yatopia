@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: William Blake Galbreath <Blake.Galbreath@GMail.com>
+Date: Mon, 17 Aug 2020 21:50:39 -0500
+Subject: [PATCH] LivingEntity#broadcastItemBreak
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
+index 84aeffac2c2c12d98e9cec05314668a93bb5ed91..6a15b0d5e8446ab2a5e5bd11020a4f812b6c7877 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftLivingEntity.java
+@@ -844,5 +844,11 @@ public class CraftLivingEntity extends CraftEntity implements LivingEntity {
+     public void setSafeFallDistance(float safeFallDistance) {
+         getHandle().safeFallDistance = safeFallDistance;
+     }
++
++    @Override
++    public void broadcastItemBreak(org.bukkit.inventory.EquipmentSlot slot) {
++        if (slot == null) return;
++        getHandle().broadcastItemBreak(org.bukkit.craftbukkit.CraftEquipmentSlot.getNMS(slot));
++    }
+     // Purpur end
+ }

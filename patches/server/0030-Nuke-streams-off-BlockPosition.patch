@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 1 Sep 2020 19:11:50 +0300
+Subject: [PATCH] Nuke streams off BlockPosition
+
+
+diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
+index 8724ad342bec7c733b3c825bd62dbfa5c28c06dd..9907047028b754fe0e314a7d5c5238ce4286c373 100644
+--- a/src/main/java/net/minecraft/server/BlockBase.java
++++ b/src/main/java/net/minecraft/server/BlockBase.java
+@@ -681,6 +681,7 @@ public abstract class BlockBase {
+             return this.getBlock().getInventory(this.p(), world, blockposition);
+         }
+ 
++        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
+         public boolean a(Tag<Block> tag) {
+             return this.getBlock().a(tag);
+         }
+diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
+index 97b0aee82e080a1225454317cbf0191ef8b14fca..c4dd89d9bae1960d25b64e2a715a83adde65719a 100644
+--- a/src/main/java/net/minecraft/server/BlockPosition.java
++++ b/src/main/java/net/minecraft/server/BlockPosition.java
+@@ -318,7 +318,15 @@ public class BlockPosition extends BaseBlockPosition {
+     }
+ 
+     public static Optional<BlockPosition> a(BlockPosition blockposition, int i, int j, Predicate<BlockPosition> predicate) {
+-        return b(blockposition, i, j, i).filter(predicate).findFirst();
++        // Yatopia start - avoid using stream
++        // return b(blockposition, i, j, i).filter(predicate).findFirst();
++        for (BlockPosition pos : a(blockposition, i, j, i)) {
++            if (predicate.test(pos)) {
++                return Optional.of(pos);
++            }
++        }
++        return Optional.empty();
++        // Yatopia end
+     }
+ 
+     public static Stream<BlockPosition> b(BlockPosition blockposition, int i, int j, int k) {

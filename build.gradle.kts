@@ -9,7 +9,17 @@ toothpick {
     groupId = "org.yatopiamc"
     val versionTag = System.getenv("BUILD_NUMBER")
         ?: "\"${gitCmd("rev-parse", "--short", "HEAD").output}\""
-    forkVersion = "git-$forkName-$versionTag"
+    if(!System.getenv("BRANCH_NAME").isNullOrEmpty()) {
+        currentBranch = System.getenv("BRANCH_NAME")
+    } else if (!System.getenv("GITHUB_HEAD_REF").isNullOrEmpty()) {
+        currentBranch = System.getenv("GITHUB_HEAD_REF")
+    } else if (!System.getenv("GITHUB_REF").isNullOrEmpty()) {
+        currentBranch = System.getenv("GITHUB_REF").substring("refs/heads/".length)
+    } else {
+        currentBranch = gitCmd("rev-parse", "--abbrev-ref", "HEAD").output.toString().trim()
+        if(currentBranch == "HEAD") logger.warn("You are currently in \'detached HEAD\' state, branch information isn\'t available")
+    }
+    forkVersion = "git-$forkName-$currentBranch-$versionTag"
     forkUrl = "https://github.com/YatopiaMC/Yatopia"
 
     minecraftVersion = "1.16.5"
@@ -32,6 +42,8 @@ toothpick {
         project = project(":$forkNameLowercase-api")
         patchesDir = rootProject.projectDir.resolve("patches/api")
     }
+
+    logger.lifecycle("Configured version string: $calcVersionString")
 }
 
 subprojects {
@@ -42,6 +54,7 @@ subprojects {
         maven("https://libraries.minecraft.net")
         maven("https://repo.codemc.io/repository/maven-public/")
         mavenLocal()
+        maven("${rootProjectDir}/.repository")
     }
 
     java {
@@ -51,10 +64,5 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.current()
         withSourcesJar()
-    }
-
-    publishing.repositories.maven {
-        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
-        credentials(PasswordCredentials::class)
     }
 }

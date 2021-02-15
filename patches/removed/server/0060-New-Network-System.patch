@@ -1,0 +1,315 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Hugo Planque <hookwood01@gmail.com>
+Date: Mon, 18 Jan 2021 11:27:08 +0100
+Subject: [PATCH] New Network System
+
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
+
+diff --git a/pom.xml b/pom.xml
+index 6109699411c349c4965de6dbdbd9f8454bc18b10..0bbc7badb1f597357d0fce7cd0f5faf5eb1d0eb5 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -56,6 +56,14 @@
+             <version>4.1.58.Final</version>
+         </dependency>
+         <!-- Tuinity end - fix compile issue (cannot see new api) by moving netty include BEFORE server jar -->
++        <!-- Yatopia start - Add IOUring beta support -->
++        <dependency>
++            <groupId>io.netty.incubator</groupId>
++            <artifactId>netty-incubator-transport-native-io_uring</artifactId>
++            <version>0.0.3.Final</version>
++            <classifier>linux-x86_64</classifier>
++        </dependency>
++        <!-- Yatopia end -->
+         <dependency>
+             <groupId>io.papermc</groupId>
+             <artifactId>minecraft-server</artifactId>
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 87cf9cd88d1fb5ae70d19e5618ebfb67d281304a..a1c2bea7c93433434b4e4dfd0bb4b9620657c40d 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1740,6 +1740,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         return true;
+     }
+ 
++    public final boolean isUsingNativeTransport() { return l(); } // Yatopia - OBFHELPER
+     public abstract boolean l();
+ 
+     public boolean getPVP() {
+diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
+index 0668d383db1f3a81d1053954d72678c7ac5aecec..d22f0ee3f7f2daa8323d454aca1f94733b249333 100644
+--- a/src/main/java/net/minecraft/server/ServerConnection.java
++++ b/src/main/java/net/minecraft/server/ServerConnection.java
+@@ -11,6 +11,7 @@ import io.netty.channel.ChannelInitializer;
+ import io.netty.channel.ChannelOption;
+ import io.netty.channel.EventLoopGroup;
+ import io.netty.channel.epoll.Epoll;
++import io.netty.channel.epoll.EpollChannelOption; // Yatopia
+ import io.netty.channel.epoll.EpollEventLoopGroup;
+ import io.netty.channel.epoll.EpollServerSocketChannel;
+ import io.netty.channel.nio.NioEventLoopGroup;
+@@ -26,6 +27,7 @@ import java.util.List;
+ import javax.annotation.Nullable;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.yatopiamc.yatopia.server.network.NetworkType; // Yatopia
+ 
+ public class ServerConnection {
+ 
+@@ -52,15 +54,29 @@ public class ServerConnection {
+     }
+     // Paper end
+ 
++    // Yatopia start - New network system
++    private final NetworkType networkType;
++    private final EventLoopGroup boss, worker;
++    // Yatopia end
++
+     public ServerConnection(MinecraftServer minecraftserver) {
+         this.e = minecraftserver;
+         this.c = true;
++
++        // Yatopia start - New network system
++        this.networkType = NetworkType.bestType(minecraftserver, LOGGER);
++        this.boss = networkType.createEventLoopGroup(NetworkType.LoopGroupType.BOSS);
++        this.worker = networkType.createEventLoopGroup(NetworkType.LoopGroupType.WORKER);
++        // Yatopia end
+     }
+ 
+     public void a(@Nullable InetAddress inetaddress, int i) throws IOException {
++        /* // Yatopia start - New network system
+         List list = this.listeningChannels;
++         */
+ 
+         synchronized (this.listeningChannels) {
++            /*
+             Class oclass;
+             LazyInitVar lazyinitvar;
+ 
+@@ -73,16 +89,25 @@ public class ServerConnection {
+                 lazyinitvar = ServerConnection.a;
+                 ServerConnection.LOGGER.info("Using default channel type");
+             }
++             */
++
+ 
+             // Tuinity start - indicate Velocity natives in use
+             ServerConnection.LOGGER.info("Tuinity: Using " + com.velocitypowered.natives.util.Natives.compress.getLoadedVariant() + " compression from Velocity.");
+             ServerConnection.LOGGER.info("Tuinity: Using " + com.velocitypowered.natives.util.Natives.cipher.getLoadedVariant() + " cipher from Velocity.");
+             // Tuinity end
+ 
+-            this.listeningChannels.add(((ServerBootstrap) ((ServerBootstrap) (new ServerBootstrap()).channel(oclass)).childHandler(new ChannelInitializer<Channel>() {
++            ServerConnection.LOGGER.info("Yatopia: Using " + networkType.getName() + " network type.");
++            ServerBootstrap serverBootstrap = new ServerBootstrap();
++
++            if (org.yatopiamc.yatopia.server.YatopiaConfig.tcpFastOpen && networkType == NetworkType.EPOLL) {
++                serverBootstrap.option(EpollChannelOption.TCP_FASTOPEN, 3); // Will improve the connection with some speed
++            }
++            this.listeningChannels.add((((serverBootstrap).channelFactory(networkType.getServerSocketChannelFactory())).childHandler(new ChannelInitializer<Channel>() {
+                 protected void initChannel(Channel channel) throws Exception {
+                     try {
+                         channel.config().setOption(ChannelOption.TCP_NODELAY, true);
++                        channel.config().setOption(ChannelOption.IP_TOS, 0x18); // Change the priority of the packet to immediate
+                     } catch (ChannelException channelexception) {
+                         ;
+                     }
+@@ -97,7 +122,8 @@ public class ServerConnection {
+                     channel.pipeline().addLast("packet_handler", (ChannelHandler) object);
+                     ((NetworkManager) object).setPacketListener(new HandshakeListener(ServerConnection.this.e, (NetworkManager) object));
+                 }
+-            }).group((EventLoopGroup) lazyinitvar.a()).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
++            }).group(boss, worker).localAddress(inetaddress, i)).option(ChannelOption.AUTO_READ, false).bind().syncUninterruptibly()); // CraftBukkit
++            // Yatopia end
+         }
+     }
+ 
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index c2dc5265552ebd429111253c70481003a4be29dd..c67654e8701b9da6499d442048429149daae7150 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -271,4 +271,17 @@ public class YatopiaConfig {
+         logPlayerLoginLoc = getBoolean("settings.log-player-login-location", logPlayerLoginLoc);
+     }
+ 
++    public static boolean ioUringBeta = false;
++    public static boolean tcpFastOpen = false;
++    public static boolean debugNetwork = false;
++    private static void newNetworkSystem() {
++        ioUringBeta = getBoolean("network.io-uring", ioUringBeta);
++        if (config.get("network.ftcp-fastopen") != null) {
++            config.set("network.tcp-fastopen", getBoolean("network.ftcp-fastopen", tcpFastOpen));
++            config.set("network.ftcp-fastopen", null);
++        }
++        tcpFastOpen = getBoolean("network.tcp-fastopen", tcpFastOpen);
++        debugNetwork = getBoolean("network.debug", debugNetwork);
++    }
++
+ }
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..3e74e23f3cc44b7547d9f8575b411059e0e65449
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/network/NettyThreadFactory.java
+@@ -0,0 +1,27 @@
++package org.yatopiamc.yatopia.server.network;
++
++import io.netty.util.concurrent.FastThreadLocalThread;
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.atomic.AtomicInteger;
++
++/**
++ * Based off of Velocity's VelocityNettyThreadFactory
++ */
++public class NettyThreadFactory implements ThreadFactory {
++
++    private final AtomicInteger threadNumber = new AtomicInteger();
++    private final String networkTypeName, loopGroupTypeName;
++
++    public NettyThreadFactory(String networkTypeName, String loopGroupTypeName) {
++        this.networkTypeName = networkTypeName;
++        this.loopGroupTypeName = loopGroupTypeName;
++    }
++
++    @Override
++    public Thread newThread(Runnable r) {
++        return new FastThreadLocalThread(
++                r,
++                "Netty " + networkTypeName + " " + loopGroupTypeName + " #" + threadNumber.getAndIncrement()
++        );
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..6c387f29e4db7e1574a2bbb119465c48b8ed2f90
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/network/NetworkType.java
+@@ -0,0 +1,129 @@
++package org.yatopiamc.yatopia.server.network;
++
++import io.netty.channel.ChannelFactory;
++import io.netty.channel.EventLoopGroup;
++import io.netty.channel.epoll.Epoll;
++import io.netty.channel.epoll.EpollEventLoopGroup;
++import io.netty.channel.epoll.EpollServerSocketChannel;
++import io.netty.channel.kqueue.KQueue;
++import io.netty.channel.kqueue.KQueueEventLoopGroup;
++import io.netty.channel.kqueue.KQueueServerSocketChannel;
++import io.netty.channel.nio.NioEventLoopGroup;
++import io.netty.channel.socket.ServerSocketChannel;
++import io.netty.channel.socket.nio.NioServerSocketChannel;
++import io.netty.incubator.channel.uring.IOUring;
++import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
++import io.netty.incubator.channel.uring.IOUringServerSocketChannel;
++
++import java.util.concurrent.ThreadFactory;
++import java.util.function.BiFunction;
++
++import net.minecraft.server.MinecraftServer;
++import org.apache.logging.log4j.Level;
++import org.apache.logging.log4j.Logger;
++import org.spigotmc.SpigotConfig;
++import org.yatopiamc.yatopia.server.YatopiaConfig;
++
++/**
++ * Based off of Velocity's TransportType
++ */
++public enum NetworkType {
++    NIO("NIO", NioServerSocketChannel::new, (name, type) -> new NioEventLoopGroup(8, createThreadFactory(name, type))),
++
++    EPOLL("Epoll", EpollServerSocketChannel::new, (name, type) -> new EpollEventLoopGroup(8, createThreadFactory(name, type))),
++
++    IOURING("IOUring", IOUringServerSocketChannel::new, (name, type) -> new IOUringEventLoopGroup(8, createThreadFactory(name, type))),
++
++    KQUEUE("KQueue", KQueueServerSocketChannel::new, (name, type) -> new KQueueEventLoopGroup(8, createThreadFactory(name, type)));
++
++    public final String name;
++    public final ChannelFactory<? extends ServerSocketChannel> serverSocketChannelFactory;
++    public final BiFunction<String, LoopGroupType, EventLoopGroup> eventLoopGroupFactory;
++
++    NetworkType(final String name,
++                final ChannelFactory<? extends ServerSocketChannel> serverSocketChannelFactory,
++                final BiFunction<String, LoopGroupType, EventLoopGroup> eventLoopGroupFactory) {
++        this.name = name;
++        this.serverSocketChannelFactory = serverSocketChannelFactory;
++        this.eventLoopGroupFactory = eventLoopGroupFactory;
++    }
++
++    public String getName() {
++        return name;
++    }
++
++    public ChannelFactory<? extends ServerSocketChannel> getServerSocketChannelFactory() {
++        return serverSocketChannelFactory;
++    }
++
++    @Override
++    public String toString() {
++        return this.name;
++    }
++
++    public EventLoopGroup createEventLoopGroup(final LoopGroupType type) {
++        return this.eventLoopGroupFactory.apply(this.name, type);
++    }
++
++    private static ThreadFactory createThreadFactory(final String name, final LoopGroupType type) {
++        return new NettyThreadFactory(name, type.toString());
++    }
++
++    public static NetworkType bestType(MinecraftServer minecraftServer, Logger logger) {
++        if (!minecraftServer.isUsingNativeTransport()) {
++            return NIO;
++        }
++        // Actually, there is a decompression problem with zlib from bungeecord that makes
++        // IOUring not available on spigot server with bungeecord
++        // https://github.com/netty/netty-incubator-transport-io_uring/issues/40
++        // Looks like iouring send very small compressed packet and trigger PacketDecompressor
++        if (!SpigotConfig.bungee && YatopiaConfig.ioUringBeta && MinecraftServer.getServer().ax() < 0) {
++            if (IOUring.isAvailable()) {
++                return IOURING;
++            } else if (YatopiaConfig.debugNetwork) {
++                logger.log(Level.ERROR, "IOUring is not working: {}", exceptionMessage(IOUring.unavailabilityCause()));
++            }
++        }
++
++        if (Epoll.isAvailable()) {
++            return EPOLL;
++        } else if (YatopiaConfig.debugNetwork) {
++            logger.log(Level.ERROR, "Epoll is not working: {}", exceptionMessage(Epoll.unavailabilityCause()));
++        }
++
++        if (KQueue.isAvailable()) {
++            return KQUEUE;
++        } else if (YatopiaConfig.debugNetwork) {
++            logger.log(Level.ERROR, "KQueue is not working: {}", exceptionMessage(KQueue.unavailabilityCause()));
++        }
++
++        return NIO;
++    }
++
++    private static String exceptionMessage(Throwable throwable) {
++        StackTraceElement[] trace = throwable.getStackTrace();
++        return getClassNameFromString(throwable.getClass().getName()) + " : " + throwable.getMessage() +
++                ((trace.length > 0) ? " @ " + throwable.getStackTrace()[0].getClassName() + ":" + throwable.getStackTrace()[0].getLineNumber() : "");
++    }
++
++    private static String getClassNameFromString(String className) {
++        int i = className.lastIndexOf('.');
++        return i > 0 ? className.substring(i + 1) : className;
++    }
++
++    public enum LoopGroupType {
++        BOSS("Boss"),
++        WORKER("Worker");
++
++        private final String name;
++
++        LoopGroupType(final String name) {
++            this.name = name;
++        }
++
++        @Override
++        public String toString() {
++            return this.name;
++        }
++    }
++}

@@ -70,7 +70,12 @@ private fun Project.updatePatches(
             "--no-stat", "--zero-commit", "--full-index", "--no-signature", "-N",
             "-o", patchPath.absolutePath, previousUpstreamName,
             dir = projectDir,
-            printOut = true
+            printOut = false
         )
+    )
+    gitCmd(
+        "add", patchPath.canonicalPath,
+        dir = patchPath,
+        printOut = true
     )
 }
