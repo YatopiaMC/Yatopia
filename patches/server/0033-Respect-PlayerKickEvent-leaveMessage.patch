@@ -5,7 +5,7 @@ Subject: [PATCH] Respect PlayerKickEvent leaveMessage
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index ca190409b6718607183df2e86f0b4be98c9b6c33..aed9a2d151dad500e30d1871e059adec712fa450 100644
+index 1471785da53a18edf31a20212f3cc6c19de92822..8bb500513b8d3baf2b08137d7b31737792265608 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -329,7 +329,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -17,7 +17,7 @@ index ca190409b6718607183df2e86f0b4be98c9b6c33..aed9a2d151dad500e30d1871e059adec
          this.networkManager.stopReading();
          MinecraftServer minecraftserver = this.minecraftServer;
          NetworkManager networkmanager = this.networkManager;
-@@ -1759,6 +1759,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1784,6 +1784,11 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
      @Override
      public void a(IChatBaseComponent ichatbasecomponent) {
@@ -29,7 +29,7 @@ index ca190409b6718607183df2e86f0b4be98c9b6c33..aed9a2d151dad500e30d1871e059adec
          // CraftBukkit start - Rarely it would send a disconnect line twice
          if (this.processedDisconnect) {
              return;
-@@ -1774,7 +1779,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1799,7 +1804,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          */
  
          this.player.p();
@@ -39,10 +39,10 @@ index ca190409b6718607183df2e86f0b4be98c9b6c33..aed9a2d151dad500e30d1871e059adec
              this.minecraftServer.getPlayerList().sendMessage(CraftChatMessage.fromString(quitMessage));
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index f354712e8e1cd359bc8fb0461f30214b8db24112..7e42654873195d17c9a5a2a718216a943533e658 100644
+index cf53c8fe805764e995cab8eced00f10f9c52fd8e..c094d27c2d46e75212b0742040a7f57bd0406943 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -499,6 +499,11 @@ public abstract class PlayerList {
+@@ -500,6 +500,11 @@ public abstract class PlayerList {
      }
  
      public String disconnect(EntityPlayer entityplayer) { // CraftBukkit - return string
@@ -54,7 +54,7 @@ index f354712e8e1cd359bc8fb0461f30214b8db24112..7e42654873195d17c9a5a2a718216a94
          WorldServer worldserver = entityplayer.getWorldServer();
  
          entityplayer.a(StatisticList.LEAVE_GAME);
-@@ -598,7 +603,7 @@ public abstract class PlayerList {
+@@ -599,7 +604,7 @@ public abstract class PlayerList {
          cserver.getScoreboardManager().removePlayer(entityplayer.getBukkitEntity());
          // CraftBukkit end
  
