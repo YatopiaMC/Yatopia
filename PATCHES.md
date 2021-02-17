@@ -20,7 +20,6 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add IntelliJ IDEA runnable      | Zoe |  |
-| server |  Add JsonList save timings      | Ivan Pekov |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
@@ -174,9 +173,11 @@ This is an overview over all patches that are currently used.
 | server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix PlayerEditBookEvent not saving new book      | BillyGalbreath |  |
+| server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
 | server |  Fix death message colors      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
+| server |  Fix incorrect isRealPlayer init      | Spottedleaf |  |
 | api |  Fix javadoc warnings (missing @param and @return)      | BillyGalbreath |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix rotating UP/DOWN CW and CCW      | BillyGalbreath |  |
@@ -328,6 +329,7 @@ This is an overview over all patches that are currently used.
 | server |  Rewrite the light engine      | Spottedleaf |  |
 | server |  Ridables      | William Blake Galbreath |  |
 | api |  Ridables      | William Blake Galbreath |  |
+| server |  Send full pos packets for hard colliding entities      | Spottedleaf |  |
 | server |  Separate lookup locking from state access in UserCache      | Spottedleaf |  |
 | server |  Set name visible when using a Name Tag on an Armor Stand      | jmp |  |
 | server |  Short enderman height      | William Blake Galbreath |  |
