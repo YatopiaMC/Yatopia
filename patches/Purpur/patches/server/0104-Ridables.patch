@@ -2201,7 +2201,7 @@ index c57bf5091430709778dc21d70c8a32819c9d6639..b0a5c36d1132e2558a1fefbd9f8dd264
          this.targetSelector.a(2, (new PathfinderGoalNearestAttackableTarget<>(this, EntityHuman.class, true)).a(300));
          this.targetSelector.a(3, (new PathfinderGoalNearestAttackableTarget<>(this, EntityVillagerAbstract.class, false)).a(300));
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index fcc247e86992d1e1a94438ee4f0a70182390cc62..d9b00a24b378b74e126518da9142249d2ad62c55 100644
+index ee005e482396f8ff7e46a7ca981c843a76bdda71..b64278a8e349467305b75b2180a4a423ed49d7e4 100644
 --- a/src/main/java/net/minecraft/server/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/server/EntityInsentient.java
 @@ -30,7 +30,7 @@ public abstract class EntityInsentient extends EntityLiving {
@@ -4379,10 +4379,10 @@ index a0bfef54c853d57c9a5c6d3f9f19591649295357..548a993a1de939396d075f9176e0d60e
                          this.h(entityhuman);
                      }
 diff --git a/src/main/java/net/minecraft/server/EntityVillagerTrader.java b/src/main/java/net/minecraft/server/EntityVillagerTrader.java
-index 96dda6a14fd17509e9bcb72cc7e9c8532c6a036b..3ea66955df304fd13aac2cf9bb93ea156558ae57 100644
+index 298d2b6f6e352bb82f3a5a307466bb6e8f47d9d3..d41960088bb8bc6a7fece0ef152403c43a768dde 100644
 --- a/src/main/java/net/minecraft/server/EntityVillagerTrader.java
 +++ b/src/main/java/net/minecraft/server/EntityVillagerTrader.java
-@@ -23,6 +23,7 @@ public class EntityVillagerTrader extends EntityVillagerAbstract {
+@@ -24,6 +24,7 @@ public class EntityVillagerTrader extends EntityVillagerAbstract {
      @Override
      protected void initPathfinder() {
          this.goalSelector.a(0, new PathfinderGoalFloat(this));
@@ -4390,7 +4390,7 @@ index 96dda6a14fd17509e9bcb72cc7e9c8532c6a036b..3ea66955df304fd13aac2cf9bb93ea15
          this.goalSelector.a(0, new PathfinderGoalUseItem<>(this, PotionUtil.a(new ItemStack(Items.POTION), Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
              return this.world.isNight() && !entityvillagertrader.isInvisible();
          }));
-@@ -48,6 +49,16 @@ public class EntityVillagerTrader extends EntityVillagerAbstract {
+@@ -49,6 +50,16 @@ public class EntityVillagerTrader extends EntityVillagerAbstract {
      }
  
      // Purpur - start
@@ -4407,7 +4407,7 @@ index 96dda6a14fd17509e9bcb72cc7e9c8532c6a036b..3ea66955df304fd13aac2cf9bb93ea15
      @Override
      public boolean a(EntityHuman entityhuman) {
          return world.purpurConfig.villagerTraderCanBeLeashed && !this.isLeashed();
-@@ -75,8 +86,9 @@ public class EntityVillagerTrader extends EntityVillagerAbstract {
+@@ -76,8 +87,9 @@ public class EntityVillagerTrader extends EntityVillagerAbstract {
              }
  
              if (this.getOffers().isEmpty()) {
@@ -5028,10 +5028,10 @@ index 5af554870bcf36e47aef43b966b141b9eda6c4d5..c59305ef7dd7847e204d4c4ed79758bf
          return new Vec3D(this.x * d0, this.y * d1, this.z * d2);
      }
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 1ac2e9f373ae5b4250ff9faf726a962a739d6faf..97cc98af100edfad82668200759a5eed8fc67558 100644
+index d3b3b771640a46ce9a898f645cf50007e25ae7c2..34e5f8b3bf1b0045856ec0d06ec6d62d0b976862 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -1650,5 +1650,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1681,5 +1681,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      public boolean isTheEnd() {
          return getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END;
      }
@@ -5043,7 +5043,7 @@ index 1ac2e9f373ae5b4250ff9faf726a962a739d6faf..97cc98af100edfad82668200759a5eed
      // Purpur end
  }
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 138f5c577391980f2b218b25a4251ac853bb9bad..c451e71601fc48294f9161ca5ef8442d31ad96f7 100644
+index dc15d19fb75cd0988235ce193ac7f03c35d713c7..9163ee821cc91f6ceb317fb4914e0394564a821b 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -102,6 +102,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
