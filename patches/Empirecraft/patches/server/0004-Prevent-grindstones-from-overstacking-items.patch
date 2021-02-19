@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: chickeneer <emcchickeneer@gmail.com>
+Date: Tue, 16 Feb 2021 16:28:00 -0600
+Subject: [PATCH] Prevent grindstones from overstacking items
+
+
+diff --git a/src/main/java/net/minecraft/server/ContainerGrindstone.java b/src/main/java/net/minecraft/server/ContainerGrindstone.java
+index 39f809a37b58e008e7ef32c0759eeecbde26bc94..458d9828a9e3023dd469f76320a1d513c85fd892 100644
+--- a/src/main/java/net/minecraft/server/ContainerGrindstone.java
++++ b/src/main/java/net/minecraft/server/ContainerGrindstone.java
+@@ -183,7 +183,7 @@ public class ContainerGrindstone extends Container {
+                 i = Math.max(item.getMaxDurability() - l, 0);
+                 itemstack2 = this.b(itemstack, itemstack1);
+                 if (!itemstack2.e()) {
+-                    if (!ItemStack.matches(itemstack, itemstack1)) {
++                    if (!ItemStack.matches(itemstack, itemstack1) || itemstack2.getMaxStackSize() == 1) { // Paper
+                         this.resultInventory.setItem(0, ItemStack.b);
+                         this.c();
+                         return;
