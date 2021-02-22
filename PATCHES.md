@@ -29,7 +29,6 @@ This is an overview over all patches that are currently used.
 | server |  Add allow water in end world option      | William Blake Galbreath |  |
 | server |  Add boat fall damage config      | BillyGalbreath |  |
 | server |  Add canSaveToDisk to Entity      | William Blake Galbreath |  |
-| server |  Add component util      | William Blake Galbreath |  |
 | server |  Add config for allowing Endermen to despawn even while      | jmp |  |
 | server |  Add configurable snowball damage      | BillyGalbreath |  |
 | server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
@@ -107,6 +106,7 @@ This is an overview over all patches that are currently used.
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
 | server |  Config to always tame in Creative      | Encode42 |  |
 | server |  Config to use infinity bows without arrows      | Encode42 |  |
+| server |  Configs for if Wither/Ender Dragon can ride vehicles      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable chance for wolves to spawn rabid      | Encode42 |  |
@@ -153,7 +153,6 @@ This is an overview over all patches that are currently used.
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
-| server |  Duplicate paper&#39;s vanilla scoreboard colors patch to sync      | William Blake Galbreath |  |
 | server |  Dynamic activation range      | Paul Sauve |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
@@ -175,7 +174,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix PlayerEditBookEvent not saving new book      | BillyGalbreath |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
-| server |  Fix death message colors      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix incorrect isRealPlayer init      | Spottedleaf |  |
 | api |  Fix javadoc warnings (missing @param and @return)      | BillyGalbreath |  |
@@ -272,7 +270,6 @@ This is an overview over all patches that are currently used.
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
 | server |  Origami Server Config      | Phoenix616 |  |
-| server |  PaperPR - Add hex color code support for console logging      | Esophose |  |
 | server |  PaperPR - Config option for Piglins guarding chests      | jmp |  |
 | server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
 | server |  Per World Spawn Limits      | Chase Whipple |  |
@@ -318,7 +315,6 @@ This is an overview over all patches that are currently used.
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove streams      | Paul Sauve |  |
 | server |  Remove streams for villager AI      | Spottedleaf |  |
-| server |  Respect PlayerKickEvent leaveMessage      | Ivan Pekov |  |
 | server |  Revert MC-4 fix      | Spottedleaf |  |
 | server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
 | server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |
@@ -334,6 +330,7 @@ This is an overview over all patches that are currently used.
 | server |  Signs editable on right click      | William Blake Galbreath |  |
 | server |  Silk touch spawners      | William Blake Galbreath |  |
 | server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
+| server |  Skip POI finding if stuck in vehicle      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Smol entity optimisations      | Ivan Pekov |  |

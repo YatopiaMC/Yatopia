@@ -9,14 +9,13 @@ chain.
 - Only set check cooldown if it's bigger than already set cooldown
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index a1a585f5b4b2c10c41b184636149c8dde2a3ae51..70490d7b7e0dd5fbb5ef475c20223670dc8cf1b2 100644
+index a1a585f5b4b2c10c41b184636149c8dde2a3ae51..f02eb8478cef4ffccee83a1ec4ae5ffbfb0591c1 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -120,6 +120,13 @@ public final class OrigamiConfig {
+@@ -120,6 +120,12 @@ public final class OrigamiConfig {
                  Bukkit.getLogger().info("Returning matching chunk rom fast search directly instead of loading it.");
              }
          }
-+
 +        public boolean tickEmptyHoppers = false;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
@@ -97,7 +96,7 @@ index 574838bd33a46e464ff7d801345613a3351f487f..9b5146fcf618f5bebc71fdfd8e06294a
      @Override
      public boolean a(EntityHuman entityhuman) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityContainer.java b/src/main/java/net/minecraft/server/TileEntityContainer.java
-index 74390aebd353c969353a6efc0904bafe30774d65..9ce4f340d097132401054a1bb38abb73aa6a5fb1 100644
+index 74390aebd353c969353a6efc0904bafe30774d65..b88df070e8e496be43e869b17d312ddf7f788595 100644
 --- a/src/main/java/net/minecraft/server/TileEntityContainer.java
 +++ b/src/main/java/net/minecraft/server/TileEntityContainer.java
 @@ -84,4 +84,14 @@ public abstract class TileEntityContainer extends TileEntity implements IInvento
@@ -109,7 +108,7 @@ index 74390aebd353c969353a6efc0904bafe30774d65..9ce4f340d097132401054a1bb38abb73
 +    @Override
 +    public void update() {
 +        super.update();
-+        if (world != null) {
++        if (world != null && !world.origamiConfig.tickEmptyHoppers) {
 +            TileEntityHopper.enableTicking(world.getTileEntity(position.shift(EnumDirection.DOWN)), world.spigotConfig.hopperCheck);
 +        }
 +    }
