@@ -6,10 +6,10 @@ Subject: [PATCH] Improve paper prevent moving into unloaded chunk check
 Check the AABB of the move
 
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index f37703b1c444e701012222e006f9f9f3f7bbb703..44ba505d5ceec27c39c231518689168b68c82904 100644
+index ad33505bb7896dce6c4381b4652316ef734e9e48..c3abc774a875cc830757a00e7b5b06aa177089b0 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -419,7 +419,9 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -423,7 +423,9 @@ public class PlayerConnection implements PacketListenerPlayIn {
                  speed *= 2f; // TODO: Get the speed of the vehicle instead of the player
  
                  // Paper start - Prevent moving into unloaded chunks
@@ -20,7 +20,7 @@ index f37703b1c444e701012222e006f9f9f3f7bbb703..44ba505d5ceec27c39c231518689168b
                      this.networkManager.sendPacket(new PacketPlayOutVehicleMove(entity));
                      return;
                  }
-@@ -1138,7 +1140,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1142,7 +1144,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                                  speed = player.abilities.walkSpeed * 10f;
                              }
                              // Paper start - Prevent moving into unloaded chunks
