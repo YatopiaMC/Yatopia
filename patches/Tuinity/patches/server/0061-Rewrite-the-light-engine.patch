@@ -4216,11 +4216,11 @@ index 2760b377d1f68ac5f66e7274317379e2dda8288a..829d4a7508e1656dbdc912096b7eafcf
              protected final boolean c;
              private final boolean[] j;
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 9ea915101379913cf36b123088af3dfa9833c4ff..68d6fb69a0c1b98b3c11b6d80783faaa58272526 100644
+index 936c392c9faa178b5645ea79b0130e0d3e3e1368..8fda4702764e80dae93ef9c0eb53abc198642ab1 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
-@@ -140,6 +140,52 @@ public class Chunk implements IChunkAccess {
-         }
+@@ -98,6 +98,52 @@ public class Chunk implements IChunkAccess {
+         this.entitySlicesManager.getHardCollidingEntities(entity, axisalignedbb, into, predicate); // Tuinity
      }
      // Tuinity end - optimise hard collision handling
 +    // Tuinity start - rewrite light engine
@@ -4270,9 +4270,9 @@ index 9ea915101379913cf36b123088af3dfa9833c4ff..68d6fb69a0c1b98b3c11b6d80783faaa
 +    }
 +    // Tuinity end - rewrite light engine
  
-     // Tuinity start - entity slices by class
-     private final com.tuinity.tuinity.chunk.ChunkEntitiesByClass entitiesByClass = new com.tuinity.tuinity.chunk.ChunkEntitiesByClass(this);
-@@ -443,6 +489,12 @@ public class Chunk implements IChunkAccess {
+     // Tuinity start - optimised entity slices
+     protected final com.tuinity.tuinity.world.ChunkEntitySlices entitySlicesManager;
+@@ -405,6 +451,12 @@ public class Chunk implements IChunkAccess {
  
      public Chunk(World world, ProtoChunk protochunk) {
          this(world, protochunk.getPos(), protochunk.getBiomeIndex(), protochunk.p(), protochunk.n(), protochunk.o(), protochunk.getInhabitedTime(), protochunk.getSections(), (Consumer) null);
@@ -5271,10 +5271,10 @@ index a22f0cccecc85b4e4fe4603bcfa213f15c23db69..6cc4a035c8b1312b59685b20039d5e82
                      this.d &= ~(1 << k);
                      if (nibblearray != null) {
 diff --git a/src/main/java/net/minecraft/server/PlayerChunk.java b/src/main/java/net/minecraft/server/PlayerChunk.java
-index 8b4ab23563a9a0c047267143dc3c6c5545d6c125..ac82f1791ce07e9a23cf97ca34974ab25e26be46 100644
+index a22021766b3bffa4f96d1d4ee546b12e96b5ca58..3127fc9dd87e82243e167862cae83ac87b7f4fa0 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunk.java
-@@ -383,13 +383,14 @@ public class PlayerChunk {
+@@ -387,13 +387,14 @@ public class PlayerChunk {
  
      public void a(EnumSkyBlock enumskyblock, int i) {
          Chunk chunk = this.getSendingChunk(); // Paper - no-tick view distance
@@ -5292,10 +5292,10 @@ index 8b4ab23563a9a0c047267143dc3c6c5545d6c125..ac82f1791ce07e9a23cf97ca34974ab2
  
          }
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index caaffea1b670ddfd20bf39cbd55da1c5cf561288..9be1581868627b99709bcd446de6dc89c34b42d3 100644
+index 83e036f74ee00afd012f237de0642ee5699d13f8..da27ccccdce7756b94e36cc92e60b96d325412b1 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-@@ -1316,6 +1316,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1319,6 +1319,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          // Tuinity end - force competion on the main thread
      }
  
@@ -5474,12 +5474,12 @@ index 700660dd93b3090334bb3033d5f5fdd6ab684744..e3b72922e2dfad07f3452ec5ee2af379
          VoxelShape[] avoxelshape = new VoxelShape[]{VoxelShapes.a()};
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index b1b63a11a6585971685b9ace1b6d91643a36aa95..c448f75b22ead5a178b031d625338f92752617ec 100644
+index 2814846acb8b855050a865770dcc12e00fb780d1..fda23d89da29e6a6065fc4bb57a4809f8bdb8b46 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -305,6 +305,13 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-     final List<EntityPlayer> playersAffectingSpawning = new java.util.ArrayList<>();
-     // Tuinity end - optimise checkDespawn
+@@ -402,6 +402,13 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     }
+     // Tuinity end - optimise get nearest players for entity AI
  
 +    // Tuinity start - rewrite light engine
 +    /**
