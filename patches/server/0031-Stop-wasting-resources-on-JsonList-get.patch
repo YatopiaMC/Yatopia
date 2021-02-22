@@ -55,10 +55,10 @@ index 1fc0139cb9694ddea41f57d95774c3b47e8530c5..d683e3e509cc21d007d3e32f68235cfa
          Throwable throwable = null;
  
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 8b3b0dd9f67a0462737d0c2d61948f33840fceb1..cf53c8fe805764e995cab8eced00f10f9c52fd8e 100644
+index d410b6bbd51887a7ba20f9d2406289c4c6e2a741..0f93063d5462d03777b4db52ee851bb5adedabd8 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -648,6 +648,7 @@ public abstract class PlayerList {
+@@ -651,6 +651,7 @@ public abstract class PlayerList {
          GameProfileBanEntry gameprofilebanentry;
          if (getProfileBans().isBanned(gameprofile) && (gameprofilebanentry = getProfileBans().get(gameprofile)) != null) {
              // Paper end
@@ -66,16 +66,16 @@ index 8b3b0dd9f67a0462737d0c2d61948f33840fceb1..cf53c8fe805764e995cab8eced00f10f
  
              chatmessage = new ChatMessage("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
              if (gameprofilebanentry.getExpires() != null) {
-@@ -655,7 +656,11 @@ public abstract class PlayerList {
+@@ -658,7 +659,11 @@ public abstract class PlayerList {
              }
  
              // return chatmessage;
--            if (!gameprofilebanentry.hasExpired()) event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage)); // Spigot
+-            if (!gameprofilebanentry.hasExpired()) event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Spigot // Paper - Adventure
 +            // Yatopia start
-+            /* if (!gameprofilebanentry.hasExpired()) */  event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage)); // Spigot
++            /* if (!gameprofilebanentry.hasExpired()) */  event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Spigot  // Paper - Adventure
 +            } else {
 +                getProfileBans().remove(gameprofile);
 +            } // Yatopia end
          } else if (!this.isWhitelisted(gameprofile, event)) { // Paper
-             chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted");
+             //chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted"); // Paper
              //event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot // Paper - moved to isWhitelisted

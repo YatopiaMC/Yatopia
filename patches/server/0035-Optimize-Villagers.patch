@@ -14,10 +14,10 @@ The following has been done to fix the mentioned problems:
 - Added a profession cache, which followed by a stream removal.
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94..4afe59084b85f466c8fb2fac2ac77e5097dcd0f0 100644
+index bc13f865689058a3c94ee41b8efb4dce5874004b..df239516520e0ad3a351c62fc0f921819cc7981f 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-@@ -48,7 +48,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -54,7 +54,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
          if (this.d && entitycreature.isBaby()) {
              return false;
          } else if (this.f == 0L) {
@@ -26,7 +26,7 @@ index 8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94..4afe59084b85f466c8fb2fac2ac77e50
              return false;
          } else {
              return worldserver.getTime() >= this.f;
-@@ -277,7 +277,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -283,7 +283,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
      // Tuinity - remove streams entirely for poi search
  
      protected void a(WorldServer worldserver, EntityCreature entitycreature, long i) {
@@ -35,7 +35,7 @@ index 8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94..4afe59084b85f466c8fb2fac2ac77e50
          VillagePlace villageplace = worldserver.y();
  
          this.g.long2ObjectEntrySet().removeIf((entry) -> {
-@@ -287,12 +287,20 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -293,12 +293,20 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
              BehaviorFindPosition.a behaviorfindposition_a = (BehaviorFindPosition.a) this.g.get(blockposition.asLong());
  
              if (behaviorfindposition_a == null) {
@@ -59,7 +59,7 @@ index 8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94..4afe59084b85f466c8fb2fac2ac77e50
              }
          };
          Set<BlockPosition> set = findNearestPoi(villageplace, this.b.c(), predicate, entitycreature.getChunkCoordinates(), 48, VillagePlace.Occupancy.HAS_SPACE, 5); // Tuinity - remove streams entirely for poi search
-@@ -319,7 +327,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -325,7 +333,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
                  BlockPosition blockposition1 = (BlockPosition) iterator.next();
  
                  this.g.computeIfAbsent(blockposition1.asLong(), (j) -> {
