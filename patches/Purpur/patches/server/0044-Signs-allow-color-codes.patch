@@ -5,7 +5,7 @@ Subject: [PATCH] Signs allow color codes
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index e30aa45b84837019ba7679325ec1c4e9ca99e8f9..a88fed3b0b8d3871747f96f95325ed0ea3cb23d2 100644
+index 633a33e19e41c56369bc18f7af5c91a5b69be3b7..0c384641dd840b3b04b93d2e33df7d75293d9351 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
 @@ -1449,6 +1449,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -37,7 +37,7 @@ index 82ac1971278c98d1d09e18b8e0abaacc358efcac..0054c4ec899146e5bb8cebebba2db2a0
              }
              SignChangeEvent event = new SignChangeEvent(org.bukkit.craftbukkit.block.CraftBlock.at(worldserver, blockposition), this.getPlayer(), lines);
 diff --git a/src/main/java/net/minecraft/server/TileEntitySign.java b/src/main/java/net/minecraft/server/TileEntitySign.java
-index 316766970243e8ac00e4c82f6c710de5edc3fa51..be6c9e17379e2c9bf50c58f11632c308efded6c3 100644
+index 316766970243e8ac00e4c82f6c710de5edc3fa51..23706010e6419821709cdaf34c0b1bbb91671d01 100644
 --- a/src/main/java/net/minecraft/server/TileEntitySign.java
 +++ b/src/main/java/net/minecraft/server/TileEntitySign.java
 @@ -1,6 +1,7 @@
@@ -56,7 +56,7 @@ index 316766970243e8ac00e4c82f6c710de5edc3fa51..be6c9e17379e2c9bf50c58f11632c308
 +    public PacketPlayOutTileEntityData getTranslatedUpdatePacket() {
 +        NBTTagCompound nbt = save(new NBTTagCompound());
 +        for (int i = 0; i < 4; ++i) {
-+            String line = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().serialize(PaperAdventure.asAdventure(lines[i]));
++            String line = PaperAdventure.LEGACY_AMPERSAND.serialize(PaperAdventure.asAdventure(lines[i]));
 +            nbt.setString("Text" + (i + 1), net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson().serialize(net.kyori.adventure.text.Component.text(line)));
 +        }
 +        nbt.setString("PurpurEditor", "true");

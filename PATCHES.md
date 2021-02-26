@@ -231,7 +231,7 @@ This is an overview over all patches that are currently used.
 | server |  MC-Dev fixes      | Spottedleaf |  |
 | server |  Make CallbackExecutor strict again      | Spottedleaf |  |
 | server |  Make Iron Golems Swim      | William Blake Galbreath |  |
-| server |  Make animal breeding times configurable      | jmp |  |
+| server |  Make entity breeding times configurable      | jmp |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
 | server |  Make sure inlined getChunkAt has inlined logic for loaded      | Spottedleaf |  |
 | server |  Manually inline methods in BlockPosition      | Spottedleaf |  |

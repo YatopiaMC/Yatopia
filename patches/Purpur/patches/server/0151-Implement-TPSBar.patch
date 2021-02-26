@@ -17,10 +17,10 @@ index b5cc099746e9f05ea69bc438bda22a5ac3ebc3c5..bbd17231a4f7ad0ddde6eb5e589a6c40
  
          if (commanddispatcher_servertype.d) {
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index eea187723c1931a5db9a2d79a1abddd664d890a1..33d43478b1bc4b0ca3f16ba80e0cd99bc6f5311e 100644
+index cd01859f3fe24d2eb9554e663c1a092038e93f02..e620d3596fdc2ca64485b451513bfae47c58ee91 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -469,6 +469,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -470,6 +470,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          this.serverConnection.acceptConnections();
          // CraftBukkit end
  
@@ -28,16 +28,16 @@ index eea187723c1931a5db9a2d79a1abddd664d890a1..33d43478b1bc4b0ca3f16ba80e0cd99b
      }
  
      protected void updateWorldSettings() {}
-@@ -862,6 +863,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -865,6 +866,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          this.safeShutdown(flag, false);
      }
      public void safeShutdown(boolean flag, boolean isRestarting) {
 +        net.pl3x.purpur.task.TPSBarTask.stop(); // Purpur
          this.isRunning = false;
          this.isRestarting = isRestarting;
-         if (flag) {
+         this.hasLoggedStop = true; // Paper
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index b0aa5fbb145ed86e96f1a95abab96352c3175c8b..7b68d74f5b0917cce463c4f1c4e628ac5617da23 100644
+index da1cf9eecbe0bcd7e31153589765c0238ac23742..45a9df893a5dc91567f80fd712e81f221a245d00 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
 @@ -517,6 +517,8 @@ public abstract class PlayerList {
