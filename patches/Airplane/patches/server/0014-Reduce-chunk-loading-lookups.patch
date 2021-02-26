@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Thu, 4 Feb 2021 23:33:52 -0600
+Subject: [PATCH] Reduce chunk loading & lookups
+
+
+diff --git a/src/main/java/net/minecraft/server/EntityEnderman.java b/src/main/java/net/minecraft/server/EntityEnderman.java
+index b884addf2ce6f1ef7394658078deb2e75370654f..e20b91b36587d1191f8f9e8dd501607bf085e76d 100644
+--- a/src/main/java/net/minecraft/server/EntityEnderman.java
++++ b/src/main/java/net/minecraft/server/EntityEnderman.java
+@@ -279,11 +279,18 @@ public class EntityEnderman extends EntityMonster implements IEntityAngerable {
+     private boolean p(double d0, double d1, double d2) {
+         BlockPosition.MutableBlockPosition blockposition_mutableblockposition = new BlockPosition.MutableBlockPosition(d0, d1, d2);
+ 
+-        while (blockposition_mutableblockposition.getY() > 0 && !this.world.getType(blockposition_mutableblockposition).getMaterial().isSolid()) {
++        // Airplane start - single chunk lookup
++        Chunk chunk = this.world.getChunkIfLoaded(blockposition_mutableblockposition);
++        if (chunk == null) {
++            return false;
++        }
++
++        while (blockposition_mutableblockposition.getY() > 0 && !chunk.getType(blockposition_mutableblockposition).getMaterial().isSolid()) { // use chunk lookup
+             blockposition_mutableblockposition.c(EnumDirection.DOWN);
+         }
+ 
+-        IBlockData iblockdata = this.world.getType(blockposition_mutableblockposition);
++        IBlockData iblockdata = chunk.getType(blockposition_mutableblockposition); // use chunk lookup
++        // Airplane end
+         boolean flag = iblockdata.getMaterial().isSolid();
+         boolean flag1 = iblockdata.getFluid().a((Tag) TagsFluid.WATER);
+ 
+diff --git a/src/main/java/net/minecraft/server/SpawnerCreature.java b/src/main/java/net/minecraft/server/SpawnerCreature.java
+index ae17950438132c5084210252bd345517131d5a99..1016305a571a2fc211cd0e58b7210d8cfb4461d5 100644
+--- a/src/main/java/net/minecraft/server/SpawnerCreature.java
++++ b/src/main/java/net/minecraft/server/SpawnerCreature.java
+@@ -372,7 +372,10 @@ public final class SpawnerCreature {
+     }
+ 
+     private static List<BiomeSettingsMobs.c> a(WorldServer worldserver, StructureManager structuremanager, ChunkGenerator chunkgenerator, EnumCreatureType enumcreaturetype, BlockPosition blockposition, @Nullable BiomeBase biomebase) {
+-        return enumcreaturetype == EnumCreatureType.MONSTER && worldserver.getType(blockposition.down()).getBlock() == Blocks.NETHER_BRICKS && structuremanager.a(blockposition, false, StructureGenerator.FORTRESS).e() ? StructureGenerator.FORTRESS.c() : chunkgenerator.getMobsFor(biomebase != null ? biomebase : worldserver.getBiome(blockposition), structuremanager, enumcreaturetype, blockposition);
++        // Airplane start - single chunk lookup
++        Chunk chunk;
++        return enumcreaturetype == EnumCreatureType.MONSTER && (chunk = worldserver.getChunkIfLoaded(blockposition)) != null && chunk.getType(blockposition.down()).getBlock() == Blocks.NETHER_BRICKS && structuremanager.a(blockposition, false, StructureGenerator.FORTRESS).e() ? StructureGenerator.FORTRESS.c() : chunkgenerator.getMobsFor(biomebase != null ? biomebase : worldserver.getBiome(blockposition), structuremanager, enumcreaturetype, blockposition);
++        // Airplane end
+     }
+ 
+     private static BlockPosition getRandomPosition(World world, Chunk chunk) {

@@ -5,10 +5,10 @@ Subject: [PATCH] AFK API
 
 
 diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 9796b4e57d6680c9f0dc76decdd985572daafb7e..f15ec5c45d95c6828ed628451917ac3426a76f1f 100644
+index 59b00c78f8d92bcceca35d0f25e4d94b3ebdc6e2..e0cf2af8fcbfc66fc32aa8e693b62160b24f8672 100644
 --- a/src/main/java/net/minecraft/server/EntityHuman.java
 +++ b/src/main/java/net/minecraft/server/EntityHuman.java
-@@ -84,6 +84,15 @@ public abstract class EntityHuman extends EntityLiving {
+@@ -82,6 +82,15 @@ public abstract class EntityHuman extends EntityLiving {
      }
      // CraftBukkit end
  
@@ -25,10 +25,10 @@ index 9796b4e57d6680c9f0dc76decdd985572daafb7e..f15ec5c45d95c6828ed628451917ac34
          super(EntityTypes.PLAYER, world);
          this.bL = ItemStack.b;
 diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 2797941b53fa47316f90a86c8b2b4c2f059df223..a801975db7efeb961e8e69d2998962e6c397c07a 100644
+index 173a210392d71cdfc551f095dc0d9c9040d22d3f..7d7a512ad752e15fbe0edce47da1da76c01df3b3 100644
 --- a/src/main/java/net/minecraft/server/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -1909,8 +1909,54 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -1927,8 +1927,54 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
  
      public void resetIdleTimer() {
          this.ca = SystemUtils.getMonotonicMillis();
@@ -84,7 +84,7 @@ index 2797941b53fa47316f90a86c8b2b4c2f059df223..a801975db7efeb961e8e69d2998962e6
          return this.serverStatisticManager;
      }
 diff --git a/src/main/java/net/minecraft/server/IEntityAccess.java b/src/main/java/net/minecraft/server/IEntityAccess.java
-index cbaf18af1066e8bde10293bba5eb3060bae1e66f..0c98a436021cbdedba5352073b1f8bf9852298eb 100644
+index ad286848ddb7803640ef7eeea46b58473dd1d0c4..2e514b8291a544a88667fbca2389bde4c2ecb109 100644
 --- a/src/main/java/net/minecraft/server/IEntityAccess.java
 +++ b/src/main/java/net/minecraft/server/IEntityAccess.java
 @@ -174,28 +174,18 @@ public interface IEntityAccess {
@@ -149,7 +149,7 @@ index b5e1a860a2569d7668330827614d221b60f3fc78..5f85a1d513f4fdc21b64e1a2b6882e33
      // Paper start
      public static final Predicate<Entity> affectsSpawning = (entity) -> {
 diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 4058c1f7ada7d0c9e4ba73a0073b4f94bf410a8f..caf9ce94a7cb6154981d42953c81b588b19e3814 100644
+index 4185ec46435ddf48d9e25c4d71ac4e14eb6301cf..1d810a9b23d236493db121dde92c7ebce25a25fe 100644
 --- a/src/main/java/net/minecraft/server/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/PlayerConnection.java
 @@ -250,6 +250,12 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -174,7 +174,7 @@ index 4058c1f7ada7d0c9e4ba73a0073b4f94bf410a8f..caf9ce94a7cb6154981d42953c81b588
                      // Skip the first time we do this
                      if (true) { // Spigot - don't skip any move events
                          Location oldTo = to.clone();
-@@ -1228,7 +1236,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1253,7 +1261,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
  
                              if (!this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot
                                  flag1 = true; // Tuinity - diff on change, this should be moved wrongly
@@ -183,7 +183,7 @@ index 4058c1f7ada7d0c9e4ba73a0073b4f94bf410a8f..caf9ce94a7cb6154981d42953c81b588
                              }
  
                              this.player.setLocation(d4, d5, d6, f, f1);
-@@ -1278,6 +1286,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1303,6 +1311,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
                                      this.lastYaw = to.getYaw();
                                      this.lastPitch = to.getPitch();
  
@@ -193,10 +193,10 @@ index 4058c1f7ada7d0c9e4ba73a0073b4f94bf410a8f..caf9ce94a7cb6154981d42953c81b588
                                      if (from.getX() != Double.MAX_VALUE) {
                                          Location oldTo = to.clone();
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 6ff5ef6b710652f1c4fe6461ff230ee78988f623..efe2a9ad2ece23bd71f4ad63b2c6f54f42345b55 100644
+index d2b50cdc43c737d9fdfdcd7838de24cbca2017e4..9759e5cba57d14c15f78f12985a516131800d004 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -781,7 +781,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -887,7 +887,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // CraftBukkit end
  
          if (this.everyoneSleeping && this.players.stream().noneMatch((entityplayer) -> {
@@ -205,7 +205,7 @@ index 6ff5ef6b710652f1c4fe6461ff230ee78988f623..efe2a9ad2ece23bd71f4ad63b2c6f54f
          })) {
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
-@@ -1118,7 +1118,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1224,7 +1224,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              while (iterator.hasNext()) {
                  EntityPlayer entityplayer = (EntityPlayer) iterator.next();
  
@@ -263,10 +263,10 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..2578a4677d1ee060f687be531e696b7c
 +    }
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 7c18b22c7b93b6ca1189e481dde17476797b8fd5..debf252a23d0178f06fdadb9c27c3c66b9bbc2d0 100644
+index ed7b91bf703c7e7d5cbe323d9ab1c299c33ebad1..e319f3b1282af8019ae706f46e3978e789fbc877 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-@@ -2223,4 +2223,21 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -2222,4 +2222,21 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
          return spigot;
      }
      // Spigot end
@@ -289,10 +289,10 @@ index 7c18b22c7b93b6ca1189e481dde17476797b8fd5..debf252a23d0178f06fdadb9c27c3c66
 +    // Purpur end
  }
 diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
-index 0b93635ba59df4eb4456a97c5e9b51ab5aeda53f..b47d6fa2de3368d1afe329573bc18c3541bb7377 100644
+index 6ade13fd88c381280f619daaa8d6b241c67dd9d9..f80526939be358ac46430f35f3fdc7f88038c262 100644
 --- a/src/main/java/org/spigotmc/ActivationRange.java
 +++ b/src/main/java/org/spigotmc/ActivationRange.java
-@@ -207,6 +207,7 @@ public class ActivationRange
+@@ -205,6 +205,7 @@ public class ActivationRange
          {
  
              player.activatedTick = MinecraftServer.currentTick;

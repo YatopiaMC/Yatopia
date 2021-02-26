@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Wed, 20 Jan 2021 16:36:48 -0500
+Subject: [PATCH] add config for logging login location
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
+index c094d27c2d46e75212b0742040a7f57bd0406943..c5b617c2a20163fddcf79a5493a76cb675eab834 100644
+--- a/src/main/java/net/minecraft/server/PlayerList.java
++++ b/src/main/java/net/minecraft/server/PlayerList.java
+@@ -396,7 +396,14 @@ public abstract class PlayerList {
+         }
+         // Paper end
+         // CraftBukkit - Moved from above, added world
++
++        // Yatopia start - configurable logging of player login location
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.logPlayerLoginLoc) {
+         PlayerList.LOGGER.info("{}[{}] logged in with entity id {} at ([{}]{}, {}, {})", entityplayer.getDisplayName().getString(), s1, entityplayer.getId(), worldserver1.worldDataServer.getName(), entityplayer.locX(), entityplayer.locY(), entityplayer.locZ());
++        } else {
++            PlayerList.LOGGER.info("{}[{}] logged in with entity id {}", entityplayer.getDisplayName().getString(), s1, entityplayer.getId());
++        }
++        // Yatopia end - configurable logging of player login location
+     }
+ 
+     public void sendScoreboard(ScoreboardServer scoreboardserver, EntityPlayer entityplayer) {
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 890247fadf69dabce6d1c23ba887f93ae5121e1e..c2dc5265552ebd429111253c70481003a4be29dd 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -265,4 +265,10 @@ public class YatopiaConfig {
+     private static void tickEnchantingTables() {
+         shouldTickEnchantingTables = getBoolean("settings.tick.enchanting-tables", shouldTickEnchantingTables);
+     }
++
++    public static boolean logPlayerLoginLoc = true;
++    private static void general() {
++        logPlayerLoginLoc = getBoolean("settings.log-player-login-location", logPlayerLoginLoc);
++    }
++
+ }

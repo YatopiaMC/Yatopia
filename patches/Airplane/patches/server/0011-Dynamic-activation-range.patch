@@ -1,0 +1,251 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Fri, 15 Jan 2021 19:05:01 -0600
+Subject: [PATCH] Dynamic activation range
+
+This replaces the current method of ticking an inactive entity's
+pathfinder 1/4 times with a new method that's dynamic based off how far
+away it is from a player. If an entity is within 32 blocks, it gets
+ticked every tick. If it's within 45 blocks, it gets ticked every other
+tick. If it's within 55 blocks, it gets ticked once every three ticks.
+(these numbers have since been changed, but the idea is the same.)
+
+Airplane
+Copyright (C) 2020 Technove LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
+index 4feb9686f45ce4ae9f474447496b8e0f6fcb7e31..c39c9929a251b41ab60e1509b4e6c90d0825dc0c 100644
+--- a/src/main/java/gg/airplane/AirplaneConfig.java
++++ b/src/main/java/gg/airplane/AirplaneConfig.java
+@@ -43,4 +43,29 @@ public class AirplaneConfig {
+         }
+     }
+ 
++
++    public static int maximumActivationPrio = 20;
++    public static int activationDistanceMod = 9;
++    public static boolean dynamicVillagerBehavior = true;
++    public static boolean dynamicPiglinBehavior = true;
++    public static boolean dynamicHoglinBehavior = true;
++
++    private static void dynamicActivationRange() {
++        manual.setComment("activation-range", "Optimizes how entities act when", "they're far away from the player");
++
++        maximumActivationPrio = manual.get("activation-range.max-tick-freq", maximumActivationPrio,
++          "This value defines how often in ticks, the furthest entity",
++          "will get their pathfinders and behaviors ticked. 20 = 1s");
++        activationDistanceMod = manual.get("activation-range.activation-dist-mod", activationDistanceMod,
++          "This value defines how much distance modifies an entity's",
++          "tick frequency. freq = (distanceToPlayer^2) / (2^value)",
++          "If you want further away entities to tick less often, use 8.",
++          "If you want further away entities to tick more often, try 10.");
++
++        manual.setComment("behavior-activation", "A list of entities to use the dynamic activation range", "to modify how often their behaviors are ticked");
++        dynamicVillagerBehavior = manual.get("behavior-activation.villager", dynamicVillagerBehavior);
++        dynamicPiglinBehavior = manual.get("behavior-activation.piglin", dynamicPiglinBehavior);
++        dynamicHoglinBehavior = manual.get("behavior-activation.hoglin", dynamicHoglinBehavior);
++    }
++
+ }
+diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
+index a2ba87dac005572d2617b6fe2c92f6984665588c..0fe4c8f9c669f343fef3e2869f22b46d8ef7136b 100644
+--- a/src/main/java/net/minecraft/server/Entity.java
++++ b/src/main/java/net/minecraft/server/Entity.java
+@@ -197,6 +197,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+     public void inactiveTick() { }
+     // Spigot end
+     public boolean shouldBeRemoved; // Paper
++    // Airplane start
++    public int activatedPriority = gg.airplane.AirplaneConfig.maximumActivationPrio; // golf score
++    // Airplane end
+ 
+     public float getBukkitYaw() {
+         return this.yaw;
+diff --git a/src/main/java/net/minecraft/server/EntityHoglin.java b/src/main/java/net/minecraft/server/EntityHoglin.java
+index 4a3469aca9f9e47d2ea3f3bae6ce77f5f11d6b50..5af5b50889961b10e812598dbea657c4e2aeceeb 100644
+--- a/src/main/java/net/minecraft/server/EntityHoglin.java
++++ b/src/main/java/net/minecraft/server/EntityHoglin.java
+@@ -102,13 +102,18 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+         return (BehaviorController<EntityHoglin>) super.getBehaviorController(); // Purpur - decompile error
+     }
+ 
++    private int behaviorTick; // Airplane
+     @Override
+     protected void mobTick() {
++        // Airplane - dynamic tick
++        if (!gg.airplane.AirplaneConfig.dynamicHoglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
+         this.world.getMethodProfiler().enter("hoglinBrain");
+         if (getRider() == null) // Purpur - only use brain if no rider
+         this.getBehaviorController().a((WorldServer) this.world, this); // Purpur - decompile error
+         this.world.getMethodProfiler().exit();
+         HoglinAI.a(this);
++        }
++        // Airplane end
+         if (this.isConverting()) {
+             ++this.conversionTicks;
+             if (this.conversionTicks > 300) {
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
+index d6a086f59d9df8ef7f727e6a83fa51a14995123e..cb094f00b6c7869632b9dacfc2c8c8e8299fddde 100644
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java
++++ b/src/main/java/net/minecraft/server/EntityInsentient.java
+@@ -133,10 +133,10 @@ public abstract class EntityInsentient extends EntityLiving {
+     @Override
+     public void inactiveTick() {
+         super.inactiveTick();
+-        if (this.goalSelector.inactiveTick()) {
++        if (this.goalSelector.inactiveTick(this.activatedPriority)) { // Airplane - pass activated priroity
+             this.goalSelector.doTick();
+         }
+-        if (this.targetSelector.inactiveTick()) {
++        if (this.targetSelector.inactiveTick(this.activatedPriority)) { // Airplane - pass activated priority
+             this.targetSelector.doTick();
+         }
+     }
+@@ -797,9 +797,11 @@ public abstract class EntityInsentient extends EntityLiving {
+         this.bo.a();
+         this.world.getMethodProfiler().exit();
+         this.world.getMethodProfiler().enter("targetSelector");
++        if (this.targetSelector.inactiveTick(this.activatedPriority)) // Airplane - use this to alternate ticking
+         this.targetSelector.doTick();
+         this.world.getMethodProfiler().exit();
+         this.world.getMethodProfiler().enter("goalSelector");
++        if (this.goalSelector.inactiveTick(this.activatedPriority)) // Airplane - use this to alternate ticking
+         this.goalSelector.doTick();
+         this.world.getMethodProfiler().exit();
+         this.world.getMethodProfiler().enter("navigation");
+diff --git a/src/main/java/net/minecraft/server/EntityPiglin.java b/src/main/java/net/minecraft/server/EntityPiglin.java
+index 4849829df1041568a9fcac6d16501fc0606d95da..2ac74751ac8cea0b829b3d0ed03f052162a78781 100644
+--- a/src/main/java/net/minecraft/server/EntityPiglin.java
++++ b/src/main/java/net/minecraft/server/EntityPiglin.java
+@@ -216,13 +216,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+         return !this.cannotHunt;
+     }
+ 
++    private int behaviorTick; // Airplane
+     @Override
+     protected void mobTick() {
++        // Airplane - dynamic tick
++        if (!gg.airplane.AirplaneConfig.dynamicPiglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
+         this.world.getMethodProfiler().enter("piglinBrain");
+         if (getRider() == null) // Purpur - only use brain if no rider
+         this.getBehaviorController().a((WorldServer) this.world, this); // Purpur - decompile error
+         this.world.getMethodProfiler().exit();
+         PiglinAI.b(this);
++        }
++        // Airplane end
+         super.mobTick();
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
+index eef51f8e5734b897164ca9514e7b49b2678416e6..5fc57e2e2afe383ddc9b6d4db714a678c881fa77 100644
+--- a/src/main/java/net/minecraft/server/EntityVillager.java
++++ b/src/main/java/net/minecraft/server/EntityVillager.java
+@@ -212,6 +212,8 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     }
+     // Purpur end
+ 
++    private int behaviorTick = 0;
++
+     @Override
+     protected void mobTick() { mobTick(false); }
+     protected void mobTick(boolean inactive) {
+@@ -221,7 +223,11 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
+         if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
+         // Purpur end
+-        if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
++        if (!inactive) {
++            if (!gg.airplane.AirplaneConfig.dynamicVillagerBehavior || behaviorTick++ % this.activatedPriority == 0) {
++                this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
++            }
++        }
+         else if (shouldRestock()) doRestock(); // Purpur
+         this.world.getMethodProfiler().exit();
+         if (this.bF) {
+diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+index 9cad895c7d008487ce885cbcc2c3966645df4c19..2ce5e07f4dcd0c76073840c35be66b7c65c6e7e8 100644
+--- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
++++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+@@ -43,9 +43,14 @@ public class PathfinderGoalSelector {
+     }
+ 
+     // Paper start
+-    public boolean inactiveTick() {
+-        incRate();
+-        return getCurRate() % getTickRate() == 0;
++    public boolean inactiveTick(int tickRate) { // Airplane - take tick rate
++        tickRate = Math.max(tickRate, getTickRate()); // Airplane
++        if (this.curRate++ % tickRate != 0) { // Airplane - use tick rate / increment curRate every tick
++            //incRate();
++            return false;
++        } else {
++            return true;
++        }
+     }
+     public boolean hasTasks() {
+         for (PathfinderGoalWrapped task : getTasks()) {
+diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
+index 66b7c75929cd98737628b9d4f22829b5b65b8373..ea3d813759d90a6d229ca065abe044743be4780f 100644
+--- a/src/main/java/org/spigotmc/ActivationRange.java
++++ b/src/main/java/org/spigotmc/ActivationRange.java
+@@ -48,6 +48,9 @@ import net.minecraft.server.EntityInsentient;
+ import net.minecraft.server.EntityLlama;
+ import net.minecraft.server.EntityWaterAnimal;
+ // Paper end
++// Airplane start
++import net.minecraft.server.Vec3D;
++// Airplane end
+ 
+ public class ActivationRange
+ {
+@@ -229,7 +232,7 @@ public class ActivationRange
+                     Chunk chunk = chunkProvider.getChunkAtIfLoadedMainThreadNoCache( i1, j1 ); // Paper
+                     if ( chunk != null )
+                     {
+-                        activateChunkEntities( chunk );
++                        activateChunkEntities( chunk, player.getPositionVector() ); // Airplane
+                     }
+                 }
+             }
+@@ -242,7 +245,7 @@ public class ActivationRange
+      *
+      * @param chunk
+      */
+-    private static void activateChunkEntities(Chunk chunk)
++    private static void activateChunkEntities(Chunk chunk, Vec3D playerVec) // Airplane - add player location
+     {
+         // Paper start
+         Entity[] rawData = chunk.entities.getRawData();
+@@ -251,11 +254,19 @@ public class ActivationRange
+             //for ( Entity entity : (Collection<Entity>) slice )
+             // Paper end
+             {
++                // Airplane start
++                Vec3D entityVec = entity.getPositionVector();
++                double diffX = playerVec.x - entityVec.x, diffY = playerVec.y - entityVec.y, diffZ = playerVec.z - entityVec.z;
++                int priority = Math.max(1, (int) (diffX * diffX + diffY * diffY + diffZ * diffZ) >> gg.airplane.AirplaneConfig.activationDistanceMod);
+                 if (MinecraftServer.currentTick > entity.activatedTick) {
+                     if (entity.defaultActivationState || entity.activationType.boundingBox.c(entity.getBoundingBox())) { // Paper
+                         entity.activatedTick = MinecraftServer.currentTick;
+                     }
++                    entity.activatedPriority = Math.min(gg.airplane.AirplaneConfig.maximumActivationPrio, priority);
++                } else {
++                    entity.activatedPriority = Math.min(gg.airplane.AirplaneConfig.maximumActivationPrio, Math.min(priority, entity.activatedPriority));
+                 }
++                // Airplane end
+             }
+         }
+     }

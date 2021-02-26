@@ -27,12 +27,12 @@ index 55b67f1057224101272f9d6023a93872c4423405..3ec187f39250214a7a72b1d7ef7b3e2e
              String hostName = "BrokenHost";
              try {
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 3ee8d31c453105eca7b96bede39a9ebbf40e1c2c..0a9f03526abf0638ada15d9810b949887fca9f9a 100644
+index ca3d9dbcbeeb5059a942cae1a5020f0bcc59ac9c..20da9b4333e02a1f24eff0c7bbe17a7231bb3359 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -180,6 +180,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         // Paper end
+@@ -181,6 +181,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         gg.airplane.AirplaneConfig.load(); // Airplane - config
  
 +        // Yatopia start
 +        try {
@@ -47,10 +47,10 @@ index 3ee8d31c453105eca7b96bede39a9ebbf40e1c2c..0a9f03526abf0638ada15d9810b94988
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.ba());
 diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 266174436b0fad60087afb86458fdc705577523c..05e1cbfa603ec6910b2565fb98513b6b366f2379 100644
+index a198bdf26b60caea8c8b105cb0e4b82c0340fede..39280197902b330dd3d39c721cdef744a15b0550 100644
 --- a/src/main/java/net/minecraft/server/EntityLiving.java
 +++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -270,6 +270,7 @@ public abstract class EntityLiving extends Entity {
+@@ -271,6 +271,7 @@ public abstract class EntityLiving extends Entity {
          this.world.getMethodProfiler().enter("livingEntityBaseTick");
          boolean flag = this instanceof EntityHuman;
  
@@ -58,7 +58,7 @@ index 266174436b0fad60087afb86458fdc705577523c..05e1cbfa603ec6910b2565fb98513b6b
          if (this.isAlive()) {
              if (this.inBlock()) {
                  this.damageEntity(DamageSource.STUCK, 1.0F);
-@@ -286,6 +287,7 @@ public abstract class EntityLiving extends Entity {
+@@ -287,6 +288,7 @@ public abstract class EntityLiving extends Entity {
                  }
              }
          }
@@ -67,10 +67,10 @@ index 266174436b0fad60087afb86458fdc705577523c..05e1cbfa603ec6910b2565fb98513b6b
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index ca19cfa1ff801e5292332ff7b92bba881762306e..14d8492c405db32e454bc363207a127167432a61 100644
+index 7db99b6639a0afdd1f68539f6c6a6f48275e5b6b..8b3b0dd9f67a0462737d0c2d61948f33840fceb1 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -188,7 +188,7 @@ public abstract class PlayerList {
+@@ -189,7 +189,7 @@ public abstract class PlayerList {
          // Spigot - view distance
          playerconnection.sendPacket(new PacketPlayOutLogin(entityplayer.getId(), entityplayer.playerInteractManager.getGameMode(), entityplayer.playerInteractManager.c(), BiomeManager.a(worldserver1.getSeed()), worlddata.isHardcore(), this.server.F(), this.s, worldserver1.getDimensionManager(), worldserver1.getDimensionKey(), this.getMaxPlayers(), worldserver1.getChunkProvider().playerChunkMap.getLoadViewDistance(), flag1, !flag, worldserver1.isDebugWorld(), worldserver1.isFlatWorld())); // Paper - no-tick view distance
          entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
@@ -80,10 +80,10 @@ index ca19cfa1ff801e5292332ff7b92bba881762306e..14d8492c405db32e454bc363207a1271
          playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
          playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 05612f20cd2881af363111789cf903c4baf5c9c8..3d52621bf068517b2d959c65aea211f93b8d4497 100644
+index 289ea917d3b5327e1c7dbffdb9ba171cc5052627..8ad95d3275fef85deb33fc2794f7bc3b72f917ca 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -857,6 +857,7 @@ public final class CraftServer implements Server {
+@@ -856,6 +856,7 @@ public final class CraftServer implements Server {
              playerList.getProfileBans().load();
          } catch (IOException ex) {
              logger.log(Level.WARNING, "Failed to load banned-players.json, " + ex.getMessage());
