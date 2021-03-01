@@ -271,7 +271,6 @@ This is an overview over all patches that are currently used.
 | server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Config option for Piglins guarding chests      | jmp |  |
-| server |  PaperPR - Fix username connecting with no texture being      | Camotoy |  |
 | server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
