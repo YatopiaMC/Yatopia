@@ -3,7 +3,6 @@ From: William Blake Galbreath <Blake.Galbreath@GMail.com>
 Date: Sun, 5 Jul 2020 22:19:49 -0500
 Subject: [PATCH] Ridables
 
-test
 
 diff --git a/src/main/java/net/minecraft/server/AttributeDefaults.java b/src/main/java/net/minecraft/server/AttributeDefaults.java
 index 8f95a4e49714e352b9cdf82d7f4acdd3459978ad..ab05b5e403cf54756aa35891dc0d950187a9d4ec 100644
@@ -162,18 +161,9 @@ index bd0267ee4b3782f6d1ec39cba7966ba4f62f1adf..8b36ac2b0950a827763aa2357700f37e
          this.B = true;
          return this;
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index b3b654da3c5a036871248b0a7c8e6ca77b44345d..40432014000b0e6113dc06ab36b64111fa50ad50 100644
+index efcdd07f92ff64b4ca6faa99a709f88e5bf8a4f9..9ca220f85089609921b1004c1244b0bc4b27b153 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -80,7 +80,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
-     public com.destroystokyo.paper.loottable.PaperLootableInventoryData lootableData; // Paper
-     private CraftEntity bukkitEntity;
- 
--    PlayerChunkMap.EntityTracker tracker; // Paper
-+    PlayerChunkMap.EntityTracker tracker; public PlayerChunkMap.EntityTracker getTracker() { return tracker; } // Paper // Purpur
-     boolean collisionLoadChunks = false; // Paper
-     Throwable addedToWorldStack; // Paper - entity debug
-     public CraftEntity getBukkitEntity() {
 @@ -105,7 +105,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
      private int id;
      public boolean i; public final boolean blocksEntitySpawning() { return this.i; } // Paper - OBFHELPER
@@ -1185,7 +1175,7 @@ index 1a102816921fa3b40f6d364bb826db4459f68eb2..125eab60f2b4657e52a71eddf7586c57
  
          @Override
 diff --git a/src/main/java/net/minecraft/server/EntityEnderDragon.java b/src/main/java/net/minecraft/server/EntityEnderDragon.java
-index a5a2182455542bb8fd62941bd0da2f38ba698f35..17a9217ed2d1677371d12b4ab0552378cd71652f 100644
+index a5a2182455542bb8fd62941bd0da2f38ba698f35..c10f1f95ac786ae876684507412ea4affed99b1b 100644
 --- a/src/main/java/net/minecraft/server/EntityEnderDragon.java
 +++ b/src/main/java/net/minecraft/server/EntityEnderDragon.java
 @@ -46,6 +46,7 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
@@ -1326,15 +1316,6 @@ index a5a2182455542bb8fd62941bd0da2f38ba698f35..17a9217ed2d1677371d12b4ab0552378
                      if (this.bF != null) {
                          this.bF.b(this);
                      }
-@@ -949,7 +1018,7 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
- 
-     @Override
-     protected boolean n(Entity entity) {
--        return false;
-+        return getRideCooldown() <= 0; // Purpur
-     }
- 
-     @Override
 diff --git a/src/main/java/net/minecraft/server/EntityEnderman.java b/src/main/java/net/minecraft/server/EntityEnderman.java
 index e3364032669b473c799b759f5f89468b7584d9f5..995849212c25568d3aa28ada78babf8b8e669960 100644
 --- a/src/main/java/net/minecraft/server/EntityEnderman.java
@@ -4488,7 +4469,7 @@ index ca3c5150bcfe2a92b49ad5a27c23dd37a7054fbb..323d79a99402b0f6952b4fb873170069
          this.targetSelector.a(2, this.br);
          this.targetSelector.a(3, this.bs);
 diff --git a/src/main/java/net/minecraft/server/EntityWither.java b/src/main/java/net/minecraft/server/EntityWither.java
-index 2e623ef9be036ea467e9e41817c2eced018f8f93..59382230aec623f7de889c30a0ed6a2a3fa35a05 100644
+index 2e623ef9be036ea467e9e41817c2eced018f8f93..00f8ea85783c02af25e408d7074438ef166555fd 100644
 --- a/src/main/java/net/minecraft/server/EntityWither.java
 +++ b/src/main/java/net/minecraft/server/EntityWither.java
 @@ -32,6 +32,7 @@ public class EntityWither extends EntityMonster implements IRangedEntity {
@@ -4686,15 +4667,6 @@ index 2e623ef9be036ea467e9e41817c2eced018f8f93..59382230aec623f7de889c30a0ed6a2a
      }
  
      public final boolean isPowered() { return this.S_(); } // Paper - OBFHELPER
-@@ -547,7 +665,7 @@ public class EntityWither extends EntityMonster implements IRangedEntity {
- 
-     @Override
-     protected boolean n(Entity entity) {
--        return false;
-+        return getRideCooldown() <= 0; // Purpur
-     }
- 
-     @Override
 diff --git a/src/main/java/net/minecraft/server/EntityWolf.java b/src/main/java/net/minecraft/server/EntityWolf.java
 index dcbb34313fedb21e180a0b76610a787e6419d404..9ae7168595dd66860e09ef87f946b18b010e54b1 100644
 --- a/src/main/java/net/minecraft/server/EntityWolf.java
@@ -5728,7 +5700,7 @@ index 637cac2758a44e72794953b9fbca2accb7d86b6a..d8b5e091047210a8eff45e493f07d30f
          zombieVillagerJockeyTryExistingChickens = getBoolean("mobs.zombie_villager.jockey.try-existing-chickens", zombieVillagerJockeyTryExistingChickens);
 diff --git a/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java b/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0b16a7b6345ff42ea0f42ca79155a50e2fe4926b
+index 0000000000000000000000000000000000000000..868c1ce1952193cba5ff0ce35e9d607478df7a53
 --- /dev/null
 +++ b/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
 @@ -0,0 +1,76 @@
@@ -5776,7 +5748,7 @@ index 0000000000000000000000000000000000000000..0b16a7b6345ff42ea0f42ca79155a50e
 +        entity.setHeadRotation(entity.yaw);
 +        entity.pitch = normalizePitch(pitch + pitchOffset);
 +
-+        entity.getTracker().broadcast(new PacketPlayOutEntity
++        entity.tracker.broadcast(new PacketPlayOutEntity
 +                .PacketPlayOutRelEntityMoveLook(entity.getId(),
 +                (short) 0, (short) 0, (short) 0,
 +                (byte) MathHelper.d(entity.yaw * 256.0F / 360.0F),
