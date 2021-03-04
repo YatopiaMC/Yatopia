@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Spottedleaf <Spottedleaf@users.noreply.github.com>
+Date: Fri, 14 Dec 2018 21:52:29 -0800
+Subject: [PATCH] Tuinity API Changes
+
+Tuinity config
+
+API to retrieve raw YamlConfiguration + timing exports
+
+diff --git a/pom.xml b/pom.xml
+index 763e619dc8645b7bf96329fb1fd70cd526f99ca5..b581cd4ed360f9d96604a1fd7390ead9a46648fc 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -3,18 +3,18 @@
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <modelVersion>4.0.0</modelVersion>
+     <parent>
+-        <groupId>com.destroystokyo.paper</groupId>
+-        <artifactId>paper-parent</artifactId>
++        <groupId>com.tuinity</groupId>
++        <artifactId>tuinity-parent</artifactId>
+         <version>dev-SNAPSHOT</version>
++        <relativePath>../pom.xml</relativePath>
+     </parent>
+ 
+-    <groupId>com.destroystokyo.paper</groupId>
+-    <artifactId>paper-api</artifactId>
++    <artifactId>tuinity-api</artifactId>
+     <version>1.16.5-R0.1-SNAPSHOT</version>
+     <packaging>jar</packaging>
+ 
+-    <name>Paper-API</name>
+-    <url>https://github.com/PaperMC/Paper</url>
++    <name>Tuinity-API</name>
++    <url>https://github.com/Spottedleaf/Tuinity</url>
+     <description>An enhanced plugin API for Minecraft servers.</description>
+ 
+     <properties>
+diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
+index a79fa08b9e6fb924b2da933eb6e4b365d14d938d..414c9a2ca5389c4a99ddfe5a04706df221e7346e 100644
+--- a/src/main/java/org/bukkit/Server.java
++++ b/src/main/java/org/bukkit/Server.java
+@@ -1584,6 +1584,14 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+         }
+         // Paper end
+ 
++        // Tuinity start - add config to timings report
++        @NotNull
++        public org.bukkit.configuration.file.YamlConfiguration getTuinityConfig()
++        {
++            throw new UnsupportedOperationException("Not supported yet.");
++        }
++        // Tuinity end - add config to timings report
++
+         /**
+          * Sends the component to the player
+          *
