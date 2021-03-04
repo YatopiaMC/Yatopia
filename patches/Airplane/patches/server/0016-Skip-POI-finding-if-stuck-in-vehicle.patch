@@ -3,21 +3,43 @@ From: Paul Sauve <paul@technove.co>
 Date: Thu, 18 Feb 2021 13:13:27 -0600
 Subject: [PATCH] Skip POI finding if stuck in vehicle
 
+Airplane
+Copyright (C) 2020 Technove LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94..bc13f865689058a3c94ee41b8efb4dce5874004b 100644
+index 8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94..0594b0bb12c553edbb6284b48328a3dcf5a64ba4 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-@@ -45,6 +45,12 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+@@ -278,6 +278,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+ 
+     protected void a(WorldServer worldserver, EntityCreature entitycreature, long i) {
+         this.f = i + 20L + (long) worldserver.getRandom().nextInt(20);
++        if (entitycreature.getNavigation().isStuck()) this.f += 200L; // Airplane - wait an additional 10s to check again if they're stuck
+         VillagePlace villageplace = worldserver.y();
+ 
+         this.g.long2ObjectEntrySet().removeIf((entry) -> {
+diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
+index 1208464fba96daf276c9cc0c1c9b18db75b03abc..b5ea7997040b5bfd98925a146e446aa3c56574da 100644
+--- a/src/main/java/net/minecraft/server/NavigationAbstract.java
++++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
+@@ -412,6 +412,7 @@ public abstract class NavigationAbstract {
+         }
      }
  
-     protected boolean a(WorldServer worldserver, EntityCreature entitycreature) {
-+        // Airplane start - don't calculate POI if they're trapped in a vehicle
-+        Entity vehicle = entitycreature.getVehicle();
-+        if (vehicle instanceof EntityBoat || vehicle instanceof EntityMinecartRideable) {
-+            return false;
-+        }
-+        // Airplane end
-         if (this.d && entitycreature.isBaby()) {
-             return false;
-         } else if (this.f == 0L) {
++    public boolean isStuck() { return this.t(); } // Airplane - OBFHELPER
+     public boolean t() {
+         return this.t;
+     }
