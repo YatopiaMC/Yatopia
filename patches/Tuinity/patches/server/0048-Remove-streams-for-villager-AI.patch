@@ -1,4 +1,4 @@
-From d2bbf59f7ec1cb1cfaa48018b79ca4958c600a30 Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Thu, 27 Aug 2020 20:51:40 -0700
 Subject: [PATCH] Remove streams for villager AI
@@ -12,7 +12,7 @@ The rest is just standard stream removal.
 Also remove streams for poi searching in some zombie pathfinding.
 
 diff --git a/src/main/java/net/minecraft/server/Behavior.java b/src/main/java/net/minecraft/server/Behavior.java
-index 65af97652..0b9d469a9 100644
+index 65af976527133ee5c2f52e411e19c4f7f06df3ef..0b9d469a92decfb0632805791868ef7faa88c535 100644
 --- a/src/main/java/net/minecraft/server/Behavior.java
 +++ b/src/main/java/net/minecraft/server/Behavior.java
 @@ -7,7 +7,7 @@ import java.util.Map.Entry;
@@ -25,7 +25,7 @@ index 65af97652..0b9d469a9 100644
      private final int d;
      private final int e;
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 63a761ebe..8d445e9c0 100644
+index 63a761ebef80d4af09cdc2682e496d78492c4a3a..8d445e9c0875db6cf45e4d8bcfce7cd3d5094d94 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 @@ -55,6 +55,227 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
@@ -275,7 +275,7 @@ index 63a761ebe..8d445e9c0 100644
                      worldserver.broadcastEntityEffect(entitycreature, obyte);
                  });
 diff --git a/src/main/java/net/minecraft/server/BehaviorGate.java b/src/main/java/net/minecraft/server/BehaviorGate.java
-index 46e910581..fb967bc03 100644
+index 46e910581210421c8699637431804dc2f43eb4a6..fb967bc03f58fab8cec2732b1890108f2fc66af8 100644
 --- a/src/main/java/net/minecraft/server/BehaviorGate.java
 +++ b/src/main/java/net/minecraft/server/BehaviorGate.java
 @@ -12,7 +12,7 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
@@ -390,7 +390,7 @@ index 46e910581..fb967bc03 100644
          };
  
 diff --git a/src/main/java/net/minecraft/server/BehaviorLookInteract.java b/src/main/java/net/minecraft/server/BehaviorLookInteract.java
-index a33303c31..ce57e6a4a 100644
+index a33303c31881b6391723e16a06d7841d48679958..ce57e6a4acac97d6da82202094306e7e91f1c87e 100644
 --- a/src/main/java/net/minecraft/server/BehaviorLookInteract.java
 +++ b/src/main/java/net/minecraft/server/BehaviorLookInteract.java
 @@ -7,7 +7,7 @@ import java.util.function.Predicate;
@@ -462,7 +462,7 @@ index a33303c31..ce57e6a4a 100644
          return this.b.equals(entityliving.getEntityType()) && this.d.test(entityliving);
      }
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 99b01cb35..1b56d83bd 100644
+index 99b01cb35e2af2d61688b0b10ad1c655b9f2e4c3..1b56d83bdac536e8189901f03ad58e82d33ac8a3 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -1589,6 +1589,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -474,7 +474,7 @@ index 99b01cb35..1b56d83bd 100644
          return this.e(entity.getPositionVector());
      }
 diff --git a/src/main/java/net/minecraft/server/NavigationAbstract.java b/src/main/java/net/minecraft/server/NavigationAbstract.java
-index 1558c5f82..55fa39117 100644
+index 1558c5f8256f50be6850f1d7f70eee3e8ec76496..55fa3911703f96cf1f97c82b19d8e2d0d220016b 100644
 --- a/src/main/java/net/minecraft/server/NavigationAbstract.java
 +++ b/src/main/java/net/minecraft/server/NavigationAbstract.java
 @@ -85,7 +85,7 @@ public abstract class NavigationAbstract {
@@ -487,7 +487,7 @@ index 1558c5f82..55fa39117 100644
  
      @Nullable
 diff --git a/src/main/java/net/minecraft/server/PathfinderGoalMoveThroughVillage.java b/src/main/java/net/minecraft/server/PathfinderGoalMoveThroughVillage.java
-index 475c0764b..9f48d476c 100644
+index 475c0764b97b056f17720f37b1ca3eb1a2375334..9f48d476c05dbeabbfe3c650ce4ad33ec691a56a 100644
 --- a/src/main/java/net/minecraft/server/PathfinderGoalMoveThroughVillage.java
 +++ b/src/main/java/net/minecraft/server/PathfinderGoalMoveThroughVillage.java
 @@ -50,7 +50,7 @@ public class PathfinderGoalMoveThroughVillage extends PathfinderGoal {
@@ -509,7 +509,7 @@ index 475c0764b..9f48d476c 100644
                          if (!optional.isPresent()) {
                              return false;
 diff --git a/src/main/java/net/minecraft/server/RegionFileSection.java b/src/main/java/net/minecraft/server/RegionFileSection.java
-index 04256a951..d9362b74f 100644
+index 04256a95108b8182e8f808e856e0d2b62165e242..d9362b74fda2ea937281f897fbc2cb501775a275 100644
 --- a/src/main/java/net/minecraft/server/RegionFileSection.java
 +++ b/src/main/java/net/minecraft/server/RegionFileSection.java
 @@ -50,8 +50,8 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
@@ -524,7 +524,7 @@ index 04256a951..d9362b74f 100644
      }
  
 diff --git a/src/main/java/net/minecraft/server/SensorNearestBed.java b/src/main/java/net/minecraft/server/SensorNearestBed.java
-index ad3609f2b..d3d28f97f 100644
+index ad3609f2b884f64f1a1a449036cece49a46e933e..d3d28f97f9d2f969a182aec5e0947b6969d2939c 100644
 --- a/src/main/java/net/minecraft/server/SensorNearestBed.java
 +++ b/src/main/java/net/minecraft/server/SensorNearestBed.java
 @@ -40,15 +40,15 @@ public class SensorNearestBed extends Sensor<EntityInsentient> {
@@ -547,7 +547,7 @@ index ad3609f2b..d3d28f97f 100644
              } else if (this.b < 5) {
                  this.a.long2LongEntrySet().removeIf((entry) -> {
 diff --git a/src/main/java/net/minecraft/server/SensorVillagerBabies.java b/src/main/java/net/minecraft/server/SensorVillagerBabies.java
-index a367bbfde..794b33a13 100644
+index a367bbfde4fbfeca6d01dec49c05f5e185aab43a..794b33a13b7f11b973caf085b0bded9b2135a4d7 100644
 --- a/src/main/java/net/minecraft/server/SensorVillagerBabies.java
 +++ b/src/main/java/net/minecraft/server/SensorVillagerBabies.java
 @@ -17,11 +17,23 @@ public class SensorVillagerBabies extends Sensor<EntityLiving> {
@@ -577,7 +577,7 @@ index a367bbfde..794b33a13 100644
  
      private boolean b(EntityLiving entityliving) {
 diff --git a/src/main/java/net/minecraft/server/VillagePlace.java b/src/main/java/net/minecraft/server/VillagePlace.java
-index 46c4e6656..0094babbd 100644
+index 46c4e66566b7206d311653341987b9312dea3e68..0094babbd59cc81554b9480088464d632824ae8e 100644
 --- a/src/main/java/net/minecraft/server/VillagePlace.java
 +++ b/src/main/java/net/minecraft/server/VillagePlace.java
 @@ -311,6 +311,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
@@ -589,7 +589,7 @@ index 46c4e6656..0094babbd 100644
              return this.d;
          }
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceRecord.java b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
-index 0b40c2f4d..6eaf9fc9c 100644
+index 0b40c2f4dada7d8432e3f91e9cf206c2bda3b24b..6eaf9fc9cc93f79a497b07a3549d459ba66be849 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceRecord.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceRecord.java
 @@ -6,7 +6,7 @@ import java.util.Objects;
@@ -602,7 +602,7 @@ index 0b40c2f4d..6eaf9fc9c 100644
      private int c;
      private final Runnable d;
 diff --git a/src/main/java/net/minecraft/server/VillagePlaceSection.java b/src/main/java/net/minecraft/server/VillagePlaceSection.java
-index b86963aa3..943a437ff 100644
+index b86963aa34b5ae479f924c5a52afc5b5b66dba76..943a437ff27162eae09211c28bdc0d141fa6a404 100644
 --- a/src/main/java/net/minecraft/server/VillagePlaceSection.java
 +++ b/src/main/java/net/minecraft/server/VillagePlaceSection.java
 @@ -23,12 +23,12 @@ public class VillagePlaceSection {
@@ -621,7 +621,7 @@ index b86963aa3..943a437ff 100644
                  return villageplacesection.e;
              }), VillagePlaceRecord.a(runnable).listOf().fieldOf("Records").forGetter((villageplacesection) -> {
 diff --git a/src/main/java/net/minecraft/server/WeightedList.java b/src/main/java/net/minecraft/server/WeightedList.java
-index 5d9d58411..f0fdfd689 100644
+index 5d9d58411f2fad9d5da703f964d269b4a7c2b205..f0fdfd6891e59891e7370a2d682b65c647b28e9e 100644
 --- a/src/main/java/net/minecraft/server/WeightedList.java
 +++ b/src/main/java/net/minecraft/server/WeightedList.java
 @@ -14,7 +14,7 @@ import java.util.stream.Stream;
@@ -642,6 +642,3 @@ index 5d9d58411..f0fdfd689 100644
          private final int b;
          private double c;
  
--- 
-2.30.1
-
