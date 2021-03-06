@@ -30,6 +30,7 @@ This is an overview over all patches that are currently used.
 | server |  Add boat fall damage config      | BillyGalbreath |  |
 | server |  Add canSaveToDisk to Entity      | William Blake Galbreath |  |
 | server |  Add config for allowing Endermen to despawn even while      | jmp |  |
+| server |  Add config for snow on blue ice      | BillyGalbreath |  |
 | server |  Add configurable snowball damage      | BillyGalbreath |  |
 | server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
@@ -152,6 +153,7 @@ This is an overview over all patches that are currently used.
 | server |  Don&#39;t lookup fluid state when raytracing      | Spottedleaf |  |
 | server |  Don&#39;t trigger Lootable Refresh for non player interaction      | Aikar |  |
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
+| server |  Dont run with scissors!      | JustDoom |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
 | server |  Dynamic activation range      | Paul Sauve |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
@@ -246,6 +248,7 @@ This is an overview over all patches that are currently used.
 | server |  New nbt cache      | Hugo Planque | ishland |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
+| server |  One Punch Man!      | Fourmisain |  |
 | server |  Optimise WorldServer#notify      | Spottedleaf |  |
 | server |  Optimise chunk tick iteration      | Spottedleaf |  |
 | server |  Optimise closest entity lookup      | Spottedleaf |  |
