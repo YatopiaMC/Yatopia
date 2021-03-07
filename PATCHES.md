@@ -237,6 +237,7 @@ This is an overview over all patches that are currently used.
 | server |  Make CallbackExecutor strict again      | Spottedleaf |  |
 | server |  Make Iron Golems Swim      | William Blake Galbreath |  |
 | server |  Make entity breeding times configurable      | jmp |  |
+| server |  Make entity tracker use highest range of passengers      | Spottedleaf |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
 | server |  Make sure inlined getChunkAt has inlined logic for loaded      | Spottedleaf |  |
 | server |  Manually inline methods in BlockPosition      | Spottedleaf |  |

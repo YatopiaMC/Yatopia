@@ -161,7 +161,7 @@ index bd0267ee4b3782f6d1ec39cba7966ba4f62f1adf..8b36ac2b0950a827763aa2357700f37e
          this.B = true;
          return this;
 diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475dcee9420 100644
+index 30408e9e8b4acec56a95852558ead6a581b8565c..8be2b1ed66c3a72d2b752881b16b8a402cce2768 100644
 --- a/src/main/java/net/minecraft/server/Entity.java
 +++ b/src/main/java/net/minecraft/server/Entity.java
 @@ -105,7 +105,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
@@ -191,7 +191,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
      private float headHeight;
      // CraftBukkit start
      public boolean persist = true;
-@@ -1482,6 +1482,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -1495,6 +1495,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return !this.justCreated && this.M.getDouble(TagsFluid.LAVA) > 0.0D;
      }
  
@@ -199,7 +199,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
      public void a(float f, Vec3D vec3d) {
          Vec3D vec3d1 = a(vec3d, f, this.yaw);
  
-@@ -2238,6 +2239,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2251,6 +2252,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return this.a(entity, false);
      }
  
@@ -207,7 +207,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
      public boolean a(Entity entity, boolean flag) {
          for (Entity entity1 = entity; entity1.vehicle != null; entity1 = entity1.vehicle) {
              if (entity1.vehicle == this) {
-@@ -2333,6 +2335,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2346,6 +2348,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                  this.passengers.add(entity);
              }
  
@@ -221,7 +221,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
          }
          return true; // CraftBukkit
      }
-@@ -2373,6 +2382,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2386,6 +2395,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
                  return false;
              }
              // Spigot end
@@ -234,7 +234,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
              this.passengers.remove(entity);
              entity.j = 60;
          }
-@@ -2538,6 +2553,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2551,6 +2566,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          this.setFlag(4, flag);
      }
  
@@ -242,7 +242,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
      public boolean bE() {
          return this.glowing || this.world.isClientSide && this.getFlag(6);
      }
-@@ -2760,6 +2776,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -2773,6 +2789,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
  
      public void setHeadRotation(float f) {}
  
@@ -250,7 +250,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
      public void n(float f) {}
  
      public boolean bL() {
-@@ -3201,6 +3218,18 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -3214,6 +3231,18 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return false;
      }
  
@@ -269,7 +269,7 @@ index f0ce2fa068d9e442a8c0ad5d7e3a505e59556c89..8360f5656b1e5928a3ab73c808e85475
      @Override
      public void sendMessage(IChatBaseComponent ichatbasecomponent, UUID uuid) {}
  
-@@ -3653,4 +3682,47 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+@@ -3666,4 +3695,47 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
          return ((ChunkProviderServer) world.getChunkProvider()).isInEntityTickingChunk(this);
      }
      // Paper end
