@@ -170,6 +170,7 @@ This is an overview over all patches that are currently used.
 | server |  Entity lifespan      | William Blake Galbreath |  |
 | server |  Execute chunk tasks mid-tick      | Spottedleaf |  |
 | api |  ExecuteCommandEvent      | William Blake Galbreath |  |
+| api |  Expose findClass for profiler      | Paul Sauve |  |
 | server |  Farmland trampling changes      | Mariell Hoversholm |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |

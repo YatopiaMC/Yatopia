@@ -1,0 +1,18 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sat, 19 Dec 2020 19:06:37 -0600
+Subject: [PATCH] Expose findClass for profiler
+
+
+diff --git a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+index 7760be3e34fa20825faf145d9fb5b2855c1a4602..3248a8014ca7319a736d798ad602eacccc8c56aa 100644
+--- a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
++++ b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
+@@ -111,6 +111,7 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
+         return findClass(name, true);
+     }
+ 
++    public Class<?> _airplane_findClass(@NotNull String name, boolean checkGlobal) throws ClassNotFoundException { return this.findClass(name, checkGlobal); } // AirplaneL
+     Class<?> findClass(@NotNull String name, boolean checkGlobal) throws ClassNotFoundException {
+         if (name.startsWith("org.bukkit.") || name.startsWith("net.minecraft.")) {
+             throw new ClassNotFoundException(name);
