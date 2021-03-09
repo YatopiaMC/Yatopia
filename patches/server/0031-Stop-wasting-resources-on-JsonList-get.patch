@@ -14,10 +14,10 @@ Our changes are the following:
    triggers removing of all stale entries.
 
 diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
-index a674140b61547841a1a6060e9f36aa14d0a86ff9..99580abac1ff30c784b6792d69c9d4cad12c1b1f 100644
+index 1fc0139cb9694ddea41f57d95774c3b47e8530c5..d683e3e509cc21d007d3e32f68235cfad007d0d0 100644
 --- a/src/main/java/net/minecraft/server/JsonList.java
 +++ b/src/main/java/net/minecraft/server/JsonList.java
-@@ -71,9 +71,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -69,9 +69,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          // Paper start
          // this.g();
          // return (V) this.d.get(this.a(k0)); // CraftBukkit - fix decompile error
@@ -31,7 +31,7 @@ index a674140b61547841a1a6060e9f36aa14d0a86ff9..99580abac1ff30c784b6792d69c9d4ca
          // Paper end
      }
  
-@@ -154,12 +158,22 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -149,12 +153,22 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          this.removeStaleEntries(); // Paper - remove expired values before saving
          JsonArray jsonarray = new JsonArray();
  
@@ -55,10 +55,10 @@ index a674140b61547841a1a6060e9f36aa14d0a86ff9..99580abac1ff30c784b6792d69c9d4ca
          Throwable throwable = null;
  
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 14d8492c405db32e454bc363207a127167432a61..f354712e8e1cd359bc8fb0461f30214b8db24112 100644
+index 8b3b0dd9f67a0462737d0c2d61948f33840fceb1..cf53c8fe805764e995cab8eced00f10f9c52fd8e 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -647,6 +647,7 @@ public abstract class PlayerList {
+@@ -648,6 +648,7 @@ public abstract class PlayerList {
          GameProfileBanEntry gameprofilebanentry;
          if (getProfileBans().isBanned(gameprofile) && (gameprofilebanentry = getProfileBans().get(gameprofile)) != null) {
              // Paper end
@@ -66,7 +66,7 @@ index 14d8492c405db32e454bc363207a127167432a61..f354712e8e1cd359bc8fb0461f30214b
  
              chatmessage = new ChatMessage("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
              if (gameprofilebanentry.getExpires() != null) {
-@@ -654,7 +655,11 @@ public abstract class PlayerList {
+@@ -655,7 +656,11 @@ public abstract class PlayerList {
              }
  
              // return chatmessage;

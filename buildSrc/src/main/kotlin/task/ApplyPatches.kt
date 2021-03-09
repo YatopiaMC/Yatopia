@@ -26,6 +26,8 @@ internal fun Project.createApplyPatchesTask(
     }
 
     fun applyPatches(patchDir: Path, applyName: String, name: String, wasGitSigningEnabled: Boolean, projectDir: File): Boolean {
+        if (Files.notExists(patchDir)) return true
+
         val patchPaths = Files.newDirectoryStream(patchDir)
             .map { it.toFile() }
             .filter { it.name.endsWith(".patch") }
