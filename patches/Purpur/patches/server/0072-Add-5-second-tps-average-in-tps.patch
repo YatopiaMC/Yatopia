@@ -5,10 +5,10 @@ Subject: [PATCH] Add 5 second tps average in /tps
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index d8d19ec3da2aca92252e8c28edf5f04d65240f12..5ef79177783908690fad0d39ebf4ef10a612857e 100644
+index 50f1841e3d5e92d6186db49ac4962c0bac943a8c..a3ddf2839738e089a02d841f5b6fd759c3047305 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -164,7 +164,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -166,7 +166,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
      public static final int TPS = 20;
      public static final int TICK_TIME = 1000000000 / TPS;
      private static final int SAMPLE_INTERVAL = 20; // Paper
@@ -17,7 +17,7 @@ index d8d19ec3da2aca92252e8c28edf5f04d65240f12..5ef79177783908690fad0d39ebf4ef10
      public boolean lagging = false; // Purpur
      public final SlackActivityAccountant slackActivityAccountant = new SlackActivityAccountant();
      // Spigot end
-@@ -891,6 +891,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -893,6 +893,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
      private static final long MAX_CATCHUP_BUFFER = TICK_TIME * TPS * 60L;
      private long lastTick = 0;
      private long catchupTime = 0;
@@ -25,7 +25,7 @@ index d8d19ec3da2aca92252e8c28edf5f04d65240f12..5ef79177783908690fad0d39ebf4ef10
      public final RollingAverage tps1 = new RollingAverage(60);
      public final RollingAverage tps5 = new RollingAverage(60 * 5);
      public final RollingAverage tps15 = new RollingAverage(60 * 15);
-@@ -983,13 +984,17 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -985,13 +986,17 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                      {
                          final long diff = curTime - tickSection;
                          java.math.BigDecimal currentTps = TPS_BASE.divide(new java.math.BigDecimal(diff), 30, java.math.RoundingMode.HALF_UP);
@@ -47,7 +47,7 @@ index d8d19ec3da2aca92252e8c28edf5f04d65240f12..5ef79177783908690fad0d39ebf4ef10
                          lagging = recentTps[0] < net.pl3x.purpur.PurpurConfig.laggingThreshold; // Purpur
                          tickSection = curTime;
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 4ad906b3ab91cee656c319d6c2deee59781ffe13..286e2964f672b75f18c48541ec1760eb9278bb1e 100644
+index 9921d5b230871455a6340a3245e9913435cd39f7..006959e62bb999894298c4dd28186201ca739b02 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -2297,6 +2297,7 @@ public final class CraftServer implements Server {
