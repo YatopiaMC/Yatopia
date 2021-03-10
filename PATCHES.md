@@ -319,7 +319,6 @@ This is an overview over all patches that are currently used.
 | server |  Reduce allocs &amp; improve perf of StructureManager      | Paul Sauve |  |
 | server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
-| server |  Reduce memory allocations      | Paul Sauve |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
