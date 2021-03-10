@@ -3,6 +3,8 @@ From: Paul Sauve <paul@technove.co>
 Date: Wed, 20 Jan 2021 13:08:53 -0600
 Subject: [PATCH] Airplane Configuration
 
+Co-developed-by: Ben Kerllenevich <me@notom3ga.me>
+
 Airplane
 Copyright (C) 2020 Technove LLC
 
@@ -19,6 +21,68 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+diff --git a/src/main/java/gg/airplane/AirplaneCommand.java b/src/main/java/gg/airplane/AirplaneCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..1fa9b40e2f89272fa8bc9d927a9a852b5eb0db22
+--- /dev/null
++++ b/src/main/java/gg/airplane/AirplaneCommand.java
+@@ -0,0 +1,56 @@
++package gg.airplane;
++
++import net.md_5.bungee.api.ChatColor;
++import net.minecraft.server.MinecraftServer;
++import org.bukkit.Bukkit;
++import org.bukkit.Location;
++import org.bukkit.command.Command;
++import org.bukkit.command.CommandSender;
++
++import java.util.Collections;
++import java.util.List;
++import java.util.stream.Collectors;
++import java.util.stream.Stream;
++
++public class AirplaneCommand extends Command {
++
++    public AirplaneCommand() {
++        super("airplane");
++        this.description = "Airplane related commands";
++        this.usageMessage = "/airplane [reload | version]";
++        this.setPermission("bukkit.command.airplane");
++    }
++
++    @Override
++    public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
++        if (args.length == 1) {
++            return Stream.of("reload", "version")
++              .filter(arg -> arg.startsWith(args[0].toLowerCase()))
++              .collect(Collectors.toList());
++        }
++        return Collections.emptyList();
++    }
++
++    @Override
++    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
++        if (!testPermission(sender)) return true;
++        String prefix = ChatColor.of("#6a7eda") + "" + ChatColor.BOLD + "Airplane ✈ " + ChatColor.of("#e8ebf9");
++
++        if (args.length != 1) {
++            sender.sendMessage(prefix + "Usage: " + usageMessage);
++            args = new String[]{"version"};
++        }
++
++        if (args[0].equalsIgnoreCase("reload")) {
++            MinecraftServer console = MinecraftServer.getServer();
++            AirplaneConfig.load();
++            console.server.reloadCount++;
++
++            Command.broadcastCommandMessage(sender, prefix + "Airplane configuration has been reloaded.");
++        } else if (args[0].equalsIgnoreCase("version")) {
++            Command.broadcastCommandMessage(sender, prefix + "This server is running " + Bukkit.getName() + " version " + Bukkit.getVersion() + " (Implementing API version " + Bukkit.getBukkitVersion() + ")");
++        }
++
++        return true;
++    }
++}
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..4feb9686f45ce4ae9f474447496b8e0f6fcb7e31
@@ -70,6 +134,22 @@ index 0000000000000000000000000000000000000000..4feb9686f45ce4ae9f474447496b8e0f
 +        }
 +    }
 +
++}
+diff --git a/src/main/java/gg/airplane/commands/AirplaneCommands.java b/src/main/java/gg/airplane/commands/AirplaneCommands.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..807cf274619b8f7be839e249cb62b9817876ca04
+--- /dev/null
++++ b/src/main/java/gg/airplane/commands/AirplaneCommands.java
+@@ -0,0 +1,10 @@
++package gg.airplane.commands;
++
++import gg.airplane.AirplaneCommand;
++import net.minecraft.server.MinecraftServer;
++
++public class AirplaneCommands {
++    public static void init() {
++        MinecraftServer.getServer().server.getCommandMap().register("airplane", "Airplane", new AirplaneCommand());
++    }
 +}
 diff --git a/src/main/java/gg/airplane/manual/ManualParser.java b/src/main/java/gg/airplane/manual/ManualParser.java
 new file mode 100644
@@ -288,14 +368,15 @@ index 0000000000000000000000000000000000000000..ace29adb0f140d99a8d85ac824654bed
 +
 +}
 diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index 3ee8d31c453105eca7b96bede39a9ebbf40e1c2c..ca3d9dbcbeeb5059a942cae1a5020f0bcc59ac9c 100644
+index e3721b53db68171665ba05201155d088ae3cb89f..b8a45c80b6691214e513286262f31b7b5b1dd5eb 100644
 --- a/src/main/java/net/minecraft/server/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -179,6 +179,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -185,6 +185,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
          // Paper end
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
 +        gg.airplane.AirplaneConfig.load(); // Airplane - config
++        gg.airplane.commands.AirplaneCommands.init(); // Airplane - command
  
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
