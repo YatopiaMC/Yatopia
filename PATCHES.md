@@ -103,13 +103,17 @@ This is an overview over all patches that are currently used.
 | server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
 | api |  ChatColor conveniences      | William Blake Galbreath |  |
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
+| server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
 | server |  Config to always tame in Creative      | Encode42 |  |
+| server |  Config to ignore Dragon Head wearers and stare aggro      | Encode42 |  |
+| server |  Config to ignore nearby mobs when sleeping      | Encode42 |  |
 | server |  Config to use infinity bows without arrows      | Encode42 |  |
 | server |  Configs for if Wither/Ender Dragon can ride vehicles      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
+| server |  Configurable Ender Pearl cooldown, damage, and Endermite RNG      | Encode42 |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable chance for wolves to spawn rabid      | Encode42 |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
