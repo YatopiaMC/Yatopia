@@ -22,7 +22,6 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
 * [LazyDFU](https://github.com/astei/lazydfu)
 * [AI-Improvements](https://github.com/BuiltBrokenModding/AI-Improvements)
-* [Dionysus](https://github.com/nopjmp/Dionysus)
 
 
 ## Try it out 
