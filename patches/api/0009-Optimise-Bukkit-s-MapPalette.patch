@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: epserv <admin@epserv.ru>
-Date: Thu, 11 Mar 2021 23:55:36 +0500
+Date: Fri, 12 Mar 2021 00:26:37 +0500
 Subject: [PATCH] Optimise Bukkit's MapPalette
 
 
 diff --git a/src/main/java/org/bukkit/map/MapPalette.java b/src/main/java/org/bukkit/map/MapPalette.java
-index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba360f0d7f 100644
+index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..6aa8ee59229dfc67e543a47f0d0e114a6adfbbd7 100644
 --- a/src/main/java/org/bukkit/map/MapPalette.java
 +++ b/src/main/java/org/bukkit/map/MapPalette.java
 @@ -1,12 +1,17 @@
@@ -15,9 +15,9 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
 -import java.awt.Graphics2D;
 -import java.awt.Image;
 -import java.awt.image.BufferedImage;
-+import com.comphenix.tinyprotocol.Reflection;
 +import com.google.common.util.concurrent.AtomicDouble;
 +import org.apache.commons.lang.ArrayUtils;
++import org.bukkit.Bukkit;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  
@@ -130,7 +130,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
      /**
       * @deprecated Magic value
       */
-@@ -167,6 +92,156 @@ public final class MapPalette {
+@@ -167,6 +92,157 @@ public final class MapPalette {
       */
      @Deprecated
      public static final byte DARK_BROWN = 52;
@@ -209,7 +209,8 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
 +        rgbColors = java.util.Arrays.stream(colors).mapToInt(Color::getRGB).toArray();
 +
 +        try {
-+            Class<?> materialMapColorClass = Reflection.getMinecraftClass("MaterialMapColor");
++            Class<?> materialMapColorClass = Class.forName(Bukkit.getServer().getClass().getPackage().getName()
++                    .replace("org.bukkit.craftbukkit", "net.minecraft.server") + ".MaterialMapColor");
 +            Object[] vanillaColorObjects = (Object[]) java.util.Arrays.stream(materialMapColorClass.getFields())
 +                    .filter(f -> f.getType().isArray() && f.getType().getComponentType().equals(materialMapColorClass))
 +                    .findAny().get().get(null);
@@ -287,23 +288,17 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
  
      /**
       * Resize an image to 128x128.
-@@ -191,21 +266,17 @@ public final class MapPalette {
+@@ -191,7 +267,6 @@ public final class MapPalette {
       * @deprecated Magic value
       */
      @Deprecated
 -    @NotNull
--    public static byte[] imageToBytes(@NotNull Image image) {
--        BufferedImage temp = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-+    public static byte[] imageToBytes(@NotNull BufferedImage image) {
-+        BufferedImage temp = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+     public static byte[] imageToBytes(@NotNull Image image) {
+         BufferedImage temp = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
          Graphics2D graphics = temp.createGraphics();
-         graphics.drawImage(image, 0, 0, null);
-         graphics.dispose();
- 
--        int[] pixels = new int[temp.getWidth() * temp.getHeight()];
--        temp.getRGB(0, 0, temp.getWidth(), temp.getHeight(), pixels, 0, temp.getWidth());
-+        int[] pixels = new int[image.getWidth() * image.getHeight()];
-+        image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
+@@ -201,11 +276,8 @@ public final class MapPalette {
+         int[] pixels = new int[temp.getWidth() * temp.getHeight()];
+         temp.getRGB(0, 0, temp.getWidth(), temp.getHeight(), pixels, 0, temp.getWidth());
  
 -        byte[] result = new byte[temp.getWidth() * temp.getHeight()];
 -        for (int i = 0; i < pixels.length; i++) {
@@ -315,7 +310,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
      }
  
      /**
-@@ -235,9 +306,8 @@ public final class MapPalette {
+@@ -235,9 +307,8 @@ public final class MapPalette {
      public static byte matchColor(@NotNull Color color) {
          if (color.getAlpha() < 128) return 0;
  
@@ -327,7 +322,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
          for (int i = 4; i < colors.length; i++) {
              double distance = getDistance(color, colors[i]);
              if (distance < best || best == -1) {
-@@ -245,9 +315,64 @@ public final class MapPalette {
+@@ -245,9 +316,64 @@ public final class MapPalette {
                  index = i;
              }
          }
@@ -394,7 +389,7 @@ index 95fe3f4d081053a6cf484e4ef07b474f2dc2ab02..08334ea141624a843ce4b5dcb0de17ba
      }
  
      /**
-@@ -260,7 +385,7 @@ public final class MapPalette {
+@@ -260,7 +386,7 @@ public final class MapPalette {
      @Deprecated
      @NotNull
      public static Color getColor(byte index) {
