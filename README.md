@@ -36,7 +36,7 @@ Run the following commands in the root directory:
 ./gradlew initGitSubmodules
 ./gradlew setupUpstream
 ./gradlew applyPatches
-./gradlew paperclip
+./gradlew yatoclip
 ```
 
 
