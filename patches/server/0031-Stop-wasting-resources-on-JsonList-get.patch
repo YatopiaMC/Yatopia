@@ -14,7 +14,7 @@ Our changes are the following:
    triggers removing of all stale entries.
 
 diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
-index 1fc0139cb9694ddea41f57d95774c3b47e8530c5..d683e3e509cc21d007d3e32f68235cfad007d0d0 100644
+index 8da5f976109accc84b26ec4045776aa8a9799f3d..b97931b9234bb0fb95fef4e03f003c63f8da5b88 100644
 --- a/src/main/java/net/minecraft/server/JsonList.java
 +++ b/src/main/java/net/minecraft/server/JsonList.java
 @@ -69,9 +69,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
@@ -55,10 +55,10 @@ index 1fc0139cb9694ddea41f57d95774c3b47e8530c5..d683e3e509cc21d007d3e32f68235cfa
          Throwable throwable = null;
  
 diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 8b3b0dd9f67a0462737d0c2d61948f33840fceb1..cf53c8fe805764e995cab8eced00f10f9c52fd8e 100644
+index 7aee575ab7bffe8eda4a9fc8c06e580340893fdd..144974e19f29434b988a70b82ecfbb2905d2cfd6 100644
 --- a/src/main/java/net/minecraft/server/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -648,6 +648,7 @@ public abstract class PlayerList {
+@@ -647,6 +647,7 @@ public abstract class PlayerList {
          GameProfileBanEntry gameprofilebanentry;
          if (getProfileBans().isBanned(gameprofile) && (gameprofilebanentry = getProfileBans().get(gameprofile)) != null) {
              // Paper end
@@ -66,16 +66,16 @@ index 8b3b0dd9f67a0462737d0c2d61948f33840fceb1..cf53c8fe805764e995cab8eced00f10f
  
              chatmessage = new ChatMessage("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
              if (gameprofilebanentry.getExpires() != null) {
-@@ -655,7 +656,11 @@ public abstract class PlayerList {
+@@ -654,7 +655,11 @@ public abstract class PlayerList {
              }
  
              // return chatmessage;
--            if (!gameprofilebanentry.hasExpired()) event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage)); // Spigot
+-            if (!gameprofilebanentry.hasExpired()) event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Spigot // Paper - Adventure
 +            // Yatopia start
-+            /* if (!gameprofilebanentry.hasExpired()) */  event.disallow(PlayerLoginEvent.Result.KICK_BANNED, CraftChatMessage.fromComponent(chatmessage)); // Spigot
++            /* if (!gameprofilebanentry.hasExpired()) */  event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Spigot  // Paper - Adventure
 +            } else {
 +                getProfileBans().remove(gameprofile);
 +            } // Yatopia end
          } else if (!this.isWhitelisted(gameprofile, event)) { // Paper
-             chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted");
+             //chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted"); // Paper
              //event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot // Paper - moved to isWhitelisted
