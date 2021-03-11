@@ -387,7 +387,6 @@ This is an overview over all patches that are currently used.
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  add config for logging login location      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
-| server |  jafama fast math      | Simon Gardling |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
@@ -399,4 +398,3 @@ This is an overview over all patches that are currently used.
 | server |  lithium enum_values      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
 | server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
-| server |  replace Math.sin and Math.cos with MathHelper      | Simon Gardling |  |
