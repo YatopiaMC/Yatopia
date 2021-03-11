@@ -9,14 +9,13 @@ chain.
 - Only set check cooldown if it's bigger than already set cooldown
 
 diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index a1a585f5b4b2c10c41b184636149c8dde2a3ae51..70490d7b7e0dd5fbb5ef475c20223670dc8cf1b2 100644
+index a1a585f5b4b2c10c41b184636149c8dde2a3ae51..f02eb8478cef4ffccee83a1ec4ae5ffbfb0591c1 100644
 --- a/src/main/java/de/minebench/origami/OrigamiConfig.java
 +++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -120,6 +120,13 @@ public final class OrigamiConfig {
+@@ -120,6 +120,12 @@ public final class OrigamiConfig {
                  Bukkit.getLogger().info("Returning matching chunk rom fast search directly instead of loading it.");
              }
          }
-+
 +        public boolean tickEmptyHoppers = false;
 +        public int fullHopperCooldown = 128;
 +        private void hopperOptimizations() {
@@ -28,10 +27,10 @@ index a1a585f5b4b2c10c41b184636149c8dde2a3ae51..70490d7b7e0dd5fbb5ef475c20223670
  }
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/BlockComposter.java b/src/main/java/net/minecraft/server/BlockComposter.java
-index ccb61d656b57f02efaeb60df4a70169aef302eed..55a5999080b831217b88ed3657e95218fe982c18 100644
+index e0dc2f799634d43023dfb37a70620dc8c20c63aa..115eb270c5b5f19432e30eec41a652939a61dd94 100644
 --- a/src/main/java/net/minecraft/server/BlockComposter.java
 +++ b/src/main/java/net/minecraft/server/BlockComposter.java
-@@ -250,6 +250,7 @@ public class BlockComposter extends Block implements IInventoryHolder {
+@@ -251,6 +251,7 @@ public class BlockComposter extends Block implements IInventoryHolder {
          if ((Integer) iblockdata.get(BlockComposter.a) == 7) {
              worldserver.setTypeAndData(blockposition, (IBlockData) iblockdata.a((IBlockState) BlockComposter.a), 3);
              worldserver.playSound((EntityHuman) null, blockposition, SoundEffects.BLOCK_COMPOSTER_READY, SoundCategory.BLOCKS, 1.0F, 1.0F);
@@ -40,10 +39,10 @@ index ccb61d656b57f02efaeb60df4a70169aef302eed..55a5999080b831217b88ed3657e95218
  
      }
 diff --git a/src/main/java/net/minecraft/server/EntityItem.java b/src/main/java/net/minecraft/server/EntityItem.java
-index ec37d2c3b0393c43097bdfc6064ebe3ab8bc28ce..954d37ca9e1079616836d3f441845b37c5a541f3 100644
+index c25dce9a75b0e79f9b59f31892d863f46e2565e9..7d2c2e6e58741a6da10117c62a809ae47ee341ee 100644
 --- a/src/main/java/net/minecraft/server/EntityItem.java
 +++ b/src/main/java/net/minecraft/server/EntityItem.java
-@@ -138,6 +138,13 @@ public class EntityItem extends Entity {
+@@ -139,6 +139,13 @@ public class EntityItem extends Entity {
                  }
              }
  
@@ -58,10 +57,10 @@ index ec37d2c3b0393c43097bdfc6064ebe3ab8bc28ce..954d37ca9e1079616836d3f441845b37
                  // CraftBukkit start - fire ItemDespawnEvent
                  if (org.bukkit.craftbukkit.event.CraftEventFactory.callItemDespawnEvent(this).isCancelled()) {
 diff --git a/src/main/java/net/minecraft/server/EntityMinecartContainer.java b/src/main/java/net/minecraft/server/EntityMinecartContainer.java
-index 574838bd33a46e464ff7d801345613a3351f487f..9b5146fcf618f5bebc71fdfd8e06294a0226e8c2 100644
+index 8e13aebb7043ddfb4b1c02bac46081eb15e906bf..d65044ef409f6a8a05626b655aa88c4e6d434e86 100644
 --- a/src/main/java/net/minecraft/server/EntityMinecartContainer.java
 +++ b/src/main/java/net/minecraft/server/EntityMinecartContainer.java
-@@ -137,7 +137,6 @@ public abstract class EntityMinecartContainer extends EntityMinecartAbstract imp
+@@ -138,7 +138,6 @@ public abstract class EntityMinecartContainer extends EntityMinecartAbstract imp
          if (!itemstack.isEmpty() && itemstack.getCount() > this.getMaxStackSize()) {
              itemstack.setCount(this.getMaxStackSize());
          }
@@ -69,7 +68,7 @@ index 574838bd33a46e464ff7d801345613a3351f487f..9b5146fcf618f5bebc71fdfd8e06294a
      }
  
      @Override
-@@ -151,7 +150,25 @@ public abstract class EntityMinecartContainer extends EntityMinecartAbstract imp
+@@ -152,7 +151,25 @@ public abstract class EntityMinecartContainer extends EntityMinecartAbstract imp
      }
  
      @Override
@@ -97,7 +96,7 @@ index 574838bd33a46e464ff7d801345613a3351f487f..9b5146fcf618f5bebc71fdfd8e06294a
      @Override
      public boolean a(EntityHuman entityhuman) {
 diff --git a/src/main/java/net/minecraft/server/TileEntityContainer.java b/src/main/java/net/minecraft/server/TileEntityContainer.java
-index 74390aebd353c969353a6efc0904bafe30774d65..9ce4f340d097132401054a1bb38abb73aa6a5fb1 100644
+index 74390aebd353c969353a6efc0904bafe30774d65..b88df070e8e496be43e869b17d312ddf7f788595 100644
 --- a/src/main/java/net/minecraft/server/TileEntityContainer.java
 +++ b/src/main/java/net/minecraft/server/TileEntityContainer.java
 @@ -84,4 +84,14 @@ public abstract class TileEntityContainer extends TileEntity implements IInvento
@@ -109,7 +108,7 @@ index 74390aebd353c969353a6efc0904bafe30774d65..9ce4f340d097132401054a1bb38abb73
 +    @Override
 +    public void update() {
 +        super.update();
-+        if (world != null) {
++        if (world != null && !world.origamiConfig.tickEmptyHoppers) {
 +            TileEntityHopper.enableTicking(world.getTileEntity(position.shift(EnumDirection.DOWN)), world.spigotConfig.hopperCheck);
 +        }
 +    }

@@ -19,6 +19,8 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 * [Airplane](https://github.com/Technove/Airplane)
 * [Krypton](https://github.com/astei/krypton)
+* [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
+* [LazyDFU](https://github.com/astei/lazydfu)
 
 
 ## Try it out 
@@ -118,11 +120,11 @@ That being said we make light API additions when requested.
 
 ## License
 
-License information can be found [here](../Licensing/LICENSE.md).
+License information can be found [here](/Licensing/LICENSE.md).
 
 ## Security
 
-Security information can be found found [here](../SECURITY.md).
+Security information can be found found [here](/SECURITY.md).
 
 ## Statistics
 [![bStats Graph Data](https://bstats.org/signatures/server-implementation/Yatopia.svg)](https://bstats.org/plugin/server-implementation/Yatopia)
