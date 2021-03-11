@@ -8,6 +8,7 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
+| server |  (AI-Improvements) Optimized tan for ControllerLook      | bl4ckscor3 |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
@@ -103,13 +104,17 @@ This is an overview over all patches that are currently used.
 | server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
 | api |  ChatColor conveniences      | William Blake Galbreath |  |
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
+| server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
 | server |  Config to always tame in Creative      | Encode42 |  |
+| server |  Config to ignore Dragon Head wearers and stare aggro      | Encode42 |  |
+| server |  Config to ignore nearby mobs when sleeping      | Encode42 |  |
 | server |  Config to use infinity bows without arrows      | Encode42 |  |
 | server |  Configs for if Wither/Ender Dragon can ride vehicles      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
+| server |  Configurable Ender Pearl cooldown, damage, and Endermite RNG      | Encode42 |  |
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable chance for wolves to spawn rabid      | Encode42 |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
@@ -145,9 +150,11 @@ This is an overview over all patches that are currently used.
 | server |  Dispenser curse of binding protection      | William Blake Galbreath |  |
 | server |  Dispensers place anvils option      | William Blake Galbreath |  |
 | server |  Distance manager tick timings      | Spottedleaf |  |
+| server |  Do not allow the server to unload chunks at request of      | Spottedleaf |  |
 | server |  Do not allow ticket level changes while unloading      | Spottedleaf |  |
 | server |  Do not load chunks during a crash report      | Spottedleaf |  |
 | server |  Do not retain playerchunkmap instance in light thread factory      | Spottedleaf |  |
+| server |  Do not run close logic for inventories on chunk unload      | Spottedleaf |  |
 | server |  Do not run raytrace logic for AIR      | Spottedleaf |  |
 | server |  Don&#39;t allow StructureLocateEvent to change worlds      | Spottedleaf |  |
 | server |  Don&#39;t get entity equipment if not needed      | Paul Sauve |  |
@@ -223,6 +230,7 @@ This is an overview over all patches that are currently used.
 | api |  Lagging threshold      | William Blake Galbreath |  |
 | server |  Left handed API      | BillyGalbreath |  |
 | api |  Left handed API      | BillyGalbreath |  |
+| server |  Lithium: CompactSineLUT      | JellySquid |  |
 | server |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | api |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | server |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
@@ -318,7 +326,6 @@ This is an overview over all patches that are currently used.
 | server |  Reduce allocs &amp; improve perf of StructureManager      | Paul Sauve |  |
 | server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
-| server |  Reduce memory allocations      | Paul Sauve |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
