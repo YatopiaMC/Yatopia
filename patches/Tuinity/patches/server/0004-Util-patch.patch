@@ -2408,7 +2408,7 @@ index 904c6a7d0a36b57bb4f693fc4fd0dd5b17adcbac..b03865a932d341ae2fdad6c9447979fa
  
          // Paper start - raise IO/load priority if priority changes, use our preferred priority
 diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
-index 00d0a5fd7c5d2db19756f3c6cfb2381868af51fd..2630de4a807062f1c455352801c65567e7e86208 100644
+index 00d0a5fd7c5d2db19756f3c6cfb2381868af51fd..2b2920a5602e23dd766ddbbf10b4fed90a1a21bc 100644
 --- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
 @@ -278,6 +278,21 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -2451,7 +2451,7 @@ index 00d0a5fd7c5d2db19756f3c6cfb2381868af51fd..2630de4a807062f1c455352801c65567
                  }
  
                  this.updatingChunks.put(i, playerchunk);
-@@ -1021,7 +1040,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1021,7 +1040,10 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              if (completablefuture1 != completablefuture) {
                  this.a(i, playerchunk);
              } else {
@@ -2459,18 +2459,22 @@ index 00d0a5fd7c5d2db19756f3c6cfb2381868af51fd..2630de4a807062f1c455352801c65567
 +                // Tuinity start
 +                boolean removed;
 +                if ((removed = this.pendingUnload.remove(i, playerchunk)) && ichunkaccess != null) { // Tuinity end
++                    this.dataRegionManager.removeChunk(playerchunk.location.x, playerchunk.location.z); // Tuinity
                      if (ichunkaccess instanceof Chunk) {
                          ((Chunk) ichunkaccess).setLoaded(false);
                      }
-@@ -1045,6 +1066,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1044,7 +1066,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                     this.lightEngine.a(ichunkaccess.getPos());
                      this.lightEngine.queueUpdate();
                      this.worldLoadListener.a(ichunkaccess.getPos(), (ChunkStatus) null);
-                 }
-+                if (removed) this.dataRegionManager.removeChunk(playerchunk.location.x, playerchunk.location.z); // Tuinity
+-                }
++                } else if (removed) { // Tuinity start
++                    this.dataRegionManager.removeChunk(playerchunk.location.x, playerchunk.location.z);
++                } // Tuinity end
  
              }
          };
-@@ -1711,6 +1733,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1711,6 +1735,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
          return chunkHolder == null ? null : chunkHolder.getAvailableChunkNow();
      }
      // Paper end

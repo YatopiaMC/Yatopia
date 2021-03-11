@@ -149,9 +149,11 @@ This is an overview over all patches that are currently used.
 | server |  Dispenser curse of binding protection      | William Blake Galbreath |  |
 | server |  Dispensers place anvils option      | William Blake Galbreath |  |
 | server |  Distance manager tick timings      | Spottedleaf |  |
+| server |  Do not allow the server to unload chunks at request of      | Spottedleaf |  |
 | server |  Do not allow ticket level changes while unloading      | Spottedleaf |  |
 | server |  Do not load chunks during a crash report      | Spottedleaf |  |
 | server |  Do not retain playerchunkmap instance in light thread factory      | Spottedleaf |  |
+| server |  Do not run close logic for inventories on chunk unload      | Spottedleaf |  |
 | server |  Do not run raytrace logic for AIR      | Spottedleaf |  |
 | server |  Don&#39;t allow StructureLocateEvent to change worlds      | Spottedleaf |  |
 | server |  Don&#39;t get entity equipment if not needed      | Paul Sauve |  |
@@ -319,7 +321,6 @@ This is an overview over all patches that are currently used.
 | server |  Reduce allocs &amp; improve perf of StructureManager      | Paul Sauve |  |
 | server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
-| server |  Reduce memory allocations      | Paul Sauve |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
