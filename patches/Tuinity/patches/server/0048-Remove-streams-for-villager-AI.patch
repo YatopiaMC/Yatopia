@@ -546,6 +546,123 @@ index ad3609f2b884f64f1a1a449036cece49a46e933e..d3d28f97f9d2f969a182aec5e0947b69
                  }
              } else if (this.b < 5) {
                  this.a.long2LongEntrySet().removeIf((entry) -> {
+diff --git a/src/main/java/net/minecraft/server/SensorNearestItems.java b/src/main/java/net/minecraft/server/SensorNearestItems.java
+index edf7d31e8e06f67be58282b2a76d1ac899b4f3e8..1de170b9fe6f2888da6dcf0151aaf1f865691c6a 100644
+--- a/src/main/java/net/minecraft/server/SensorNearestItems.java
++++ b/src/main/java/net/minecraft/server/SensorNearestItems.java
+@@ -18,19 +18,24 @@ public class SensorNearestItems extends Sensor<EntityInsentient> {
+ 
+     protected void a(WorldServer worldserver, EntityInsentient entityinsentient) {
+         BehaviorController<?> behaviorcontroller = entityinsentient.getBehaviorController();
+-        List<EntityItem> list = worldserver.a(EntityItem.class, entityinsentient.getBoundingBox().grow(8.0D, 4.0D, 8.0D), (entityitem) -> {
+-            return true;
++        // Tuinity start - remove streams
++        List<EntityItem> list = worldserver.a(EntityItem.class, entityinsentient.getBoundingBox().grow(8.0D, 4.0D, 8.0D), (EntityItem item) -> {
++            return entityinsentient.i(item.getItemStack()) && item.a((Entity)entityinsentient, 9.0D); // copied from removed code, make sure to update - move here so we sort less
+         });
+-        // Paper start - remove streams in favour of lists
+-        list.sort(Comparator.comparingDouble(entityinsentient::h));
++
++        list.sort(Comparator.comparingDouble(entityinsentient::h)); // better to take the sort perf hit than using line of sight more than we need to.
+         EntityItem nearest = null;
+-        for (EntityItem entityItem : list) {
+-            if (entityinsentient.i(entityItem.getItemStack()) && entityItem.a(entityinsentient, 9.0D) && entityinsentient.hasLineOfSight(entityItem)) {
+-                nearest = entityItem;
++        for (int index = 0, len = list.size(); index < len; ++index) {
++            EntityItem item = list.get(index);
++            if (entityinsentient.hasLineOfSight(item)) {
++                nearest = item;
+                 break;
+             }
+         }
+-        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM, Optional.ofNullable(nearest));
+-        // Paper end
++
++        Optional<EntityItem> optional = Optional.ofNullable(nearest);
++        // Tuinity end - remove streams
++
++        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM, optional);
+     }
+ }
+diff --git a/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java b/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
+index b3388d4a665e8f91083a2e746482a9f0bd988da1..83e47ab6eb27847f7260f297d7b04a8e6c82d619 100644
+--- a/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
++++ b/src/main/java/net/minecraft/server/SensorNearestLivingEntities.java
+@@ -22,11 +22,16 @@ public class SensorNearestLivingEntities extends Sensor<EntityLiving> {
+         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+ 
+         behaviorcontroller.setMemory(MemoryModuleType.MOBS, list); // Paper - decompile error
+-        // Paper start - remove streams in favour of lists
+-        List<EntityLiving> visibleMobs = new java.util.ArrayList<>(list);
+-        visibleMobs.removeIf(otherEntityLiving -> !Sensor.a(entityliving, otherEntityLiving));
+-        behaviorcontroller.setMemory(MemoryModuleType.VISIBLE_MOBS, visibleMobs);
+-        // Paper end
++        // Tuinity start - remove streams
++        List<EntityLiving> visible = new java.util.ArrayList<>(list.size());
++        for (int index = 0, len = list.size(); index < len; ++index) {
++            EntityLiving nearby = list.get(index);
++            if (Sensor.a(entityliving, nearby)) { // copied from removed code, make sure to update
++                visible.add(nearby);
++            }
++        }
++        behaviorcontroller.setMemory(MemoryModuleType.VISIBLE_MOBS, visible);
++        // Tuinity end - remove streams
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/server/SensorNearestPlayers.java b/src/main/java/net/minecraft/server/SensorNearestPlayers.java
+index ae946619f10a757171e4217e414d6a5248a45494..fa2d366ca6695c099c29469bf69a7845350b4f07 100644
+--- a/src/main/java/net/minecraft/server/SensorNearestPlayers.java
++++ b/src/main/java/net/minecraft/server/SensorNearestPlayers.java
+@@ -19,26 +19,31 @@ public class SensorNearestPlayers extends Sensor<EntityLiving> {
+ 
+     @Override
+     protected void a(WorldServer worldserver, EntityLiving entityliving) {
+-        // Paper start - remove streams in favour of lists
+-        List<EntityHuman> players = new java.util.ArrayList<>(worldserver.getPlayers());
+-        players.removeIf(player -> !IEntitySelector.notSpectator().test(player) || !entityliving.a(player, 16.0D)); // Paper - removeIf only re-allocates once compared to iterator
+-        players.sort(Comparator.comparingDouble(entityliving::h));
+-
++        // Tuinity start - remove streams
++        List<EntityHuman> nearby = (List)worldserver.getNearbyPlayers(entityliving, entityliving.locX(), entityliving.locY(), entityliving.locZ(),
++                16.0, IEntitySelector.g);
++        nearby.sort((e1, e2) -> Double.compare(entityliving.getDistanceSquared(e1), entityliving.getDistanceSquared(e2)));
+         BehaviorController<?> behaviorcontroller = entityliving.getBehaviorController();
+-        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_PLAYERS, players);
+ 
+-        EntityHuman nearest = null, nearestTargetable = null;
+-        for (EntityHuman player : players) {
+-            if (Sensor.a(entityliving, player)) {
+-                if (nearest == null) nearest = player;
+-                if (IEntitySelector.canAITarget().test(player)) {
+-                    nearestTargetable = player;
+-                    break; // Both variables are assigned, no reason to loop further
+-                }
++        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_PLAYERS, nearby);
++        EntityHuman first = null;
++        EntityHuman firstNonSpectator = null;
++        for (int index = 0, len = nearby.size(); index < len; ++index) {
++            EntityHuman entity = nearby.get(index);
++            if (!Sensor.a(entityliving, (EntityLiving)entity)) { // copied from removed code, make sure to update
++                continue;
++            }
++            if (first == null) {
++                first = entity;
++            }
++            if (IEntitySelector.f.test(entity)) { // copied from removed code, make sure to update
++                firstNonSpectator = entity;
++                break;
+             }
+         }
+-        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER, nearest);
+-        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, nearestTargetable);
+-        // Paper end
++
++        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_VISIBLE_PLAYER, first);
++        behaviorcontroller.setMemory(MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, Optional.ofNullable(firstNonSpectator));
++        // Tuinity end - remove streams
+     }
+ }
 diff --git a/src/main/java/net/minecraft/server/SensorVillagerBabies.java b/src/main/java/net/minecraft/server/SensorVillagerBabies.java
 index a367bbfde4fbfeca6d01dec49c05f5e185aab43a..794b33a13b7f11b973caf085b0bded9b2135a4d7 100644
 --- a/src/main/java/net/minecraft/server/SensorVillagerBabies.java
