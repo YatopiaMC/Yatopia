@@ -160,13 +160,13 @@ index 089ddda8892c3660c5dcb62d0fd56544857a2eba..8ee165d1c752e53601254f734507370b
  
  
 diff --git a/src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-similarity index 57%
+similarity index 79%
 rename from src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java
 rename to src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-index d8b408f061d96e2fa8e2e587462e2221aaee80ce..5857bf9fc07ebb51b85bee7c65e65846ae28fca8 100644
+index cabfcebf9f944f7a2a2a1cffc7401435803a8741..7fad25f6a752c94d5d63d27c752a151a4d37ad79 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-@@ -1,65 +1,74 @@
+@@ -1,7 +1,6 @@
 -package net.pl3x.purpur;
 +package org.yatopiamc.yatopia.server;
  
@@ -175,9 +175,10 @@ index d8b408f061d96e2fa8e2e587462e2221aaee80ce..5857bf9fc07ebb51b85bee7c65e65846
  import com.google.common.base.Charsets;
  import com.google.common.io.Resources;
  import com.google.gson.Gson;
- import com.google.gson.JsonObject;
- import com.google.gson.JsonSyntaxException;
--
+@@ -12,41 +11,50 @@ import net.kyori.adventure.text.TextComponent;
+ import net.kyori.adventure.text.format.NamedTextColor;
+ import net.kyori.adventure.text.format.TextDecoration;
+ 
 -import javax.annotation.Nonnull;
 -import javax.annotation.Nullable;
  import java.io.BufferedReader;
@@ -212,24 +213,21 @@ index d8b408f061d96e2fa8e2e587462e2221aaee80ce..5857bf9fc07ebb51b85bee7c65e65846
  
      @Nonnull
      @Override
--    public String getVersionMessage(@Nonnull String serverVersion) {
+     public Component getVersionMessage(@Nonnull String serverVersion) {
 -        String[] parts = serverVersion.substring("git-Purpur-".length()).split("[-\\s]");
--        String updateMessage = getUpdateStatusMessage("pl3xgaming/Purpur", GITHUB_BRANCH_NAME, parts[0]);
--        String history = getHistory();
--
--        return history != null ? history + "\n" + updateMessage : updateMessage;
-+    public Component getVersionMessage(@Nonnull String serverVersion) {
+-        final Component updateMessage = getUpdateStatusMessage("pl3xgaming/Purpur", GITHUB_BRANCH_NAME, parts[0]);
 +        if (serverVersion.equals("null")) return Component.text("Custom build");
 +        String[] parts = serverVersion.substring("git-Yatopia-".length()).split("[-\\s]");
 +        String branch = String.join("-", Arrays.copyOfRange(parts, 0, parts.length - 3));
 +        String version = parts[parts.length - 3];
 +        final Component updateMessage = getUpdateStatusMessage("YatopiaMC/Yatopia", branch, version);
-+        final Component history = getHistory();
+         final Component history = getHistory();
+-
+-        return history != null ? TextComponent.ofChildren(updateMessage, Component.newline(), history) : updateMessage;
+-    }
 +        return history != null ?  TextComponent.ofChildren(history, Component.newline(), updateMessage) : updateMessage;
-     }
  
--    private static String getUpdateStatusMessage(@Nonnull String repo, @Nonnull String branch, @Nonnull String versionInfo) {
-+    private Component getUpdateStatusMessage(String repo, String branch, String versionInfo) {
+     private static Component getUpdateStatusMessage(@Nonnull String repo, @Nonnull String branch, @Nonnull String versionInfo) {
          int distance;
          try {
              int jenkinsBuild = Integer.parseInt(versionInfo);
@@ -242,31 +240,7 @@ index d8b408f061d96e2fa8e2e587462e2221aaee80ce..5857bf9fc07ebb51b85bee7c65e65846
          }
  
          switch (distance) {
-             case -1:
--                return "Error obtaining version information";
-+                return Component.text("Error obtaining version information", NamedTextColor.YELLOW);
-             case 0:
--                return "You are running the latest version";
-+                return Component.text("You are running the latest version", NamedTextColor.GREEN);
-             case -2:
--                return "Unknown version";
-+                return Component.text("\u00AF\\_(\u30C4)_/\u00AF", NamedTextColor.YELLOW);
-             default:
--                return "You are " + distance + " version(s) behind";
-+                return Component.text("You are " + distance + " version(s) behind", NamedTextColor.YELLOW);
-         }
-     }
- 
--    private static int fetchDistanceFromJenkins(int jenkinsBuild) {
-+    // modified from PurpurVersionFetcher
-+    private static int fetchDistanceFromJenkins(String branch, int jenkinsBuild) {
-         try {
--            try (BufferedReader reader = Resources.asCharSource(new URL(JENKINS_URL), Charsets.UTF_8).openBufferedStream()) {
-+            try (BufferedReader reader = Resources.asCharSource(new URL("https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/" + URLEncoder.encode(branch, Charsets.UTF_8.name()) + "/lastStableBuild/buildNumber"), Charsets.UTF_8).openBufferedStream()) {
-                 return Integer.decode(reader.readLine()) - jenkinsBuild;
-             } catch (NumberFormatException ex) {
-                 ex.printStackTrace();
-@@ -72,6 +81,7 @@ public class PurpurVersionFetcher implements VersionFetcher {
+@@ -76,6 +84,7 @@ public class PurpurVersionFetcher implements VersionFetcher {
      }
  
      // Contributed by Techcable <Techcable@outlook.com> in GH-65
@@ -274,25 +248,3 @@ index d8b408f061d96e2fa8e2e587462e2221aaee80ce..5857bf9fc07ebb51b85bee7c65e65846
      private static int fetchDistanceFromGitHub(@Nonnull String repo, @Nonnull String branch, @Nonnull String hash) {
          try {
              HttpURLConnection connection = (HttpURLConnection) new URL("https://api.github.com/repos/" + repo + "/compare/" + branch + "..." + hash).openConnection();
-@@ -98,8 +108,9 @@ public class PurpurVersionFetcher implements VersionFetcher {
-         }
-     }
- 
-+    // from PaperVersionFetcher
-     @Nullable
--    private String getHistory() {
-+    private Component getHistory() {
-         final VersionHistoryManager.VersionData data = VersionHistoryManager.INSTANCE.getVersionData();
-         if (data == null) {
-             return null;
-@@ -110,6 +121,7 @@ public class PurpurVersionFetcher implements VersionFetcher {
-             return null;
-         }
- 
--        return "Previous version: " + oldVersion;
-+        return Component.text("Previous version: " + oldVersion, NamedTextColor.GRAY, TextDecoration.ITALIC);
-     }
--}
-+
-+}
-\ No newline at end of file
