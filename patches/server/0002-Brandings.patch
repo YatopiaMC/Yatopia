@@ -160,10 +160,10 @@ index 089ddda8892c3660c5dcb62d0fd56544857a2eba..8ee165d1c752e53601254f734507370b
  
  
 diff --git a/src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-similarity index 79%
+similarity index 77%
 rename from src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java
 rename to src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-index cabfcebf9f944f7a2a2a1cffc7401435803a8741..7fad25f6a752c94d5d63d27c752a151a4d37ad79 100644
+index cabfcebf9f944f7a2a2a1cffc7401435803a8741..3ab6f9c7dc17354a89704db824ecfb5b7a34e629 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
 @@ -1,7 +1,6 @@
@@ -222,12 +222,13 @@ index cabfcebf9f944f7a2a2a1cffc7401435803a8741..7fad25f6a752c94d5d63d27c752a151a
 +        String version = parts[parts.length - 3];
 +        final Component updateMessage = getUpdateStatusMessage("YatopiaMC/Yatopia", branch, version);
          final Component history = getHistory();
--
--        return history != null ? TextComponent.ofChildren(updateMessage, Component.newline(), history) : updateMessage;
--    }
 +        return history != null ?  TextComponent.ofChildren(history, Component.newline(), updateMessage) : updateMessage;
  
-     private static Component getUpdateStatusMessage(@Nonnull String repo, @Nonnull String branch, @Nonnull String versionInfo) {
+-        return history != null ? TextComponent.ofChildren(updateMessage, Component.newline(), history) : updateMessage;
+-    }
+-
+-    private static Component getUpdateStatusMessage(@Nonnull String repo, @Nonnull String branch, @Nonnull String versionInfo) {
++    private Component getUpdateStatusMessage(String repo, String branch, String versionInfo) {
          int distance;
          try {
              int jenkinsBuild = Integer.parseInt(versionInfo);
