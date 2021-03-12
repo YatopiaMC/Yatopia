@@ -183,6 +183,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
+| server |  Fix NPE in pickup logic for arrow      | Spottedleaf |  |
 | server |  Fix PlayerEditBookEvent not saving new book      | BillyGalbreath |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
