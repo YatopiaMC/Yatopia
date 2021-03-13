@@ -6,7 +6,7 @@ Subject: [PATCH] Optimize some stuff in WorldServer ticking
 Replaced some streams and some array lists with glue lists
 
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index fe6611e480c18e97061268690d067a811b13bb1b..68fda6e73db23cc8fb10501b2d84f229ea5afc7f 100644
+index 8ba59ec49aa4568fb18becfa958d2e4f5671f546..0100e57f0c04e0c1363f146ee3a6b888e4695c7c 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
 @@ -885,12 +885,21 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -48,7 +48,7 @@ index fe6611e480c18e97061268690d067a811b13bb1b..68fda6e73db23cc8fb10501b2d84f229
              long l = this.worldData.getDayTime() + 24000L;
              TimeSkipEvent event = new TimeSkipEvent(this.getWorld(), TimeSkipEvent.SkipReason.NIGHT_SKIP, (l - l % 24000L) - this.getDayTime());
              if (this.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE)) {
-@@ -1114,9 +1121,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1115,9 +1122,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
  
      private void wakeupPlayers() {
@@ -60,7 +60,7 @@ index fe6611e480c18e97061268690d067a811b13bb1b..68fda6e73db23cc8fb10501b2d84f229
      }
  
      // Paper start - optimise random block ticking
-@@ -1908,8 +1915,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1911,8 +1918,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // Spigot start
          if ( entity instanceof EntityHuman )
          {
@@ -71,7 +71,7 @@ index fe6611e480c18e97061268690d067a811b13bb1b..68fda6e73db23cc8fb10501b2d84f229
                  for (Object o : worldData.data.values() )
                  {
                      if ( o instanceof WorldMap )
-@@ -1926,7 +1934,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1929,7 +1937,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                          }
                      }
                  }

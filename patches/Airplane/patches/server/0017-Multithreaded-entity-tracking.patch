@@ -37,11 +37,11 @@ index be408aebbccbda46e8aa82ef337574137cfa0096..b9bdce7c7ca8b7b107b0dca165d72232
      protected final double maxFragFactor;
  
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index 3a5a65a2f282b00602643470520fd05fba5907fb..e183b6cae23935823fa9e0f767e499a8102b0ad1 100644
+index 4f87df936d0092cbf8cb2a6db9b57f235c287beb..424325ada75b788ce390378d8df0116e5c50cf3d 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -87,4 +87,18 @@ public class AirplaneConfig {
-         // todo lookup token (off-thread) and let users know if their token is valid
+@@ -90,4 +90,18 @@ public class AirplaneConfig {
+         }
      }
  
 +
@@ -61,7 +61,7 @@ index 3a5a65a2f282b00602643470520fd05fba5907fb..e183b6cae23935823fa9e0f767e499a8
  }
 diff --git a/src/main/java/gg/airplane/structs/TrackQueue.java b/src/main/java/gg/airplane/structs/TrackQueue.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..601694aa6d36ce230d84cc6b55231d2fc3af30e9
+index 0000000000000000000000000000000000000000..e72229128285e1a48b9b461620620976ca0dc0a4
 --- /dev/null
 +++ b/src/main/java/gg/airplane/structs/TrackQueue.java
 @@ -0,0 +1,84 @@
@@ -82,7 +82,7 @@ index 0000000000000000000000000000000000000000..601694aa6d36ce230d84cc6b55231d2f
 +public class TrackQueue {
 +
 +    private final IteratorSafeOrderedReferenceSet<Chunk> chunks;
-+    private final ForkJoinPool pool = ForkJoinPool.commonPool();
++    private final ForkJoinPool pool = new ForkJoinPool(Math.max(4, Runtime.getRuntime().availableProcessors() >> 2));
 +    private final AtomicInteger taskIndex = new AtomicInteger();
 +
 +    private final ConcurrentLinkedQueue<Runnable> mainThreadTasks;
