@@ -5,7 +5,7 @@ Subject: [PATCH] Optimize TileEntity load/unload
 
 
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 6007121ca9791bfc8e68b0354ad9005a7369d389..e6fb68f6e279eb1006f420c37fa408a0cf1fa0f3 100644
+index e280afce30ddc0c2ec54945543ad65b4ebfa71f2..c3909bc3ec2601010b28949258cf52fd8e8446a9 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -42,8 +42,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -16,6 +16,6 @@ index 6007121ca9791bfc8e68b0354ad9005a7369d389..e6fb68f6e279eb1006f420c37fa408a0
 -    protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
 +    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
 +    protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
-     protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
+     protected final java.util.Set<TileEntity> tileEntityListUnload = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()); // Airplane - use set with faster contains
      public final Thread serverThread;
      private final boolean debugWorld;

@@ -19,7 +19,7 @@ index cc6e6f245ee5e73bd570cf42381bf55ee0b364d3..2f8ec64c26f5ed239b4dd9f9532c402d
              StackTraceElement[] astacktraceelement = this.h;
              int i = astacktraceelement.length;
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 67e27a2931acd281803f8003069fac54245d4df6..c0be5153d117208edf69459728d57e11e26b8955 100644
+index 232f3f74d0c5eb2603496188efea8684482a61ef..e98779a3b8569b62c88c59bb8c5a95994f641f51 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1047,7 +1047,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -36,10 +36,10 @@ index 67e27a2931acd281803f8003069fac54245d4df6..c0be5153d117208edf69459728d57e11
              if ( throwable.getCause() != null )
              {
 diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index ea86843fa0313da15b905cbd712c15e7b217daa4..6b071cb882c25dc2ed579d9ae48ed7d6fd816b0a 100644
+index 53b5063b43e42f09c2ef335251c91d2051676972..a6908441324fb11ed1e1db2998acc41b71b65142 100644
 --- a/src/main/java/net/minecraft/server/NetworkManager.java
 +++ b/src/main/java/net/minecraft/server/NetworkManager.java
-@@ -382,6 +382,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -404,6 +404,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
              channelfuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
              // Paper start
              } catch (Exception e) {
@@ -51,7 +51,7 @@ index ea86843fa0313da15b905cbd712c15e7b217daa4..6b071cb882c25dc2ed579d9ae48ed7d6
                  LOGGER.error("NetworkException: " + player, e);
                  close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
                  packet.onPacketDispatchFinish(player, null);
-@@ -421,6 +426,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -443,6 +448,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                          channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
                          // Paper start
                      } catch (Exception e) {
@@ -63,7 +63,7 @@ index ea86843fa0313da15b905cbd712c15e7b217daa4..6b071cb882c25dc2ed579d9ae48ed7d6
                          LOGGER.error("NetworkException: " + player, e);
                          close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
                          packet.onPacketDispatchFinish(player, null);
-@@ -456,6 +466,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+@@ -478,6 +488,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
                          channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
                          // Paper start
                      } catch (Exception e) {
@@ -108,10 +108,10 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..7b9f83e63d0f9cd83a246be33af4ab91
                              ChatComponentText chatcomponenttext = new ChatComponentText("Internal server error");
  
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index e6fb68f6e279eb1006f420c37fa408a0cf1fa0f3..55238930d8352ccedb963389461f119cd813aff9 100644
+index c3909bc3ec2601010b28949258cf52fd8e8446a9..a4b8505705061bd01a50e68d04e620a000f6084f 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
-@@ -1019,6 +1019,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1024,6 +1024,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
                          // Paper start - Prevent tile entity and entity crashes
                          String msg = "TileEntity threw exception at " + tileentity.world.getWorld().getName() + ":" + tileentity.position.getX() + "," + tileentity.position.getY() + "," + tileentity.position.getZ();
                          System.err.println(msg);

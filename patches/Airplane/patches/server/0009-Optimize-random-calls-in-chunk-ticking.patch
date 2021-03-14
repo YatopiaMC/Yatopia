@@ -34,7 +34,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/server/Chunk.java b/src/main/java/net/minecraft/server/Chunk.java
-index 8fda4702764e80dae93ef9c0eb53abc198642ab1..0924f6b484468f3cf3c2d405101c0158c12d69e6 100644
+index 8e59a794f6190930cb7bb81a2fe1a1d374dacce7..045b4af6721817b3dbfb05b9aec0bf382de9fcf5 100644
 --- a/src/main/java/net/minecraft/server/Chunk.java
 +++ b/src/main/java/net/minecraft/server/Chunk.java
 @@ -53,6 +53,18 @@ public class Chunk implements IChunkAccess {
@@ -65,10 +65,10 @@ index 8fda4702764e80dae93ef9c0eb53abc198642ab1..0924f6b484468f3cf3c2d405101c0158
  
      public org.bukkit.Chunk bukkitChunk;
 diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-index e26389d8d9ee4fedb32767fce3aed071af412304..9cf3cd69661a140d34d17195c2cd6dc299c95ddf 100644
+index b55f7dece329dbb3ff27d57a39c32c69e5baea74..5897d462d350dfbd1464feb92ecf77725651c694 100644
 --- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
-@@ -974,6 +974,7 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -975,6 +975,7 @@ public class ChunkProviderServer extends IChunkProvider {
              }
              // Paper end - optimize isOutisdeRange
              this.world.getMethodProfiler().enter("pollingChunks");
@@ -77,19 +77,19 @@ index e26389d8d9ee4fedb32767fce3aed071af412304..9cf3cd69661a140d34d17195c2cd6dc2
              boolean flag2 = world.ticksPerAnimalSpawns != 0L && worlddata.getTime() % world.ticksPerAnimalSpawns == 0L; // CraftBukkit
  
 diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 9ae0d37d41700f9fb1e13d1b61b07c7bc09b9d75..fe6611e480c18e97061268690d067a811b13bb1b 100644
+index 63dd6aba40506014b15efecfb8562c4f455ac04e..7660d098046100a4ab168149604ec196a4eea03d 100644
 --- a/src/main/java/net/minecraft/server/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1124,6 +1124,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
-     private final com.destroystokyo.paper.util.math.ThreadUnsafeRandom randomTickRandom = new com.destroystokyo.paper.util.math.ThreadUnsafeRandom();
-     // Paper end
+@@ -1127,6 +1127,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     private final BiomeBase[] biomeBaseCache = new BiomeBase[1];
+     // Tuinity end - optimise chunk ice snow ticking
  
 +    private int currentIceAndSnowTick = 0; protected void resetIceAndSnowTick() { this.currentIceAndSnowTick = this.randomTickRandom.nextInt(16); } // Airplane
 +
      public void a(Chunk chunk, int i) { final int randomTickSpeed = i; // Paper
          ChunkCoordIntPair chunkcoordintpair = chunk.getPos();
          boolean flag = this.isRaining();
-@@ -1134,7 +1136,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1137,7 +1139,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          gameprofilerfiller.enter("thunder");
          final BlockPosition.MutableBlockPosition blockposition = this.chunkTickMutablePosition; // Paper - use mutable to reduce allocation rate, final to force compile fail on change
  
@@ -98,12 +98,12 @@ index 9ae0d37d41700f9fb1e13d1b61b07c7bc09b9d75..fe6611e480c18e97061268690d067a81
              blockposition.setValues(this.a(this.a(j, 0, k, 15))); // Paper
              if (this.isRainingAt(blockposition)) {
                  DifficultyDamageScaler difficultydamagescaler = this.getDamageScaler(blockposition);
-@@ -1164,7 +1166,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1167,7 +1169,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
  
          gameprofilerfiller.exitEnter("iceandsnow");
 -        if (!this.paperConfig.disableIceAndSnow && this.randomTickRandom.nextInt(16) == 0) { // Paper - Disable ice and snow // Paper - optimise random ticking
 +        if (!this.paperConfig.disableIceAndSnow && (this.currentIceAndSnowTick++ & 15) == 0) { // Paper - Disable ice and snow // Paper - optimise random ticking // Airplane - optimize further random ticking
              // Paper start - optimise chunk ticking
-             this.getRandomBlockPosition(j, 0, k, 15, blockposition);
-             int normalY = chunk.getHighestBlockY(HeightMap.Type.MOTION_BLOCKING, blockposition.getX() & 15, blockposition.getZ() & 15);
+             // Tuinity start - optimise chunk ice snow ticking
+             BiomeBase[] biomeCache = this.biomeBaseCache;
