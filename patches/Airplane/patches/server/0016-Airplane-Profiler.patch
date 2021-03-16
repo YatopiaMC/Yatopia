@@ -50,10 +50,10 @@ index 752d62eb3b87ab24260ec2c029bae0d2b0e3b908..02bbe784d0a062dd643e37f3ad04b77a
  
      <pluginRepositories>
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index c39c9929a251b41ab60e1509b4e6c90d0825dc0c..3a5a65a2f282b00602643470520fd05fba5907fb 100644
+index c39c9929a251b41ab60e1509b4e6c90d0825dc0c..4f87df936d0092cbf8cb2a6db9b57f235c287beb 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -68,4 +68,23 @@ public class AirplaneConfig {
+@@ -68,4 +68,26 @@ public class AirplaneConfig {
          dynamicHoglinBehavior = manual.get("behavior-activation.hoglin", dynamicHoglinBehavior);
      }
  
@@ -74,6 +74,9 @@ index c39c9929a251b41ab60e1509b4e6c90d0825dc0c..3a5a65a2f282b00602643470520fd05f
 +
 +        accessToken = manual.get("web-services.token", "");
 +        // todo lookup token (off-thread) and let users know if their token is valid
++        if (accessToken.length() > 0) {
++            gg.airplane.flare.FlareSetup.init(); // Airplane
++        }
 +    }
 +
  }
@@ -202,10 +205,10 @@ index 0000000000000000000000000000000000000000..f4976428bc721319d2926e97cbe0f64c
 +}
 diff --git a/src/main/java/gg/airplane/flare/FlareCommand.java b/src/main/java/gg/airplane/flare/FlareCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..81f5267d287138f6b47aa0a1f1d59d2d91a7e34a
+index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba2172df01
 --- /dev/null
 +++ b/src/main/java/gg/airplane/flare/FlareCommand.java
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,159 @@
 +package gg.airplane.flare;
 +
 +import com.google.common.collect.ImmutableList;
@@ -230,6 +233,7 @@ index 0000000000000000000000000000000000000000..81f5267d287138f6b47aa0a1f1d59d2d
 +
 +public class FlareCommand extends Command {
 +
++    private static final String BASE_URL = "https://blog.airplane.gg/flare-tutorial/#setting-the-access-token";
 +    private static final ChatColor HEX = ChatColor.of("#6a7eda");
 +    private static final BaseComponent[] PREFIX = new ComponentBuilder("Flare ✈ ")
 +      .color(HEX)
@@ -255,10 +259,10 @@ index 0000000000000000000000000000000000000000..81f5267d287138f6b47aa0a1f1d59d2d
 +    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
 +        if (!testPermission(sender)) return true;
 +        if (AirplaneConfig.accessToken.length() == 0) {
-+            BaseComponent clickable = new TextComponent("https://blog.airplane.gg/flare");
++            BaseComponent clickable = new TextComponent(BASE_URL);
 +            clickable.setUnderlined(true);
 +            clickable.setColor(HEX);
-+            clickable.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://blog.airplane.gg/flare"));
++            clickable.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, BASE_URL));
 +
 +            sender.sendMessage(create(new ComponentBuilder("Flare currently requires an access token to use. To learn more, visit ")
 +              .color(HEX)
@@ -587,18 +591,6 @@ index 0000000000000000000000000000000000000000..86d6650d174a7794a7ebe793cad033b4
 +    }
 +
 +}
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index b8a45c80b6691214e513286262f31b7b5b1dd5eb..a85a844a4766cde16eea9e814abfec29d8935c0f 100644
---- a/src/main/java/net/minecraft/server/DedicatedServer.java
-+++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -187,6 +187,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
-         com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
-         gg.airplane.AirplaneConfig.load(); // Airplane - config
-         gg.airplane.commands.AirplaneCommands.init(); // Airplane - command
-+        gg.airplane.flare.FlareSetup.init(); // Airplane
- 
-         this.setPVP(dedicatedserverproperties.pvp);
-         this.setAllowFlight(dedicatedserverproperties.allowFlight);
 diff --git a/src/main/java/org/bukkit/craftbukkit/scheduler/MinecraftInternalPlugin.java b/src/main/java/org/bukkit/craftbukkit/scheduler/MinecraftInternalPlugin.java
 index 49dc0c441b9dd7e7745cf15ced67f383ebee1f99..b343d8ee7435312929558efdaf127334d8e2fff6 100644
 --- a/src/main/java/org/bukkit/craftbukkit/scheduler/MinecraftInternalPlugin.java

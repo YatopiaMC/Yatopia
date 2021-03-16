@@ -5,7 +5,7 @@ Subject: [PATCH] Set name visible when using a Name Tag on an Armor Stand
 
 
 diff --git a/src/main/java/net/minecraft/server/ItemNameTag.java b/src/main/java/net/minecraft/server/ItemNameTag.java
-index a34772e329df62d9176b0aa392197e2771c69da4..b6f2270aae3422f5ee5bae0f955f5807f5cadf59 100644
+index a34772e329df62d9176b0aa392197e2771c69da4..facaca3622e028e315b822a61ed40ba518de2720 100644
 --- a/src/main/java/net/minecraft/server/ItemNameTag.java
 +++ b/src/main/java/net/minecraft/server/ItemNameTag.java
 @@ -20,6 +20,11 @@ public class ItemNameTag extends Item {
@@ -13,8 +13,8 @@ index a34772e329df62d9176b0aa392197e2771c69da4..b6f2270aae3422f5ee5bae0f955f5807
                  EntityLiving newEntityLiving = ((org.bukkit.craftbukkit.entity.CraftLivingEntity) event.getEntity()).getHandle();
                  newEntityLiving.setCustomName(event.getName() != null ? PaperAdventure.asVanilla(event.getName()) : null);
 +                // Purpur start
-+                if (entityhuman.world.purpurConfig.armorstandFixNametags && newEntityLiving instanceof EntityArmorStand) {
-+                    newEntityLiving.setCustomNameVisible(true);
++                if (entityhuman.world.purpurConfig.armorstandFixNametags && entityliving instanceof EntityArmorStand) {
++                    entityliving.setCustomNameVisible(true);
 +                }
 +                // Purpur end
                  if (event.isPersistent() && newEntityLiving instanceof EntityInsentient) {

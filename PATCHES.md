@@ -97,6 +97,7 @@ This is an overview over all patches that are currently used.
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
 | server |  Bring back server name      | William Blake Galbreath |  |
 | api |  Bring back server name      | William Blake Galbreath |  |
+| server |  Cache entityhuman display name      | Paul Sauve |  |
 | server |  Cache palette array      | Paul Sauve |  |
 | server |  Cat spawning options      | William Blake Galbreath |  |
 | server |  Change writes to use NORMAL priority rather than LOW      | Spottedleaf |  |
@@ -138,6 +139,7 @@ This is an overview over all patches that are currently used.
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Crying obsidian valid for portal frames      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Zoe |  |
+| server |  Custom table implementation for blockstate state lookups      | Spottedleaf |  |
 | server |  Customizable wither health and healing      | jmp |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Delay chunk unloads      | Spottedleaf |  |
@@ -168,6 +170,7 @@ This is an overview over all patches that are currently used.
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
+| server |  Early return optimization for target finding      | Paul Sauve |  |
 | server |  End crystal explosion options      | Ben Kerllenevich |  |
 | server |  End gateway should check if entity can use portal      | William Blake Galbreath |  |
 | server |  Ender dragon always drop full exp      | William Blake Galbreath |  |
@@ -263,14 +266,16 @@ This is an overview over all patches that are currently used.
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  One Punch Man!      | Fourmisain |  |
+| server |  Oprimise map impl for tracked players      | Spottedleaf |  |
 | server |  Optimise WorldServer#notify      | Spottedleaf |  |
 | server |  Optimise chunk tick iteration      | Spottedleaf |  |
 | server |  Optimise closest entity lookup      | Spottedleaf |  |
 | server |  Optimise collision checking in player move packet handling      | Spottedleaf |  |
 | server |  Optimise entity hard collision checking      | Spottedleaf |  |
+| server |  Optimise general POI access      | Spottedleaf |  |
 | server |  Optimise nearby player lookups      | Spottedleaf |  |
 | server |  Optimise non-flush packet sending      | Spottedleaf |  |
-| server |  Optimise portals      | Ivan Pekov |  |
+| server |  Optimise snow &amp; ice in chunk ticking      | Spottedleaf |  |
 | server |  Optimise tab complete      | Spottedleaf |  |
 | server |  Optimised hallowen checker      | Ivan Pekov |  |
 | server |  Optimize BehaviorController      | MrIvanPlays |  |
@@ -290,6 +295,7 @@ This is an overview over all patches that are currently used.
 | server |  PaperPR - Config option for Piglins guarding chests      | jmp |  |
 | server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
+| api |  Per player viewdistances      | Spottedleaf |  |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | server |  Phantom flames on swoop      | BillyGalbreath |  |
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
@@ -325,12 +331,16 @@ This is an overview over all patches that are currently used.
 | server |  Reduce allocation rate from crammed entities      | Spottedleaf |  |
 | server |  Reduce allocs &amp; improve perf of StructureManager      | Paul Sauve |  |
 | server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
+| server |  Reduce entity chunk ticking checks from 3 to 1      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
+| server |  Remove chunk lookup &amp; lambda allocation from counting mobs      | Spottedleaf |  |
+| server |  Remove iterators from inventory contains      | Paul Sauve |  |
 | server |  Remove some streams and object allocations      | Phoenix616 |  |
 | server |  Remove streams      | Paul Sauve |  |
 | server |  Remove streams for villager AI      | Spottedleaf |  |
+| server |  Replace player chunk loader system      | Spottedleaf |  |
 | server |  Revert MC-4 fix      | Spottedleaf |  |
 | server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
 | server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |
@@ -347,6 +357,7 @@ This is an overview over all patches that are currently used.
 | server |  Silk touch spawners      | William Blake Galbreath |  |
 | server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip POI finding if stuck in vehicle      | Paul Sauve |  |
+| server |  Skip copying unloading tile entities      | Paul Sauve |  |
 | server |  Skip events if there&#39;s no listeners      | William Blake Galbreath |  |
 | server |  Smarter statistics ticking      | Mykyta Komarnytskyy |  |
 | server |  Smol entity optimisations      | Ivan Pekov |  |
@@ -363,6 +374,7 @@ This is an overview over all patches that are currently used.
 | server |  Suspected plugins report      | ishland |  |
 | api |  Suspected plugins report      | ishland |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
+| server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Time scoreboard search      | Spottedleaf |  |
 | server |  Timings stuff      | William Blake Galbreath |  |
 | server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
@@ -376,6 +388,7 @@ This is an overview over all patches that are currently used.
 | server |  Update version fetcher repo      | JRoy |  |
 | server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
 | server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
+| server |  Use hash table for maintaing changed block set      | Spottedleaf |  |
 | server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Util patch      | Spottedleaf |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
