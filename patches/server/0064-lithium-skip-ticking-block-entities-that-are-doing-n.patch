@@ -5,7 +5,7 @@ Subject: [PATCH] lithium: skip ticking block entities that are doing nothing
 
 
 diff --git a/pom.xml b/pom.xml
-index c48503c42e37545ed606f6a6088ca06d057787ce..c58fde8014775216c57b46011021b1962eb15f38 100644
+index c080f9410953d1be02c8719382f398114e9222cb..aa752fa03b4c556ad22735d06802c90a562c0943 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -35,6 +35,12 @@
@@ -1246,7 +1246,7 @@ index ab553f408b31cb7e2d281cc3d8fe42e19dc717d9..6e426d8e4c6e3768730b0d66267f44c1
  
      @Nullable
 diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 55238930d8352ccedb963389461f119cd813aff9..60b14ea25dd15dda358fbca35ba1216cd1efa70d 100644
+index a4b8505705061bd01a50e68d04e620a000f6084f..68f62b5de156de9658c77b3d8286fcf6ef6648ad 100644
 --- a/src/main/java/net/minecraft/server/World.java
 +++ b/src/main/java/net/minecraft/server/World.java
 @@ -32,8 +32,11 @@ import org.bukkit.craftbukkit.block.CraftBlockState;
@@ -1269,7 +1269,7 @@ index 55238930d8352ccedb963389461f119cd813aff9..60b14ea25dd15dda358fbca35ba1216c
 -    public final List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
 +    public List<TileEntity> tileEntityListTick = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
      protected final List<TileEntity> tileEntityListPending = me.jellysquid.mods.lithium.common.util.collections.HashedList.wrapper(Lists.newArrayList()); // Yatopia
-     protected final java.util.Set<TileEntity> tileEntityListUnload = com.google.common.collect.Sets.newHashSet();
+     protected final java.util.Set<TileEntity> tileEntityListUnload = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()); // Airplane - use set with faster contains
 +    // Yatopia start - lithium: skip ticking block entities that are doing nothing
 +    private MaskedTickingBlockEntityList<TileEntity> tileEntityListTick$lithium;
 +
@@ -1306,7 +1306,7 @@ index 55238930d8352ccedb963389461f119cd813aff9..60b14ea25dd15dda358fbca35ba1216c
      public void tickBlockEntities() {
          GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
  
-@@ -984,11 +1006,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -989,11 +1011,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
          this.tickingTileEntities = true;
          // Spigot start
@@ -1326,7 +1326,7 @@ index 55238930d8352ccedb963389461f119cd813aff9..60b14ea25dd15dda358fbca35ba1216c
              // Spigot start
              if (tileentity == null) {
                  getServer().getLogger().severe("Spigot has detected a null entity and has removed it, preventing a crash");
-@@ -1026,8 +1056,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1031,8 +1061,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
                          throwable.printStackTrace();
                          getServer().getPluginManager().callEvent(new ServerExceptionEvent(new ServerInternalException(msg, throwable)));
                          // Paper end
@@ -1336,7 +1336,7 @@ index 55238930d8352ccedb963389461f119cd813aff9..60b14ea25dd15dda358fbca35ba1216c
                          continue;
                          // Paper end
                          // Spigot start
-@@ -1040,8 +1069,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1045,8 +1074,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
              if (tileentity.isRemoved()) {
                  // Spigot start

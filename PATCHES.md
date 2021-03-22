@@ -413,4 +413,3 @@ This is an overview over all patches that are currently used.
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
 | server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
 | server |  lithium: skip ticking block entities that are doing nothing      | 2No2Name |  |
-| server |  replace Math.sin and Math.cos with MathHelper      | Simon Gardling |  |
