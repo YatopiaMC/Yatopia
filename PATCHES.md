@@ -138,7 +138,6 @@ This is an overview over all patches that are currently used.
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Crying obsidian valid for portal frames      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Zoe |  |
-| server |  Custom table implementation for blockstate state lookups      | Spottedleaf |  |
 | server |  Customizable wither health and healing      | jmp |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Delay chunk unloads      | Spottedleaf |  |
