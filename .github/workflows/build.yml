@@ -1,11 +1,13 @@
 name: Yatopia Build Script
 
 on:
+  workflow_dispatch:
   push:
     paths-ignore:
       - '*.md'
       - 'Jenkinsfile'
     branches:
+      - staging/1.16.5
       - ver/1.16.5
       - ver/1.16.4
       - ver/1.16.3
@@ -75,12 +77,12 @@ jobs:
 
     - name: Build Yatopia
       run: |
-        ./gradlew clean build yatoclip
+        ./gradlew clean build paperclip
         
     - name: Upload Artifact
       if: github.ref != 'refs/heads/ver/1.16.4'
       uses: actions/upload-artifact@v2
       with:
         name: Yatopia-${{ matrix.java }}
-        path: yatopia-1.16.5-yatoclip.jar
+        path: yatopia-1.16.5-paperclip.jar
       

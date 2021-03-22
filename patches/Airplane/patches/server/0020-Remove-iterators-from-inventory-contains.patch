@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sat, 13 Mar 2021 12:24:41 -0600
+Subject: [PATCH] Remove iterators from inventory contains
+
+
+diff --git a/src/main/java/net/minecraft/server/PlayerInventory.java b/src/main/java/net/minecraft/server/PlayerInventory.java
+index 3b65711b91c51ac7b4b5b2b0144ffd279fe60eeb..478f33dbbd0b5a9b81ee420f77c97fa8c40e27d6 100644
+--- a/src/main/java/net/minecraft/server/PlayerInventory.java
++++ b/src/main/java/net/minecraft/server/PlayerInventory.java
+@@ -609,6 +609,8 @@ public class PlayerInventory implements IInventory, INamableTileEntity {
+     }
+ 
+     public boolean h(ItemStack itemstack) {
++        // Airplane start - skip using abstract iterators and stuff, they're generic and slow and allocating them sucks
++        /*
+         Iterator iterator = this.f.iterator();
+ 
+         while (iterator.hasNext()) {
+@@ -623,6 +625,20 @@ public class PlayerInventory implements IInventory, INamableTileEntity {
+                 }
+             }
+         }
++         */
++        List<NonNullList<ItemStack>> components = this.getComponents();
++        for (int i = 0; i < components.size(); i++) {
++            List<ItemStack> list = components.get(i);
++
++            for (int j = 0; j < list.size(); j++) {
++                ItemStack itemstack1 = list.get(j);
++
++                if (!itemstack1.isEmpty() && itemstack1.doMaterialsMatch(itemstack)) {
++                    return true;
++                }
++            }
++        }
++        // Airplane end
+ 
+         return false;
+     }
