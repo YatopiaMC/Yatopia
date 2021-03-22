@@ -4,11 +4,11 @@ Date: Sat, 13 Mar 2021 10:40:22 -0600
 Subject: [PATCH] Reduce entity chunk ticking checks from 3 to 1
 
 
-diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index 7660d098046100a4ab168149604ec196a4eea03d..4e7700443c4f0725c0d032b620f84fcfadbde7a1 100644
---- a/src/main/java/net/minecraft/server/WorldServer.java
-+++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -988,11 +988,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index b33f37309d4dd22c033ad84effa4ff9d6e20a790..b788c33605fc96d17758cf42e508872e38fb4322 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -1081,11 +1081,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  // CraftBukkit end */
  
                  gameprofilerfiller.enter("checkDespawn");
@@ -22,7 +22,7 @@ index 7660d098046100a4ab168149604ec196a4eea03d..4e7700443c4f0725c0d032b620f84fcf
                              this.updateNavigatorsInRegion(entity);
                          }
                      } else {
-@@ -1022,7 +1023,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1115,7 +1116,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                      this.entitiesById.remove(entity.getId()); // Tuinity
                      this.unregisterEntity(entity);
                  } else if (entity.inChunk && entity.valid) { // Tuinity start - optimise notify()
@@ -31,7 +31,7 @@ index 7660d098046100a4ab168149604ec196a4eea03d..4e7700443c4f0725c0d032b620f84fcf
                          this.updateNavigatorsInRegion(entity);
                      }
                  } else {
-@@ -1349,7 +1350,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1416,7 +1417,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
      // Tuinity end - log detailed entity tick information
  
@@ -42,7 +42,7 @@ index 7660d098046100a4ab168149604ec196a4eea03d..4e7700443c4f0725c0d032b620f84fcf
          // Tuinity start - log detailed entity tick information
          com.tuinity.tuinity.util.TickThread.ensureTickThread("Cannot tick an entity off-main");
          try {
-@@ -1357,7 +1360,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1424,7 +1427,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  currentlyTickingEntity.lazySet(entity);
              }
              // Tuinity end - log detailed entity tick information

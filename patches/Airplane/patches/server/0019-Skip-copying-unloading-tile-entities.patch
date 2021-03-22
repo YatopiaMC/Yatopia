@@ -4,11 +4,11 @@ Date: Sat, 13 Mar 2021 10:19:15 -0600
 Subject: [PATCH] Skip copying unloading tile entities
 
 
-diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index 9d6ddfec93f49f80fdc88248fc5aaf5ad6ee48da..bdb0e46d9196f4ac164ed09fd9d01db60aaab401 100644
---- a/src/main/java/net/minecraft/server/World.java
-+++ b/src/main/java/net/minecraft/server/World.java
-@@ -44,7 +44,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index bbc842a173b12a96b1b63af347d2196ac1cb5f73..938a8732d1d57ae0cf424fa17c5c5b08cc5df37b 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -106,7 +106,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      //public final List<TileEntity> tileEntityList = Lists.newArrayList(); // Paper - remove unused list
      public final List<TileEntity> tileEntityListTick = Lists.newArrayList();
      protected final List<TileEntity> tileEntityListPending = Lists.newArrayList();
@@ -17,7 +17,7 @@ index 9d6ddfec93f49f80fdc88248fc5aaf5ad6ee48da..bdb0e46d9196f4ac164ed09fd9d01db6
      public final Thread serverThread;
      private final boolean debugWorld;
      private int d;
-@@ -969,12 +969,17 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -986,12 +986,17 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          gameprofilerfiller.enter("blockEntities");
          timings.tileEntityTick.startTiming(); // Spigot
          if (!this.tileEntityListUnload.isEmpty()) {

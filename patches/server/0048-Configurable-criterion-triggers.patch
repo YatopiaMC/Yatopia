@@ -5,11 +5,11 @@ Subject: [PATCH] Configurable criterion triggers
 
 This patch adds toggles for three criterion triggers that are called every tick. These can be very unnecessary, and especially in the case of CriterionTriggerEnterBlock, quite heavy.
 
-diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index 8071e8ec7bb505e026ceead84377e61063864bc5..bf143aae623305b716eb1ee8e190d3e0e694f328 100644
---- a/src/main/java/net/minecraft/server/EntityPlayer.java
-+++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -439,6 +439,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
+index b4dbc59faff3fd6ceb74d829762eb68e649975c5..e6bc64037f79a1380bcb99ff3c4455e0d9cb8d5d 100644
+--- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
+@@ -571,6 +571,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
  
      @Override
      protected void a(IBlockData iblockdata) {
@@ -17,7 +17,7 @@ index 8071e8ec7bb505e026ceead84377e61063864bc5..bf143aae623305b716eb1ee8e190d3e0
          CriterionTriggers.d.a(this, iblockdata);
      }
  
-@@ -769,7 +770,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -901,7 +902,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
                  this.playerConnection.sendPacket(new PacketPlayOutExperience(this.exp, this.expTotal, this.expLevel));
              }
  

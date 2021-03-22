@@ -5,11 +5,11 @@ Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
 
 Co-authored-by: Mykyta Komarn <nkomarn@hotmail.com>
 
-diff --git a/src/main/java/net/minecraft/server/TileEntityFurnace.java b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-index 48359a7e79b64026e38e7cd17505d8944106e089..9ff95817cc1ec4f28070e8e91bf8ab64cad7b23c 100644
---- a/src/main/java/net/minecraft/server/TileEntityFurnace.java
-+++ b/src/main/java/net/minecraft/server/TileEntityFurnace.java
-@@ -300,7 +300,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java
+index cd7bcedf8474dcb565b5b1157e167706c031a7f1..8a1425f565204fedd1007862b2af9db4c9217461 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java
+@@ -331,7 +331,10 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
                      this.cookTime = MathHelper.clamp(this.cookTime - 2, 0, this.cookTimeTotal);
                  }
              } else {
@@ -21,7 +21,7 @@ index 48359a7e79b64026e38e7cd17505d8944106e089..9ff95817cc1ec4f28070e8e91bf8ab64
  
                  if (!this.isBurning() && this.canBurn(irecipe)) {
                      // CraftBukkit start
-@@ -632,4 +635,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -663,4 +666,18 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          }
  
      }

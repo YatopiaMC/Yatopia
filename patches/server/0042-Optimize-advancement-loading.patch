@@ -5,11 +5,11 @@ Subject: [PATCH] Optimize advancement loading
 
 Removed some object allocations and reduced loops
 
-diff --git a/src/main/java/net/minecraft/server/Advancement.java b/src/main/java/net/minecraft/server/Advancement.java
-index 384d4090f8ff1ea718de16affa5c146a2f58d28a..486034a826b67c71dc7d07852013dc07fefadb0f 100644
---- a/src/main/java/net/minecraft/server/Advancement.java
-+++ b/src/main/java/net/minecraft/server/Advancement.java
-@@ -68,6 +68,7 @@ public class Advancement {
+diff --git a/src/main/java/net/minecraft/advancements/Advancement.java b/src/main/java/net/minecraft/advancements/Advancement.java
+index 8bfd20ff9a3c96fa9ff5cc618ca7e858e62943a0..12b542dd8b84a5f2c24d47f5ae9fff34a1f980c2 100644
+--- a/src/main/java/net/minecraft/advancements/Advancement.java
++++ b/src/main/java/net/minecraft/advancements/Advancement.java
+@@ -81,6 +81,7 @@ public class Advancement {
          return this.display;
      }
  
@@ -18,10 +18,10 @@ index 384d4090f8ff1ea718de16affa5c146a2f58d28a..486034a826b67c71dc7d07852013dc07
          return this.rewards;
      }
 diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-index eaa1063ff2bc5621e93043c4de41ca62f1323fde..96069438ad3f4b00e2996247c222153228cbc2e1 100644
+index 59d781b5e61c5d2c004bc92300d8d42e81821308..606e22bc402af1f10e3208b91014af24994c368e 100644
 --- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
 +++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
-@@ -160,11 +160,16 @@ public class AdvancementDataPlayer {
+@@ -179,11 +179,16 @@ public class AdvancementDataPlayer {
                          throw new JsonParseException("Found null for advancements");
                      }
  
@@ -38,7 +38,7 @@ index eaa1063ff2bc5621e93043c4de41ca62f1323fde..96069438ad3f4b00e2996247c2221532
                          Advancement advancement = advancementdataworld.a((MinecraftKey) entry.getKey());
  
                          if (advancement == null) {
-@@ -202,11 +207,37 @@ public class AdvancementDataPlayer {
+@@ -221,11 +226,37 @@ public class AdvancementDataPlayer {
              }
          }
  
@@ -76,7 +76,7 @@ index eaa1063ff2bc5621e93043c4de41ca62f1323fde..96069438ad3f4b00e2996247c2221532
      public void b() {
          if (org.spigotmc.SpigotConfig.disableAdvancementSaving) return; // Spigot
          Map<MinecraftKey, AdvancementProgress> map = Maps.newHashMap();
-@@ -331,6 +362,11 @@ public class AdvancementDataPlayer {
+@@ -350,6 +381,11 @@ public class AdvancementDataPlayer {
          AdvancementProgress advancementprogress = this.getProgress(advancement);
  
          if (!advancementprogress.isDone()) {
@@ -88,7 +88,7 @@ index eaa1063ff2bc5621e93043c4de41ca62f1323fde..96069438ad3f4b00e2996247c2221532
              Iterator iterator = advancement.getCriteria().entrySet().iterator();
  
              while (iterator.hasNext()) {
-@@ -350,7 +386,7 @@ public class AdvancementDataPlayer {
+@@ -369,7 +405,7 @@ public class AdvancementDataPlayer {
                  }
              }
  
@@ -97,7 +97,7 @@ index eaa1063ff2bc5621e93043c4de41ca62f1323fde..96069438ad3f4b00e2996247c2221532
      }
  
      private void d(Advancement advancement) {
-@@ -445,6 +481,7 @@ public class AdvancementDataPlayer {
+@@ -464,6 +500,7 @@ public class AdvancementDataPlayer {
          this.data.put(advancement, advancementprogress);
      }
  

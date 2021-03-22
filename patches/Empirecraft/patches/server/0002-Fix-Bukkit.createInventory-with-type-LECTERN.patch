@@ -22,11 +22,11 @@ obc.i.u.CraftTileInventoryConverter$Lectern:
 This patch is licensed under the MIT License.
 License: https://opensource.org/licenses/MIT
 
-diff --git a/src/main/java/net/minecraft/server/TileEntityLectern.java b/src/main/java/net/minecraft/server/TileEntityLectern.java
-index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a54ec28f2f 100644
---- a/src/main/java/net/minecraft/server/TileEntityLectern.java
-+++ b/src/main/java/net/minecraft/server/TileEntityLectern.java
-@@ -19,6 +19,11 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityLectern.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityLectern.java
+index 89618f652b5eea4a380b0f00a5e4f8007495a0ef..94562f7b0f5cde9f8b4a163cc2b8cf7ab6c5d897 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityLectern.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityLectern.java
+@@ -44,6 +44,11 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
      // CraftBukkit start - add fields and methods
      public final IInventory inventory = new LecternInventory();
      public class LecternInventory implements IInventory {
@@ -38,7 +38,7 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
  
          public List<HumanEntity> transaction = new ArrayList<>();
          private int maxStack = 1;
-@@ -76,7 +81,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+@@ -101,7 +106,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
  
          @Override
          public ItemStack splitStack(int i, int j) {
@@ -47,7 +47,7 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
                  ItemStack itemstack = TileEntityLectern.this.book.cloneAndSubtract(j);
  
                  if (TileEntityLectern.this.book.isEmpty()) {
-@@ -91,7 +96,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+@@ -116,7 +121,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
  
          @Override
          public ItemStack splitWithoutUpdate(int i) {
@@ -56,7 +56,7 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
                  ItemStack itemstack = TileEntityLectern.this.book;
  
                  TileEntityLectern.this.book = ItemStack.b;
-@@ -126,7 +131,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+@@ -151,7 +156,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
  
          @Override
          public boolean a(EntityHuman entityhuman) {
@@ -65,7 +65,7 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
          }
  
          @Override
-@@ -159,6 +164,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+@@ -184,6 +189,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
      private ItemStack book;
      private int page;
      private int maxPage;
@@ -73,7 +73,7 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
  
      public TileEntityLectern() {
          super(TileEntityTypes.LECTERN);
-@@ -180,6 +186,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+@@ -205,6 +211,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
      }
  
      private void k() {
@@ -81,7 +81,7 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
          this.page = 0;
          this.maxPage = 0;
          BlockLectern.setHasBook(this.getWorld(), this.getPosition(), this.getBlock(), false);
-@@ -197,6 +204,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
+@@ -222,6 +229,7 @@ public class TileEntityLectern extends TileEntity implements Clearable, ITileInv
  
          if (j != this.page) {
              this.page = j;
@@ -90,18 +90,18 @@ index 4b414763d7ecfe48cc196176e00e2ab209813c2e..cb628464d04d65c611a228b9d8ca07a5
              if (this.world != null) BlockLectern.a(this.getWorld(), this.getPosition(), this.getBlock()); // CraftBukkit
          }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
-index fc1cf7cc6b26171c0baf623f04f6b495d5adf517..fb3af03ca8b23a401efd56891b4efea510d1a449 100644
+index b99423b3b413fc6364c6530a99e3c74dd406e1b4..011426d0ce66299e50bd6dd2295e27bb2a873eb3 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftHumanEntity.java
-@@ -31,6 +31,7 @@ import net.minecraft.server.PacketPlayInCloseWindow;
- import net.minecraft.server.PacketPlayOutOpenWindow;
- import net.minecraft.server.TileEntity;
- import net.minecraft.server.TileEntityContainer;
-+import net.minecraft.server.TileEntityLectern; // EMC
+@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.BlockWorkbench;
+ import net.minecraft.world.level.block.Blocks;
+ import net.minecraft.world.level.block.entity.TileEntity;
+ import net.minecraft.world.level.block.entity.TileEntityContainer;
++import net.minecraft.world.level.block.entity.TileEntityLectern; // EMC
+ import net.minecraft.world.level.block.entity.TileEntitySign;
+ import net.minecraft.world.level.block.state.IBlockData;
  import org.bukkit.GameMode;
- import org.bukkit.Location;
- import org.bukkit.Material;
-@@ -299,6 +300,11 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
+@@ -301,6 +302,11 @@ public class CraftHumanEntity extends CraftLivingEntity implements HumanEntity {
              if (craft.getInventory() instanceof ITileInventory) {
                  iinventory = (ITileInventory) craft.getInventory();
              }
@@ -114,7 +114,7 @@ index fc1cf7cc6b26171c0baf623f04f6b495d5adf517..fb3af03ca8b23a401efd56891b4efea5
  
          if (iinventory instanceof ITileInventory) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java b/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java
-index b99ce1217461595f5ccc8c7565ec3b65d1df83d9..efcc5b534bbfdcacf883940e274f00ea11f957a4 100644
+index 2bd4e644ffbde2e1133b25824a2829bc6b33fa84..06cd47ea0ab93ba9ef92e32a34118102070b582a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java
 +++ b/src/main/java/org/bukkit/craftbukkit/inventory/util/CraftTileInventoryConverter.java
 @@ -159,8 +159,19 @@ public abstract class CraftTileInventoryConverter implements CraftInventoryCreat

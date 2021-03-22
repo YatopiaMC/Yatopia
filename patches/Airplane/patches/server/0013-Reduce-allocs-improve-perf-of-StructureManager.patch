@@ -8,13 +8,29 @@ getStructureStarts, it inlines getFeatureStarts so it doesn't have to
 calculate an entire list when it returns early. As well, it uses a
 LongIterator in order to not allocate longs for each position.
 
-diff --git a/src/main/java/net/minecraft/server/StructureManager.java b/src/main/java/net/minecraft/server/StructureManager.java
-index 2598ae3710d46c2cfd2be5d6be2a56e59ceef6ea..fd1f1e2d7e4be227697f534bdc6d9c52ceeeda4b 100644
---- a/src/main/java/net/minecraft/server/StructureManager.java
-+++ b/src/main/java/net/minecraft/server/StructureManager.java
-@@ -5,6 +5,11 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList; // Paper
- import java.util.stream.Stream;
- import javax.annotation.Nullable;
+Airplane
+Copyright (C) 2020 Technove LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+diff --git a/src/main/java/net/minecraft/world/level/StructureManager.java b/src/main/java/net/minecraft/world/level/StructureManager.java
+index acacbf9617f99b97fc7fd2ba718775e1b3e429e9..967ae0212028d57d366497f7f25c61776c1ac3f2 100644
+--- a/src/main/java/net/minecraft/world/level/StructureManager.java
++++ b/src/main/java/net/minecraft/world/level/StructureManager.java
+@@ -15,6 +15,11 @@ import net.minecraft.world.level.levelgen.feature.StructureGenerator;
+ import net.minecraft.world.level.levelgen.structure.StructurePiece;
+ import net.minecraft.world.level.levelgen.structure.StructureStart;
  
 +// Airplane start
 +import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -24,7 +40,7 @@ index 2598ae3710d46c2cfd2be5d6be2a56e59ceef6ea..fd1f1e2d7e4be227697f534bdc6d9c52
  public class StructureManager {
  
      private final GeneratorAccess a; public GeneratorAccess getLevel() { return a; } // Paper - OBFHELPER
-@@ -41,13 +46,15 @@ public class StructureManager {
+@@ -51,13 +56,15 @@ public class StructureManager {
      public java.util.List<StructureStart<?>> getFeatureStarts(SectionPosition sectionPosition, StructureGenerator<?> structureGenerator, IWorldReader world) {
          // Tuinity end - add world parameter
          java.util.List<StructureStart<?>> list = new ObjectArrayList<>();
@@ -43,7 +59,7 @@ index 2598ae3710d46c2cfd2be5d6be2a56e59ceef6ea..fd1f1e2d7e4be227697f534bdc6d9c52
          return list;
      }
      // Paper end
-@@ -75,7 +82,18 @@ public class StructureManager {
+@@ -85,7 +92,18 @@ public class StructureManager {
      }
      public StructureStart<?> getStructureStarts(BlockPosition blockposition, boolean flag, StructureGenerator<?> structuregenerator, IWorldReader world) {
          // Paper start - remove structure streams
@@ -63,7 +79,7 @@ index 2598ae3710d46c2cfd2be5d6be2a56e59ceef6ea..fd1f1e2d7e4be227697f534bdc6d9c52
              if (structurestart.c().b(blockposition)) {
                  if (!flag) {
                      return structurestart;
-@@ -86,7 +104,10 @@ public class StructureManager {
+@@ -96,7 +114,10 @@ public class StructureManager {
                      }
                  }
              }

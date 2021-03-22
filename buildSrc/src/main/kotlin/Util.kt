@@ -8,13 +8,15 @@ data class CmdResult(val exitCode: Int, val output: String?)
 fun Project.cmd(
         vararg args: String,
         dir: File = rootProject.projectDir,
-        printOut: Boolean = false
+        printOut: Boolean = false,
+        environment: Map<String, String> = emptyMap()
 ): CmdResult {
-    val process = ProcessBuilder()
-            .command(*args)
-            .redirectErrorStream(true)
-            .directory(dir)
-            .start()
+    val process = ProcessBuilder().apply {
+        command(*args)
+        redirectErrorStream(true)
+        directory(dir)
+        environment().putAll(environment)
+    }.start()
     val output = process.inputStream.bufferedReader().use { reader ->
         reader.lines().asSequence()
                 .onEach {
@@ -46,14 +48,16 @@ fun ensureSuccess(
 fun Project.gitCmd(
         vararg args: String,
         dir: File = rootProject.projectDir,
-        printOut: Boolean = false
+        printOut: Boolean = false,
+        environment: Map<String, String> = emptyMap()
 ): CmdResult =
         cmd("git", *args, dir = dir, printOut = printOut)
 
 fun Project.bashCmd(
         vararg args: String,
         dir: File = rootProject.projectDir,
-        printOut: Boolean = false
+        printOut: Boolean = false,
+        environment: Map<String, String> = emptyMap()
 ): CmdResult =
         cmd("bash", "-c", *args, dir = dir, printOut = printOut)
 

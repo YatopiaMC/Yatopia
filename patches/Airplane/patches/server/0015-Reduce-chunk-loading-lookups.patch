@@ -3,12 +3,35 @@ From: Paul Sauve <paul@technove.co>
 Date: Thu, 4 Feb 2021 23:33:52 -0600
 Subject: [PATCH] Reduce chunk loading & lookups
 
+Airplane
+Copyright (C) 2020 Technove LLC
 
-diff --git a/src/main/java/net/minecraft/server/EntityEnderman.java b/src/main/java/net/minecraft/server/EntityEnderman.java
-index df4d5ed5957658ee9ca083ac79b38a1202fe7015..e7568e3df10bc07e9b3b05caa9d41398925cf4d7 100644
---- a/src/main/java/net/minecraft/server/EntityEnderman.java
-+++ b/src/main/java/net/minecraft/server/EntityEnderman.java
-@@ -279,11 +279,18 @@ public class EntityEnderman extends EntityMonster implements IEntityAngerable {
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java b/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java
+index e993b1849beb60515c51ee4f37617faab63ca223..4d7b5d47ab6bd3b1408811c3b9c157b1eb5c30ae 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java
+@@ -57,6 +57,7 @@ import net.minecraft.world.level.World;
+ import net.minecraft.world.level.block.Block;
+ import net.minecraft.world.level.block.Blocks;
+ import net.minecraft.world.level.block.state.IBlockData;
++import net.minecraft.world.level.chunk.Chunk;
+ import net.minecraft.world.level.pathfinder.PathType;
+ import net.minecraft.world.phys.AxisAlignedBB;
+ import net.minecraft.world.phys.MovingObjectPositionBlock;
+@@ -314,11 +315,18 @@ public class EntityEnderman extends EntityMonster implements IEntityAngerable {
      private boolean p(double d0, double d1, double d2) {
          BlockPosition.MutableBlockPosition blockposition_mutableblockposition = new BlockPosition.MutableBlockPosition(d0, d1, d2);
  
@@ -29,11 +52,11 @@ index df4d5ed5957658ee9ca083ac79b38a1202fe7015..e7568e3df10bc07e9b3b05caa9d41398
          boolean flag = iblockdata.getMaterial().isSolid();
          boolean flag1 = iblockdata.getFluid().a((Tag) TagsFluid.WATER);
  
-diff --git a/src/main/java/net/minecraft/server/SpawnerCreature.java b/src/main/java/net/minecraft/server/SpawnerCreature.java
-index ad520cb36afd0f011b6337f3e42efb01f740a950..b5b0f295d63eb245a6221f88110f1bb1694c641c 100644
---- a/src/main/java/net/minecraft/server/SpawnerCreature.java
-+++ b/src/main/java/net/minecraft/server/SpawnerCreature.java
-@@ -381,7 +381,10 @@ public final class SpawnerCreature {
+diff --git a/src/main/java/net/minecraft/world/level/SpawnerCreature.java b/src/main/java/net/minecraft/world/level/SpawnerCreature.java
+index d497006f05f79015cd791849888832bb53f4a414..d98526785ff2fa3b72e8ffffcb89a57a2203a5c8 100644
+--- a/src/main/java/net/minecraft/world/level/SpawnerCreature.java
++++ b/src/main/java/net/minecraft/world/level/SpawnerCreature.java
+@@ -415,7 +415,10 @@ public final class SpawnerCreature {
      }
  
      private static List<BiomeSettingsMobs.c> a(WorldServer worldserver, StructureManager structuremanager, ChunkGenerator chunkgenerator, EnumCreatureType enumcreaturetype, BlockPosition blockposition, @Nullable BiomeBase biomebase) {

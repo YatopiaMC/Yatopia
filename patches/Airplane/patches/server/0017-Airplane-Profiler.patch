@@ -20,10 +20,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/pom.xml b/pom.xml
-index 752d62eb3b87ab24260ec2c029bae0d2b0e3b908..02bbe784d0a062dd643e37f3ad04b77a78144828 100644
+index a3a3b17f3b30b55bb50905353e77723091bb5c1f..fc2c3714b6c772d67e258be269aa92dda80cdb12 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -161,6 +161,13 @@
+@@ -159,8 +159,23 @@
              <version>1.1.0-SNAPSHOT</version>
              <scope>compile</scope>
          </dependency>
@@ -36,24 +36,22 @@ index 752d62eb3b87ab24260ec2c029bae0d2b0e3b908..02bbe784d0a062dd643e37f3ad04b77a
 +        </dependency>
      </dependencies>
  
-     <repositories>
-@@ -174,6 +181,11 @@
-             <id>spigotmc-public</id>
-             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-         </repository>
++    <repositories>
 +        <!-- Airplane - Flare -->
 +        <repository>
 +            <id>jitpack.io</id>
 +            <url>https://jitpack.io</url>
 +        </repository>
-     </repositories>
- 
-     <pluginRepositories>
++    </repositories>
++
+     <!-- This builds a completely 'ready to start' jar with all dependencies inside -->
+     <build>
+         <finalName>tuinity-${minecraft.version}</finalName>
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index c39c9929a251b41ab60e1509b4e6c90d0825dc0c..4f87df936d0092cbf8cb2a6db9b57f235c287beb 100644
+index e0bed57aa5547a214ad779dbd0f648f3663147f9..39ef53c9dd49d5951103777002f866a64a252bfd 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -68,4 +68,26 @@ public class AirplaneConfig {
+@@ -69,4 +69,26 @@ public class AirplaneConfig {
          dynamicHoglinBehavior = manual.get("behavior-activation.hoglin", dynamicHoglinBehavior);
      }
  
@@ -205,21 +203,21 @@ index 0000000000000000000000000000000000000000..f4976428bc721319d2926e97cbe0f64c
 +}
 diff --git a/src/main/java/gg/airplane/flare/FlareCommand.java b/src/main/java/gg/airplane/flare/FlareCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba2172df01
+index 0000000000000000000000000000000000000000..ddc90f1589e683f452c5a74d9d2408803edea029
 --- /dev/null
 +++ b/src/main/java/gg/airplane/flare/FlareCommand.java
-@@ -0,0 +1,159 @@
+@@ -0,0 +1,149 @@
 +package gg.airplane.flare;
 +
 +import com.google.common.collect.ImmutableList;
 +import gg.airplane.AirplaneConfig;
 +import gg.airplane.flare.exceptions.UserReportableException;
 +import gg.airplane.flare.profiling.AsyncProfilerIntegration;
-+import net.md_5.bungee.api.ChatColor;
-+import net.md_5.bungee.api.chat.BaseComponent;
-+import net.md_5.bungee.api.chat.ClickEvent;
-+import net.md_5.bungee.api.chat.ComponentBuilder;
-+import net.md_5.bungee.api.chat.TextComponent;
++import net.kyori.adventure.text.Component;
++import net.kyori.adventure.text.event.ClickEvent;
++import net.kyori.adventure.text.format.NamedTextColor;
++import net.kyori.adventure.text.format.TextColor;
++import net.kyori.adventure.text.format.TextDecoration;
 +import org.bukkit.Bukkit;
 +import org.bukkit.command.Command;
 +import org.bukkit.command.CommandSender;
@@ -234,21 +232,14 @@ index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba
 +public class FlareCommand extends Command {
 +
 +    private static final String BASE_URL = "https://blog.airplane.gg/flare-tutorial/#setting-the-access-token";
-+    private static final ChatColor HEX = ChatColor.of("#6a7eda");
-+    private static final BaseComponent[] PREFIX = new ComponentBuilder("Flare ✈ ")
-+      .color(HEX)
-+      .bold(true)
-+      .create();
-+
-+    private static ComponentBuilder create(ComponentBuilder newBuilder) {
-+        newBuilder.color(HEX);
-+        newBuilder.bold(false);
-+
-+        ComponentBuilder builder = new ComponentBuilder();
-+        builder.append(PREFIX);
-+        builder.append(newBuilder.create());
-+        return builder;
-+    }
++    private static final TextColor HEX = TextColor.fromHexString("#e3eaea");
++    private static final Component PREFIX = Component.text()
++      .append(Component.text("Flare ✈")
++        .color(TextColor.fromHexString("#6a7eda"))
++        .decoration(TextDecoration.BOLD, true)
++        .append(Component.text(" ", HEX)
++          .decoration(TextDecoration.BOLD, false)))
++      .asComponent();
 +
 +    public FlareCommand() {
 +        super("flare", "Profile your server with Flare", "/flare", Collections.singletonList("profile"));
@@ -259,36 +250,28 @@ index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba
 +    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
 +        if (!testPermission(sender)) return true;
 +        if (AirplaneConfig.accessToken.length() == 0) {
-+            BaseComponent clickable = new TextComponent(BASE_URL);
-+            clickable.setUnderlined(true);
-+            clickable.setColor(HEX);
-+            clickable.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, BASE_URL));
++            Component clickable = Component.text(BASE_URL, HEX, TextDecoration.UNDERLINED).clickEvent(ClickEvent.clickEvent(ClickEvent.Action.OPEN_URL, BASE_URL));
 +
-+            sender.sendMessage(create(new ComponentBuilder("Flare currently requires an access token to use. To learn more, visit ")
-+              .color(HEX)
-+              .append(clickable)
-+            )
-+              .create());
++            sender.sendMessage(PREFIX.append(Component.text("Flare currently requires an access token to use. To learn more, visit ").color(HEX).append(clickable)));
 +            return true;
 +        }
 +
 +        if (AsyncProfilerIntegration.doesNotSupportProfiling()) {
-+            sender.sendMessage(create(new ComponentBuilder("Profiling is not supported in this environment, reason: " + AsyncProfilerIntegration.getDisabledReason())
-+              .color(ChatColor.RED)
-+            ).create());
++            sender.sendMessage(PREFIX.append(
++              Component.text("Profiling is not supported in this environment, reason: " + AsyncProfilerIntegration.getDisabledReason(), NamedTextColor.RED)));
 +            return true;
 +        }
 +        if (ProfilingManager.isProfiling()) {
 +            if (args.length == 1 && args[0].equalsIgnoreCase("status")) {
-+                sender.sendMessage(create(new ComponentBuilder("Status: " + AsyncProfilerIntegration.status())).create());
++                sender.sendMessage(PREFIX.append(Component.text("Status: " + AsyncProfilerIntegration.status(), HEX)));
 +                return true;
 +            }
 +            if (ProfilingManager.stop()) {
 +                if (!(sender instanceof ConsoleCommandSender)) {
-+                    sender.sendMessage(create(new ComponentBuilder("Profiling has been stopped.")).create());
++                    sender.sendMessage(PREFIX.append(Component.text("Profiling has been stopped.", HEX)));
 +                }
 +            } else {
-+                sender.sendMessage(create(new ComponentBuilder("Profiling has already been stopped.")).create());
++                sender.sendMessage(PREFIX.append(Component.text("Profiling has already been stopped.", HEX)));
 +            }
 +        } else {
 +            ProfileType profileType = null;
@@ -296,10 +279,11 @@ index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba
 +                try {
 +                    profileType = ProfileType.valueOf(args[0].toUpperCase());
 +                } catch (Exception e) {
-+                    sender.sendMessage(create(new ComponentBuilder("Invalid profile type ")
-+                      .append(args[0]).color(ChatColor.BOLD)
-+                      .append("!").color(HEX)).create());
-+                    return false;
++                    sender.sendMessage(PREFIX.append(Component
++                      .text("Invalid profile type ", HEX)
++                      .append(Component.text(args[0], HEX, TextDecoration.BOLD)
++                        .append(Component.text("!", HEX)))
++                    ));
 +                }
 +            }
 +            int interval = 5;
@@ -307,10 +291,12 @@ index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba
 +                try {
 +                    interval = Integer.parseInt(args[1]);
 +                } catch (Exception e) {
-+                    sender.sendMessage(create(new ComponentBuilder("Invalid time in milliseconds ")
-+                      .append(args[1]).color(HEX).bold(true)
-+                      .append("!").color(HEX)).create());
-+                    return false;
++                    sender.sendMessage(PREFIX.append(Component
++                      .text("Invalid time in milliseconds ", HEX)
++                      .append(Component.text(args[1], HEX, TextDecoration.BOLD)
++                        .append(Component.text("!", HEX)))
++                    ));
++                    return true;
 +                }
 +            }
 +            int finalInterval = interval;
@@ -319,18 +305,20 @@ index 0000000000000000000000000000000000000000..e3ef62ae97b8b92459e1c405525790ba
 +                try {
 +                    if (ProfilingManager.start(finalProfileType, finalInterval)) {
 +                        if (!(sender instanceof ConsoleCommandSender)) {
-+                            sender.sendMessage(create(new ComponentBuilder("Profiling has been started: " + ProfilingManager.getProfilingUrl().get())
-+                              .event(new ClickEvent(ClickEvent.Action.OPEN_URL, ProfilingManager.getProfilingUrl().get())))
-+                              .create());
-+                            sender.sendMessage(create(new ComponentBuilder("  Run /" + commandLabel + " to stop profiling.")).create());
++                            sender.sendMessage(PREFIX.append(Component
++                              .text("Flare has been started: " + ProfilingManager.getProfilingUrl().get(), HEX)
++                              .clickEvent(ClickEvent.openUrl(ProfilingManager.getProfilingUrl().get()))
++                            ));
++                            sender.sendMessage(PREFIX.append(Component.text("  Run /" + commandLabel + " to stop the Flare.", HEX)));
 +                        }
 +                    } else {
-+                        sender.sendMessage(create(new ComponentBuilder("Profiling has already been started: " + ProfilingManager.getProfilingUrl().get())
-+                          .event(new ClickEvent(ClickEvent.Action.OPEN_URL, ProfilingManager.getProfilingUrl().get())))
-+                          .create());
++                        sender.sendMessage(PREFIX.append(Component
++                          .text("Flare has already been started: " + ProfilingManager.getProfilingUrl().get(), HEX)
++                          .clickEvent(ClickEvent.openUrl(ProfilingManager.getProfilingUrl().get()))
++                        ));
 +                    }
 +                } catch (UserReportableException e) {
-+                    sender.sendMessage(create(new ComponentBuilder("Profiling failed to start: " + e.getUserError())).create());
++                    sender.sendMessage(Component.text("Flare failed to start: " + e.getUserError(), NamedTextColor.RED));
 +                    e.printStackTrace();
 +                }
 +            });

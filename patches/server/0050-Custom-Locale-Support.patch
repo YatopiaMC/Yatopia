@@ -5,11 +5,11 @@ Subject: [PATCH] Custom Locale Support
 
 All Server Jars Come with a pre-baked, usually English, locale file. This patch allows you to change the locale file by creating a locale.json file in the root directory of your server. Note that while custom locale files are supported by the server no support will be given for non-official Mojang locale files.
 
-diff --git a/src/main/java/net/minecraft/server/LocaleLanguage.java b/src/main/java/net/minecraft/server/LocaleLanguage.java
-index 29d55483510d3644a1edd3a01d7314232c358ac6..9909dd07d47ec86b71b74f66ab0e252de3441e23 100644
---- a/src/main/java/net/minecraft/server/LocaleLanguage.java
-+++ b/src/main/java/net/minecraft/server/LocaleLanguage.java
-@@ -30,9 +30,19 @@ public abstract class LocaleLanguage {
+diff --git a/src/main/java/net/minecraft/locale/LocaleLanguage.java b/src/main/java/net/minecraft/locale/LocaleLanguage.java
+index 5218214225b50ac4059ab704086a457318e93e00..9b25594c612ec335bebb7178dd6e56861556ae6c 100644
+--- a/src/main/java/net/minecraft/locale/LocaleLanguage.java
++++ b/src/main/java/net/minecraft/locale/LocaleLanguage.java
+@@ -31,9 +31,19 @@ public abstract class LocaleLanguage {
      private static LocaleLanguage c() {
          Builder<String, String> builder = ImmutableMap.builder();
          BiConsumer<String, String> biconsumer = builder::put; // Paper - decompile fix
@@ -30,7 +30,7 @@ index 29d55483510d3644a1edd3a01d7314232c358ac6..9909dd07d47ec86b71b74f66ab0e252d
              Throwable throwable = null;
  
              try {
-@@ -55,7 +65,11 @@ public abstract class LocaleLanguage {
+@@ -56,7 +66,11 @@ public abstract class LocaleLanguage {
  
              }
          } catch (JsonParseException | IOException ioexception) {

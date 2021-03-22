@@ -85,10 +85,10 @@ index 0000000000000000000000000000000000000000..1fa9b40e2f89272fa8bc9d927a9a852b
 +}
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..4feb9686f45ce4ae9f474447496b8e0f6fcb7e31
+index 0000000000000000000000000000000000000000..fbb9544027a48941bd0938d8f607e8c7ff9443a1
 --- /dev/null
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,47 @@
 +package gg.airplane;
 +
 +import gg.airplane.manual.ManualParser;
@@ -113,8 +113,9 @@ index 0000000000000000000000000000000000000000..4feb9686f45ce4ae9f474447496b8e0f
 +
 +        manual.get("info.version", "1.0");
 +        manual.setComment("info",
-+          " Airplane Configuration",
-+          " Please see https://airplane.gg/config for help.");
++          "Airplane Configuration",
++          "Read https://blog.airplane.gg/ to find out more about Airplane",
++          "Join our Discord to receive support & optimization help: https://discord.gg/3gtc45q");
 +
 +        for (Method method : AirplaneConfig.class.getDeclaredMethods()) {
 +            if (Modifier.isStatic(method.getModifiers()) && Modifier.isPrivate(method.getModifiers())) {
@@ -367,11 +368,11 @@ index 0000000000000000000000000000000000000000..ace29adb0f140d99a8d85ac824654bed
 +    }
 +
 +}
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index e3721b53db68171665ba05201155d088ae3cb89f..b8a45c80b6691214e513286262f31b7b5b1dd5eb 100644
---- a/src/main/java/net/minecraft/server/DedicatedServer.java
-+++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -185,6 +185,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index d902efdb8f2d42ea4c3933f7fa76ebe135ee09db..24a46ad36613faa5f5a1a12b70f7af886e1608ae 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -215,6 +215,8 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          com.destroystokyo.paper.VersionHistoryManager.INSTANCE.getClass(); // load version history now
          // Paper end
          com.tuinity.tuinity.config.TuinityConfig.init((java.io.File) options.valueOf("tuinity-settings")); // Tuinity - Server Config
