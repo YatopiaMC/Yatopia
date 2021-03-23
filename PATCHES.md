@@ -384,6 +384,7 @@ This is an overview over all patches that are currently used.
 | server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
 | server |  Toggle for water sensitive mob damage      | YouHaveTrouble |  |
 | server |  Totems work in inventory      | draycia |  |
+| server |  Track Queue debug      | Paul Sauve |  |
 | server |  Tuinity POM Changes      | Spottedleaf |  |
 | api |  Tuinity POM Changes      | Spottedleaf |  |
 | server |  Tuinity Server Config      | Spottedleaf |  |
