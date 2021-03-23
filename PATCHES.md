@@ -348,6 +348,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove streams      | Paul Sauve |  |
 | server |  Remove streams for villager AI      | Spottedleaf |  |
 | server |  Replace player chunk loader system      | Spottedleaf |  |
+| api |  Revert &quot;fix Inventory#getContents null annotations&quot;      | Simon Gardling |  |
 | server |  Revert MC-4 fix      | Spottedleaf |  |
 | server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
 | server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |

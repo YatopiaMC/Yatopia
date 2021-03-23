@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Tue, 23 Mar 2021 16:46:54 -0400
+Subject: [PATCH] Revert "fix Inventory#getContents null annotations"
+
+This reverts commit a54b0723e96a8461802bfd2a35966334945123c2.
+
+diff --git a/src/main/java/org/bukkit/inventory/Inventory.java b/src/main/java/org/bukkit/inventory/Inventory.java
+index 607eb670b5e6adc2a4dce81b6e56b219c8a4f95f..6386206188e820206bb1a9f516b5e194fdc9d952 100644
+--- a/src/main/java/org/bukkit/inventory/Inventory.java
++++ b/src/main/java/org/bukkit/inventory/Inventory.java
+@@ -158,8 +158,9 @@ public interface Inventory extends Iterable<ItemStack> {
+      *
+      * @return An array of ItemStacks from the inventory. Individual items may be null.
+      */
+-    public @Nullable ItemStack @NotNull [] getContents(); // Paper - make array elements nullable instead array
+-    
++    @NotNull
++    public ItemStack[] getContents();
++
+     /**
+      * Completely replaces the inventory's contents. Removes all existing
+      * contents and replaces it with the ItemStacks given in the array.
