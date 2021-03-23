@@ -31,10 +31,12 @@ This is an overview over all patches that are currently used.
 | server |  Add canSaveToDisk to Entity      | William Blake Galbreath |  |
 | server |  Add config for allowing Endermen to despawn even while      | jmp |  |
 | server |  Add config for snow on blue ice      | BillyGalbreath |  |
+| server |  Add config for villager trading      | Ben Kerllenevich |  |
 | server |  Add configurable snowball damage      | BillyGalbreath |  |
 | server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | server |  Add demo command      | BillyGalbreath |  |
+| api |  Add enchantment target for bows and crossbows      | BillyGalbreath |  |
 | server |  Add enderman and creeper griefing controls      | William Blake Galbreath |  |
 | server |  Add ghast allow-griefing option      | BillyGalbreath |  |
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
@@ -78,6 +80,7 @@ This is an overview over all patches that are currently used.
 | server |  Allow color codes in books      | William Blake Galbreath |  |
 | server |  Allow controlled flushing for network manager      | Spottedleaf |  |
 | server |  Allow infinite and mending enchantments together      | William Blake Galbreath |  |
+| server |  Allow infinity on crossbows      | Ben Kerllenevich |  |
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
 | server |  Allow leashing villagers      | William Blake Galbreath |  |
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
@@ -107,6 +110,7 @@ This is an overview over all patches that are currently used.
 | api |  ChatColor conveniences      | William Blake Galbreath |  |
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
 | server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
+| server |  Config for skipping night      | Ben Kerllenevich |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
@@ -170,6 +174,7 @@ This is an overview over all patches that are currently used.
 | server |  Don&#39;t wake up entities when damage event is cancelled      | Phoenix616 |  |
 | server |  Dont run with scissors!      | JustDoom |  |
 | server |  Dont send useless entity packets      | William Blake Galbreath |  |
+| server |  Drowning Settings      | Ben Kerllenevich |  |
 | server |  Dynamic activation range      | Paul Sauve |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
 | server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
