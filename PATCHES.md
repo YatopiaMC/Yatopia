@@ -48,7 +48,7 @@ This is an overview over all patches that are currently used.
 | server |  Add option for boats to eject players on land      | William Blake Galbreath |  |
 | server |  Add option to allow loyalty on tridents to work in the void      | William Blake Galbreath |  |
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
-| server |  Add option to disable mushroom block updates      | William Blake Galbreath |  |
+| server |  Add option to disable mushroom and note block updates      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
 | server |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
 | api |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
@@ -142,6 +142,7 @@ This is an overview over all patches that are currently used.
 | api |  Configurable permission message upgrades      | William Blake Galbreath |  |
 | server |  Configurable ravager griefable blocks list      | BillyGalbreath |  |
 | server |  Configurable server mod name      | William Blake Galbreath |  |
+| server |  Configurable sponge absorption      | Encode42 |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Configurable villager breeding      | draycia |  |
 | server |  Configurable void damage height      | William Blake Galbreath |  |
@@ -152,6 +153,7 @@ This is an overview over all patches that are currently used.
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Crying obsidian valid for portal frames      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Zoe |  |
+| server |  Custom table implementation for blockstate state lookups      | Spottedleaf |  |
 | server |  Customizable wither health and healing      | jmp |  |
 | api |  Default permissions      | William Blake Galbreath |  |
 | server |  Delay chunk unloads      | Spottedleaf |  |
@@ -330,6 +332,7 @@ This is an overview over all patches that are currently used.
 | server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
+| server |  Projectile offset config      | YouHaveTrouble |  |
 | server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
