@@ -42,7 +42,7 @@ This is an overview over all patches that are currently used.
 | server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add mobGriefing bypass to everything affected      | Encode42 |  |
-| server |  Add no-tick block list      | William Blake Galbreath |  |
+| server |  Add no-random-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
 | server |  Add obfhelpers for plugin use      | William Blake Galbreath |  |
 | server |  Add option for boats to eject players on land      | William Blake Galbreath |  |
@@ -98,6 +98,7 @@ This is an overview over all patches that are currently used.
 | server |  Be aware of entity teleports when chunk checking entities      | Spottedleaf |  |
 | server |  Brand changes      | Spottedleaf |  |
 | server |  Brandings      | YatopiaMC |  |
+| server |  Break individual slabs when sneaking      | BillyGalbreath |  |
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
 | server |  Bring back server name      | William Blake Galbreath |  |
 | api |  Bring back server name      | William Blake Galbreath |  |
@@ -114,11 +115,14 @@ This is an overview over all patches that are currently used.
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
+| server |  Config to allow for unsafe enchants      | Encode42 |  |
 | server |  Config to always tame in Creative      | Encode42 |  |
 | server |  Config to disable Llama caravans      | Encode42 |  |
+| server |  Config to disable hostile mob spawn on ice      | Encode42 |  |
 | server |  Config to ignore Dragon Head wearers and stare aggro      | Encode42 |  |
 | server |  Config to ignore nearby mobs when sleeping      | Encode42 |  |
 | server |  Config to make Creepers explode on death      | Encode42 |  |
+| server |  Config to show Armor Stand arms on spawn      | Encode42 |  |
 | server |  Config to use infinity bows without arrows      | Encode42 |  |
 | server |  Configs for if Wither/Ender Dragon can ride vehicles      | jmp |  |
 | server |  Configurable BlockPhysicsEvent      | Mykyta Komarnytskyy |  |
@@ -298,6 +302,7 @@ This is an overview over all patches that are currently used.
 | server |  Option for Villager Clerics to farm Nether Wart      | jmp |  |
 | server |  Option for chests to open even with a solid block on top      | jmp |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
+| server |  Option to make doors require restone      | BillyGalbreath |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
 | server |  Origami Server Config      | Phoenix616 |  |
@@ -348,7 +353,6 @@ This is an overview over all patches that are currently used.
 | server |  Remove streams      | Paul Sauve |  |
 | server |  Remove streams for villager AI      | Spottedleaf |  |
 | server |  Replace player chunk loader system      | Spottedleaf |  |
-| api |  Revert &quot;fix Inventory#getContents null annotations&quot;      | Simon Gardling |  |
 | server |  Revert MC-4 fix      | Spottedleaf |  |
 | server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
 | server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |
