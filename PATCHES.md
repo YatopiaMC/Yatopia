@@ -111,6 +111,7 @@ This is an overview over all patches that are currently used.
 | api |  ChatColor conveniences      | William Blake Galbreath |  |
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
 | server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
+| server |  Config for powered rail activation distance      | Encode42 |  |
 | server |  Config for skipping night      | Ben Kerllenevich |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
@@ -266,6 +267,7 @@ This is an overview over all patches that are currently used.
 | server |  Make entity tracker use highest range of passengers      | Spottedleaf |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
 | server |  Make sure inlined getChunkAt has inlined logic for loaded      | Spottedleaf |  |
+| server |  Make sure to remove correct TE during TE tick      | Spottedleaf |  |
 | server |  Manually inline methods in BlockPosition      | Spottedleaf |  |
 | server |  Mending mends most damages equipment first      | William Blake Galbreath |  |
 | server |  Modify POM      | YatopiaMC |  |

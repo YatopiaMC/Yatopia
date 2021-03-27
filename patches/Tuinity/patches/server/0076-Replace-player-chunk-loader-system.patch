@@ -63,10 +63,10 @@ index 5dfa0658838c4801cdf260eae8b98163f729e5af..35810f42d7a0cd50a4cbe90e8d698fe5
  
 diff --git a/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java b/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1fbd220b8a2c77ba85e98349b012b293ee7686a8
+index 0000000000000000000000000000000000000000..0d577aa1c7868ce89c3902535adcb554b1f47551
 --- /dev/null
 +++ b/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java
-@@ -0,0 +1,955 @@
+@@ -0,0 +1,964 @@
 +package com.tuinity.tuinity.chunk;
 +
 +import com.destroystokyo.paper.util.misc.PlayerAreaMap;
@@ -373,7 +373,7 @@ index 0000000000000000000000000000000000000000..1fbd220b8a2c77ba85e98349b012b293
 +
 +    protected double getTargetSendRatePerPlayer() {
 +        double config = TuinityConfig.playerTargetChunkSendRate;
-+        return config <= 0 ? -config : (int)Math.ceil(-config / MinecraftServer.getServer().getPlayerCount());
++        return config <= 0 ? -config : config / MinecraftServer.getServer().getPlayerCount();
 +    }
 +
 +    public void onChunkPlayerTickReady(final int chunkX, final int chunkZ) {
@@ -442,6 +442,9 @@ index 0000000000000000000000000000000000000000..1fbd220b8a2c77ba85e98349b012b293
 +
 +    public void addPlayer(final EntityPlayer player) {
 +        TickThread.ensureTickThread("Cannot add player async");
++        if (!player.isRealPlayer) {
++            return;
++        }
 +        final PlayerLoaderData data = new PlayerLoaderData(player, this);
 +        if (this.playerMap.putIfAbsent(player, data) == null) {
 +            data.update();
@@ -450,6 +453,9 @@ index 0000000000000000000000000000000000000000..1fbd220b8a2c77ba85e98349b012b293
 +
 +    public void removePlayer(final EntityPlayer player) {
 +        TickThread.ensureTickThread("Cannot remove player async");
++        if (!player.isRealPlayer) {
++            return;
++        }
 +
 +        final PlayerLoaderData loaderData = this.playerMap.remove(player);
 +        if (loaderData == null) {
@@ -469,6 +475,9 @@ index 0000000000000000000000000000000000000000..1fbd220b8a2c77ba85e98349b012b293
 +
 +    public void updatePlayer(final EntityPlayer player) {
 +        TickThread.ensureTickThread("Cannot update player async");
++        if (!player.isRealPlayer) {
++            return;
++        }
 +        final PlayerLoaderData loaderData = this.playerMap.get(player);
 +        if (loaderData != null) {
 +            loaderData.update();
