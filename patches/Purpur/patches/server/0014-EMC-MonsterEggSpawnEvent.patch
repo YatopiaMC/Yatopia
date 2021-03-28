@@ -4,11 +4,11 @@ Date: Sat, 20 Jul 2013 22:40:56 -0400
 Subject: [PATCH] EMC - MonsterEggSpawnEvent
 
 
-diff --git a/src/main/java/net/minecraft/server/EntityTypes.java b/src/main/java/net/minecraft/server/EntityTypes.java
-index 36f572990a0c08f21df6f4dc40c5878b669ca00c..ed1e0bd379b95bc090c7cdf57de70ec9cc2dac5a 100644
---- a/src/main/java/net/minecraft/server/EntityTypes.java
-+++ b/src/main/java/net/minecraft/server/EntityTypes.java
-@@ -187,17 +187,31 @@ public class EntityTypes<T extends Entity> {
+diff --git a/src/main/java/net/minecraft/world/entity/EntityTypes.java b/src/main/java/net/minecraft/world/entity/EntityTypes.java
+index 6335e9046a6288f7bcf945ad8c381e080744653d..94aca57dd9e08d8841086378a712794e0d9c0e00 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityTypes.java
++++ b/src/main/java/net/minecraft/world/entity/EntityTypes.java
+@@ -318,13 +318,20 @@ public class EntityTypes<T extends Entity> {
  
      @Nullable
      public Entity spawnCreature(WorldServer worldserver, @Nullable ItemStack itemstack, @Nullable EntityHuman entityhuman, BlockPosition blockposition, EnumMobSpawn enummobspawn, boolean flag, boolean flag1) {
@@ -27,24 +27,23 @@ index 36f572990a0c08f21df6f4dc40c5878b669ca00c..ed1e0bd379b95bc090c7cdf57de70ec9
 +        // Purpur end
          // CraftBukkit start
 -        return this.spawnCreature(worldserver, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG);
-+        return this.spawnCreature(worldserver, itemstack, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG); // Purpur
++        return this.spawnCreature(worldserver, itemstack, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG, null); // Purpur
      }
  
      @Nullable
-     public T spawnCreature(WorldServer worldserver, @Nullable NBTTagCompound nbttagcompound, @Nullable IChatBaseComponent ichatbasecomponent, @Nullable EntityHuman entityhuman, BlockPosition blockposition, EnumMobSpawn enummobspawn, boolean flag, boolean flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {
+@@ -349,9 +356,29 @@ public class EntityTypes<T extends Entity> {
+             }
+         }
+         // Paper end
 +        // Purpur start
-+        return spawnCreature(worldserver, null, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1, spawnReason);
++        return spawnCreature(worldserver, null, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1, spawnReason, op);
 +    }
 +
 +    @Nullable
-+    public T spawnCreature(WorldServer worldserver, @Nullable ItemStack itemstack, @Nullable NBTTagCompound nbttagcompound, @Nullable IChatBaseComponent ichatbasecomponent, @Nullable EntityHuman entityhuman, BlockPosition blockposition, EnumMobSpawn enummobspawn, boolean flag, boolean flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason) {
++    public T spawnCreature(WorldServer worldserver, @Nullable ItemStack itemstack, @Nullable NBTTagCompound nbttagcompound, @Nullable IChatBaseComponent ichatbasecomponent, @Nullable EntityHuman entityhuman, BlockPosition blockposition, EnumMobSpawn enummobspawn, boolean flag, boolean flag1, org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason spawnReason, @Nullable java.util.function.Consumer<T> op) {
 +        // Purpur end
-         // Paper start - Call PreCreatureSpawnEvent
-         org.bukkit.entity.EntityType type = org.bukkit.entity.EntityType.fromName(EntityTypes.getName(this).getKey());
-         if (type != null) {
-@@ -214,6 +228,19 @@ public class EntityTypes<T extends Entity> {
-         // Paper end
          T t0 = this.createCreature(worldserver, nbttagcompound, ichatbasecomponent, entityhuman, blockposition, enummobspawn, flag, flag1);
+         if (t0 != null && op != null) op.accept(t0); // Paper
  
 +        // Purpur start
 +        if (spawnReason == org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG && itemstack != null && t0 != null) {

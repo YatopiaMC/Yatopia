@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sat, 13 Mar 2021 10:40:22 -0600
+Subject: [PATCH] Reduce entity chunk ticking checks from 3 to 1
+
+
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index b33f37309d4dd22c033ad84effa4ff9d6e20a790..b788c33605fc96d17758cf42e508872e38fb4322 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -1081,11 +1081,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 // CraftBukkit end */
+ 
+                 gameprofilerfiller.enter("checkDespawn");
++                boolean entityTickingChunk = false; if (!entity.dead) entityTickingChunk = this.getChunkProvider().isInEntityTickingChunk(entity); // Airplane - check once, chunks won't unload ticking entities
+                 if (!entity.dead) {
+                     entity.checkDespawn();
+                     // Tuinity start - optimise notify()
+                     if (entity.inChunk && entity.valid) {
+-                        if (this.getChunkProvider().isInEntityTickingChunk(entity)) {
++                        if (entityTickingChunk) { // Airplane - reuse
+                             this.updateNavigatorsInRegion(entity);
+                         }
+                     } else {
+@@ -1115,7 +1116,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                     this.entitiesById.remove(entity.getId()); // Tuinity
+                     this.unregisterEntity(entity);
+                 } else if (entity.inChunk && entity.valid) { // Tuinity start - optimise notify()
+-                    if (this.getChunkProvider().isInEntityTickingChunk(entity)) {
++                    if (entityTickingChunk) { // Airplane - reuse
+                         this.updateNavigatorsInRegion(entity);
+                     }
+                 } else {
+@@ -1416,7 +1417,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+     }
+     // Tuinity end - log detailed entity tick information
+ 
+-    public void entityJoinedWorld(Entity entity) {
++    // Airplane start - reuse check for in entity ticking chunk
++    public void entityJoinedWorld(Entity entity) { entityJoinedWorld(entity, this.getChunkProvider().isInEntityTickingChunk(entity)); }
++    public void entityJoinedWorld(Entity entity, boolean entityTickingChunk) { // Airplane end
+         // Tuinity start - log detailed entity tick information
+         com.tuinity.tuinity.util.TickThread.ensureTickThread("Cannot tick an entity off-main");
+         try {
+@@ -1424,7 +1427,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+                 currentlyTickingEntity.lazySet(entity);
+             }
+             // Tuinity end - log detailed entity tick information
+-        if (!(entity instanceof EntityHuman) && !this.getChunkProvider().a(entity)) {
++        if (!(entity instanceof EntityHuman) && !entityTickingChunk) { // Airplane - reuse
+             this.chunkCheck(entity);
+         } else {
+             ++TimingHistory.entityTicks; // Paper - timings

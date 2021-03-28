@@ -5,10 +5,10 @@ Subject: [PATCH] Suspected plugins report
 
 Added "Suspected Plugins" to Watchdog, crash reports and exception messages
 
-diff --git a/src/main/java/net/minecraft/server/CrashReport.java b/src/main/java/net/minecraft/server/CrashReport.java
-index cc6e6f245ee5e73bd570cf42381bf55ee0b364d3..2f8ec64c26f5ed239b4dd9f9532c402d7081f9ed 100644
---- a/src/main/java/net/minecraft/server/CrashReport.java
-+++ b/src/main/java/net/minecraft/server/CrashReport.java
+diff --git a/src/main/java/net/minecraft/CrashReport.java b/src/main/java/net/minecraft/CrashReport.java
+index 9b7a51890c667601b195ff15b2bf0d6c76c7f19f..d7dd6208d1fc47dd95badecaaee0ed98292a5f7f 100644
+--- a/src/main/java/net/minecraft/CrashReport.java
++++ b/src/main/java/net/minecraft/CrashReport.java
 @@ -87,6 +87,8 @@ public class CrashReport {
          if (this.h != null && this.h.length > 0) {
              stringbuilder.append("-- Head --\n");
@@ -18,11 +18,67 @@ index cc6e6f245ee5e73bd570cf42381bf55ee0b364d3..2f8ec64c26f5ed239b4dd9f9532c402d
              stringbuilder.append("Stacktrace:\n");
              StackTraceElement[] astacktraceelement = this.h;
              int i = astacktraceelement.length;
+diff --git a/src/main/java/net/minecraft/network/NetworkManager.java b/src/main/java/net/minecraft/network/NetworkManager.java
+index f46488155d8bd07719a282e4a1027562973dbef6..db2df0f83efa013187529eabfbbeff257012cc76 100644
+--- a/src/main/java/net/minecraft/network/NetworkManager.java
++++ b/src/main/java/net/minecraft/network/NetworkManager.java
+@@ -423,6 +423,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+             channelfuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+             // Paper start
+             } catch (Exception e) {
++                // Yatopia - detailed report
++                LOGGER.error("Encountered unexpected exception sending packets");
++                org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                // Yatopia end
+                 LOGGER.error("NetworkException: " + player, e);
+                 close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
+                 packet.onPacketDispatchFinish(player, null);
+@@ -462,6 +467,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+                         // Paper start
+                     } catch (Exception e) {
++                        // Yatopia start - detailed report
++                        LOGGER.error("Encountered unexpected exception sending packets");
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         LOGGER.error("NetworkException: " + player, e);
+                         close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
+                         packet.onPacketDispatchFinish(player, null);
+@@ -497,6 +507,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
+                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+                         // Paper start
+                     } catch (Exception e) {
++                        // Yatopia start - detailed report
++                        LOGGER.error("Encountered unexpected exception sending packets");
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         LOGGER.error("NetworkException: " + player, e);
+                         close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
+                         packet.onPacketDispatchFinish(player, null);
+diff --git a/src/main/java/net/minecraft/network/protocol/PlayerConnectionUtils.java b/src/main/java/net/minecraft/network/protocol/PlayerConnectionUtils.java
+index 71a000edfab27c9965d1929af78582821d5af97a..5c5ac70b4dae5d51303ab974261055aaefb5aec2 100644
+--- a/src/main/java/net/minecraft/network/protocol/PlayerConnectionUtils.java
++++ b/src/main/java/net/minecraft/network/protocol/PlayerConnectionUtils.java
+@@ -57,6 +57,11 @@ public class PlayerConnectionUtils {
+                     // Paper start
+                     catch (Exception e) {
+                         NetworkManager networkmanager = t0.a();
++                        // Yatopia start - detailed report
++                        LOGGER.error("Encountered unexpected exception sending packets");
++                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
++                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
++                        // Yatopia end
+                         if (networkmanager.getPlayer() != null) {
+                             LOGGER.error("Error whilst processing packet {} for {}[{}]", packet, networkmanager.getPlayer().getName(), networkmanager.getSocketAddress(), e);
+                         } else {
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 232f3f74d0c5eb2603496188efea8684482a61ef..e98779a3b8569b62c88c59bb8c5a95994f641f51 100644
+index 1b0add2400c8e518953add4cc100f227ebae0703..46b4763026677b6d440fef2c33abae2a90104bb5 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1047,7 +1047,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1159,7 +1159,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                  return;
              }
              // Paper end
@@ -35,67 +91,11 @@ index 232f3f74d0c5eb2603496188efea8684482a61ef..e98779a3b8569b62c88c59bb8c5a9599
              // Spigot Start
              if ( throwable.getCause() != null )
              {
-diff --git a/src/main/java/net/minecraft/server/NetworkManager.java b/src/main/java/net/minecraft/server/NetworkManager.java
-index 53b5063b43e42f09c2ef335251c91d2051676972..a6908441324fb11ed1e1db2998acc41b71b65142 100644
---- a/src/main/java/net/minecraft/server/NetworkManager.java
-+++ b/src/main/java/net/minecraft/server/NetworkManager.java
-@@ -404,6 +404,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
-             channelfuture.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-             // Paper start
-             } catch (Exception e) {
-+                // Yatopia - detailed report
-+                LOGGER.error("Encountered unexpected exception sending packets");
-+                org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
-+                LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
-+                // Yatopia end
-                 LOGGER.error("NetworkException: " + player, e);
-                 close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
-                 packet.onPacketDispatchFinish(player, null);
-@@ -443,6 +448,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
-                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-                         // Paper start
-                     } catch (Exception e) {
-+                        // Yatopia start - detailed report
-+                        LOGGER.error("Encountered unexpected exception sending packets");
-+                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
-+                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
-+                        // Yatopia end
-                         LOGGER.error("NetworkException: " + player, e);
-                         close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
-                         packet.onPacketDispatchFinish(player, null);
-@@ -478,6 +488,11 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
-                         channelfuture1.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-                         // Paper start
-                     } catch (Exception e) {
-+                        // Yatopia start - detailed report
-+                        LOGGER.error("Encountered unexpected exception sending packets");
-+                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
-+                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
-+                        // Yatopia end
-                         LOGGER.error("NetworkException: " + player, e);
-                         close(new ChatMessage("disconnect.genericReason", "Internal Exception: " + e.getMessage()));;
-                         packet.onPacketDispatchFinish(player, null);
-diff --git a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
-index 8112b01f15c33f50fe5ec9aebf75d8091d440994..eb7e229ba4a2e4701a5a7a599f5e18da403a638b 100644
---- a/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
-+++ b/src/main/java/net/minecraft/server/PlayerConnectionUtils.java
-@@ -45,6 +45,11 @@ public class PlayerConnectionUtils {
-                     // Paper start
-                     catch (Exception e) {
-                         NetworkManager networkmanager = t0.a();
-+                        // Yatopia start - detailed report
-+                        LOGGER.error("Encountered unexpected exception sending packets");
-+                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(e, LOGGER::error);
-+                        LOGGER.error(org.yatopiamc.yatopia.api.internal.StackTraceUtils.EXCEPTION_DETAILS_BELOW);
-+                        // Yatopia end
-                         if (networkmanager.getPlayer() != null) {
-                             LOGGER.error("Error whilst processing packet {} for {}[{}]", packet, networkmanager.getPlayer().getName(), networkmanager.getSocketAddress(), e);
-                         } else {
-diff --git a/src/main/java/net/minecraft/server/ServerConnection.java b/src/main/java/net/minecraft/server/ServerConnection.java
-index 0668d383db1f3a81d1053954d72678c7ac5aecec..7b9f83e63d0f9cd83a246be33af4ab91da6b2151 100644
---- a/src/main/java/net/minecraft/server/ServerConnection.java
-+++ b/src/main/java/net/minecraft/server/ServerConnection.java
-@@ -153,6 +153,11 @@ public class ServerConnection {
+diff --git a/src/main/java/net/minecraft/server/network/ServerConnection.java b/src/main/java/net/minecraft/server/network/ServerConnection.java
+index 70fde7bad2e0a6d7432d8509fdb7c46d9f020d4c..0798f27656cf9fedf61e7ff83879cecb7d12e6c7 100644
+--- a/src/main/java/net/minecraft/server/network/ServerConnection.java
++++ b/src/main/java/net/minecraft/server/network/ServerConnection.java
+@@ -166,6 +166,11 @@ public class ServerConnection {
                                  throw new ReportedException(CrashReport.a(exception, "Ticking memory connection"));
                              }
  
@@ -107,13 +107,13 @@ index 0668d383db1f3a81d1053954d72678c7ac5aecec..7b9f83e63d0f9cd83a246be33af4ab91
                              ServerConnection.LOGGER.warn("Failed to handle packet for {}", networkmanager.getSocketAddress(), exception);
                              ChatComponentText chatcomponenttext = new ChatComponentText("Internal server error");
  
-diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index c3909bc3ec2601010b28949258cf52fd8e8446a9..a4b8505705061bd01a50e68d04e620a000f6084f 100644
---- a/src/main/java/net/minecraft/server/World.java
-+++ b/src/main/java/net/minecraft/server/World.java
-@@ -1024,6 +1024,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index 42ba62dbee134b2bc5f8065a4cd3f2811aa54310..82c426da24d059e6c3373fa852fa5c840d6fd0bd 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -1087,6 +1087,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
                          // Paper start - Prevent tile entity and entity crashes
-                         String msg = "TileEntity threw exception at " + tileentity.world.getWorld().getName() + ":" + tileentity.position.getX() + "," + tileentity.position.getY() + "," + tileentity.position.getZ();
+                         String msg = "TileEntity threw exception at " + tileentity.getWorld().getWorld().getName() + ":" + tileentity.getPosition().getX() + "," + tileentity.getPosition().getY() + "," + tileentity.getPosition().getZ();
                          System.err.println(msg);
 +                        // Yatopia start - detailed report
 +                        org.yatopiamc.yatopia.api.internal.StackTraceUtils.print(throwable, System.err::println);
@@ -175,7 +175,7 @@ index 0be39dac4b9dd69d7d73d86d64cf1e33e4086e81..c53531bc769ecd39c4f03b7a10c5bc6a
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
-index 8ee165d1c752e53601254f734507370b91ad7b73..4a81dde40e2534d99001a02adac12031c26c8104 100644
+index 1b92b3d2c696fa4ef86a2d2a58eeb447bb3d2739..d29bdfc2288189e43e2ddbfae1b794c6c9a27333 100644
 --- a/src/main/java/org/spigotmc/WatchdogThread.java
 +++ b/src/main/java/org/spigotmc/WatchdogThread.java
 @@ -134,6 +134,15 @@ public class WatchdogThread extends Thread

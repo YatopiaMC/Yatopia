@@ -67,8 +67,11 @@ open class ToothpickExtension(objects: ObjectFactory) {
         }
     }
 
-    val paperWorkDir: File
+    val paperDecompDir: File
         get() = paperDir.resolve("work/Minecraft/${minecraftVersion}")
+
+    val paperWorkDir: File
+        get() = paperDir.resolve("work")
 
     fun getUpstreams(rootProjectDir: File): MutableList<Upstream>? {
         val configDir = rootProjectDir.resolve("$rootProjectDir/upstreamConfig")

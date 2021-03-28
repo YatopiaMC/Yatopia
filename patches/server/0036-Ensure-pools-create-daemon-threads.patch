@@ -6,28 +6,11 @@ Subject: [PATCH] Ensure pools create daemon threads
 If only 1 non-daemon thread is left to run when the server is shutting down, the server won't shut down.
 This patche ensures that executors make daemon threads.
 
-diff --git a/src/main/java/net/minecraft/server/LoginListener.java b/src/main/java/net/minecraft/server/LoginListener.java
-index 2b4ac8d1f3218e89b73fb9e1d3eed8cb8bf7334d..fce976bc6a0eb08083a06622935bff05d737a9a3 100644
---- a/src/main/java/net/minecraft/server/LoginListener.java
-+++ b/src/main/java/net/minecraft/server/LoginListener.java
-@@ -109,7 +109,11 @@ public class LoginListener implements PacketLoginInListener {
-     // Paper start - Cache authenticator threads
-     private static final AtomicInteger threadId = new AtomicInteger(0);
-     private static final java.util.concurrent.ExecutorService authenticatorPool = java.util.concurrent.Executors.newCachedThreadPool(
--            r -> new Thread(r, "User Authenticator #" + threadId.incrementAndGet())
-+            r -> { // Yatopia start - make sure produced threads are daemon ones
-+                Thread thread = new Thread(r, "User Authenticator #" + threadId.incrementAndGet());
-+                thread.setDaemon(true);
-+                return thread;
-+            } // Yatopia end
-     );
-     // Paper end
-     // Spigot start
 diff --git a/src/main/java/net/minecraft/server/MCUtil.java b/src/main/java/net/minecraft/server/MCUtil.java
-index 7438ed7671acb181fe88abd2db415cb09873db4f..e77e8b228195cfb6375804d2bbcb8438e6fbcf5c 100644
+index b7399d17dd64ca8b1f1fab405cb0ac914dc53b98..add92c6ba9556b0a2695b007e0d83d7334412c2d 100644
 --- a/src/main/java/net/minecraft/server/MCUtil.java
 +++ b/src/main/java/net/minecraft/server/MCUtil.java
-@@ -42,12 +42,12 @@ public final class MCUtil {
+@@ -59,12 +59,12 @@ public final class MCUtil {
      public static final ThreadPoolExecutor asyncExecutor = new ThreadPoolExecutor(
          0, 2, 60L, TimeUnit.SECONDS,
          new LinkedBlockingQueue<Runnable>(),
@@ -42,3 +25,20 @@ index 7438ed7671acb181fe88abd2db415cb09873db4f..e77e8b228195cfb6375804d2bbcb8438
      );
  
      public static final long INVALID_CHUNK_KEY = getCoordinateKey(Integer.MAX_VALUE, Integer.MAX_VALUE);
+diff --git a/src/main/java/net/minecraft/server/network/LoginListener.java b/src/main/java/net/minecraft/server/network/LoginListener.java
+index dc98ef48a664d9ee2a302fff8c611fd16dc704b6..c65ff6a11a5570e9c39dcd2512374d5e8a2625b5 100644
+--- a/src/main/java/net/minecraft/server/network/LoginListener.java
++++ b/src/main/java/net/minecraft/server/network/LoginListener.java
+@@ -129,7 +129,11 @@ public class LoginListener implements PacketLoginInListener {
+     // Paper start - Cache authenticator threads
+     private static final AtomicInteger threadId = new AtomicInteger(0);
+     private static final java.util.concurrent.ExecutorService authenticatorPool = java.util.concurrent.Executors.newCachedThreadPool(
+-            r -> new Thread(r, "User Authenticator #" + threadId.incrementAndGet())
++            r -> { // Yatopia start - make sure produced threads are daemon ones
++                Thread thread = new Thread(r, "User Authenticator #" + threadId.incrementAndGet());
++                thread.setDaemon(true);
++                return thread;
++            } // Yatopia end
+     );
+     // Paper end
+     // Spigot start

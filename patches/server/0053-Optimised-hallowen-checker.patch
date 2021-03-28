@@ -4,11 +4,23 @@ Date: Mon, 4 Jan 2021 20:12:36 +0200
 Subject: [PATCH] Optimised hallowen checker
 
 
-diff --git a/src/main/java/net/minecraft/server/EntityBat.java b/src/main/java/net/minecraft/server/EntityBat.java
-index 5ba96d6073d2f30c22c1fa28fdea30857b6f2d59..e384eef05faa449c442334910069d163170a9dcd 100644
---- a/src/main/java/net/minecraft/server/EntityBat.java
-+++ b/src/main/java/net/minecraft/server/EntityBat.java
-@@ -281,11 +281,16 @@ public class EntityBat extends EntityAmbient {
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 856e55727eb28277f3d0ae37b35b5d24e0637819..57ff84a76b7d8fe496133950c8cf0687bca819d3 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1465,6 +1465,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         // Paper end
+ 
+         com.tuinity.tuinity.util.CachedLists.reset(); // Tuinity
++        org.yatopiamc.yatopia.server.entity.HalloweenChecker.tick(); // Yatopia
+ 
+         // Paper start
+         long endTime = System.nanoTime();
+diff --git a/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java b/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java
+index e6c5d21da445c9b66dcca33d9029d1768bbe046a..56dbac9b4d97bf012a99e138add98fcc8ae453e4 100644
+--- a/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java
++++ b/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java
+@@ -307,11 +307,16 @@ public class EntityBat extends EntityAmbient {
      }
  
      private static boolean eJ() {
@@ -25,11 +37,11 @@ index 5ba96d6073d2f30c22c1fa28fdea30857b6f2d59..e384eef05faa449c442334910069d163
      }
  
      @Override
-diff --git a/src/main/java/net/minecraft/server/EntitySkeletonAbstract.java b/src/main/java/net/minecraft/server/EntitySkeletonAbstract.java
-index ee4c26de15a5c304889f38f49f4584e8d4ccc5fe..ca9075d6bae36c29d9eb4727321afcbced5f3db4 100644
---- a/src/main/java/net/minecraft/server/EntitySkeletonAbstract.java
-+++ b/src/main/java/net/minecraft/server/EntitySkeletonAbstract.java
-@@ -111,11 +111,15 @@ public abstract class EntitySkeletonAbstract extends EntityMonster implements IR
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java b/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java
+index 7ec60987229927e5fe7164f1d4eae8222832e920..faae6cdd816c86b3c7b86104a2017974c05e3452 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java
+@@ -154,11 +154,15 @@ public abstract class EntitySkeletonAbstract extends EntityMonster implements IR
          this.eL();
          this.setCanPickupLoot(this.world.paperConfig.skeletonsAlwaysCanPickUpLoot || this.random.nextFloat() < 0.55F * difficultydamagescaler.d()); // Paper
          if (this.getEquipment(EnumItemSlot.HEAD).isEmpty()) {
@@ -45,11 +57,11 @@ index ee4c26de15a5c304889f38f49f4584e8d4ccc5fe..ca9075d6bae36c29d9eb4727321afcbc
                  this.setSlot(EnumItemSlot.HEAD, new ItemStack(this.random.nextFloat() < 0.1F ? Blocks.JACK_O_LANTERN : Blocks.CARVED_PUMPKIN));
                  this.dropChanceArmor[EnumItemSlot.HEAD.b()] = 0.0F;
              }
-diff --git a/src/main/java/net/minecraft/server/EntityZombie.java b/src/main/java/net/minecraft/server/EntityZombie.java
-index c87f05f2d511a135fe67943f96fe41d06882e57b..d0d250ed9f4ee56c825fe7400e6056a2ee83c80b 100644
---- a/src/main/java/net/minecraft/server/EntityZombie.java
-+++ b/src/main/java/net/minecraft/server/EntityZombie.java
-@@ -522,11 +522,15 @@ public class EntityZombie extends EntityMonster {
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java b/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java
+index 7112db516e62ca75a445482005c524129b84f54c..5060c8c32ceb13475c60f831e0f4fd132cf952b3 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java
+@@ -585,11 +585,15 @@ public class EntityZombie extends EntityMonster {
          }
  
          if (this.getEquipment(EnumItemSlot.HEAD).isEmpty()) {
@@ -65,18 +77,6 @@ index c87f05f2d511a135fe67943f96fe41d06882e57b..d0d250ed9f4ee56c825fe7400e6056a2
                  this.setSlot(EnumItemSlot.HEAD, new ItemStack(this.random.nextFloat() < 0.1F ? Blocks.JACK_O_LANTERN : Blocks.CARVED_PUMPKIN));
                  this.dropChanceArmor[EnumItemSlot.HEAD.b()] = 0.0F;
              }
-diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 15aaa636f4478991b2b48db05255b7b888a4011e..5c25abc1ce8d26203e8ce1ad692d1d6e93f86827 100644
---- a/src/main/java/net/minecraft/server/MinecraftServer.java
-+++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1353,6 +1353,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-         // Paper end
- 
-         com.tuinity.tuinity.util.CachedLists.reset(); // Tuinity
-+        org.yatopiamc.yatopia.server.entity.HalloweenChecker.tick(); // Yatopia
- 
-         // Paper start
-         long endTime = System.nanoTime();
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/entity/HalloweenChecker.java b/src/main/java/org/yatopiamc/yatopia/server/entity/HalloweenChecker.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..b9e8c25fa4c4cc088a12c2b865887751c8cdbcd8

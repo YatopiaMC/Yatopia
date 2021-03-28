@@ -9,11 +9,23 @@ added.
 
 These changes aim to reduce that load whenever you are using the /whitelist command.
 
-diff --git a/src/main/java/net/minecraft/server/CommandWhitelist.java b/src/main/java/net/minecraft/server/CommandWhitelist.java
-index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab891a90d9 100644
---- a/src/main/java/net/minecraft/server/CommandWhitelist.java
-+++ b/src/main/java/net/minecraft/server/CommandWhitelist.java
-@@ -12,8 +12,8 @@ public class CommandWhitelist {
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index e283960750cff2f45695117ef873cf1f941c27bf..16d8d7760ca0348ee0cf1edec1650cac536e21d0 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -2108,6 +2108,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         return new DataPackConfiguration(list, list1);
+     }
+ 
++    public final void kickNotWhitelisted(CommandListenerWrapper sender) { a(sender); } // Yatopia - OBFHELPER
+     public void a(CommandListenerWrapper commandlistenerwrapper) {
+         if (this.aN()) {
+             PlayerList playerlist = commandlistenerwrapper.getServer().getPlayerList();
+diff --git a/src/main/java/net/minecraft/server/commands/CommandWhitelist.java b/src/main/java/net/minecraft/server/commands/CommandWhitelist.java
+index cc256c6c6b39a1c16859242207042cb9c22098ed..dadec8d22341f955ddce91c3a36b111eaf36335c 100644
+--- a/src/main/java/net/minecraft/server/commands/CommandWhitelist.java
++++ b/src/main/java/net/minecraft/server/commands/CommandWhitelist.java
+@@ -21,8 +21,8 @@ public class CommandWhitelist {
  
      private static final SimpleCommandExceptionType a = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.alreadyOn"));
      private static final SimpleCommandExceptionType b = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.alreadyOff"));
@@ -22,10 +34,10 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab
 +    private static final SimpleCommandExceptionType c = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.add.failed")); private static final SimpleCommandExceptionType ADD_FAILED = c; // Yatopia - OBFHELPER
 +    private static final SimpleCommandExceptionType d = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.remove.failed")); private static final SimpleCommandExceptionType REMOVE_FAILED = d; // Yatopia - OBFHELPER
  
-     public static void a(com.mojang.brigadier.CommandDispatcher<CommandListenerWrapper> com_mojang_brigadier_commanddispatcher) {
-         com_mojang_brigadier_commanddispatcher.register((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) CommandDispatcher.a("whitelist").requires((commandlistenerwrapper) -> {
-@@ -27,11 +27,25 @@ public class CommandWhitelist {
-         }))).then(CommandDispatcher.a("add").then(CommandDispatcher.a("targets", (ArgumentType) ArgumentProfile.a()).suggests((commandcontext, suggestionsbuilder) -> {
+     public static void a(CommandDispatcher<CommandListenerWrapper> commanddispatcher) {
+         commanddispatcher.register((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) net.minecraft.commands.CommandDispatcher.a("whitelist").requires((commandlistenerwrapper) -> {
+@@ -36,11 +36,25 @@ public class CommandWhitelist {
+         }))).then(net.minecraft.commands.CommandDispatcher.a("add").then(net.minecraft.commands.CommandDispatcher.a("targets", (ArgumentType) ArgumentProfile.a()).suggests((commandcontext, suggestionsbuilder) -> {
              PlayerList playerlist = ((CommandListenerWrapper) commandcontext.getSource()).getServer().getPlayerList();
  
 +            // Yatopia start - optimize this
@@ -36,7 +48,7 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab
                  return entityplayer.getProfile().getName();
              }), suggestionsbuilder);
 +             */
-+            for (EntityPlayer player : playerlist.getPlayers()) {
++            for (net.minecraft.server.level.EntityPlayer player : playerlist.getPlayers()) {
 +                if (!playerlist.getWhitelist().isWhitelisted(player.getProfile())) {
 +                    String remaining = suggestionsbuilder.getRemainingLowercase();
 +                    String playerName = player.getName();
@@ -49,8 +61,8 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab
 +            // Yatopia end
          }).executes((commandcontext) -> {
              return a((CommandListenerWrapper) commandcontext.getSource(), ArgumentProfile.a(commandcontext, "targets"));
-         })))).then(CommandDispatcher.a("remove").then(CommandDispatcher.a("targets", (ArgumentType) ArgumentProfile.a()).suggests((commandcontext, suggestionsbuilder) -> {
-@@ -52,6 +66,8 @@ public class CommandWhitelist {
+         })))).then(net.minecraft.commands.CommandDispatcher.a("remove").then(net.minecraft.commands.CommandDispatcher.a("targets", (ArgumentType) ArgumentProfile.a()).suggests((commandcontext, suggestionsbuilder) -> {
+@@ -61,6 +75,8 @@ public class CommandWhitelist {
  
      private static int a(CommandListenerWrapper commandlistenerwrapper, Collection<GameProfile> collection) throws CommandSyntaxException {
          WhiteList whitelist = commandlistenerwrapper.getServer().getPlayerList().getWhitelist();
@@ -59,7 +71,7 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab
          int i = 0;
          Iterator iterator = collection.iterator();
  
-@@ -72,10 +88,27 @@ public class CommandWhitelist {
+@@ -81,10 +97,27 @@ public class CommandWhitelist {
          } else {
              return i;
          }
@@ -87,12 +99,12 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab
          int i = 0;
          Iterator iterator = collection.iterator();
  
-@@ -97,6 +130,22 @@ public class CommandWhitelist {
+@@ -106,6 +139,22 @@ public class CommandWhitelist {
              commandlistenerwrapper.getServer().a(commandlistenerwrapper);
              return i;
          }
 +         */
-+        java.util.List<JsonListEntry<GameProfile>> toRemove = new java.util.ArrayList<>();
++        java.util.List<net.minecraft.server.players.JsonListEntry<GameProfile>> toRemove = new java.util.ArrayList<>();
 +        for (GameProfile profile : collection) {
 +            if (whitelist.isWhitelisted(profile)) {
 +                toRemove.add(new WhiteListEntry(profile));
@@ -110,39 +122,11 @@ index 893d2c1c74ed28dcdb83b71762ccdcbfd50a8f9d..107091a4cae0e4eaba93f69ae91239ab
      }
  
      private static int b(CommandListenerWrapper commandlistenerwrapper) throws CommandSyntaxException {
-diff --git a/src/main/java/net/minecraft/server/EntityHuman.java b/src/main/java/net/minecraft/server/EntityHuman.java
-index 708f9c5d0b6e30512b3d3ea45ec2b2baf9482669..b7125495b1fd4207a96078ca2aff565fccd78569 100644
---- a/src/main/java/net/minecraft/server/EntityHuman.java
-+++ b/src/main/java/net/minecraft/server/EntityHuman.java
-@@ -79,6 +79,7 @@ public abstract class EntityHuman extends EntityLiving {
-     // CraftBukkit start
-     public boolean fauxSleeping;
-     public int oldLevel = -1;
-+    private String nameLowercase = null; // Yatopia
- 
-     @Override
-     public CraftHumanEntity getBukkitEntity() {
-@@ -1929,6 +1930,15 @@ public abstract class EntityHuman extends EntityLiving {
-         return this.getProfile().getName();
-     }
- 
-+    // Yatopia start
-+    public String getNameLowercase() {
-+        if (nameLowercase == null) {
-+            nameLowercase = getProfile().getName().toLowerCase(java.util.Locale.ROOT);
-+        }
-+        return nameLowercase;
-+    }
-+    // Yatopia end
-+
-     @Override
-     public float b(EntityPose entitypose, EntitySize entitysize) {
-         switch (entitypose) {
-diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
-index b97931b9234bb0fb95fef4e03f003c63f8da5b88..3a44d9876fc973f18432dd3294d585dbc65f755f 100644
---- a/src/main/java/net/minecraft/server/JsonList.java
-+++ b/src/main/java/net/minecraft/server/JsonList.java
-@@ -64,6 +64,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+diff --git a/src/main/java/net/minecraft/server/players/JsonList.java b/src/main/java/net/minecraft/server/players/JsonList.java
+index 96fbb1a3d216302aa937e07bf88fdb19c6ccc764..0521fa09488ef501cc5bcdf6c3134ac920a2e94a 100644
+--- a/src/main/java/net/minecraft/server/players/JsonList.java
++++ b/src/main/java/net/minecraft/server/players/JsonList.java
+@@ -66,6 +66,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
  
      }
  
@@ -163,7 +147,7 @@ index b97931b9234bb0fb95fef4e03f003c63f8da5b88..3a44d9876fc973f18432dd3294d585db
      @Nullable
      public V get(K k0) {
          // Paper start
-@@ -94,6 +108,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -96,6 +110,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          this.remove(jsonlistentry.getKey());
      }
  
@@ -184,15 +168,31 @@ index b97931b9234bb0fb95fef4e03f003c63f8da5b88..3a44d9876fc973f18432dd3294d585db
      public String[] getEntries() {
          return (String[]) this.d.keySet().toArray(new String[this.d.size()]);
      }
-diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 0773f4baffe9dda40441e312e7cc58186f59a9ff..2f83ba794f25f92722a737e3b1f2342b4b9fc94f 100644
---- a/src/main/java/net/minecraft/server/MinecraftServer.java
-+++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1996,6 +1996,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
-         return new DataPackConfiguration(list, list1);
+diff --git a/src/main/java/net/minecraft/world/entity/player/EntityHuman.java b/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
+index b63019f40b28a2e543528a7919bbc08a4ccc8f07..4525c2d30bc9eda267a83ef1c845877433bc6235 100644
+--- a/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
++++ b/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
+@@ -176,6 +176,7 @@ public abstract class EntityHuman extends EntityLiving {
+     // CraftBukkit start
+     public boolean fauxSleeping;
+     public int oldLevel = -1;
++    private String nameLowercase = null; // Yatopia
+ 
+     @Override
+     public CraftHumanEntity getBukkitEntity() {
+@@ -2026,6 +2027,15 @@ public abstract class EntityHuman extends EntityLiving {
+         return this.getProfile().getName();
      }
  
-+    public final void kickNotWhitelisted(CommandListenerWrapper sender) { a(sender); } // Yatopia - OBFHELPER
-     public void a(CommandListenerWrapper commandlistenerwrapper) {
-         if (this.aN()) {
-             PlayerList playerlist = commandlistenerwrapper.getServer().getPlayerList();
++    // Yatopia start
++    public String getNameLowercase() {
++        if (nameLowercase == null) {
++            nameLowercase = getProfile().getName().toLowerCase(java.util.Locale.ROOT);
++        }
++        return nameLowercase;
++    }
++    // Yatopia end
++
+     @Override
+     public float b(EntityPose entitypose, EntitySize entitysize) {
+         switch (entitypose) {

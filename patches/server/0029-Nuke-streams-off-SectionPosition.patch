@@ -4,11 +4,11 @@ Date: Tue, 1 Sep 2020 19:21:52 +0300
 Subject: [PATCH] Nuke streams off SectionPosition
 
 
-diff --git a/src/main/java/net/minecraft/server/BehaviorUtil.java b/src/main/java/net/minecraft/server/BehaviorUtil.java
-index d0e7c6b4c0b1e5993f0019e7a448423e048a8af5..b788685331bc28e0d339e6600b5805a2bed4cf27 100644
---- a/src/main/java/net/minecraft/server/BehaviorUtil.java
-+++ b/src/main/java/net/minecraft/server/BehaviorUtil.java
-@@ -84,12 +84,25 @@ public class BehaviorUtil {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java
+index 30d14b559f49d8fcaaf519500a6eeeba3d2ce649..e1cfed99747f7220bc2eb306e0eab0106cfe1b0d 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java
+@@ -100,12 +100,25 @@ public class BehaviorUtil {
  
      public static SectionPosition a(WorldServer worldserver, SectionPosition sectionposition, int i) {
          int j = worldserver.b(sectionposition);
@@ -34,11 +34,11 @@ index d0e7c6b4c0b1e5993f0019e7a448423e048a8af5..b788685331bc28e0d339e6600b5805a2
      }
  
      public static boolean a(EntityInsentient entityinsentient, EntityLiving entityliving, int i) {
-diff --git a/src/main/java/net/minecraft/server/Raid.java b/src/main/java/net/minecraft/server/Raid.java
-index 78f818bc7542868ec9e7caeb10a75180fb0b5e07..11f768e04d71b96350fdb586a280c52e062dfcf2 100644
---- a/src/main/java/net/minecraft/server/Raid.java
-+++ b/src/main/java/net/minecraft/server/Raid.java
-@@ -355,6 +355,18 @@ public class Raid {
+diff --git a/src/main/java/net/minecraft/world/entity/raid/Raid.java b/src/main/java/net/minecraft/world/entity/raid/Raid.java
+index 457cbdab3fa96fdf7fad1b0206bec9c0aa7847d8..f9d03b6d11ad5ffbfe5be072e8631f046bcd1646 100644
+--- a/src/main/java/net/minecraft/world/entity/raid/Raid.java
++++ b/src/main/java/net/minecraft/world/entity/raid/Raid.java
+@@ -397,6 +397,18 @@ public class Raid {
      }
  
      private void z() {
@@ -57,7 +57,7 @@ index 78f818bc7542868ec9e7caeb10a75180fb0b5e07..11f768e04d71b96350fdb586a280c52e
          Stream<SectionPosition> stream = SectionPosition.a(SectionPosition.a(this.center), 2);
          WorldServer worldserver = this.world;
  
-@@ -362,6 +374,7 @@ public class Raid {
+@@ -404,6 +416,7 @@ public class Raid {
          stream.filter(worldserver::a).map(SectionPosition::q).min(Comparator.comparingDouble((blockposition) -> {
              return blockposition.j(this.center);
          })).ifPresent(this::c);

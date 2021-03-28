@@ -4,11 +4,11 @@ Date: Sat, 20 Feb 2021 14:47:08 -0800
 Subject: [PATCH] Configs for if Wither/Ender Dragon can ride vehicles
 
 
-diff --git a/src/main/java/net/minecraft/server/Entity.java b/src/main/java/net/minecraft/server/Entity.java
-index 49a1447bae91294a23ccab27c2809bea0c4c90a3..94af972e115491d0f4394dd290ec2d9d426b8d32 100644
---- a/src/main/java/net/minecraft/server/Entity.java
-+++ b/src/main/java/net/minecraft/server/Entity.java
-@@ -2274,7 +2274,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, Ke
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index fcbbf100990faf60250357b744cbd58701da0b0c..d321616b7f726f4ff307b46ced9efce6cc20b82f 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -2370,7 +2370,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          }
      }
  
@@ -17,11 +17,11 @@ index 49a1447bae91294a23ccab27c2809bea0c4c90a3..94af972e115491d0f4394dd290ec2d9d
          return !this.isSneaking() && this.j <= 0;
      }
  
-diff --git a/src/main/java/net/minecraft/server/EntityEnderDragon.java b/src/main/java/net/minecraft/server/EntityEnderDragon.java
-index e2377c6e8a98be431953533bf0b2060028caad45..a495c14b9f168884a0bba6b95d28c9ecfa9dfdab 100644
---- a/src/main/java/net/minecraft/server/EntityEnderDragon.java
-+++ b/src/main/java/net/minecraft/server/EntityEnderDragon.java
-@@ -1023,6 +1023,7 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
+diff --git a/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java b/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java
+index a81d782877ff6116477792fa4cec0846e56ed384..6b0a71ce1c51e587ee17c8d60aaa52bbc87fb321 100644
+--- a/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java
++++ b/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java
+@@ -1073,6 +1073,7 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
  
      @Override
      protected boolean n(Entity entity) {
@@ -29,11 +29,11 @@ index e2377c6e8a98be431953533bf0b2060028caad45..a495c14b9f168884a0bba6b95d28c9ec
          return false;
      }
  
-diff --git a/src/main/java/net/minecraft/server/EntityWither.java b/src/main/java/net/minecraft/server/EntityWither.java
-index 7d5183cd2121092f7342a282ba98f659f10f19f8..2c81a5d1381afa37b966625d3a6ec6cf603f466d 100644
---- a/src/main/java/net/minecraft/server/EntityWither.java
-+++ b/src/main/java/net/minecraft/server/EntityWither.java
-@@ -673,6 +673,7 @@ public class EntityWither extends EntityMonster implements IRangedEntity {
+diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
+index fa6b72c7a12b20f8ccffa360a3895e4d8f4277e4..4a3e0f7f59ca4fd64be62a580d08b6ab84649ee8 100644
+--- a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
++++ b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
+@@ -730,6 +730,7 @@ public class EntityWither extends EntityMonster implements IRangedEntity {
  
      @Override
      protected boolean n(Entity entity) {
@@ -42,10 +42,10 @@ index 7d5183cd2121092f7342a282ba98f659f10f19f8..2c81a5d1381afa37b966625d3a6ec6cf
      }
  
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-index 64657c3c9250d8767702a54bb0ee3a23f43da04a..958b0ee8af21e4176e9d35af88294919c509a2c1 100644
+index 3ea3c35865e0a467f86b93377dd069c3cf59ceb4..7afc05f54f4b2fda3b250cb8fd1973247be5933f 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-@@ -773,6 +773,7 @@ public class PurpurWorldConfig {
+@@ -787,6 +787,7 @@ public class PurpurWorldConfig {
      public boolean enderDragonAlwaysDropsFullExp = false;
      public boolean enderDragonBypassMobGriefing = false;
      public double enderDragonMaxHealth = 200.0D;
@@ -53,7 +53,7 @@ index 64657c3c9250d8767702a54bb0ee3a23f43da04a..958b0ee8af21e4176e9d35af88294919
      private void enderDragonSettings() {
          enderDragonRidable = getBoolean("mobs.ender_dragon.ridable", enderDragonRidable);
          enderDragonRidableInWater = getBoolean("mobs.ender_dragon.ridable-in-water", enderDragonRidableInWater);
-@@ -789,6 +790,7 @@ public class PurpurWorldConfig {
+@@ -803,6 +804,7 @@ public class PurpurWorldConfig {
              set("mobs.ender_dragon.attributes.max_health", oldValue);
          }
          enderDragonMaxHealth = getDouble("mobs.ender_dragon.attributes.max_health", enderDragonMaxHealth);
@@ -61,7 +61,7 @@ index 64657c3c9250d8767702a54bb0ee3a23f43da04a..958b0ee8af21e4176e9d35af88294919
      }
  
      public boolean endermanRidable = false;
-@@ -1731,6 +1733,7 @@ public class PurpurWorldConfig {
+@@ -1747,6 +1749,7 @@ public class PurpurWorldConfig {
      public float witherHealthRegenAmount = 1.0f;
      public int witherHealthRegenDelay = 20;
      public double witherMaxHealth = 300.0D;
@@ -69,7 +69,7 @@ index 64657c3c9250d8767702a54bb0ee3a23f43da04a..958b0ee8af21e4176e9d35af88294919
      private void witherSettings() {
          witherRidable = getBoolean("mobs.wither.ridable", witherRidable);
          witherRidableInWater = getBoolean("mobs.wither.ridable-in-water", witherRidableInWater);
-@@ -1748,6 +1751,7 @@ public class PurpurWorldConfig {
+@@ -1764,6 +1767,7 @@ public class PurpurWorldConfig {
              set("mobs.wither.attributes.max_health", oldValue);
          }
          witherMaxHealth = getDouble("mobs.wither.attributes.max_health", witherMaxHealth);

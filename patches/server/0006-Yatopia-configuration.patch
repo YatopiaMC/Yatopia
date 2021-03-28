@@ -26,11 +26,11 @@ index 4b171a2a60e24947e884f8988920f335bd99a471..5431ec9e8794397b3082a1eb49f82767
              con.setDoOutput(true);
              String hostName = "BrokenHost";
              try {
-diff --git a/src/main/java/net/minecraft/server/DedicatedServer.java b/src/main/java/net/minecraft/server/DedicatedServer.java
-index b8a45c80b6691214e513286262f31b7b5b1dd5eb..af7784790fcddc58509f07586f7fd8d2e42e9eee 100644
---- a/src/main/java/net/minecraft/server/DedicatedServer.java
-+++ b/src/main/java/net/minecraft/server/DedicatedServer.java
-@@ -188,6 +188,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index 28d47ef97939309ce26b6e4cae14925b510755fd..78f7155c8bbeb2b93d42fc2b108ff4135038ea72 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -227,6 +227,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
          gg.airplane.AirplaneConfig.load(); // Airplane - config
          gg.airplane.commands.AirplaneCommands.init(); // Airplane - command
  
@@ -46,31 +46,11 @@ index b8a45c80b6691214e513286262f31b7b5b1dd5eb..af7784790fcddc58509f07586f7fd8d2
          this.setPVP(dedicatedserverproperties.pvp);
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.ba());
-diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 7535a6689f8e67af97bff9643fabd3c615222f99..424e0a1c31561aa06229a13b68d0cc367f392545 100644
---- a/src/main/java/net/minecraft/server/EntityLiving.java
-+++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -271,6 +271,7 @@ public abstract class EntityLiving extends Entity {
-         this.world.getMethodProfiler().enter("livingEntityBaseTick");
-         boolean flag = this instanceof EntityHuman;
- 
-+        if (!org.yatopiamc.yatopia.server.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
-         if (this.isAlive()) {
-             if (this.inBlock()) {
-                 this.damageEntity(DamageSource.STUCK, 1.0F);
-@@ -287,6 +288,7 @@ public abstract class EntityLiving extends Entity {
-                 }
-             }
-         }
-+        } // Yatopia
- 
-         if (this.isFireProof() || this.world.isClientSide) {
-             this.extinguish();
-diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 3a4165efa33cce86457092c29d2cf2aced42f43d..7cad3e754a8c0398ad6394edd0cb767566b09c88 100644
---- a/src/main/java/net/minecraft/server/PlayerList.java
-+++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -187,7 +187,7 @@ public abstract class PlayerList {
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 8b76e61228c8c766aaef9afe3fc81fc17a10d72c..12671cf4c4be592cca04525bcd8eeec5406ed88b 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -272,7 +272,7 @@ public abstract class PlayerList {
          // Spigot - view distance
          playerconnection.sendPacket(new PacketPlayOutLogin(entityplayer.getId(), entityplayer.playerInteractManager.getGameMode(), entityplayer.playerInteractManager.c(), BiomeManager.a(worldserver1.getSeed()), worlddata.isHardcore(), this.server.F(), this.s, worldserver1.getDimensionManager(), worldserver1.getDimensionKey(), this.getMaxPlayers(), worldserver1.getChunkProvider().playerChunkMap.playerChunkManager.getLoadDistance(), flag1, !flag, worldserver1.isDebugWorld(), worldserver1.isFlatWorld())); // Paper - no-tick view distance // Tuinity - replace old player chunk management
          entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
@@ -79,8 +59,28 @@ index 3a4165efa33cce86457092c29d2cf2aced42f43d..7cad3e754a8c0398ad6394edd0cb7675
          playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
          playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
          playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index a25280812056863fdb4d2fbd97e1eb0913f1bbe0..cdf2a8a004302eb36f64a5d275201f6e7b58d95a 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -367,6 +367,7 @@ public abstract class EntityLiving extends Entity {
+         this.world.getMethodProfiler().enter("livingEntityBaseTick");
+         boolean flag = this instanceof EntityHuman;
+ 
++        if (!org.yatopiamc.yatopia.server.YatopiaConfig.disableEntityStuckChecks) { // Yatopia
+         if (this.isAlive()) {
+             if (this.inBlock()) {
+                 this.damageEntity(DamageSource.STUCK, 1.0F);
+@@ -383,6 +384,7 @@ public abstract class EntityLiving extends Entity {
+                 }
+             }
+         }
++        } // Yatopia
+ 
+         if (this.isFireProof() || this.world.isClientSide) {
+             this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index e9d3883f5c322ad8437c87aa2ccc0ecaa6f01bae..89456056da3420055a9366fdddfa858e78664329 100644
+index 449fce2d76c701b789dd09326c9a8fc818b39c45..bf7d1480609d4cfc79c772d3b80255e0138404d8 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -860,6 +860,7 @@ public final class CraftServer implements Server {
@@ -91,7 +91,7 @@ index e9d3883f5c322ad8437c87aa2ccc0ecaa6f01bae..89456056da3420055a9366fdddfa858e
          }
  
          org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
-@@ -2380,6 +2381,13 @@ public final class CraftServer implements Server {
+@@ -2385,6 +2386,13 @@ public final class CraftServer implements Server {
              org.spigotmc.RestartCommand.restart();
          }
  
@@ -106,10 +106,10 @@ index e9d3883f5c322ad8437c87aa2ccc0ecaa6f01bae..89456056da3420055a9366fdddfa858e
          public void broadcast(BaseComponent component) {
              for (Player player : getOnlinePlayers()) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index e51dcb259d511c369806a83b96c2820f316e1401..e65f4b990c24e6cee850521f9ad02c2bf4c85ad6 100644
+index 9d22236808d89183fd1a0a85465533a0b2de4358..207df35734bdb333a0a2ef56e7041120620c1817 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -162,6 +162,14 @@ public class Main {
+@@ -164,6 +164,14 @@ public class Main {
                          .describedAs("Yml file");
                  // Origami end - Server Config
  

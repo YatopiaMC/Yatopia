@@ -10,11 +10,23 @@ These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 
 Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
 Co-authored-by: ishland <ishlandmc@yeah.net>
 
-diff --git a/src/main/java/net/minecraft/server/CraftingManager.java b/src/main/java/net/minecraft/server/CraftingManager.java
-index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2e40f604a 100644
---- a/src/main/java/net/minecraft/server/CraftingManager.java
-+++ b/src/main/java/net/minecraft/server/CraftingManager.java
-@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
+diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
+index 26fff0540e3d8863e83b0a60df2205422d50f1e1..dbfa9584c11296bf78afef52c2d0c5e682961761 100644
+--- a/src/main/java/net/minecraft/world/item/ItemStack.java
++++ b/src/main/java/net/minecraft/world/item/ItemStack.java
+@@ -640,6 +640,7 @@ public final class ItemStack {
+         return !this.e() ? this.doMaterialsMatch(itemstack) : !itemstack.isEmpty() && this.getItem() == itemstack.getItem();
+     }
+ 
++    public final String getTranslationKey() { return j(); } // Yatopia - OBFHELPER
+     public String j() {
+         return this.getItem().f(this);
+     }
+diff --git a/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java b/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
+index 5ba58bf1a47c696235e6e7a4a6815104bc23de80..f1180c57a76883c007393bc187de680618f60de3 100644
+--- a/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
++++ b/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
+@@ -35,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
  
  import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap; // CraftBukkit
@@ -22,7 +34,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
  
  public class CraftingManager extends ResourceDataJson {
  
-@@ -31,6 +32,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -42,6 +43,10 @@ public class CraftingManager extends ResourceDataJson {
      private static final Logger LOGGER = LogManager.getLogger();
      public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
      private boolean d;
@@ -33,7 +45,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
  
      public CraftingManager() {
          super(CraftingManager.a, "recipes");
-@@ -38,6 +43,7 @@ public class CraftingManager extends ResourceDataJson {
+@@ -49,6 +54,7 @@ public class CraftingManager extends ResourceDataJson {
  
      protected void a(Map<MinecraftKey, JsonElement> map, IResourceManager iresourcemanager, GameProfilerFiller gameprofilerfiller) {
          this.d = false;
@@ -41,7 +53,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
          // CraftBukkit start - SPIGOT-5667 make sure all types are populated and mutable
          Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> map1 = Maps.newHashMap();
          for (Recipes<?> recipeType : IRegistry.RECIPE_TYPE) {
-@@ -63,9 +69,17 @@ public class CraftingManager extends ResourceDataJson {
+@@ -74,9 +80,17 @@ public class CraftingManager extends ResourceDataJson {
              }
          }
  
@@ -59,7 +71,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
          CraftingManager.LOGGER.info("Loaded {} recipes", map1.size());
      }
  
-@@ -79,33 +93,65 @@ public class CraftingManager extends ResourceDataJson {
+@@ -90,33 +104,65 @@ public class CraftingManager extends ResourceDataJson {
          } else {
              map.putAndMoveToFirst(irecipe.getKey(), irecipe); // CraftBukkit - SPIGOT-4638: last recipe gets priority
          }
@@ -125,7 +137,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
      private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
          return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
      }
-@@ -127,15 +173,26 @@ public class CraftingManager extends ResourceDataJson {
+@@ -138,15 +184,26 @@ public class CraftingManager extends ResourceDataJson {
      }
  
      public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
@@ -155,7 +167,7 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
      }
  
      public Stream<MinecraftKey> d() {
-@@ -155,6 +212,10 @@ public class CraftingManager extends ResourceDataJson {
+@@ -166,6 +223,10 @@ public class CraftingManager extends ResourceDataJson {
      // CraftBukkit start
      public void clearRecipes() {
          this.recipes = Maps.newHashMap();
@@ -166,15 +178,3 @@ index 58ecbe1e20581dc9e78cdd2f4ece29cfa014da8a..6f3754d88e6d98fce5859fd2d58a9fc2
  
          for (Recipes<?> recipeType : IRegistry.RECIPE_TYPE) {
              this.recipes.put(recipeType, new Object2ObjectLinkedOpenHashMap<>());
-diff --git a/src/main/java/net/minecraft/server/ItemStack.java b/src/main/java/net/minecraft/server/ItemStack.java
-index 47e3ac6bcebacd9c424ddcc49774e06e05f02fe2..cf3e4382aecd4c44c45877386eaf8fcc49657029 100644
---- a/src/main/java/net/minecraft/server/ItemStack.java
-+++ b/src/main/java/net/minecraft/server/ItemStack.java
-@@ -585,6 +585,7 @@ public final class ItemStack {
-         return !this.e() ? this.doMaterialsMatch(itemstack) : !itemstack.isEmpty() && this.getItem() == itemstack.getItem();
-     }
- 
-+    public final String getTranslationKey() { return j(); } // Yatopia - OBFHELPER
-     public String j() {
-         return this.getItem().f(this);
-     }

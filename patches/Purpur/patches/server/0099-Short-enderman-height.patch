@@ -4,23 +4,11 @@ Date: Mon, 10 Aug 2020 21:46:22 -0500
 Subject: [PATCH] Short enderman height
 
 
-diff --git a/src/main/java/net/minecraft/server/EntityEnderman.java b/src/main/java/net/minecraft/server/EntityEnderman.java
-index 7b175240e44b0c7eb5044d7bcaf54dac22f50f2a..e3364032669b473c799b759f5f89468b7584d9f5 100644
---- a/src/main/java/net/minecraft/server/EntityEnderman.java
-+++ b/src/main/java/net/minecraft/server/EntityEnderman.java
-@@ -321,6 +321,7 @@ public class EntityEnderman extends EntityMonster implements IEntityAngerable {
-     public boolean damageEntity(DamageSource damagesource, float f) {
-         if (this.isInvulnerable(damagesource)) {
-             return false;
-+        } else if (net.pl3x.purpur.PurpurConfig.endermanShortHeight && damagesource == DamageSource.STUCK) { return false; // Purpur - no suffocation damage if short height
-         } else if (damagesource instanceof EntityDamageSourceIndirect) {
-             if (this.tryEscape(EndermanEscapeEvent.Reason.INDIRECT)) { // Paper start
-             for (int i = 0; i < 64; ++i) {
-diff --git a/src/main/java/net/minecraft/server/EntityTypes.java b/src/main/java/net/minecraft/server/EntityTypes.java
-index ed1e0bd379b95bc090c7cdf57de70ec9cc2dac5a..06fe0fca1936853748997c63f325df99da5fa2ee 100644
---- a/src/main/java/net/minecraft/server/EntityTypes.java
-+++ b/src/main/java/net/minecraft/server/EntityTypes.java
-@@ -137,7 +137,8 @@ public class EntityTypes<T extends Entity> {
+diff --git a/src/main/java/net/minecraft/world/entity/EntityTypes.java b/src/main/java/net/minecraft/world/entity/EntityTypes.java
+index 94aca57dd9e08d8841086378a712794e0d9c0e00..6eb91f73b7040c13c43c3e3c319244640bfbbeaf 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityTypes.java
++++ b/src/main/java/net/minecraft/world/entity/EntityTypes.java
+@@ -268,7 +268,8 @@ public class EntityTypes<T extends Entity> {
      private IChatBaseComponent bp;
      @Nullable
      private MinecraftKey bq;
@@ -30,20 +18,32 @@ index ed1e0bd379b95bc090c7cdf57de70ec9cc2dac5a..06fe0fca1936853748997c63f325df99
  
      private static <T extends Entity> EntityTypes<T> a(String s, EntityTypes.Builder entitytypes_builder) { // CraftBukkit - decompile error
          return (EntityTypes) IRegistry.a((IRegistry) IRegistry.ENTITY_TYPE, s, (Object) entitytypes_builder.a(s));
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java b/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java
+index 72142f5c777c6218050bc2b69891072d256ea57d..52aa47036acee2ec21ae2d6f4df634ecbf04b3b0 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EntityEnderman.java
+@@ -383,6 +383,7 @@ public class EntityEnderman extends EntityMonster implements IEntityAngerable {
+     public boolean damageEntity(DamageSource damagesource, float f) {
+         if (this.isInvulnerable(damagesource)) {
+             return false;
++        } else if (net.pl3x.purpur.PurpurConfig.endermanShortHeight && damagesource == DamageSource.STUCK) { return false; // Purpur - no suffocation damage if short height
+         } else if (damagesource instanceof EntityDamageSourceIndirect) {
+             if (this.tryEscape(EndermanEscapeEvent.Reason.INDIRECT)) { // Paper start
+             for (int i = 0; i < 64; ++i) {
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index 17a8b43892fdab87a80cbf076c7814bfab087142..c314a8c9a921a95cea43b748e2037521d948e1e7 100644
+index 1d6da0c0753e822bba9d7847980235ff876e1ee8..76a1f157dc4ae0fdf804f3340b72dfa17ffbbb94 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-@@ -2,6 +2,8 @@ package net.pl3x.purpur;
- 
- import co.aikar.timings.TimingsManager;
+@@ -4,6 +4,8 @@ import co.aikar.timings.TimingsManager;
  import com.google.common.base.Throwables;
-+import net.minecraft.server.EntitySize;
-+import net.minecraft.server.EntityTypes;
+ import net.minecraft.locale.LocaleLanguage;
  import net.minecraft.server.MinecraftServer;
++import net.minecraft.world.entity.EntitySize;
++import net.minecraft.world.entity.EntityTypes;
  import net.pl3x.purpur.command.PurpurCommand;
  import org.bukkit.Bukkit;
-@@ -191,6 +193,12 @@ public class PurpurConfig {
+ import org.bukkit.command.Command;
+@@ -192,6 +194,12 @@ public class PurpurConfig {
          enderChestPermissionRows = getBoolean("settings.blocks.ender_chest.use-permissions-for-rows", enderChestPermissionRows);
      }
  

@@ -20,7 +20,6 @@ on:
         
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -59,7 +58,7 @@ jobs:
       id: decompile-cache
       with:
         path: Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
-        key: ${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-java-${{ matrix.java }}-minecraft-decomp
+        key: ${{ hashFiles('Paper/work/BuildData/mappings/bukkit-$STEPS_MCVER_OUTPUTS_MCVER-cl.csrg') }}-${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-java-${{ matrix.java }}-minecraft-decomp
         
     - name: Apply Patches
       run: |

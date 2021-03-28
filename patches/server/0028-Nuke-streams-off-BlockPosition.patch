@@ -4,23 +4,11 @@ Date: Tue, 1 Sep 2020 19:11:50 +0300
 Subject: [PATCH] Nuke streams off BlockPosition
 
 
-diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index 8724ad342bec7c733b3c825bd62dbfa5c28c06dd..9907047028b754fe0e314a7d5c5238ce4286c373 100644
---- a/src/main/java/net/minecraft/server/BlockBase.java
-+++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -681,6 +681,7 @@ public abstract class BlockBase {
-             return this.getBlock().getInventory(this.p(), world, blockposition);
-         }
- 
-+        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
-         public boolean a(Tag<Block> tag) {
-             return this.getBlock().a(tag);
-         }
-diff --git a/src/main/java/net/minecraft/server/BlockPosition.java b/src/main/java/net/minecraft/server/BlockPosition.java
-index 7fddef0afbcf1f9f391c540b8fce1bebf8faa452..f13b4e6ec815792c2f2b49193707da94df427424 100644
---- a/src/main/java/net/minecraft/server/BlockPosition.java
-+++ b/src/main/java/net/minecraft/server/BlockPosition.java
-@@ -318,7 +318,15 @@ public class BlockPosition extends BaseBlockPosition {
+diff --git a/src/main/java/net/minecraft/core/BlockPosition.java b/src/main/java/net/minecraft/core/BlockPosition.java
+index bb520b56d797cabec86fce42dd4afff018e66fdd..9c508cc41575175d442cd51d75706830351a24f2 100644
+--- a/src/main/java/net/minecraft/core/BlockPosition.java
++++ b/src/main/java/net/minecraft/core/BlockPosition.java
+@@ -325,7 +325,15 @@ public class BlockPosition extends BaseBlockPosition {
      }
  
      public static Optional<BlockPosition> a(BlockPosition blockposition, int i, int j, Predicate<BlockPosition> predicate) {
@@ -37,3 +25,15 @@ index 7fddef0afbcf1f9f391c540b8fce1bebf8faa452..f13b4e6ec815792c2f2b49193707da94
      }
  
      public static Stream<BlockPosition> b(BlockPosition blockposition, int i, int j, int k) {
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+index e41615d7583d5485e31fbc0012925a24638101b8..e6c37db1a8b51dda1e9d493d8fbfecd4ddf1aeb3 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+@@ -734,6 +734,7 @@ public abstract class BlockBase {
+             return this.getBlock().getInventory(this.p(), world, blockposition);
+         }
+ 
++        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
+         public boolean a(Tag<Block> tag) {
+             return this.getBlock().a(tag);
+         }

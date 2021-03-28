@@ -4,11 +4,11 @@ Date: Fri, 31 Jul 2020 21:58:24 -0500
 Subject: [PATCH] Option for simpler Villagers
 
 
-diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a3801558e518 100644
---- a/src/main/java/net/minecraft/server/EntityVillager.java
-+++ b/src/main/java/net/minecraft/server/EntityVillager.java
-@@ -29,6 +29,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
+diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
+index a02748bff911415d95bea344f179ad27ff9d6092..75ea7fa9d5bb2af7b85e557976ca705e90a85e93 100644
+--- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
++++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
+@@ -103,6 +103,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
  
  public class EntityVillager extends EntityVillagerAbstract implements ReputationHandler, VillagerDataHolder {
  
@@ -16,7 +16,7 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
      private static final DataWatcherObject<VillagerData> br = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
      public static final Map<Item, Integer> bp = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
      private static final Set<Item> bs = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
-@@ -65,8 +66,14 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -139,8 +140,14 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      public EntityVillager(EntityTypes<? extends EntityVillager> entitytypes, World world, VillagerType villagertype) {
          super(entitytypes, world);
          this.by = new Reputation();
@@ -31,7 +31,7 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
          this.setCanPickupLoot(true);
          this.setVillagerData(this.getVillagerData().withType(villagertype).withProfession(VillagerProfession.NONE));
          this.brainTickOffset = getRandom().nextInt(100); // Purpur
-@@ -87,6 +94,38 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -161,6 +168,38 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      protected void initPathfinder() {
          this.goalSelector.a(0, new PathfinderGoalHasRider(this)); // Purpur
          if (world.purpurConfig.villagerFollowEmeraldBlock) this.goalSelector.a(3, new PathfinderGoalTempt(this, 1.0D, false, TEMPT_ITEMS));
@@ -40,37 +40,37 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
 +            // safety
 +            return;
 +        }
-+        this.goalSelector.a(0, new PathfinderGoalFloat(this));
++        this.goalSelector.a(0, new net.minecraft.world.entity.ai.goal.PathfinderGoalFloat(this));
 +        if (org.yatopiamc.yatopia.server.YatopiaConfig.villagersHideAtNight) {
-+            this.goalSelector.a(0, new PathfinderGoalUseItem<>(this, PotionUtil.a(new ItemStack(Items.POTION), Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
++            this.goalSelector.a(0, new net.minecraft.world.entity.ai.goal.PathfinderGoalUseItem<>(this, net.minecraft.world.item.alchemy.PotionUtil.a(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
 +                return !this.world.isDay() && !entityvillagertrader.isInvisible();
 +            }));
-+            this.goalSelector.a(0, new PathfinderGoalUseItem<>(this, new ItemStack(Items.MILK_BUCKET), SoundEffects.ENTITY_WANDERING_TRADER_REAPPEARED, (entityvillagertrader) -> {
++            this.goalSelector.a(0, new net.minecraft.world.entity.ai.goal.PathfinderGoalUseItem<>(this, new ItemStack(Items.MILK_BUCKET), SoundEffects.ENTITY_WANDERING_TRADER_REAPPEARED, (entityvillagertrader) -> {
 +                return this.world.isDay() && entityvillagertrader.isInvisible();
 +            }));
 +        }
-+        this.goalSelector.a(1, new PathfinderGoalTradeWithPlayer(this));
-+        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityZombie.class, 8.0F, 0.5D, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityEvoker.class, 12.0F, 0.5D, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityVindicator.class, 8.0F, 0.5D, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityVex.class, 8.0F, 0.5D, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityPillager.class, 15.0F, 0.5D, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalAvoidTarget<>(this, EntityIllagerIllusioner.class, 12.0F, 0.5D, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalPanic(this, 0.5D));
-+        this.goalSelector.a(1, new PathfinderGoalLookAtTradingPlayer(this));
-+        this.goalSelector.a(2, new PathfinderGoalStrollVillageGolem(this, 0.6D));
-+        this.goalSelector.a(3, new PathfinderGoalMoveThroughVillage(this, 0.6D, false, 4, () -> {
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalTradeWithPlayer(this));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityZombie.class, 8.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityEvoker.class, 12.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityVindicator.class, 8.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityVex.class, 8.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityPillager.class, 15.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityIllagerIllusioner.class, 12.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalPanic(this, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalLookAtTradingPlayer(this));
++        this.goalSelector.a(2, new net.minecraft.world.entity.ai.goal.PathfinderGoalStrollVillageGolem(this, 0.6D));
++        this.goalSelector.a(3, new net.minecraft.world.entity.ai.goal.PathfinderGoalMoveThroughVillage(this, 0.6D, false, 4, () -> {
 +            return false;
 +        }));
-+        this.goalSelector.a(4, new PathfinderGoalMoveTowardsRestriction(this, 0.35D));
-+        this.goalSelector.a(8, new PathfinderGoalRandomStrollLand(this, 0.35D));
-+        this.goalSelector.a(9, new PathfinderGoalInteract(this, EntityHuman.class, 3.0F, 1.0F));
-+        this.goalSelector.a(10, new PathfinderGoalLookAtPlayer(this, EntityInsentient.class, 8.0F));
++        this.goalSelector.a(4, new net.minecraft.world.entity.ai.goal.PathfinderGoalMoveTowardsRestriction(this, 0.35D));
++        this.goalSelector.a(8, new net.minecraft.world.entity.ai.goal.PathfinderGoalRandomStrollLand(this, 0.35D));
++        this.goalSelector.a(9, new net.minecraft.world.entity.ai.goal.PathfinderGoalInteract(this, EntityHuman.class, 3.0F, 1.0F));
++        this.goalSelector.a(10, new net.minecraft.world.entity.ai.goal.PathfinderGoalLookAtPlayer(this, EntityInsentient.class, 8.0F));
 +        // Yatopia End
      }
  
      @Override
-@@ -112,6 +151,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -186,6 +225,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
  
      @Override
      protected BehaviorController<?> a(Dynamic<?> dynamic) {
@@ -78,8 +78,8 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
          BehaviorController<EntityVillager> behaviorcontroller = this.cK().a(dynamic);
  
          this.a(behaviorcontroller);
-@@ -211,11 +251,39 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
-     // Purpur end
+@@ -265,6 +305,27 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     // Spigot End
  
      private int behaviorTick = 0;
 +    // Yatopia start
@@ -104,7 +104,9 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
 +    }
 +    // Yatopia end
  
-     @Override
+     // Purpur start
+     boolean lobotomized = false;
+@@ -290,6 +351,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      protected void mobTick() { mobTick(false); }
      protected void mobTick(boolean inactive) {
          this.world.getMethodProfiler().enter("villagerBrain");
@@ -118,7 +120,7 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
          // Purpur start
          if (world.purpurConfig.villagerLobotomizeEnabled) inactive = inactive || isLobotomized();
          boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
-@@ -342,6 +410,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -416,6 +484,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          this.fl();
      }
  
@@ -126,7 +128,7 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
      private void fl() {
          Iterator iterator = this.getOffers().iterator();
  
-@@ -416,6 +485,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -490,6 +559,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
          return this.fn() && this.fm();
      }
  
@@ -134,7 +136,7 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
      private void fo() {
          int i = 2 - this.bD;
  
-@@ -648,6 +718,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -722,6 +792,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      private void a(Entity entity) {
@@ -142,7 +144,7 @@ index 9b30273d59eb7f0d40cd54eb9e1d2ebe24b48fca..8ec27653d1c55faeac499ee52117a380
          if (this.world instanceof WorldServer) {
              Optional<List<EntityLiving>> optional = this.bg.getMemory(MemoryModuleType.VISIBLE_MOBS);
  
-@@ -664,6 +735,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -738,6 +809,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
      }
  
      public void a(MemoryModuleType<GlobalPos> memorymoduletype) {

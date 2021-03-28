@@ -4,23 +4,11 @@ Date: Mon, 13 Jul 2020 11:40:00 -0500
 Subject: [PATCH] Add option to teleport to spawn if outside world border
 
 
-diff --git a/src/main/java/net/minecraft/server/EntityLiving.java b/src/main/java/net/minecraft/server/EntityLiving.java
-index 8bc0fb58ef18ce7828451857a97460bbde567c6b..a8cd7f0abf58e69d276e469bd7d5ef6ae619263d 100644
---- a/src/main/java/net/minecraft/server/EntityLiving.java
-+++ b/src/main/java/net/minecraft/server/EntityLiving.java
-@@ -281,6 +281,7 @@ public abstract class EntityLiving extends Entity {
-                     double d1 = this.world.getWorldBorder().getDamageAmount();
- 
-                     if (d1 > 0.0D) {
-+                        if (world.purpurConfig.teleportIfOutsideBorder && this instanceof EntityPlayer) { ((EntityPlayer) this).teleport(MCUtil.toLocation(world, world.getSpawn())); return; } // Purpur
-                         this.damageEntity(DamageSource.STUCK, (float) Math.max(1, MathHelper.floor(-d0 * d1)));
-                     }
-                 }
-diff --git a/src/main/java/net/minecraft/server/EntityPlayer.java b/src/main/java/net/minecraft/server/EntityPlayer.java
-index ce48b823db35ca2d7557cfc840801349b19cbd54..2aef37c4602d9c3ec12a2b5deade36801c171be0 100644
---- a/src/main/java/net/minecraft/server/EntityPlayer.java
-+++ b/src/main/java/net/minecraft/server/EntityPlayer.java
-@@ -2425,4 +2425,26 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
+index e129480fa1045fbeaafa97045d53696b44952bcf..9de660f0c679f101512bddf7c6582ca6cd18ca5b 100644
+--- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
+@@ -2556,4 +2556,26 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
          return (CraftPlayer) super.getBukkitEntity();
      }
      // CraftBukkit end
@@ -47,8 +35,28 @@ index ce48b823db35ca2d7557cfc840801349b19cbd54..2aef37c4602d9c3ec12a2b5deade3680
 +    }
 +    // Purpur end
  }
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index 5a060b98fe9f3edc199cd520a636505c653556e9..e453502c34f717797c4b67a7149d2e0da1b1232d 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -45,6 +45,7 @@ import net.minecraft.network.syncher.DataWatcher;
+ import net.minecraft.network.syncher.DataWatcherObject;
+ import net.minecraft.network.syncher.DataWatcherRegistry;
+ import net.minecraft.resources.MinecraftKey;
++import net.minecraft.server.MCUtil;
+ import net.minecraft.server.level.ChunkProviderServer;
+ import net.minecraft.server.level.EntityPlayer;
+ import net.minecraft.server.level.WorldServer;
+@@ -376,6 +377,7 @@ public abstract class EntityLiving extends Entity {
+                     double d1 = this.world.getWorldBorder().getDamageAmount();
+ 
+                     if (d1 > 0.0D) {
++                        if (world.purpurConfig.teleportIfOutsideBorder && this instanceof EntityPlayer) { ((EntityPlayer) this).teleport(MCUtil.toLocation(world, world.getSpawn())); return; } // Purpur
+                         this.damageEntity(DamageSource.STUCK, (float) Math.max(1, MathHelper.floor(-d0 * d1)));
+                     }
+                 }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
-index 2e3fee6bc4f3af7ad07a0db5657ffb3238e77e96..5d35651f43de81c8cf047479ad9c88c4b3f1c38c 100644
+index 021dbb20793dd365c181c4d8a2ebc429af85778b..b9e252c3db715c288493d5b98fc20d84de46c4e4 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurWorldConfig.java
 @@ -196,6 +196,11 @@ public class PurpurWorldConfig {

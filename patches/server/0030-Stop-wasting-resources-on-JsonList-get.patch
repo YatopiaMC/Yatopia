@@ -13,11 +13,11 @@ Our changes are the following:
 2. Only if a player joins and his ban has expired, remove his ban which triggers a save which then
    triggers removing of all stale entries.
 
-diff --git a/src/main/java/net/minecraft/server/JsonList.java b/src/main/java/net/minecraft/server/JsonList.java
-index 8da5f976109accc84b26ec4045776aa8a9799f3d..b97931b9234bb0fb95fef4e03f003c63f8da5b88 100644
---- a/src/main/java/net/minecraft/server/JsonList.java
-+++ b/src/main/java/net/minecraft/server/JsonList.java
-@@ -69,9 +69,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+diff --git a/src/main/java/net/minecraft/server/players/JsonList.java b/src/main/java/net/minecraft/server/players/JsonList.java
+index c960852dc60d0598012c5eef0d139fe38bde63fb..96fbb1a3d216302aa937e07bf88fdb19c6ccc764 100644
+--- a/src/main/java/net/minecraft/server/players/JsonList.java
++++ b/src/main/java/net/minecraft/server/players/JsonList.java
+@@ -71,9 +71,13 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          // Paper start
          // this.g();
          // return (V) this.d.get(this.a(k0)); // CraftBukkit - fix decompile error
@@ -31,7 +31,7 @@ index 8da5f976109accc84b26ec4045776aa8a9799f3d..b97931b9234bb0fb95fef4e03f003c63
          // Paper end
      }
  
-@@ -149,12 +153,22 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+@@ -151,12 +155,22 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
          this.removeStaleEntries(); // Paper - remove expired values before saving
          JsonArray jsonarray = new JsonArray();
  
@@ -54,11 +54,11 @@ index 8da5f976109accc84b26ec4045776aa8a9799f3d..b97931b9234bb0fb95fef4e03f003c63
          BufferedWriter bufferedwriter = Files.newWriter(this.c, StandardCharsets.UTF_8);
          Throwable throwable = null;
  
-diff --git a/src/main/java/net/minecraft/server/PlayerList.java b/src/main/java/net/minecraft/server/PlayerList.java
-index 7cad3e754a8c0398ad6394edd0cb767566b09c88..5feadb8bebaace44efa854ac8bfb9def9d7393a5 100644
---- a/src/main/java/net/minecraft/server/PlayerList.java
-+++ b/src/main/java/net/minecraft/server/PlayerList.java
-@@ -647,6 +647,7 @@ public abstract class PlayerList {
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 12671cf4c4be592cca04525bcd8eeec5406ed88b..b9c56f03471583f2dddfd6969511943edfccdddf 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -740,6 +740,7 @@ public abstract class PlayerList {
          GameProfileBanEntry gameprofilebanentry;
          if (getProfileBans().isBanned(gameprofile) && (gameprofilebanentry = getProfileBans().get(gameprofile)) != null) {
              // Paper end
@@ -66,7 +66,7 @@ index 7cad3e754a8c0398ad6394edd0cb767566b09c88..5feadb8bebaace44efa854ac8bfb9def
  
              chatmessage = new ChatMessage("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
              if (gameprofilebanentry.getExpires() != null) {
-@@ -654,7 +655,11 @@ public abstract class PlayerList {
+@@ -747,7 +748,11 @@ public abstract class PlayerList {
              }
  
              // return chatmessage;

@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Thu, 4 Feb 2021 23:28:46 -0600
+Subject: [PATCH] Cache palette array
+
+The reasoning for reusing it in ChunkRegionLoader is because ThreadLocal
+lookups are fairly expensive, and if we put it in DataPaletteBlock the
+ThreadLocal lookup would happen 18 times.
+
+Airplane
+Copyright (C) 2020 Technove LLC
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+diff --git a/src/main/java/net/minecraft/world/level/chunk/DataPaletteBlock.java b/src/main/java/net/minecraft/world/level/chunk/DataPaletteBlock.java
+index a6937366cd9c9d708edb5cd1ab3ac096e7b2032e..a579c5bf9e20c74aa3bf8ef6bc00576409805ca6 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/DataPaletteBlock.java
++++ b/src/main/java/net/minecraft/world/level/chunk/DataPaletteBlock.java
+@@ -235,12 +235,16 @@ public class DataPaletteBlock<T> implements DataPaletteExpandable<T> {
+         this.b();
+     }
+ 
++    // Airplane start - add parameter for reusing aint
+     public synchronized void a(NBTTagCompound nbttagcompound, String s, String s1) { // Paper - synchronize
++        a(nbttagcompound, s, s1, new int[4096]);
++    }
++    public synchronized void a(NBTTagCompound nbttagcompound, String s, String s1, int[] aint) { // Paper - synchronize // Airplane end
+         this.a();
+         DataPaletteHash<T> datapalettehash = new DataPaletteHash<>(this.d, this.i, this.c, this.e, this.f);
+         T t0 = this.g;
+         int i = datapalettehash.a(this.g);
+-        int[] aint = new int[4096];
++        //int[] aint = new int[4096]; // Airplane - use parameter
+ 
+         for (int j = 0; j < 4096; ++j) {
+             T t1 = this.a(j);
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkRegionLoader.java b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkRegionLoader.java
+index ec2b238480413ba9c123d9ddeaa787d9520e1b74..bf96f9e538fc29ca914536e8a7ce727ebe43a8b2 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/ChunkRegionLoader.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/ChunkRegionLoader.java
+@@ -468,6 +468,7 @@ public class ChunkRegionLoader {
+     public static NBTTagCompound saveChunk(WorldServer worldserver, IChunkAccess ichunkaccess) {
+         return saveChunk(worldserver, ichunkaccess, null);
+     }
++    private static final ThreadLocal<int[]> paletteArray = ThreadLocal.withInitial(() -> new int[4096]); // Airplane
+     public static NBTTagCompound saveChunk(WorldServer worldserver, IChunkAccess ichunkaccess, AsyncSaveData asyncsavedata) {
+         // Paper end
+         // Tuinity start - rewrite light impl
+@@ -498,6 +499,7 @@ public class ChunkRegionLoader {
+ 
+         NBTTagCompound nbttagcompound2;
+ 
++        int[] aint = paletteArray.get(); // Airplane - use cached
+         for (int i = -1; i < 17; ++i) { // Paper - conflict on loop parameter change
+             int finalI = i; // CraftBukkit - decompile errors
+             ChunkSection chunksection = (ChunkSection) Arrays.stream(achunksection).filter((chunksection1) -> {
+@@ -518,7 +520,7 @@ public class ChunkRegionLoader {
+                 nbttagcompound2 = new NBTTagCompound();
+                 nbttagcompound2.setByte("Y", (byte) (i & 255));
+                 if (chunksection != Chunk.a) {
+-                    chunksection.getBlocks().a(nbttagcompound2, "Palette", "BlockStates");
++                    chunksection.getBlocks().a(nbttagcompound2, "Palette", "BlockStates", aint); // Airplane
+                 }
+ 
+                 if (nibblearray != null && !nibblearray.c()) {

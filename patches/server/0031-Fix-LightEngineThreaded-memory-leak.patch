@@ -4,11 +4,11 @@ Date: Thu, 10 Sep 2020 21:02:26 +0300
 Subject: [PATCH] Fix LightEngineThreaded memory leak
 
 
-diff --git a/src/main/java/net/minecraft/server/LightEngineThreaded.java b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-index b2f51a6786d4bb92c9cbbceeea812375b1a49bd6..d16157dcbc6f36fa0c8284784641e54413d249be 100644
---- a/src/main/java/net/minecraft/server/LightEngineThreaded.java
-+++ b/src/main/java/net/minecraft/server/LightEngineThreaded.java
-@@ -110,6 +110,8 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
+diff --git a/src/main/java/net/minecraft/server/level/LightEngineThreaded.java b/src/main/java/net/minecraft/server/level/LightEngineThreaded.java
+index 381bd11075599d44e4c705a8e754769d29883d75..e36d11ffb3e66e6ce6f64d2e771661f8b29c95a8 100644
+--- a/src/main/java/net/minecraft/server/level/LightEngineThreaded.java
++++ b/src/main/java/net/minecraft/server/level/LightEngineThreaded.java
+@@ -123,6 +123,8 @@ public class LightEngineThreaded extends LightEngine implements AutoCloseable {
              }
          }
  
@@ -17,11 +17,11 @@ index b2f51a6786d4bb92c9cbbceeea812375b1a49bd6..d16157dcbc6f36fa0c8284784641e544
          public final boolean isEmpty() {
              return this.size == 0 && this.pendingTasks.isEmpty();
          }
-diff --git a/src/main/java/net/minecraft/server/WorldServer.java b/src/main/java/net/minecraft/server/WorldServer.java
-index e695cf764cab6d64ea5bb00af03b25f4930946dd..c528641620e296daf67e381287167d7632d8fe29 100644
---- a/src/main/java/net/minecraft/server/WorldServer.java
-+++ b/src/main/java/net/minecraft/server/WorldServer.java
-@@ -1906,6 +1906,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index 9dcf078c7e32697417399b684211d5a3d5a7eff5..d42c15dc16114e362722ccfde2021a2c41680649 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -2054,6 +2054,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
          // Paper end
  

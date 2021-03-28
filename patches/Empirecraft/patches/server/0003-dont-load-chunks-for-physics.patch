@@ -4,25 +4,11 @@ Date: Mon, 16 Mar 2020 03:07:02 -0400
 Subject: [PATCH] dont load chunks for physics
 
 
-diff --git a/src/main/java/net/minecraft/server/BlockBase.java b/src/main/java/net/minecraft/server/BlockBase.java
-index 657885cdaa086293f6b5aa6f3058acd16df0ba35..8724ad342bec7c733b3c825bd62dbfa5c28c06dd 100644
---- a/src/main/java/net/minecraft/server/BlockBase.java
-+++ b/src/main/java/net/minecraft/server/BlockBase.java
-@@ -593,7 +593,8 @@ public abstract class BlockBase {
-                 EnumDirection enumdirection = aenumdirection[l];
- 
-                 blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection);
--                IBlockData iblockdata = generatoraccess.getType(blockposition_mutableblockposition);
-+                IBlockData iblockdata = generatoraccess.getTypeIfLoaded(blockposition_mutableblockposition); // EMC
-+                if (iblockdata == null) continue; // EMC
-                 IBlockData iblockdata1 = iblockdata.updateState(enumdirection.opposite(), this.p(), generatoraccess, blockposition_mutableblockposition, blockposition);
- 
-                 Block.a(iblockdata, iblockdata1, generatoraccess, blockposition_mutableblockposition, i, j);
-diff --git a/src/main/java/net/minecraft/server/World.java b/src/main/java/net/minecraft/server/World.java
-index bdb0e46d9196f4ac164ed09fd9d01db60aaab401..27b39f63fa9c340e0b9f2ed82448c870c40ac5c7 100644
---- a/src/main/java/net/minecraft/server/World.java
-+++ b/src/main/java/net/minecraft/server/World.java
-@@ -805,7 +805,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index 72d4bc6d2ada37c6a9c7158f641b1c73eb171dbb..9ae1aaa5ba7d76e31dd122af4a58286aa5ec0825 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -868,7 +868,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      public void neighborChanged(BlockPosition pos, Block blockIn, BlockPosition fromPos) { a(pos, blockIn, fromPos); } // Paper - OBFHELPER
      public void a(BlockPosition blockposition, Block block, BlockPosition blockposition1) {
          if (!this.isClientSide) {
@@ -32,3 +18,17 @@ index bdb0e46d9196f4ac164ed09fd9d01db60aaab401..27b39f63fa9c340e0b9f2ed82448c870
  
              try {
                  // CraftBukkit start
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+index c47c98480572e83b1385fcd62940d4c69a79f9dc..e41615d7583d5485e31fbc0012925a24638101b8 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+@@ -646,7 +646,8 @@ public abstract class BlockBase {
+                 EnumDirection enumdirection = aenumdirection[l];
+ 
+                 blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection);
+-                IBlockData iblockdata = generatoraccess.getType(blockposition_mutableblockposition);
++                IBlockData iblockdata = generatoraccess.getTypeIfLoaded(blockposition_mutableblockposition); // EMC
++                if (iblockdata == null) continue; // EMC
+                 IBlockData iblockdata1 = iblockdata.updateState(enumdirection.opposite(), this.p(), generatoraccess, blockposition_mutableblockposition, blockposition);
+ 
+                 Block.a(iblockdata, iblockdata1, generatoraccess, blockposition_mutableblockposition, i, j);

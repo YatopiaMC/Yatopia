@@ -6,11 +6,11 @@ Subject: [PATCH] Configurable enchanting table tick
 Also don't tick blockentity beehive if there are no bees in it.
 This patch is a leftover from the original tile entity optimisations, which was majorly flawed.
 
-diff --git a/src/main/java/net/minecraft/server/TileEntityBeehive.java b/src/main/java/net/minecraft/server/TileEntityBeehive.java
-index 598f78502cd7ad15bc0f678df277f91b3ae376d4..69ef94e887fa9da1b3ddaf0a345fecc49d2866b5 100644
---- a/src/main/java/net/minecraft/server/TileEntityBeehive.java
-+++ b/src/main/java/net/minecraft/server/TileEntityBeehive.java
-@@ -285,6 +285,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
+index 3cbcbb028b864f1d14e004628bbc0829f71ab476..d97acd72c30e1051f3e14c3c23b1a6b6e6fa42f0 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
+@@ -304,6 +304,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
  
      @Override
      public void tick() {
@@ -18,11 +18,11 @@ index 598f78502cd7ad15bc0f678df277f91b3ae376d4..69ef94e887fa9da1b3ddaf0a345fecc4
          if (!this.world.isClientSide) {
              this.y();
              BlockPosition blockposition = this.getPosition();
-diff --git a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-index 9b0c75332d9815657d96183e51e40cf14ee3ed75..e3de65b58a599b375b3be7470d918038b5379471 100644
---- a/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-+++ b/src/main/java/net/minecraft/server/TileEntityEnchantTable.java
-@@ -43,6 +43,7 @@ public class TileEntityEnchantTable extends TileEntity implements INamableTileEn
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java
+index 7d81c45f8b514df1a9dafd3b1294a9ad852251f8..4b1cb089355b455c6210f2df1af797cc363997cf 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java
+@@ -50,6 +50,7 @@ public class TileEntityEnchantTable extends TileEntity implements INamableTileEn
  
      @Override
      public void tick() {

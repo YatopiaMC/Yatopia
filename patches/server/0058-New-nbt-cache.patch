@@ -8,10 +8,10 @@ The goal of this patch is to reduce I/O operations from the main thread while sa
 Co-authored-by: ishland <ishlandmc@yeah.net>
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 103a1c560d99cfd7b47b2f6199ba0a6935142140..232f3f74d0c5eb2603496188efea8684482a61ef 100644
+index 9c991ee900a306f19d613b1d0511b89496267286..1b0add2400c8e518953add4cc100f227ebae0703 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -830,7 +830,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -942,7 +942,9 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          }
          // Spigot start
          MCUtil.asyncExecutor.shutdown(); // Paper
@@ -21,11 +21,11 @@ index 103a1c560d99cfd7b47b2f6199ba0a6935142140..232f3f74d0c5eb2603496188efea8684
          } catch (java.lang.InterruptedException ignored) {} // Paper
          if (org.spigotmc.SpigotConfig.saveUserCacheOnStopOnly) {
              LOGGER.info("Saving usercache.json");
-diff --git a/src/main/java/net/minecraft/server/WorldNBTStorage.java b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..caefa07da1501cb4707dcdae15f3fefdfa260aa0 100644
---- a/src/main/java/net/minecraft/server/WorldNBTStorage.java
-+++ b/src/main/java/net/minecraft/server/WorldNBTStorage.java
-@@ -17,6 +17,11 @@ public class WorldNBTStorage {
+diff --git a/src/main/java/net/minecraft/world/level/storage/WorldNBTStorage.java b/src/main/java/net/minecraft/world/level/storage/WorldNBTStorage.java
+index d9c2c7a20953fc3bcdd07d70233ccf6e3748b14b..933b09169b2177f70412722264c0d5f129f3d93f 100644
+--- a/src/main/java/net/minecraft/world/level/storage/WorldNBTStorage.java
++++ b/src/main/java/net/minecraft/world/level/storage/WorldNBTStorage.java
+@@ -24,6 +24,11 @@ public class WorldNBTStorage {
      private static final Logger LOGGER = LogManager.getLogger();
      private final File playerDir;
      protected final DataFixer a;
@@ -37,7 +37,7 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..caefa07da1501cb4707dcdae15f3fefd
  
      public WorldNBTStorage(Convertable.ConversionSession convertable_conversionsession, DataFixer datafixer) {
          this.a = datafixer;
-@@ -30,11 +35,22 @@ public class WorldNBTStorage {
+@@ -37,11 +42,22 @@ public class WorldNBTStorage {
              NBTTagCompound nbttagcompound = entityhuman.save(new NBTTagCompound());
              File file = File.createTempFile(entityhuman.getUniqueIDString() + "-", ".dat", this.playerDir);
  
@@ -61,7 +61,7 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..caefa07da1501cb4707dcdae15f3fefd
          } catch (Exception exception) {
              WorldNBTStorage.LOGGER.error("Failed to save player data for {}", entityhuman.getName(), exception); // Paper
          }
-@@ -50,9 +66,18 @@ public class WorldNBTStorage {
+@@ -57,9 +73,18 @@ public class WorldNBTStorage {
              // Spigot Start
              boolean usingWrongFile = false;
              boolean normalFile = file.exists() && file.isFile(); // Akarin - ensures normal file
@@ -81,7 +81,7 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..caefa07da1501cb4707dcdae15f3fefd
                  if ( file.exists() )
                  {
                      usingWrongFile = true;
-@@ -60,10 +85,13 @@ public class WorldNBTStorage {
+@@ -67,10 +92,13 @@ public class WorldNBTStorage {
                  }
              }
              // Spigot End
@@ -99,7 +99,7 @@ index 1f77b251d7e7b0f023793cbf0876fc067caa75c1..caefa07da1501cb4707dcdae15f3fefd
              {
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/cache/NBTCache.java b/src/main/java/org/yatopiamc/yatopia/server/cache/NBTCache.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..942163396e41795b1b5624348e42a0c0325703f8
+index 0000000000000000000000000000000000000000..d739a71c91b54d156f6e1d8487add372a06d5939
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/cache/NBTCache.java
 @@ -0,0 +1,32 @@
@@ -107,7 +107,7 @@ index 0000000000000000000000000000000000000000..942163396e41795b1b5624348e42a0c0
 +
 +import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenCustomHashMap;
 +import net.minecraft.server.MinecraftServer;
-+import net.minecraft.server.NBTTagCompound;
++import net.minecraft.nbt.NBTTagCompound;
 +
 +import java.io.File;
 +

@@ -4,11 +4,11 @@ Date: Wed, 30 Sep 2020 18:20:12 +0300
 Subject: [PATCH] Configurable flight checks
 
 
-diff --git a/src/main/java/net/minecraft/server/PlayerConnection.java b/src/main/java/net/minecraft/server/PlayerConnection.java
-index 100ab4ae37a0d71a0d9bc3202802f705e1260ee1..eb4aa659a928d241d17cf1b2a5c414ec43209de5 100644
---- a/src/main/java/net/minecraft/server/PlayerConnection.java
-+++ b/src/main/java/net/minecraft/server/PlayerConnection.java
-@@ -181,7 +181,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
+index 8359ccf316d292d81c56600887178cea6e33f270..9118186161b9db61d041d4b579ca456d1f2c79cc 100644
+--- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
+@@ -326,7 +326,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          ++this.e;
          this.processedMovePackets = this.receivedMovePackets;
          if (this.B && !this.player.isSleeping()) {
@@ -17,7 +17,7 @@ index 100ab4ae37a0d71a0d9bc3202802f705e1260ee1..eb4aa659a928d241d17cf1b2a5c414ec
                  PlayerConnection.LOGGER.warn("{} was kicked for floating too long!", this.player.getDisplayName().getString());
                  this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage); // Paper - use configurable kick message
                  return;
-@@ -200,7 +200,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -345,7 +345,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
              this.w = this.r.locY();
              this.x = this.r.locZ();
              if (this.D && this.player.getRootVehicle().getRidingPassenger() == this.player) {

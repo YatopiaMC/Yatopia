@@ -70,4 +70,5 @@ internal fun Project.initToothpickTasks() {
 
     val upstreamCommit = createUpstreamCommitTask()
 
+    val repackageNMS = createRepackageNMSTask()
 }
