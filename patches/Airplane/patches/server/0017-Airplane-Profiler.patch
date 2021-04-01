@@ -20,11 +20,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/pom.xml b/pom.xml
-index a3a3b17f3b30b55bb50905353e77723091bb5c1f..fc2c3714b6c772d67e258be269aa92dda80cdb12 100644
+index f9ead3ed315a3e726233545f35358cca0fc68e06..2071c1f39cdf954c7dc15afcabab58cf2e340e68 100644
 --- a/pom.xml
 +++ b/pom.xml
-@@ -159,8 +159,23 @@
-             <version>1.1.0-SNAPSHOT</version>
+@@ -166,6 +166,13 @@
+             <version>fe3dbb4420</version>
              <scope>compile</scope>
          </dependency>
 +        <!-- Airplane - Flare -->
@@ -36,46 +36,37 @@ index a3a3b17f3b30b55bb50905353e77723091bb5c1f..fc2c3714b6c772d67e258be269aa92dd
 +        </dependency>
      </dependencies>
  
-+    <repositories>
-+        <!-- Airplane - Flare -->
-+        <repository>
-+            <id>jitpack.io</id>
-+            <url>https://jitpack.io</url>
-+        </repository>
-+    </repositories>
-+
      <!-- This builds a completely 'ready to start' jar with all dependencies inside -->
-     <build>
-         <finalName>tuinity-${minecraft.version}</finalName>
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index e0bed57aa5547a214ad779dbd0f648f3663147f9..39ef53c9dd49d5951103777002f866a64a252bfd 100644
+index 946e476e1ca8c3ced119c64a05643c8c64760724..a77e628518920e84b03a8a00e1308a9a53a00896 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -69,4 +69,26 @@ public class AirplaneConfig {
-         dynamicHoglinBehavior = manual.get("behavior-activation.hoglin", dynamicHoglinBehavior);
+@@ -73,4 +73,27 @@ public class AirplaneConfig {
+         dynamicHoglinBehavior = config.getBoolean("behavior-activation.hoglin", dynamicHoglinBehavior);
      }
  
 +
 +    public static String profileWebUrl = "https://flare.airplane.gg";
 +
 +    private static void profilerOptions() {
-+        manual.setComment("flare", "Configures Flare, the built-in profiler");
++        config.setComment("flare", "Configures Flare, the built-in profiler");
 +
-+        profileWebUrl = manual.get("flare.url", profileWebUrl, "Sets the server to use for profiles.");
++        profileWebUrl = config.getString("flare.url", profileWebUrl, "Sets the server to use for profiles.");
 +    }
 +
 +
 +    public static String accessToken = "";
 +
 +    private static void airplaneWebServices() {
-+        manual.setComment("web-services", "Options for connecting to Airplane's online utilities");
++        config.setComment("web-services", "Options for connecting to Airplane's online utilities");
 +
-+        accessToken = manual.get("web-services.token", "");
++        accessToken = config.getString("web-services.token", "");
 +        // todo lookup token (off-thread) and let users know if their token is valid
 +        if (accessToken.length() > 0) {
 +            gg.airplane.flare.FlareSetup.init(); // Airplane
 +        }
 +    }
++
 +
  }
 diff --git a/src/main/java/gg/airplane/AirplaneLogger.java b/src/main/java/gg/airplane/AirplaneLogger.java

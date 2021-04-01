@@ -5,7 +5,7 @@ Subject: [PATCH] Item entity immunities
 
 
 diff --git a/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
-index 0e019b864a1585c7793e5cf7214a417f062ccb2a..de126c5687f38cb4051c47e476ac5dfbb95444ff 100644
+index 3a66a34db2b8ac612431131cea80e57ee72de05f..70a1ff235690a5990f94bd9cf97d670b2f4c2aea 100644
 --- a/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
 @@ -31,6 +31,7 @@ import net.minecraft.world.entity.EntityLiving;
@@ -25,7 +25,7 @@ index 0e019b864a1585c7793e5cf7214a417f062ccb2a..de126c5687f38cb4051c47e476ac5dfb
      // Paper start
      private java.util.Map<EntityPlayer, Boolean> trackedPlayerMap = null;
  
-@@ -135,6 +136,15 @@ public class EntityTrackerEntry {
+@@ -143,6 +144,15 @@ public class EntityTrackerEntry {
              this.c();
          }
  
@@ -42,16 +42,16 @@ index 0e019b864a1585c7793e5cf7214a417f062ccb2a..de126c5687f38cb4051c47e476ac5dfb
              int i;
              int j;
 diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
-index d7eede51f1c4ebbe8e00b16efd6331c87db53bb4..8200eff11346a58e368aef4d3bcb325e241220e9 100644
+index 585dbb250d975d2e9c34af26b9d5927ce734b407..58d2f1a10186e889bdd2249724a7f21f3a0a6a6e 100644
 --- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
-@@ -2456,7 +2456,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
+@@ -2481,7 +2481,7 @@ Sections go from 0..16. Now whenever a section is not empty, it can potentially
  
      public class EntityTracker {
  
 -        final EntityTrackerEntry trackerEntry; // Paper - private -> package private
 +        public final EntityTrackerEntry trackerEntry; // Paper - private -> public
-         private final Entity tracker;
+         public final Entity tracker; // Airplane - public for chunk
          private final int trackingDistance;
          private SectionPosition e;
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
