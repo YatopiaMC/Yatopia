@@ -267,7 +267,6 @@ This is an overview over all patches that are currently used.
 | server |  Make entity tracker use highest range of passengers      | Spottedleaf |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
 | server |  Make sure inlined getChunkAt has inlined logic for loaded      | Spottedleaf |  |
-| server |  Make sure to remove correct TE during TE tick      | Spottedleaf |  |
 | server |  Manually inline methods in BlockPosition      | Spottedleaf |  |
 | server |  Mending mends most damages equipment first      | William Blake Galbreath |  |
 | server |  Modify POM      | YatopiaMC |  |
@@ -331,7 +330,6 @@ This is an overview over all patches that are currently used.
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
 | server |  Preload ProtocolLib EnumWrappers      | ishland |  |
-| server |  Prevent light queue overfill when no players are online      | Spottedleaf |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
 | server |  Projectile offset config      | YouHaveTrouble |  |
@@ -399,7 +397,6 @@ This is an overview over all patches that are currently used.
 | server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
 | server |  Toggle for water sensitive mob damage      | YouHaveTrouble |  |
 | server |  Totems work in inventory      | draycia |  |
-| server |  Track Queue debug      | Paul Sauve |  |
 | server |  Tuinity POM Changes      | Spottedleaf |  |
 | api |  Tuinity POM Changes      | Spottedleaf |  |
 | server |  Tuinity Server Config      | Spottedleaf |  |

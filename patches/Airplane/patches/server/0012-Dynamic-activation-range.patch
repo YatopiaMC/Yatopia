@@ -27,10 +27,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index fbb9544027a48941bd0938d8f607e8c7ff9443a1..e0bed57aa5547a214ad779dbd0f648f3663147f9 100644
+index ab019b577002677a4ce788106f8e5a1d7757a2ae..946e476e1ca8c3ced119c64a05643c8c64760724 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -44,4 +44,29 @@ public class AirplaneConfig {
+@@ -47,4 +47,30 @@ public class AirplaneConfig {
          }
      }
  
@@ -42,21 +42,22 @@ index fbb9544027a48941bd0938d8f607e8c7ff9443a1..e0bed57aa5547a214ad779dbd0f648f3
 +    public static boolean dynamicHoglinBehavior = true;
 +
 +    private static void dynamicActivationRange() {
-+        manual.setComment("activation-range", "Optimizes how entities act when", "they're far away from the player");
++        config.setComment("activation-range", "Optimizes how entities act when", "they're far away from the player");
 +
-+        maximumActivationPrio = manual.get("activation-range.max-tick-freq", maximumActivationPrio,
++        maximumActivationPrio = config.getInt("activation-range.max-tick-freq", maximumActivationPrio,
 +          "This value defines how often in ticks, the furthest entity",
 +          "will get their pathfinders and behaviors ticked. 20 = 1s");
-+        activationDistanceMod = manual.get("activation-range.activation-dist-mod", activationDistanceMod,
++        activationDistanceMod = config.getInt("activation-range.activation-dist-mod", activationDistanceMod,
 +          "This value defines how much distance modifies an entity's",
 +          "tick frequency. freq = (distanceToPlayer^2) / (2^value)",
 +          "If you want further away entities to tick less often, use 8.",
 +          "If you want further away entities to tick more often, try 10.");
 +
-+        manual.setComment("behavior-activation", "A list of entities to use the dynamic activation range", "to modify how often their behaviors are ticked");
-+        dynamicVillagerBehavior = manual.get("behavior-activation.villager", dynamicVillagerBehavior);
-+        dynamicPiglinBehavior = manual.get("behavior-activation.piglin", dynamicPiglinBehavior);
-+        dynamicHoglinBehavior = manual.get("behavior-activation.hoglin", dynamicHoglinBehavior);
++        config.setComment("behavior-activation", "A list of entities to use the dynamic activation range", "to modify how often their behaviors are ticked");
++
++        dynamicVillagerBehavior = config.getBoolean("behavior-activation.villager", dynamicVillagerBehavior);
++        dynamicPiglinBehavior = config.getBoolean("behavior-activation.piglin", dynamicPiglinBehavior);
++        dynamicHoglinBehavior = config.getBoolean("behavior-activation.hoglin", dynamicHoglinBehavior);
 +    }
 +
  }
