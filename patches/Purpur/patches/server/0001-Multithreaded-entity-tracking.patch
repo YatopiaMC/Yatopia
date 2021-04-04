@@ -224,7 +224,7 @@ index 59989db6dcf96a8ab5a75775bb588c31cec3418a..534c7266fe9d6f60b74a71e5e61ed248
      private final ServerStatisticManager serverStatisticManager;
      private float lastHealthScored = Float.MIN_VALUE;
 diff --git a/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
-index a1512ee8422fa39a95e4f19c86fe71b77af54ca0..c830b257054b7f8153aa9225c1f61f49a6ea0a84 100644
+index 67ca28463f5add7c18f7f16b918c3f36f8feeeda..37e64e24ca3a90370cdf12e5ff9cd1fceede796b 100644
 --- a/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
 +++ b/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
 @@ -75,6 +75,10 @@ public class EntityTrackerEntry {
@@ -247,7 +247,7 @@ index a1512ee8422fa39a95e4f19c86fe71b77af54ca0..c830b257054b7f8153aa9225c1f61f49
          List<Entity> list = this.tracker.passengers; // Paper - do not copy list
  
          if (!list.equals(this.p)) {
-@@ -117,6 +121,8 @@ public class EntityTrackerEntry {
+@@ -116,6 +120,8 @@ public class EntityTrackerEntry {
              ItemStack itemstack = entityitemframe.getItem();
  
              if (this.tickCounter % 10 == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks
@@ -256,7 +256,7 @@ index a1512ee8422fa39a95e4f19c86fe71b77af54ca0..c830b257054b7f8153aa9225c1f61f49
                  WorldMap worldmap = ItemWorldMap.getSavedMap(itemstack, this.b);
                  Iterator iterator = this.trackedPlayers.iterator(); // CraftBukkit
  
-@@ -130,6 +136,8 @@ public class EntityTrackerEntry {
+@@ -129,6 +135,8 @@ public class EntityTrackerEntry {
                          entityplayer.playerConnection.sendPacket(packet);
                      }
                  }
@@ -265,7 +265,7 @@ index a1512ee8422fa39a95e4f19c86fe71b77af54ca0..c830b257054b7f8153aa9225c1f61f49
              }
  
              this.c();
-@@ -264,18 +272,25 @@ public class EntityTrackerEntry {
+@@ -263,18 +271,25 @@ public class EntityTrackerEntry {
              // CraftBukkit start - Create PlayerVelocity event
              boolean cancelled = false;
  
@@ -295,7 +295,7 @@ index a1512ee8422fa39a95e4f19c86fe71b77af54ca0..c830b257054b7f8153aa9225c1f61f49
              }
  
              if (!cancelled) {
-@@ -359,7 +374,9 @@ public class EntityTrackerEntry {
+@@ -358,7 +373,9 @@ public class EntityTrackerEntry {
              if (!list.isEmpty()) {
                  consumer.accept(new PacketPlayOutEntityEquipment(this.tracker.getId(), list));
              }
@@ -305,7 +305,7 @@ index a1512ee8422fa39a95e4f19c86fe71b77af54ca0..c830b257054b7f8153aa9225c1f61f49
          }
  
          // CraftBukkit start - Fix for nonsensical head yaw
-@@ -437,6 +454,10 @@ public class EntityTrackerEntry {
+@@ -436,6 +453,10 @@ public class EntityTrackerEntry {
      // Paper end
  
      private void broadcastIncludingSelf(Packet<?> packet) {
