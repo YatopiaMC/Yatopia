@@ -19,7 +19,8 @@ internal fun Project.createFixBranchesTask(
     doLast {
         for (folder in folderArray) {
             val subprojectWorkDir = Paths.get("${toothpick.forkName}-${if (folder == "api") {"API"} else {"Server"}}").toFile()
-            val currentBranchCommits = gitCmd("--no-pager", "log", "${toothpick.forkName}-$folder...${toothpick.upstreamBranch}", "--pretty=oneline",
+            // val currentBranchCommits = gitCmd("--no-pager", "log", "${toothpick.forkName}-$folder...${toothpick.upstreamBranch}", "--pretty=oneline",
+            val currentBranchCommits = gitCmd("--no-pager", "log", "master...${toothpick.upstreamBranch}", "--pretty=oneline",
                 dir = subprojectWorkDir).output.toString()
             val nameMap = ConcurrentHashMap<String, String>()
             for (upstream in upstreams) {

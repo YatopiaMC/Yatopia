@@ -60,10 +60,17 @@ private fun Project.updatePatches(
         ?.forEach { it -> it.delete() }
 
     ensureSuccess(
-        gitCmd(
-            "checkout", "$name-$folder", dir = projectDir,
-            printOut = true
-        )
+        if (name != "Yatopia") {
+            gitCmd(
+                "checkout", "$name-$folder", dir = projectDir,
+                printOut = true
+            )
+        } else {
+            gitCmd(
+                "checkout", "master", dir = projectDir,
+                printOut = true
+            )
+        }
     )
     ensureSuccess(
         gitCmd(
