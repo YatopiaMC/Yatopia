@@ -46,7 +46,8 @@ internal fun Project.createFixBranchesTask(
                     ensureSuccess(gitCmd("reset", "--hard", nameMap.get(branchName) as String, dir = subprojectWorkDir,
                         printOut = true))
             }
-            ensureSuccess(gitCmd("checkout", "${toothpick.forkName}-$folder", dir = subprojectWorkDir,
+            // ensureSuccess(gitCmd("checkout", "${toothpick.forkName}-$folder", dir = subprojectWorkDir,
+            ensureSuccess(gitCmd("checkout", "master", dir = subprojectWorkDir,
                 printOut = true))
         }
     }

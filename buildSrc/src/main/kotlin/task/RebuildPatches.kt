@@ -32,7 +32,8 @@ internal fun Project.createRebuildPatchesTask(
                 updatePatches(patchPath, upstream.name, folder, projectDir, previousUpstreamName)
                 previousUpstreamName = "${upstream.name}-$folder"
             }
-            ensureSuccess(gitCmd("checkout", "$forkName-$folder", dir = projectDir,
+            // ensureSuccess(gitCmd("checkout", "$forkName-$folder", dir = projectDir,
+            ensureSuccess(gitCmd("checkout", "master", dir = projectDir,
                 printOut = true))
 
             updatePatches(patchesDir, toothpick.forkName, folder, projectDir, previousUpstreamName)
