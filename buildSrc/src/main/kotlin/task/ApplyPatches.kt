@@ -87,8 +87,10 @@ internal fun Project.createApplyPatchesTask(
 
                 if (applyPatches(patchDir, upstream.name, name, wasGitSigningEnabled, projectDir)) continue
             }
-            project.gitCmd("branch", "-D", "$forkName-$folder", dir = projectDir)
-            project.gitCmd("checkout", "-b", "$forkName-$folder", dir = projectDir)
+            // project.gitCmd("branch", "-D", "$forkName-$folder", dir = projectDir)
+            // project.gitCmd("checkout", "-b", "$forkName-$folder", dir = projectDir)
+            project.gitCmd("branch", "-D", "master", dir = projectDir)
+            project.gitCmd("checkout", "-b", "master", dir = projectDir)
             val patchDir = patchesDir.toPath()
             // Apply patches
             if (applyPatches(patchDir, forkName, name, wasGitSigningEnabled, projectDir)) continue
