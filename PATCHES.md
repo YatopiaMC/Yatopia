@@ -8,6 +8,7 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
+| server |  (AI-Improvements) Optimized tan for ControllerLook      | bl4ckscor3 |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
@@ -250,6 +251,7 @@ This is an overview over all patches that are currently used.
 | api |  Lagging threshold      | William Blake Galbreath |  |
 | server |  Left handed API      | BillyGalbreath |  |
 | api |  Left handed API      | BillyGalbreath |  |
+| server |  Lithium: CompactSineLUT      | JellySquid |  |
 | server |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | api |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | server |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
@@ -329,6 +331,8 @@ This is an overview over all patches that are currently used.
 | api |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
+| server |  Port Cadmium      | Lucy-t |  |
+| server |  Port LazyDFU      | Andrew Steinborn |  |
 | server |  Preload ProtocolLib EnumWrappers      | ishland |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
