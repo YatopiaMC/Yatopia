@@ -1,0 +1,144 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Fri, 5 Feb 2021 19:34:00 +0800
+Subject: [PATCH] Multi-threaded World Upgrade
+
+
+diff --git a/src/main/java/net/minecraft/server/Main.java b/src/main/java/net/minecraft/server/Main.java
+index 6818f8496ab76ee6ffc747bd6848b43830ec8914..1fe2610ed0ddab1e203e273914c9325aec74e7c2 100644
+--- a/src/main/java/net/minecraft/server/Main.java
++++ b/src/main/java/net/minecraft/server/Main.java
+@@ -281,6 +281,8 @@ public class Main {
+         WorldUpgrader worldupgrader = new WorldUpgrader(convertable_conversionsession, datafixer, immutableset, flag);
+         IChatBaseComponent ichatbasecomponent = null;
+ 
++        long lastLocation = 0L; // Yatopia
++        long lastTime = System.nanoTime(); // Yatopia
+         while (!worldupgrader.b()) {
+             IChatBaseComponent ichatbasecomponent1 = worldupgrader.h();
+ 
+@@ -289,13 +291,16 @@ public class Main {
+                 Main.LOGGER.info(worldupgrader.h().getString());
+             }
+ 
+-            int i = worldupgrader.e();
+-
+-            if (i > 0) {
+-                int j = worldupgrader.f() + worldupgrader.g();
+-
+-                Main.LOGGER.info("{}% completed ({} / {} chunks)...", MathHelper.d((float) j / (float) i * 100.0F), j, i);
+-            }
++            // Yatopia start
++            long totalChunkCount = worldupgrader.getTotalChunkCount();
++            if (totalChunkCount > 0) {
++                long processedCount = worldupgrader.getUpgradedChunkCount() + worldupgrader.getSkippedChunkCount();
++                long currentTime = System.nanoTime();
++                String speedRate = String.format("%.1f", (processedCount - lastLocation) / ((currentTime - lastTime) / 1_000_000_000.0));
++                Main.LOGGER.info("{}% completed ({} / {} chunks) at {}cps...", MathHelper.d((float) processedCount / (float) totalChunkCount * 100.0F), processedCount, totalChunkCount, speedRate);
++                lastLocation = processedCount;
++                lastTime = currentTime;
++            } // Yatopia end
+ 
+             if (!booleansupplier.getAsBoolean()) {
+                 worldupgrader.a();
+diff --git a/src/main/java/net/minecraft/util/worldupdate/WorldUpgrader.java b/src/main/java/net/minecraft/util/worldupdate/WorldUpgrader.java
+index 6725b31a5183d5af7f8f7566ed21eb61797ef4c9..f13e16aca89f5013ef316e7dbf3d4c67885e6f3e 100644
+--- a/src/main/java/net/minecraft/util/worldupdate/WorldUpgrader.java
++++ b/src/main/java/net/minecraft/util/worldupdate/WorldUpgrader.java
+@@ -33,6 +33,13 @@ import net.minecraft.world.level.storage.Convertable;
+ import net.minecraft.world.level.storage.WorldPersistentData;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++// Yatopia start
++import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
++import java.util.Set;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++// Yatopia end
+ 
+ // CraftBukkit start
+ import net.minecraft.world.level.dimension.DimensionManager;
+@@ -50,9 +57,9 @@ public class WorldUpgrader {
+     private volatile boolean h = true;
+     private volatile boolean i;
+     private volatile float j;
+-    private volatile int k;
+-    private volatile int l;
+-    private volatile int m;
++    private volatile long k; // Yatopia - int -> long
++    private volatile long l; // Yatopia - int -> long
++    private volatile long m; // Yatopia - int -> long
+     private final Object2FloatMap<ResourceKey<DimensionManager>> n = Object2FloatMaps.synchronize(new Object2FloatOpenCustomHashMap(SystemUtils.k())); // CraftBukkit
+     private volatile IChatBaseComponent o = new ChatMessage("optimizeWorld.stage.counting");
+     private static final Pattern p = Pattern.compile("^r\\.(-?[0-9]+)\\.(-?[0-9]+)\\.mca$");
+@@ -117,6 +124,11 @@ public class WorldUpgrader {
+ 
+             this.o = new ChatMessage("optimizeWorld.stage.upgrading");
+ 
++            // Yatopia start
++            final ExecutorService upgradeExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), new ThreadFactoryBuilder().setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).setNameFormat("WorldUpgrader Worker #%d").build());
++            final Set<CompletableFuture<Void>> futures = new ObjectOpenHashSet<>();
++            final com.ibm.asyncutil.locks.AsyncNamedLock<Integer> regionFileLocks = com.ibm.asyncutil.locks.AsyncNamedLock.createFair();
++            // Yatopia end
+             while (this.h) {
+                 boolean flag = false;
+                 float f1 = 0.0F;
+@@ -130,6 +142,11 @@ public class WorldUpgrader {
+ 
+                     if (listiterator.hasNext()) {
+                         ChunkCoordIntPair chunkcoordintpair = (ChunkCoordIntPair) listiterator.next();
++                        // Yatopia start
++                        flag = true;
++                        futures.add(regionFileLocks.acquireLock(String.format("%d %d", chunkcoordintpair.getRegionX(), chunkcoordintpair.getRegionZ()).hashCode()).toCompletableFuture().thenAcceptAsync(lockToken -> {
++                        try {
++                        // Yatopia end
+                         boolean flag1 = false;
+ 
+                         try {
+@@ -179,7 +196,12 @@ public class WorldUpgrader {
+                             ++this.m;
+                         }
+ 
+-                        flag = true;
++                        // Yatopia start
++                        } finally {
++                            lockToken.releaseLock();
++                        }
++                        }, upgradeExecutor));
++                        // Yatopia end
+                     }
+ 
+                     f2 = (float) listiterator.nextIndex() / f;
+@@ -192,6 +214,8 @@ public class WorldUpgrader {
+                 }
+             }
+ 
++            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join(); // Yatopia
++            upgradeExecutor.shutdown(); // Yatopia
+             this.o = new ChatMessage("optimizeWorld.stage.finished");
+             UnmodifiableIterator unmodifiableiterator3 = immutablemap1.values().iterator();
+ 
+@@ -280,16 +304,19 @@ public class WorldUpgrader {
+     }
+ 
+     public int e() {
+-        return this.k;
++        return (int) this.k; // Yatopia
+     }
++    public long getTotalChunkCount() { return this.k; } // Yatopia
+ 
+     public int f() {
+-        return this.l;
++        return (int) this.l; // Yatopia
+     }
++    public long getUpgradedChunkCount() { return this.l; } // Yatopia
+ 
+     public int g() {
+-        return this.m;
++        return (int) this.m; // Yatopia
+     }
++    public long getSkippedChunkCount() { return this.m; } // Yatopia
+ 
+     public IChatBaseComponent h() {
+         return this.o;

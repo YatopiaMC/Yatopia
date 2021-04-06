@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Tue, 9 Feb 2021 21:42:09 +0800
+Subject: [PATCH] Force world save
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
+index 55d497f4305de50e58c7e0788724576f81128138..edb45dd2933b985efb29d61b2a844615f5f1cc9f 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
+@@ -366,6 +366,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         }).orElse(false);
+     }
+ 
++    private final java.util.concurrent.atomic.AtomicBoolean hasWorked = new java.util.concurrent.atomic.AtomicBoolean(false); // Yatopia - enforce one chunk unload per tick
+     @Override
+     public void a(BooleanSupplier booleansupplier) {
+         // Paper start - async chunk io
+@@ -373,7 +374,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+             super.a(booleansupplier);
+         } else {
+             //super.a(booleansupplier); // re-implement below
+-            while (!((RegionFileSection)this).d.isEmpty() && booleansupplier.getAsBoolean() && !this.world.isSavingDisabled()) { // Tuinity - unload POI data - don't write to disk if saving is disabled
++            hasWorked.set(false); while (!((RegionFileSection)this).d.isEmpty() && (hasWorked.compareAndSet(false, true) || booleansupplier.getAsBoolean()) && !this.world.isSavingDisabled()) { // Tuinity - unload POI data - don't write to disk if saving is disabled // Yatopia - enforce one chunk unload per tick
+                 ChunkCoordIntPair chunkcoordintpair = SectionPosition.a(((RegionFileSection)this).d.firstLong()).r();
+ 
+                 NBTTagCompound data;
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
+index f70c14385c95763b5f270a6e2ce372cf047ba7bb..4454489153f7932deaaebe8aa32ecb603764f42b 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
+@@ -50,8 +50,9 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+         //this.b = new IOWorker(file, flag, file.getName()); // Paper - nuke IOWorker
+     }
+ 
++    private final java.util.concurrent.atomic.AtomicBoolean hasWorked = new java.util.concurrent.atomic.AtomicBoolean(false); // Yatopia - enforce one chunk unload per tick
+     protected void a(BooleanSupplier booleansupplier) {
+-        while (!this.d.isEmpty() && booleansupplier.getAsBoolean()) {
++        hasWorked.set(false); while (!this.d.isEmpty() && (hasWorked.compareAndSet(false, true) || booleansupplier.getAsBoolean())) { // Yatopia - enforce one chunk unload per tick
+             ChunkCoordIntPair chunkcoordintpair = SectionPosition.a(this.d.firstLong()).r(); // Paper - conflict here to avoid obfhelpers
+ 
+             this.d(chunkcoordintpair);

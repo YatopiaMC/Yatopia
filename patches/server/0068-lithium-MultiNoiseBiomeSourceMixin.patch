@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: SuperCoder7979 <25208576+SuperCoder7979@users.noreply.github.com>
+Date: Wed, 3 Feb 2021 16:39:27 -0600
+Subject: [PATCH] lithium MultiNoiseBiomeSourceMixin
+
+
+diff --git a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java
+index 92d1e771c2f896fb3b363a57aa59c04c3f466bea..23637d9be9f9973266c1bba699c40cdc6c5d9e6d 100644
+--- a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java
++++ b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java
+@@ -118,8 +118,44 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+         });
+     }
+ 
++    //Yatopia - Faster Method
++    /**
++     * @reason Remove stream based code in favor of regular collections.
++     * @author SuperCoder79
++     */
+     @Override
+     public BiomeBase getBiome(int i, int j, int k) {
++        // [VanillaCopy] MultiNoiseBiomeSource#getBiomeForNoiseGen
++
++        // Get the y value for perlin noise sampling. This field is always set to false in vanilla code.
++        int l = this.q ? j : 0;
++
++        // Calculate the noise point based using 4 perlin noise samplers.
++        BiomeBase.c biomebase_c = new BiomeBase.c(
++                (float) this.l.a(i, l, k),
++                (float) this.m.a(i, l, k),
++                (float) this.n.a(i, l, k),
++                (float) this.o.a(i, l, k),
++                0.0F);
++
++        int idx = -1;
++        float min = Float.POSITIVE_INFINITY;
++
++        // Iterate through the biome points and calculate the distance to the current noise point.
++        for (int itterator = 0; itterator < this.p.size(); itterator++) {
++            float distance =  this.p.get(itterator).getFirst().a(biomebase_c);
++
++            // If the distance is less than the recorded minimum, update the minimum and set the current index.
++            if (min > distance) {
++                idx = itterator;
++                min = distance;
++            }
++        }
++
++        // Return the biome with the noise point closest to the evaluated one.
++        return this.p.get(idx).getSecond().get() == null ? BiomeRegistry.b :  this.p.get(idx).getSecond().get();
++    }
++    /* //Yatopia - Replace Method
+         int l = this.q ? j : 0;
+         BiomeBase.c biomebase_c = new BiomeBase.c((float) this.l.a((double) i, (double) l, (double) k), (float) this.m.a((double) i, (double) l, (double) k), (float) this.n.a((double) i, (double) l, (double) k), (float) this.o.a((double) i, (double) l, (double) k), 0.0F);
+ 
+@@ -127,6 +163,8 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+             return ((BiomeBase.c) pair.getFirst()).a(biomebase_c);
+         })).map(Pair::getSecond).map(Supplier::get).orElse(BiomeRegistry.b);
+     }
++    */ //Yatopia End
++
+ 
+     public boolean b(long i) {
+         return this.r == i && this.s.isPresent() && Objects.equals(((Pair) this.s.get()).getSecond(), WorldChunkManagerMultiNoise.bProxy.a); // Yatopia - decompile fix
