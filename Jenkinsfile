@@ -6,9 +6,10 @@ pipeline {
             steps {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
                 sh 'rm -rf ./target'
-                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work/Spigot/Spigot-API ./Paper/work/Spigot/Spigot-Server'
+                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work'
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
                 sh 'chmod +x ./gradlew'
+                sh './gradlew clean'
             }
         }
         stage('Init project & submodules') {
@@ -69,12 +70,15 @@ pipeline {
                     }
                 }
             }
-            post {
-                success {
-                    archiveArtifacts "target/*.jar"
-                }
-                failure {
-                    cleanWs()
+            
+     stage('Archive Jars') {
+      steps {
+        archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
+      }
+    }
+    post {
+      always {
+        cleanWs()
                 }
             }
         }
