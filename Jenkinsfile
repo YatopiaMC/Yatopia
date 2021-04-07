@@ -51,12 +51,18 @@ pipeline {
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
                         sh '''
-                        ./gradlew clean build paperclip publish
+                        ./gradlew clean build publish
                         mkdir -p "./target"
                         basedir=$(pwd)
                         paperworkdir="$basedir/Paper/work"
                         mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
-                        cp "yatopia-$mcver-paperclip.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
+                        patchedJarPath="$basedir/Yatopia-Server/build/libs/yatopia-server-$mcver-R0.1-SNAPSHOT.jar"
+                        vanillaJarPath="$paperworkdir/Minecraft/$mcver/$mcver.jar"
+                        (
+                            cd "$paperworkdir/Paperclip"
+                            mvn -T 2C clean package -Dmcver="$mcver" -Dpaperjar="$patchedJarPath" -Dvanillajar="$vanillaJarPath" -Dstyle.color=never
+                        )
+                        cp -v "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
                         '''
                     }
                 }
