@@ -28,7 +28,10 @@ internal fun Project.createPaperclipTask(
             "-Dvanillajar=$vanillaJarPath"
         )
         if (System.getProperty("os.name").startsWith("Windows")) paperclipCmd[0] = "mvn.cmd"
-        if (jenkins) paperclipCmd.add("-Dstyle.color=never")
+        if (jenkins) {
+            paperclipCmd.add("-Dstyle.color=never")
+            paperclipCmd[0] = "./mvn"
+        }
         ensureSuccess(cmd(*paperclipCmd.toTypedArray(), dir = paperclipDir, printOut = true))
         val paperClip = paperclipDir.resolve("assembly/target/paperclip-${toothpick.minecraftVersion}.jar")
         val destination = rootProjectDir.resolve(toothpick.calcPaperclipName)
