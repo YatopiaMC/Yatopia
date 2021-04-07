@@ -1,3 +1,5 @@
+file("Paper").deleteRecursively()
+
 plugins {
     `java-library`
     `maven-publish`
