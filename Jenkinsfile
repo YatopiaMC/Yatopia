@@ -56,12 +56,14 @@ pipeline {
                         basedir=$(pwd)
                         paperworkdir="$basedir/Paper/work"
                         mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
+                        
                         patchedJarPath="$basedir/Yatopia-Server/build/libs/yatopia-server-$mcver-R0.1-SNAPSHOT.jar"
                         vanillaJarPath="$paperworkdir/Minecraft/$mcver/$mcver.jar"
-                        (
-                            cd "$paperworkdir/Paperclip"
-                            mvn -T 2C clean package -Dmcver="$mcver" -Dpaperjar="$patchedJarPath" -Dvanillajar="$vanillaJarPath" -Dstyle.color=never
-                        )
+
+                        cd "$paperworkdir/Paperclip"
+                        mvn -T 2C clean package -Dmcver="$mcver" -Dpaperjar="$patchedJarPath" -Dvanillajar="$vanillaJarPath" -Dstyle.color=never
+                        cd "$basedir"
+
                         cp -v "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
                         '''
                     }
