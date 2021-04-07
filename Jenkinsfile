@@ -8,7 +8,8 @@ pipeline {
                 sh 'rm -rf ./target'
                 sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work'
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
-                sh 'chmod +x ./gradlew'
+                sh 'find /home/jenkins/workspace/YatopiaMC_Yatopia_ver_1.16.5 -type d -exec chmod 755 {} \;'
+                sh 'chmod +x ./gradlew
                 sh './gradlew clean'
             }
         }
