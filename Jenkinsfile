@@ -51,7 +51,6 @@ pipeline {
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
                         sh '''
-                        chmod +x mvn || true
                         ./gradlew clean build paperclip publish
                         mkdir -p "./target"
                         basedir=$(pwd)
