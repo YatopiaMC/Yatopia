@@ -9,7 +9,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://plugins.gradle.org/m2/")
     maven("https://jitpack.io/")
 }
