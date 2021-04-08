@@ -22,12 +22,11 @@ internal fun Project.createPaperclipTask(
         val patchedJarPath = inputs.files.singleFile.absolutePath
         logger.lifecycle(">>> Building paperclip")
         val paperclipCmd = arrayListOf(
-            "mvn", "-T", "2C", "clean", "package",
+            toothpick.mavenCommand, "-T", "2C", "clean", "package",
             "-Dmcver=${toothpick.minecraftVersion}",
             "-Dpaperjar=$patchedJarPath",
             "-Dvanillajar=$vanillaJarPath"
         )
-        if (System.getProperty("os.name").startsWith("Windows")) paperclipCmd[0] = "mvn.cmd"
         if (jenkins) paperclipCmd.add("-Dstyle.color=never")
         ensureSuccess(cmd(*paperclipCmd.toTypedArray(), dir = paperclipDir, printOut = true))
         val paperClip = paperclipDir.resolve("assembly/target/paperclip-${toothpick.minecraftVersion}.jar")

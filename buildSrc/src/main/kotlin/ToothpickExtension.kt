@@ -90,4 +90,14 @@ open class ToothpickExtension(objects: ObjectFactory) {
         }
         return upstreamArray.stream().sorted { upstream1, upstream2 -> upstream1.id - upstream2.id}.collect(Collectors.toList())
     }
+
+  internal val mavenCommand: String by lazy {
+    if (exitsSuccessfully("mvn", "-v")) {
+      return@lazy "mvn"
+    }
+    if (exitsSuccessfully("mvn.cmd", "-v")) {
+      return@lazy "mvn.cmd"
+    }
+    error("Unable to locate maven. Please ensure you have maven installed and on your path.")
+  }
 }
