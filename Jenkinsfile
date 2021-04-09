@@ -80,6 +80,7 @@ pipeline {
     post {
       always {
         cleanWs()
+          sh 'rm -rf /home/jenkins/workspace/YatopiaMC_Yatopia_ver_1.16.5'
                 }
             }
         }
