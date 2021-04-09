@@ -53,7 +53,7 @@ pipeline {
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
                         sh '''
-                        ./gradlew clean build publish
+                        ./gradlew build publish
                         mkdir -p "./target"
                         basedir=$(pwd)
                         paperworkdir="$basedir/Paper/work"
