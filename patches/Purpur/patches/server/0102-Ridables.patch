@@ -88,7 +88,7 @@ index 9de660f0c679f101512bddf7c6582ca6cd18ca5b..e1a6e4a359eb2aa484d479fde398473c
  
      public void playerTick() {
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 36eec5cfd66f1854ec2c5bebaaa900debeb54214..70d400a54507c51a7475ce37d0c045c6ace35a86 100644
+index 776386cdc71bee881a0941830952a264d282a8ca..31e753d1e8efb029652ed9e94cf3e461ef9f9c72 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
 @@ -216,6 +216,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -100,10 +100,10 @@ index 36eec5cfd66f1854ec2c5bebaaa900debeb54214..70d400a54507c51a7475ce37d0c045c6
          return new Throwable(entity + " Added to world at " + new java.util.Date());
      }
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index 456fb80a3da0fd3be92b2c74012c3ff56d1989f0..fbdb6db7123a4ee804c42c5b43c7f434f2d7b0e6 100644
+index d30a9ef98cbe214c0258e7d5e8527ff8fd956ddd..e39e46cf3cb646dd100b698cbc6d4f9b6896696d 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-@@ -2452,6 +2452,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2464,6 +2464,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
                      }
                      this.server.getPluginManager().callEvent(event);
  
@@ -2296,10 +2296,10 @@ index 44119f52a4f169ffcea53fb69393bfedfd1a62a7..cfcf67e99ae345f77a55771e6a25bdcd
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/animal/EntitySquid.java b/src/main/java/net/minecraft/world/entity/animal/EntitySquid.java
-index 081929990a8208f643d298a885acc4ddfa401bfb..10e228a36b213a87e17f26a633adfca18a006e94 100644
+index e6757b22497c6e274c3999d58671653e931ebe2b..a9fa18931d93dd7fa428b8cd6a414d4b3a3b4fbb 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/EntitySquid.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/EntitySquid.java
-@@ -3,6 +3,7 @@ package net.minecraft.world.entity.animal;
+@@ -4,6 +4,7 @@ package net.minecraft.world.entity.animal;
  import java.util.Random;
  import net.minecraft.core.BlockPosition;
  import net.minecraft.core.particles.Particles;
@@ -2307,7 +2307,7 @@ index 081929990a8208f643d298a885acc4ddfa401bfb..10e228a36b213a87e17f26a633adfca1
  import net.minecraft.server.level.WorldServer;
  import net.minecraft.sounds.SoundEffect;
  import net.minecraft.sounds.SoundEffects;
-@@ -22,6 +23,7 @@ import net.minecraft.world.entity.EnumMoveType;
+@@ -23,6 +24,7 @@ import net.minecraft.world.entity.EnumMoveType;
  import net.minecraft.world.entity.ai.attributes.AttributeProvider;
  import net.minecraft.world.entity.ai.attributes.GenericAttributes;
  import net.minecraft.world.entity.ai.goal.PathfinderGoal;
@@ -2315,7 +2315,7 @@ index 081929990a8208f643d298a885acc4ddfa401bfb..10e228a36b213a87e17f26a633adfca1
  import net.minecraft.world.level.GeneratorAccess;
  import net.minecraft.world.level.World;
  import net.minecraft.world.level.block.state.IBlockData;
-@@ -53,17 +55,38 @@ public class EntitySquid extends EntityWaterAnimal {
+@@ -54,17 +56,38 @@ public class EntitySquid extends EntityWaterAnimal {
      }
  
      // Purpur start
@@ -2355,7 +2355,7 @@ index 081929990a8208f643d298a885acc4ddfa401bfb..10e228a36b213a87e17f26a633adfca1
      }
  
      public static AttributeProvider.Builder m() {
-@@ -208,6 +231,7 @@ public class EntitySquid extends EntityWaterAnimal {
+@@ -209,6 +232,7 @@ public class EntitySquid extends EntityWaterAnimal {
          return blockposition.getY() > generatoraccess.getMinecraftWorld().spigotConfig.squidSpawnRangeMin && blockposition.getY() < maxHeight; // Spigot // Paper
      }
  
@@ -2363,7 +2363,7 @@ index 081929990a8208f643d298a885acc4ddfa401bfb..10e228a36b213a87e17f26a633adfca1
      public void a(float f, float f1, float f2) {
          this.bw = f;
          this.bx = f1;
-@@ -279,7 +303,7 @@ public class EntitySquid extends EntityWaterAnimal {
+@@ -280,7 +304,7 @@ public class EntitySquid extends EntityWaterAnimal {
  
      class PathfinderGoalSquid extends PathfinderGoal {
  
@@ -2372,7 +2372,7 @@ index 081929990a8208f643d298a885acc4ddfa401bfb..10e228a36b213a87e17f26a633adfca1
  
          public PathfinderGoalSquid(EntitySquid entitysquid) {
              this.b = entitysquid;
-@@ -292,6 +316,38 @@ public class EntitySquid extends EntityWaterAnimal {
+@@ -293,6 +317,38 @@ public class EntitySquid extends EntityWaterAnimal {
  
          @Override
          public void e() {
@@ -6862,7 +6862,7 @@ index dee4d12a49468d38f077784b219199f0070786f2..c524a0994f1c9ef1d0534403efa4e448
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 926440e846eff2c1aaa262aa2b3975b7dd225332..9a6c4f292940b1cef2f4ef87c2e47d82ba5cb60f 100644
+index 9084aa4b7c0059c995a3d1a89188379b52c9d620..7341b1956123d8e5d45d9041e7319de8ee8b768a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 @@ -530,6 +530,18 @@ public class CraftEventFactory {

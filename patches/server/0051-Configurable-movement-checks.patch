@@ -5,10 +5,10 @@ Subject: [PATCH] Configurable movement checks
 
 
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index 3408bfc4756c0a5622ed47bae425ff7b0efc85ad..ffafa984267c3de91749531aa76673a684dfbcca 100644
+index b3bb63559add154888b5e19f2304b5e4a8a9eacc..b7624400644ae25b9316c2f1f7bcf0e436fbb3cb 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-@@ -598,7 +598,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -604,7 +604,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                  }
                  // Paper end
  
@@ -17,7 +17,7 @@ index 3408bfc4756c0a5622ed47bae425ff7b0efc85ad..ffafa984267c3de91749531aa76673a6
                  // CraftBukkit end
                      PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved too quickly! {},{},{}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), d6, d7, d8);
                      this.networkManager.sendPacket(new PacketPlayOutVehicleMove(entity));
-@@ -625,7 +625,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -631,7 +631,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                  d10 = d6 * d6 + d7 * d7 + d8 * d8;
                  boolean flag1 = false;
  
@@ -26,7 +26,7 @@ index 3408bfc4756c0a5622ed47bae425ff7b0efc85ad..ffafa984267c3de91749531aa76673a6
                      flag1 = true; // Tuinity - diff on change, this should be moved wrongly
                      PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), Math.sqrt(d10));
                  }
-@@ -1373,7 +1373,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1385,7 +1385,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              if (!this.player.H() && (!this.player.getWorldServer().getGameRules().getBoolean(GameRules.DISABLE_ELYTRA_MOVEMENT_CHECK) || !this.player.isGliding())) {
                                  float f2 = this.player.isGliding() ? 300.0F : 100.0F;
  
@@ -35,7 +35,7 @@ index 3408bfc4756c0a5622ed47bae425ff7b0efc85ad..ffafa984267c3de91749531aa76673a6
                                  // CraftBukkit end
                                      PlayerConnection.LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getDisplayName().getString(), d7, d8, d9);
                                      this.a(this.player.locX(), this.player.locY(), this.player.locZ(), this.player.yaw, this.player.pitch);
-@@ -1439,7 +1439,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1451,7 +1451,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              d11 = d7 * d7 + d8 * d8 + d9 * d9;
                              boolean flag1 = false;
  

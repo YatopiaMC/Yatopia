@@ -173,6 +173,7 @@ This is an overview over all patches that are currently used.
 | server |  Do not retain playerchunkmap instance in light thread factory      | Spottedleaf |  |
 | server |  Do not run close logic for inventories on chunk unload      | Spottedleaf |  |
 | server |  Do not run raytrace logic for AIR      | Spottedleaf |  |
+| server |  Do not update TE&#39;s in generating chunks      | Spottedleaf |  |
 | server |  Don&#39;t allow StructureLocateEvent to change worlds      | Spottedleaf |  |
 | server |  Don&#39;t get entity equipment if not needed      | Paul Sauve |  |
 | server |  Don&#39;t load chunk with seed based feature search      | Phoenix616 |  |
@@ -203,7 +204,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix NPE in pickup logic for arrow      | Spottedleaf |  |
-| server |  Fix PlayerEditBookEvent not saving new book      | BillyGalbreath |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
@@ -305,7 +305,7 @@ This is an overview over all patches that are currently used.
 | server |  Option for Villager Clerics to farm Nether Wart      | jmp |  |
 | server |  Option for chests to open even with a solid block on top      | jmp |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
-| server |  Option to make doors require restone      | BillyGalbreath |  |
+| server |  Option to make doors require redstone      | BillyGalbreath |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
 | server |  Origami Server Config      | Phoenix616 |  |
@@ -383,6 +383,7 @@ This is an overview over all patches that are currently used.
 | server |  Spread out and optimise player list ticks      | James Lyne |  |
 | server |  Squid EAR immunity      | William Blake Galbreath |  |
 | server |  Stonecutter damage      | William Blake Galbreath |  |
+| server |  Stop large move vectors in player packet handling from      | Spottedleaf |  |
 | server |  Stop squids floating on top of water      | William Blake Galbreath |  |
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Striders give saddle back      | Ben Kerllenevich |  |
