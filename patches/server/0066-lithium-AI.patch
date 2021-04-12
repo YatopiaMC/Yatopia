@@ -1,0 +1,2128 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sun, 24 Jan 2021 12:17:19 +0100
+Subject: [PATCH] lithium AI
+
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/ai/pathing/PathNodeCache.java b/src/main/java/me/jellysquid/mods/lithium/common/ai/pathing/PathNodeCache.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b97dc93ba3708811cd8a1409aa5992a548586ed0
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/ai/pathing/PathNodeCache.java
+@@ -0,0 +1,92 @@
++package me.jellysquid.mods.lithium.common.ai.pathing;
++
++import it.unimi.dsi.fastutil.objects.Reference2BooleanMap;
++import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
++import net.minecraft.world.level.chunk.ChunkSection;
++import net.minecraft.world.level.block.state.IBlockData;
++import net.minecraft.world.level.pathfinder.PathType;
++
++public class PathNodeCache {
++    /**
++     * A transient hash table of chunk sections and whether or not they contain dangerous block types. Used as a cache
++     * to avoid scanning for many neighbors when we know the chunk is free of dangers. This is only safe to use when
++     * we know the world is not going to be modified while it is active.
++     */
++    private static final Reference2BooleanMap<ChunkSection> chunkNeighborDangerCache = new Reference2BooleanOpenHashMap<>();
++
++    /**
++     * True if the chunk danger cache is enabled and can be used.
++     */
++    private static boolean dangerCacheEnabled = false;
++
++    /**
++     * The previous chunk section that was queried for neighboring dangers.
++     */
++    private static ChunkSection prevQueriedNeighborSectionKey;
++
++    /**
++     * The result of the previous query belonging to {@link PathNodeCache#prevQueriedNeighborSectionKey}.
++     */
++    private static boolean prevQueriedNeighborSectionResult;
++
++    /**
++     * Enables the chunk danger cache. This should be called immediately before a controlled path-finding code path
++     * begins so that we can accelerate nearby danger checks.
++     */
++    public static void enableChunkCache() {
++        dangerCacheEnabled = true;
++    }
++
++    /**
++     * Disables and clears the chunk danger cache. This should be called immediately before path-finding ends so that
++     * block updates are reflected for future path-finding tasks.
++     */
++    public static void disableChunkCache() {
++        dangerCacheEnabled = false;
++        chunkNeighborDangerCache.clear();
++
++        prevQueriedNeighborSectionKey = null;
++        prevQueriedNeighborSectionResult = false;
++    }
++
++    private static boolean isChunkSectionDangerousNeighbor(ChunkSection section) {
++        return section.getBlocks()
++                .contains(state -> getNeighborPathNodeType(state) != PathType.OPEN);
++    }
++
++    public static PathType getPathNodeType(IBlockData state) {
++        return state.getPathNodeType();
++    }
++
++    public static PathType getNeighborPathNodeType(IBlockData state) {
++        return state.getNeighborPathNodeType();
++    }
++
++    /**
++     * Returns whether or not a chunk section is free of dangers. This makes use of a caching layer to greatly
++     * accelerate neighbor danger checks when path-finding.
++     *
++     * @param section The chunk section to test for dangers
++     * @return True if this neighboring section is free of any dangers, otherwise false if it could
++     * potentially contain dangers
++     */
++    public static boolean isSectionSafeAsNeighbor(ChunkSection section) {
++        // Empty sections can never contribute a danger
++        if (ChunkSection.isEmpty(section)) {
++            return true;
++        }
++
++        // If the caching code path is disabled, the section must be assumed to potentially contain dangers
++        if (!dangerCacheEnabled) {
++            return false;
++        }
++
++        if (prevQueriedNeighborSectionKey != section) {
++            prevQueriedNeighborSectionKey = section;
++            prevQueriedNeighborSectionResult = !chunkNeighborDangerCache.computeBooleanIfAbsent(section,
++                    PathNodeCache::isChunkSectionDangerousNeighbor);
++        }
++
++        return prevQueriedNeighborSectionResult;
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/ai/pathing/PathNodeDefaults.java b/src/main/java/me/jellysquid/mods/lithium/common/ai/pathing/PathNodeDefaults.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4427f2171671896c978908b1c3d72b3f64f16a0b
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/ai/pathing/PathNodeDefaults.java
+@@ -0,0 +1,110 @@
++package me.jellysquid.mods.lithium.common.ai.pathing;
++
++import net.minecraft.world.level.block.Block;
++import net.minecraft.world.level.block.BlockCampfire;
++import net.minecraft.world.level.block.BlockDoor;
++import net.minecraft.world.level.block.BlockFenceGate;
++import net.minecraft.world.level.block.BlockLeaves;
++import net.minecraft.world.level.block.BlockMinecartTrackAbstract;
++import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.level.block.state.IBlockData;
++import net.minecraft.world.level.material.Material;
++import net.minecraft.world.level.pathfinder.PathType;
++import net.minecraft.tags.TagsBlock;
++import net.minecraft.tags.TagsFluid;
++
++public class PathNodeDefaults {
++    public static PathType getNeighborNodeType(IBlockData state) {
++        if (state.isAir()) {
++            return PathType.OPEN;
++        }
++
++        // [VanillaCopy] LandPathNodeMaker#getNodeTypeFromNeighbors
++        // Determine what kind of obstacle type this neighbor is
++        if (state.a(Blocks.CACTUS)) {
++            return PathType.DANGER_CACTUS;
++        } else if (state.a(Blocks.SWEET_BERRY_BUSH)) {
++            return PathType.DANGER_OTHER;
++        } else if (isFireDangerSource(state)) {
++            return PathType.DANGER_FIRE;
++        } else if (state.getFluid().a(TagsFluid.WATER)) {
++            return PathType.WATER_BORDER;
++        } else {
++            return PathType.OPEN;
++        }
++    }
++
++    public static PathType getNodeType(IBlockData state) {
++        if (state.isAir()) {
++            return PathType.OPEN;
++        }
++
++        Block block = state.getBlock();
++        Material material = state.getMaterial();
++
++        if (state.hasTag(TagsBlock.TRAPDOORS) || state.a(Blocks.LILY_PAD)) {
++            return PathType.TRAPDOOR;
++        }
++
++        if (state.a(Blocks.CACTUS)) {
++            return PathType.DAMAGE_CACTUS;
++        }
++
++        if (state.a(Blocks.SWEET_BERRY_BUSH) || state.a(Blocks.STONECUTTER)) {
++            return PathType.DAMAGE_OTHER;
++        }
++
++        if (state.a(Blocks.HONEY_BLOCK)) {
++            return PathType.STICKY_HONEY;
++        }
++
++        if (state.a(Blocks.COCOA)) {
++            return PathType.COCOA;
++        }
++
++        if (isFireDangerSource(state)) {
++            return PathType.DAMAGE_FIRE;
++        }
++
++        if (BlockDoor.l(state) && !state.get(BlockDoor.OPEN)) {
++            return PathType.DOOR_WOOD_CLOSED;
++        }
++
++        if ((block instanceof BlockDoor) && (material == Material.ORE) && !state.get(BlockDoor.OPEN)) {
++            return PathType.DOOR_IRON_CLOSED;
++        }
++
++        if ((block instanceof BlockDoor) && state.get(BlockDoor.OPEN)) {
++            return PathType.DOOR_OPEN;
++        }
++
++        if (block instanceof BlockMinecartTrackAbstract) {
++            return PathType.RAIL;
++        }
++
++        if (block instanceof BlockLeaves) {
++            return PathType.LEAVES;
++        }
++
++        if (block.a(TagsBlock.FENCES) || block.a(TagsBlock.WALLS) || ((block instanceof BlockFenceGate) && !state.get(BlockFenceGate.OPEN))) {
++            return PathType.FENCE;
++        }
++
++        // Retrieve the fluid state from the block state to avoid a second lookup
++        Fluid fluid = state.getFluid();
++        if (fluid == null) {
++            return PathType.OPEN;
++        } else if (fluid.a(TagsFluid.WATER)) {
++            return PathType.WATER;
++        } else if (fluid.a(TagsFluid.LAVA)) {
++            return PathType.LAVA;
++        }
++
++        return PathType.OPEN;
++    }
++
++    private static boolean isFireDangerSource(IBlockData blockState) {
++        return blockState.a(TagsBlock.FIRE) || blockState.a(Blocks.LAVA) || blockState.a(Blocks.MAGMA_BLOCK) || BlockCampfire.g(blockState);
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/EntityTrackerEngine.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/EntityTrackerEngine.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..23ea99d0ec8622eadadc2073022e59c4aac8dc3a
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/EntityTrackerEngine.java
+@@ -0,0 +1,254 @@
++package me.jellysquid.mods.lithium.common.entity.tracker;
++
++import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
++import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListener;
++import net.minecraft.core.BlockPosition;
++import net.minecraft.world.entity.EntityLiving;
++import net.minecraft.core.SectionPosition;
++import net.minecraft.world.level.levelgen.structure.StructureBoundingBox;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Set;
++
++/**
++ * Tracks the entities within a world and provides notifications to listeners when a tracked entity enters or leaves a
++ * watched area. This removes the necessity to constantly poll the world for nearby entities each tick and generally
++ * provides a sizable boost to performance.
++ */
++public class EntityTrackerEngine {
++    private final Long2ObjectOpenHashMap<TrackedEntityList> sections;
++    private final Reference2ReferenceOpenHashMap<NearbyEntityListener, List<TrackedEntityList>> sectionsByEntity;
++
++
++    public EntityTrackerEngine() {
++        this.sections = new Long2ObjectOpenHashMap<>();
++        this.sectionsByEntity = new Reference2ReferenceOpenHashMap<>();
++    }
++
++    /**
++     * Called when an entity is added to the world.
++     */
++    public void onEntityAdded(int x, int y, int z, EntityLiving entity) {
++        if (this.addEntity(x, y, z, entity)) {
++            this.addListener(x, y, z, entity.getListener());
++        }
++    }
++
++    /**
++     * Called when an entity is removed from the world.
++     */
++    public void onEntityRemoved(int x, int y, int z, EntityLiving entity) {
++        if (this.removeEntity(x, y, z, entity)) {
++            this.removeListener(entity.getListener());
++        }
++    }
++
++    private boolean addEntity(int x, int y, int z, EntityLiving entity) {
++        return this.getOrCreateList(x, y, z).addTrackedEntity(entity);
++    }
++
++    private boolean removeEntity(int x, int y, int z, EntityLiving entity) {
++        TrackedEntityList list = this.getList(x, y, z);
++
++        if (list == null) {
++            return false;
++        }
++
++        return list.removeTrackedEntity(entity);
++    }
++
++    private void addListener(int x, int y, int z, NearbyEntityListener listener) {
++        int r = listener.getChunkRange();
++
++        if (r == 0) {
++            return;
++        }
++
++        if (this.sectionsByEntity.containsKey(listener)) {
++
++            throw new IllegalStateException(errorMessageAlreadyListening(this.sectionsByEntity, listener, SectionPosition.a(x, y, z)));
++        }
++
++        int yMin = Math.max(0, y - r);
++        int yMax = Math.min(y + r, 15);
++
++        List<TrackedEntityList> all = new ArrayList<>((2 * r + 1) * (yMax - yMin + 1) * (2 * r + 1));
++
++        for (int x2 = x - r; x2 <= x + r; x2++) {
++            for (int y2 = yMin; y2 <= yMax; y2++) {
++                for (int z2 = z - r; z2 <= z + r; z2++) {
++                    TrackedEntityList list = this.getOrCreateList(x2, y2, z2);
++                    list.addListener(listener);
++
++                    all.add(list);
++                }
++            }
++        }
++
++        this.sectionsByEntity.put(listener, all);
++    }
++
++    private void removeListener(NearbyEntityListener listener) {
++        int r = listener.getChunkRange();
++
++        if (r == 0) {
++            return;
++        }
++
++        List<TrackedEntityList> all = this.sectionsByEntity.remove(listener);
++
++        if (all != null) {
++            for (TrackedEntityList list : all) {
++                list.removeListener(listener);
++            }
++        } else {
++            throw new IllegalArgumentException("Entity listener not tracked:" + listener.toString());
++        }
++    }
++
++    // Faster implementation which avoids removing from/adding to every list twice on an entity move event
++    private void moveListener(int aX, int aY, int aZ, int bX, int bY, int bZ, NearbyEntityListener listener) {
++        int radius = listener.getChunkRange();
++
++        if (radius == 0) {
++            return;
++        }
++
++        StructureBoundingBox before = new StructureBoundingBox(aX - radius, aY - radius, aZ - radius, aX + radius, aY + radius, aZ + radius);
++        StructureBoundingBox after = new StructureBoundingBox(aX - radius, aY - radius, aZ - radius, bX + radius, bY + radius, bZ + radius);
++
++        StructureBoundingBox merged = new StructureBoundingBox(before);
++        merged.c(after);
++
++        BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition();
++
++        for (int x = merged.a; x <= merged.d; x++) {
++            for (int y = merged.b; y <= merged.e; y++) {
++                for (int z = merged.c; z <= merged.f; z++) {
++                    pos.setValues(x, y, z);
++
++                    boolean leaving = before.hasPoint(pos);
++                    boolean entering = after.hasPoint(pos);
++
++                    // Nothing to change
++                    if (leaving == entering) {
++                        continue;
++                    }
++
++                    if (leaving) {
++                        // The listener has left the chunk
++                        TrackedEntityList list = this.getList(x, y, z);
++
++                        if (list == null) {
++                            throw new IllegalStateException("Expected there to be a listener list while moving entity but there was none");
++                        }
++
++                        list.removeListener(listener);
++                    } else {
++                        // The listener has entered the chunk
++                        TrackedEntityList list = this.getOrCreateList(x, y, z);
++                        list.addListener(listener);
++                    }
++                }
++            }
++        }
++    }
++
++    private TrackedEntityList getOrCreateList(int x, int y, int z) {
++        return this.sections.computeIfAbsent(encode(x, y, z), TrackedEntityList::new);
++    }
++
++    private TrackedEntityList getList(int x, int y, int z) {
++        return this.sections.get(encode(x, y, z));
++    }
++
++    private static long encode(int x, int y, int z) {
++        return SectionPosition.asLong(x, y, z);
++    }
++
++    private static SectionPosition decode(long xyz) {
++        return SectionPosition.a(xyz);
++    }
++
++    private class TrackedEntityList {
++        private final Set<EntityLiving> entities = new ReferenceOpenHashSet<>();
++        private final Set<NearbyEntityListener> listeners = new ReferenceOpenHashSet<>();
++
++        private final long key;
++
++        private TrackedEntityList(long key) {
++            this.key = key;
++        }
++
++        public void addListener(NearbyEntityListener listener) {
++            for (EntityLiving entity : this.entities) {
++                listener.onEntityEnteredRange(entity);
++            }
++
++            this.listeners.add(listener);
++        }
++
++        public void removeListener(NearbyEntityListener listener) {
++            if (this.listeners.remove(listener)) {
++                for (EntityLiving entity : this.entities) {
++                    listener.onEntityLeftRange(entity);
++                }
++
++                this.checkEmpty();
++            }
++        }
++
++        public boolean addTrackedEntity(EntityLiving entity) {
++            for (NearbyEntityListener listener : this.listeners) {
++                listener.onEntityEnteredRange(entity);
++            }
++
++            return this.entities.add(entity);
++        }
++
++        public boolean removeTrackedEntity(EntityLiving entity) {
++            boolean ret = this.entities.remove(entity);
++
++            if (ret) {
++                for (NearbyEntityListener listener : this.listeners) {
++                    listener.onEntityLeftRange(entity);
++                }
++
++                this.checkEmpty();
++            }
++
++            return ret;
++        }
++
++        private void checkEmpty() {
++            if (this.entities.isEmpty() && this.listeners.isEmpty()) {
++                EntityTrackerEngine.this.sections.remove(this.key);
++            }
++        }
++    }
++
++
++    private static String errorMessageAlreadyListening(Reference2ReferenceOpenHashMap<NearbyEntityListener, List<TrackedEntityList>> sectionsByEntity, NearbyEntityListener listener, SectionPosition newLocation) {
++        StringBuilder builder = new StringBuilder();
++        builder.append("Adding Entity listener a second time: ").append(listener.toString());
++        builder.append("\n");
++        builder.append(" wants to listen at: ").append(newLocation.toString());
++        builder.append(" with cube radius: ").append(listener.getChunkRange());
++        builder.append("\n");
++        builder.append(" but was already listening at chunk sections: ");
++        String[] comma = new String[]{""};
++        if (sectionsByEntity.get(listener) == null) {
++            builder.append("null");
++        } else {
++            sectionsByEntity.get(listener).forEach(a -> {
++                builder.append(comma[0]);
++                builder.append(decode(a.key).toString());
++                comma[0] = ", ";
++            });
++        }
++        return builder.toString();
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListener.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListener.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f84366ad98333c2b17b838883d9a3889572bba63
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListener.java
+@@ -0,0 +1,25 @@
++package me.jellysquid.mods.lithium.common.entity.tracker.nearby;
++
++import net.minecraft.world.entity.EntityLiving;
++
++/**
++ * The main interface used to receive events from the
++ * {@link me.jellysquid.mods.lithium.common.entity.tracker.EntityTrackerEngine} of a world.
++ */
++public interface NearbyEntityListener {
++    /**
++     * Returns the range (in chunks) of this listener. This must never change during the lifetime of the listener.
++     * TODO: Allow entity listeners to change the radius they receive updates within
++     */
++    int getChunkRange();
++
++    /**
++     * Called by the entity tracker when an entity enters the range of this listener.
++     */
++    void onEntityEnteredRange(EntityLiving entity);
++
++    /**
++     * Called by the entity tracker when an entity leaves the range of this listener or is removed from the world.
++     */
++    void onEntityLeftRange(EntityLiving entity);
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListenerMulti.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListenerMulti.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a56b23f0fbc1f2e31a79aa8b47635fecdf2490c9
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListenerMulti.java
+@@ -0,0 +1,59 @@
++package me.jellysquid.mods.lithium.common.entity.tracker.nearby;
++
++import net.minecraft.world.entity.EntityLiving;
++
++import java.util.ArrayList;
++import java.util.List;
++
++/**
++ * Allows for multiple listeners on an entity to be grouped under one logical listener. No guarantees are made about the
++ * order of which each sub-listener will be notified.
++ */
++public class NearbyEntityListenerMulti implements NearbyEntityListener {
++    private final List<NearbyEntityListener> listeners = new ArrayList<>();
++
++    public void addListener(NearbyEntityListener listener) {
++        this.listeners.add(listener);
++    }
++
++    public void removeListener(NearbyEntityListener listener) {
++        this.listeners.remove(listener);
++    }
++
++    @Override
++    public int getChunkRange() {
++        int range = 0;
++
++        for (NearbyEntityListener listener : this.listeners) {
++            range = Math.max(range, listener.getChunkRange());
++        }
++
++        return range;
++    }
++
++    @Override
++    public void onEntityEnteredRange(EntityLiving entity) {
++        for (NearbyEntityListener listener : this.listeners) {
++            listener.onEntityEnteredRange(entity);
++        }
++    }
++
++    @Override
++    public void onEntityLeftRange(EntityLiving entity) {
++        for (NearbyEntityListener listener : this.listeners) {
++            listener.onEntityLeftRange(entity);
++        }
++    }
++
++    @Override
++    public String toString() {
++        StringBuilder sublisteners = new StringBuilder();
++        String comma = "";
++        for (NearbyEntityListener listener : this.listeners) {
++            sublisteners.append(comma).append(listener.toString());
++            comma = ","; //trick to drop the first comma
++        }
++
++        return super.toString() + " with sublisteners: [" + sublisteners + "]";
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..01f9a626e761dd8cc26216e316e3a39362dc463d
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
+@@ -0,0 +1,94 @@
++package me.jellysquid.mods.lithium.common.entity.tracker.nearby;
++
++import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
++import net.minecraft.world.phys.AxisAlignedBB;
++import net.minecraft.world.entity.EntityLiving;
++import net.minecraft.util.MathHelper;
++import net.minecraft.nbt.NBTTagCompound;
++import net.minecraft.world.entity.ai.targeting.PathfinderTargetCondition;
++
++import java.util.Set;
++
++/**
++ * Maintains a collection of all entities within the range of this listener. This allows AI goals to quickly
++ * assess nearby entities which match the provided class.
++ */
++public class NearbyEntityTracker<T extends EntityLiving> implements NearbyEntityListener {
++    private final Class<T> clazz;
++    private final EntityLiving self;
++
++    private final int rangeC;
++    private final float rangeSq;
++
++    private final Set<T> nearby = new ReferenceOpenHashSet<>();
++
++    public NearbyEntityTracker(Class<T> clazz, EntityLiving self, float range) {
++        this.clazz = clazz;
++        this.self = self;
++        this.rangeSq = range * range;
++        this.rangeC = Math.max((MathHelper.f(range) + 15) >> 4, 1);
++    }
++
++    @Override
++    public int getChunkRange() {
++        return this.rangeC;
++    }
++
++    @SuppressWarnings("unchecked")
++    @Override
++    public void onEntityEnteredRange(EntityLiving entity) {
++        if (!this.clazz.isInstance(entity)) {
++            return;
++        }
++
++        this.nearby.add((T) entity);
++    }
++
++    @SuppressWarnings("unchecked")
++    @Override
++    public void onEntityLeftRange(EntityLiving entity) {
++        if (this.nearby.isEmpty() || !this.clazz.isInstance(entity)) {
++            return;
++        }
++
++        this.nearby.remove((T) entity);
++    }
++
++    /**
++     * Gets the closest T (extends LivingEntity) to the center of this tracker that also intersects with the given box and meets the
++     * requirements of the targetPredicate.
++     * The result may be different from vanilla if there are multiple closest entities.
++     *
++     * @param box             the box the entities have to intersect
++     * @param targetPredicate predicate the entity has to meet
++     * @return the closest Entity that meets all requirements (distance, box intersection, predicate, type T)
++     */
++    public T getClosestEntity(AxisAlignedBB box, PathfinderTargetCondition targetPredicate) {
++        double x = this.self.locX();
++        double y = this.self.locY();
++        double z = this.self.locZ();
++
++        T nearest = null;
++        double nearestDistance = Double.POSITIVE_INFINITY;
++
++        for (T entity : this.nearby) {
++            double distance = entity.getDistanceSquared(x, y, z);
++
++            if (distance < nearestDistance && (box == null || box.intersects(entity.getBoundingBox())) && targetPredicate.test(this.self, entity)) {
++                nearest = entity;
++                nearestDistance = distance;
++            }
++        }
++
++        if (nearestDistance <= this.rangeSq) {
++            return nearest;
++        }
++
++        return null;
++    }
++
++    @Override
++    public String toString() {
++        return super.toString() + " for entity class: " + this.clazz.getName() + ", in rangeSq: " + this.rangeSq + ", around entity: " + this.self.toString() + " with NBT: " + this.self.save(new NBTTagCompound());
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Collector.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Collector.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..8323c05845cd652e5ea5dd4b71c388a1f7374bf6
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Collector.java
+@@ -0,0 +1,11 @@
++package me.jellysquid.mods.lithium.common.util;
++
++public interface Collector<T> {
++    /**
++     * Collects the passed object and performs additional processing on it, returning a flag as to whether or not
++     * collection should continue.
++     *
++     * @return True if collection should continue, otherwise false.
++     */
++    boolean collect(T obj);
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/ListeningLong2ObjectOpenHashMap.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/ListeningLong2ObjectOpenHashMap.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a94a40dcc3502d29950e5e387d658232a0bf5552
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/ListeningLong2ObjectOpenHashMap.java
+@@ -0,0 +1,46 @@
++package me.jellysquid.mods.lithium.common.util.collections;
++
++import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
++
++/**
++ * An extension for {@link Long2ObjectOpenHashMap} which allows callbacks to be installed for when an item is added to
++ * or removed from the map.
++ */
++public class ListeningLong2ObjectOpenHashMap<V> extends Long2ObjectOpenHashMap<V> {
++    private final Callback<V> addCallback, removeCallback;
++
++    public ListeningLong2ObjectOpenHashMap(Callback<V> addCallback, Callback<V> removeCallback) {
++        this.addCallback = addCallback;
++        this.removeCallback = removeCallback;
++    }
++
++    @Override
++    public V put(long k, V v) {
++        V ret = super.put(k, v);
++
++        if (ret != v) {
++            if (ret != null) {
++                this.removeCallback.apply(k, v);
++            }
++
++            this.addCallback.apply(k, v);
++        }
++
++        return ret;
++    }
++
++    @Override
++    public V remove(long k) {
++        V ret = super.remove(k);
++
++        if (ret != null) {
++            this.removeCallback.apply(k, ret);
++        }
++
++        return ret;
++    }
++
++    public interface Callback<V> {
++        void apply(long key, V value);
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5959d66582342f614bdadb2a1ef163e4fff25341
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/world/WorldHelper.java
+@@ -0,0 +1,18 @@
++package me.jellysquid.mods.lithium.common.world;
++
++import net.minecraft.core.BlockPosition;
++
++public class WorldHelper {
++
++    public static boolean areNeighborsWithinSameChunk(BlockPosition pos) {
++        int localX = pos.getX() & 15;
++        int localY = pos.getY() & 15;
++        int localZ = pos.getZ() & 15;
++
++        return localX > 0 && localY > 0 && localZ > 0 && localX < 15 && localY < 15 && localZ < 15;
++    }
++
++    public static boolean areAllNeighborsOutOfBounds(BlockPosition pos) {
++        return pos.getY() < -1 || pos.getY() > 256;
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/interests/PointOfInterestCollectors.java b/src/main/java/me/jellysquid/mods/lithium/common/world/interests/PointOfInterestCollectors.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..069b204764d04b126ac8ef30eae8f7e1234badf5
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/world/interests/PointOfInterestCollectors.java
+@@ -0,0 +1,28 @@
++package me.jellysquid.mods.lithium.common.world.interests;
++
++import me.jellysquid.mods.lithium.common.util.Collector;
++import net.minecraft.core.BlockPosition;
++import net.minecraft.world.entity.ai.village.poi.VillagePlace;
++import net.minecraft.world.entity.ai.village.poi.VillagePlaceRecord;
++import net.minecraft.world.entity.ai.village.poi.VillagePlaceSection;
++import net.minecraft.world.entity.ai.village.poi.VillagePlaceType;
++
++import java.util.function.Predicate;
++
++public class PointOfInterestCollectors {
++    public static Collector<VillagePlaceRecord> collectAllWithinRadius(BlockPosition pos, double radius, Collector<VillagePlaceRecord> out) {
++        double radiusSq = radius * radius;
++
++        return (point) -> {
++            if (point.getPosition().distanceSquared(pos) <= radiusSq) {
++                return out.collect(point);
++            }
++
++            return true;
++        };
++    }
++
++    public static Collector<VillagePlaceSection> collectAllMatching(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy status, Collector<VillagePlaceRecord> out) {
++        return set -> set.get(predicate, status, out);
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/world/interests/PointOfInterestTypeHelper.java b/src/main/java/me/jellysquid/mods/lithium/common/world/interests/PointOfInterestTypeHelper.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..06d7c8a5ae23ec8b55661b4129c7c88657d1b9bf
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/world/interests/PointOfInterestTypeHelper.java
+@@ -0,0 +1,22 @@
++package me.jellysquid.mods.lithium.common.world.interests;
++
++import it.unimi.dsi.fastutil.objects.ObjectSet;
++import net.minecraft.world.level.chunk.ChunkSection;
++import net.minecraft.world.level.block.state.IBlockData;
++
++public class PointOfInterestTypeHelper {
++    private static ObjectSet<IBlockData> TYPES;
++
++    public static void init(ObjectSet<IBlockData> types) {
++        if (TYPES != null) {
++            throw new IllegalStateException("Already initialized");
++        }
++
++        TYPES = types;
++    }
++
++    public static boolean shouldScan(ChunkSection section) {
++        return section.hasAny(TYPES::contains);
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/core/SectionPosition.java b/src/main/java/net/minecraft/core/SectionPosition.java
+index a206a729b3afa01bf591fa4da1e5c14902da4778..716f91246c4a45fd49af806afd1781f11ff3b346 100644
+--- a/src/main/java/net/minecraft/core/SectionPosition.java
++++ b/src/main/java/net/minecraft/core/SectionPosition.java
+@@ -22,6 +22,7 @@ public class SectionPosition extends BaseBlockPosition {
+         return new SectionPosition(blockposition.getX() >> 4, blockposition.getY() >> 4, blockposition.getZ() >> 4); // Paper
+     }
+ 
++    public static SectionPosition from(ChunkCoordIntPair chunkCoordIntPair, int i){ return a(chunkCoordIntPair, i); } // Yatopia - OBFHELPER
+     public static SectionPosition a(ChunkCoordIntPair chunkcoordintpair, int i) {
+         return new SectionPosition(chunkcoordintpair.x, i, chunkcoordintpair.z);
+     }
+@@ -94,14 +95,17 @@ public class SectionPosition extends BaseBlockPosition {
+         return i << 4;
+     }
+ 
++    public static int unpackX(long i){ return b(i); } // Yatopia - OBFHELPER
+     public static int b(long i) {
+         return (int) (i << 0 >> 42);
+     }
+ 
++    public static int unpackY(long i){ return c(i); } // Yatopia - OBFHELPER
+     public static int c(long i) {
+         return (int) (i << 44 >> 44);
+     }
+ 
++    public static int unpackZ(long i){ return d(i); } // Yatopia - OBFHELPER
+     public static int d(long i) {
+         return (int) (i << 22 >> 42);
+     }
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index 3f7072e993da896b36b85ec08849b46c854681a5..07d4cb1d42ef663a96ccc26af81db144b7958feb 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -177,6 +177,7 @@ import org.bukkit.event.world.TimeSkipEvent;
+ // CraftBukkit end
+ import it.unimi.dsi.fastutil.ints.IntArrayList; // Tuinity
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++import me.jellysquid.mods.lithium.common.entity.tracker.EntityTrackerEngine; // Yatopia
+ 
+ public class WorldServer extends World implements GeneratorAccessSeed, NonBlockingWorldAccess { // Yatopia
+ 
+@@ -2029,6 +2030,16 @@ public class WorldServer extends World implements GeneratorAccessSeed, NonBlocki
+             while (iterator.hasNext()) {
+                 Entity entity = (Entity) iterator.next();
+ 
++                if (entity instanceof EntityLiving) { // Yatopia start - Port lithium
++
++                    int chunkX = MathHelper.floor(entity.locX()) >> 4;
++                    int chunkY = MathHelper.clamp(MathHelper.floor(entity.locY()) >> 4, 0, 15);
++                    int chunkZ = MathHelper.floor(entity.locZ()) >> 4;
++
++                    EntityTrackerEngine tracker = this.getEntityTracker();
++                    tracker.onEntityRemoved(chunkX, chunkY, chunkZ, (EntityLiving) entity);
++                } // Yatopia End
++
+                 if (!(entity instanceof EntityPlayer)) {
+                     if (false && this.tickingEntities) { // Tuinity
+                         throw (IllegalStateException) SystemUtils.c((Throwable) (new IllegalStateException("Removing entity while ticking!")));
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index df577f4fd61845bce5246e8a04fe63f4c2695259..9e679d977f6bcd54694ae1abc338efecb298c13c 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -141,9 +141,11 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
+ // CraftBukkit end
+ 
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListenerMulti; // Yatopia
+ 
+ public abstract class EntityLiving extends Entity {
+ 
++    private NearbyEntityListenerMulti tracker; // Yatopia - Port lithium
+     private static final UUID b = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+     private static final UUID c = UUID.fromString("87f46a96-686f-4796-b035-22e16ee9e038");
+     private static final AttributeModifier d = new AttributeModifier(EntityLiving.b, "Sprinting speed boost", 0.30000001192092896D, AttributeModifier.Operation.MULTIPLY_TOTAL);
+@@ -277,8 +279,14 @@ public abstract class EntityLiving extends Entity {
+         DynamicOpsNBT dynamicopsnbt = DynamicOpsNBT.a;
+ 
+         this.bg = this.a(new Dynamic(dynamicopsnbt, dynamicopsnbt.createMap((Map) ImmutableMap.of(dynamicopsnbt.createString("memories"), dynamicopsnbt.emptyMap()))));
++        this.tracker = new NearbyEntityListenerMulti(); // Yatopia - Port lithium
+     }
+ 
++    // Yatopia start - Port lithium
++    public NearbyEntityListenerMulti getListener() {
++        return this.tracker;
++    }
++    // Yatopia end
+     protected void initAttributes() {} // Purpur
+ 
+     public BehaviorController<?> getBehaviorController() {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java b/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java
+index e38cdf81e3f3ba1a2ee86c3a202e5643dd9c0fd1..48524cdf7a1a5d4cff12b24b11dbea9935c85131 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java
++++ b/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java
+@@ -223,6 +223,7 @@ public class BehaviorController<E extends EntityLiving> {
+         }).isPresent();
+     }
+ 
++    public boolean isMemoryInState(MemoryModuleType<?> memorymoduletype, MemoryStatus memorystatus){ return a(memorymoduletype, memorystatus); } // Yatopia - OBFHELPER
+     public boolean a(MemoryModuleType<?> memorymoduletype, MemoryStatus memorystatus) {
+         Optional<? extends ExpirableMemory<?>> optional = (Optional) this.memories.get(memorymoduletype);
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/Behavior.java b/src/main/java/net/minecraft/world/entity/ai/behavior/Behavior.java
+index ed3a3593b417131837341784b09cb3f9f76a44be..922f7bf57e65b0bab18b9044ff6467a2660aa992 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/Behavior.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/Behavior.java
+@@ -1,5 +1,8 @@
+ package net.minecraft.world.entity.ai.behavior;
+ 
++import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
++import it.unimi.dsi.fastutil.objects.Reference2ObjectMaps;
++import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+ import java.util.Iterator;
+ import java.util.Map;
+ import java.util.Map.Entry;
+@@ -10,7 +13,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
+ 
+ public abstract class Behavior<E extends EntityLiving> {
+ 
+-    protected final Map<MemoryModuleType<?>, MemoryStatus> a;
++    protected final Map<MemoryModuleType<?>, MemoryStatus> a; protected final Map<MemoryModuleType<?>, MemoryStatus> getRequiredMemoryStates(){ return a; } // Yatopia - OBFHELPER
+     private Behavior.Status b; public final Behavior.Status getStatus() { return this.b; } // Tuinity - OBFHELPER
+     private long c;
+     co.aikar.timings.Timing timing; // Origami - behavior timing
+@@ -29,7 +32,7 @@ public abstract class Behavior<E extends EntityLiving> {
+         this.b = Behavior.Status.STOPPED;
+         this.d = i;
+         this.e = j;
+-        this.a = map;
++        this.a = new Reference2ObjectOpenHashMap<>(map); // Yatopia - Port lithium
+         String key = getClass().getSimpleName(); // Yatopia Compatible Fix
+         // Origami start - behavior timing
+         timing = co.aikar.timings.WorldTimingsHandler.getBehaviorTimings(key);
+@@ -40,6 +43,7 @@ public abstract class Behavior<E extends EntityLiving> {
+         return this.b;
+     }
+ 
++    public final boolean tryStarting(WorldServer worldserver, E e0, long i){ return e(worldserver, e0, i); } // Yatopia - OBFHELPER
+     public final boolean e(WorldServer worldserver, E e0, long i) {
+         if (this.a(e0) && this.a(worldserver, e0)) {
+             this.b = Behavior.Status.RUNNING;
+@@ -92,23 +96,17 @@ public abstract class Behavior<E extends EntityLiving> {
+     }
+ 
+     private boolean a(E e0) {
+-        Iterator iterator = this.a.entrySet().iterator();
++        // Yatopia start - port lithium
++        Iterable<Reference2ObjectMap.Entry<MemoryModuleType<?>, MemoryStatus>> iterable =
++                Reference2ObjectMaps.fastIterable((Reference2ObjectOpenHashMap<MemoryModuleType<?>, MemoryStatus>)this.getRequiredMemoryStates());
+ 
+-        MemoryModuleType memorymoduletype;
+-        MemoryStatus memorystatus;
+-
+-        do {
+-            if (!iterator.hasNext()) {
+-                return true;
++        for (Reference2ObjectMap.Entry<MemoryModuleType<?>, MemoryStatus> entry : iterable) {
++            if (!e0.getBehaviorController().isMemoryInState(entry.getKey(), entry.getValue())) {
++                return false;
+             }
++        }
+ 
+-            Entry<MemoryModuleType<?>, MemoryStatus> entry = (Entry) iterator.next();
+-
+-            memorymoduletype = (MemoryModuleType) entry.getKey();
+-            memorystatus = (MemoryStatus) entry.getValue();
+-        } while (e0.getBehaviorController().a(memorymoduletype, memorystatus));
+-
+-        return false;
++        return true; // Yatopia end
+     }
+ 
+     public static enum Status {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorGate.java b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorGate.java
+index c46cdffe3d877bff70b843766c8189eae06148ff..9cf43a86b573ad2c553956c081ae40820cbc7d5e 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorGate.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorGate.java
+@@ -31,17 +31,15 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
+ 
+     @Override
+     protected boolean b(WorldServer worldserver, E e0, long i) {
+-        // Tuinity start - remove streams
+-        List<WeightedList.a<Behavior<? super E>>> list = this.getList().getList();
+-        for (int index = 0, len = list.size(); index < len; ++index) {
+-            Behavior<? super E> behavior = list.get(index).getValue();
++        // Tuinity start - remove streams // Yatopia start - Port lithium
++        for (Behavior<? super E> behavior : this.getList()) {
+             if (behavior.getStatus() == Status.RUNNING && behavior.b(worldserver, e0, i)) { // copied from removed code, make sure to update
+                 return true;
+             }
+         }
+ 
+         return false;
+-        // Tuinity end - remove streams
++        // Tuinity end - remove streams // Yatopia start - Port lithium
+     }
+ 
+     @Override
+@@ -57,23 +55,19 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
+ 
+     @Override
+     protected void d(WorldServer worldserver, E e0, long i) {
+-        // Tuinity start - remove streams
+-        List<WeightedList.a<Behavior<? super E>>> list = this.getList().getList();
+-        for (int index = 0, len = list.size(); index < len; ++index) {
+-            Behavior<? super E> behavior = list.get(index).getValue();
++        // Tuinity start - remove streams // Yatopia start - Port lithium
++        for (Behavior<? super E> behavior : this.getList()) {
+             if (behavior.getStatus() == Behavior.Status.RUNNING) {
+                 behavior.f(worldserver, e0, i); // copied from removed code, make sure to update
+             }
+         }
+-        // Tuinity end - remove streams
++        // Tuinity end - remove streams // Yatopia end
+     }
+ 
+     @Override
+     protected void c(WorldServer worldserver, E e0, long i) {
+-        // Tuinity start - remove streams
+-        List<WeightedList.a<Behavior<? super E>>> list = this.getList().getList();
+-        for (int index = 0, len = list.size(); index < len; ++index) {
+-            Behavior<? super E> behavior = list.get(index).getValue();
++        // Tuinity start - remove streams// Yatopia start - Port lithium
++        for (Behavior<? super E> behavior : this.getList()) {
+             if (behavior.getStatus() == Behavior.Status.RUNNING) {
+                 behavior.g(worldserver, e0, i); // copied from removed code, make sure to update
+             }
+@@ -81,7 +75,9 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
+         // Tuinity end - remove streams
+         BehaviorController behaviorcontroller = e0.getBehaviorController();
+ 
+-        this.b.forEach(behaviorcontroller::removeMemory); // Paper - decomp fix
++        for(MemoryModuleType<?> moduleType : this.b){
++            behaviorcontroller.removeMemory(moduleType);
++        } // Yatopia end
+     }
+ 
+     @Override
+@@ -98,29 +94,25 @@ public class BehaviorGate<E extends EntityLiving> extends Behavior<E> {
+         RUN_ONE {
+             @Override
+             public <E extends EntityLiving> void a(WeightedList<Behavior<? super E>> weightedlist, WorldServer worldserver, E e0, long i) {
+-                // Tuinity start - remove streams
+-                List<WeightedList.a<Behavior<? super E>>> list = weightedlist.getList();
+-                for (int index = 0, len = list.size(); index < len; ++index) {
+-                    Behavior<? super E> behavior = list.get(index).getValue();
+-                    if (behavior.getStatus() == Behavior.Status.STOPPED && behavior.e(worldserver, e0, i)) { // copied from removed code, make sure to update
++                // Tuinity start - remove streams // Yatopia start - port lithium
++                for (Behavior<? super E> behavior : weightedlist) {
++                    if (behavior.getStatus() == Behavior.Status.STOPPED && behavior.tryStarting(worldserver, e0, i)) { // copied from removed code, make sure to update
+                         break;
+                     }
+                 }
+-                // Tuinity end - remove streams
++                // Tuinity end - remove streams // Yatopia end
+             }
+         },
+         TRY_ALL {
+             @Override
+             public <E extends EntityLiving> void a(WeightedList<Behavior<? super E>> weightedlist, WorldServer worldserver, E e0, long i) {
+-                // Tuinity start - remove streams
+-                List<WeightedList.a<Behavior<? super E>>> list = weightedlist.getList();
+-                for (int index = 0, len = list.size(); index < len; ++index) {
+-                    Behavior<? super E> behavior = list.get(index).getValue();
++                // Tuinity start - remove streams // Yatopia start - port lithium
++                for (Behavior<? super E> behavior : weightedlist) {
+                     if (behavior.getStatus() == Behavior.Status.STOPPED) {
+-                        behavior.e(worldserver, e0, i); // copied from removed code, make sure to update
++                        behavior.tryStarting(worldserver, e0, i); // copied from removed code, make sure to update
+                     }
+                 }
+-                // Tuinity end - remove streams
++                // Tuinity end - remove streams // Yatopia end
+             }
+         };
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java b/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java
+index e2b5d6155bebdbf99b0850de7f9e1f5d342f9e2f..a3236e6359a2e72b4a41be4717780c20e2a31af3 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java
+@@ -8,11 +8,12 @@ import com.mojang.serialization.Dynamic;
+ import com.mojang.serialization.DynamicOps;
+ 
+ import java.util.Comparator;
++import java.util.Iterator;
+ import java.util.List;
+ import java.util.Random;
+ import java.util.stream.Stream;
+ 
+-public class WeightedList<U> {
++public class WeightedList<U> implements Iterable<U> { // Yatopia - Port lithium
+ 
+     protected final List<WeightedList.a<U>> list; public final List<WeightedList.a<U>> getList() { return this.list; } // Paper - decompile conflict // Tuinity - OBFHELPER
+     private final Random b;
+@@ -116,4 +117,35 @@ public class WeightedList<U> {
+             };
+         }
+     }
+-}
++
++
++    // Yatopia start - Port lithium
++    /**
++     * A wrapper type for an iterator over the entries of a {@link WeightedList} which de-references the contained
++     * values for consumers.
++     *
++     * @param <U> The value type stored in each list entry
++     */
++    class ListIterator<U> implements Iterator<U> {
++        private final Iterator<WeightedList.a<U>> inner;
++
++        public ListIterator(Iterator<WeightedList.a<U>> inner) {
++            this.inner = inner;
++        }
++
++        @Override
++        public boolean hasNext() {
++            return this.inner.hasNext();
++        }
++
++        @Override
++        public U next() {
++            return this.inner.next().getValue();
++        }
++    }
++
++    @Override
++    public Iterator<U> iterator() {
++        return new ListIterator<>(this.list.iterator());
++    }
++} // Yatopia End
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
+index 35502bd2f7d9cebf5cfe1060e300a5032dbe6a5d..eea1a396f06e8feaa5637ba4e589a13169f514da 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.world.entity.ai.goal;
+ 
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
++
+ import java.util.EnumSet;
+ import java.util.function.Predicate;
+ import net.minecraft.world.entity.Entity;
+@@ -25,6 +27,7 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+     protected final Predicate<EntityLiving> g;
+     protected final Predicate<EntityLiving> h;
+     private final PathfinderTargetCondition k;
++    private NearbyEntityTracker<T> tracker; // Yatopia - Port Lithium
+ 
+     public PathfinderGoalAvoidTarget(EntityCreature entitycreature, Class<T> oclass, float f, double d0, double d1) {
+         this(entitycreature, oclass, entityliving -> true, f, d0, d1, IEntitySelector.e::test); // Purpur - decompile fix
+@@ -41,6 +44,10 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+         this.e = entitycreature.getNavigation();
+         this.a(EnumSet.of(PathfinderGoal.Type.MOVE));
+         this.k = (new PathfinderTargetCondition()).a((double) f).a(predicate1.and(predicate));
++        // Yatopia start - Port Lithium
++        this.tracker = new NearbyEntityTracker<>(oclass, entitycreature, f);
++        entitycreature.getListener().addListener(this.tracker);
++        // Yatopia end
+     }
+ 
+     public PathfinderGoalAvoidTarget(EntityCreature entitycreature, Class<T> oclass, float f, double d0, double d1, Predicate<EntityLiving> predicate) {
+@@ -51,7 +58,7 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+ 
+     @Override
+     public boolean a() {
+-        this.b = this.a.world.b(this.f, this.k, this.a, this.a.locX(), this.a.locY(), this.a.locZ(), this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c));
++        this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.k); // Yatopia - Port lithium
+         if (this.b == null) {
+             return false;
+         } else {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
+index 3bcbad5e298cf05c1b41476a08a3a69cb7fdf79f..8b41274aa388a758bd8acf9637e2a19caf744c57 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
+@@ -1,5 +1,6 @@
+ package net.minecraft.world.entity.ai.goal;
+ 
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
+ import java.util.EnumSet;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.entity.EntityInsentient;
+@@ -10,6 +11,7 @@ import net.minecraft.world.entity.player.EntityHuman;
+ 
+ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+ 
++    private NearbyEntityTracker<? extends EntityLiving> tracker; // Yatopia - Port lithium
+     protected final EntityInsentient a;
+     protected Entity b;
+     protected final float c;
+@@ -27,7 +29,7 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+         this.e = oclass;
+         this.c = f;
+         this.d = f1;
+-        this.a(EnumSet.of(PathfinderGoal.Type.LOOK));
++        this.a(EnumSet.of(Type.LOOK)); // Yatopia - Port lithium
+         if (oclass == EntityHuman.class) {
+             this.f = (new PathfinderTargetCondition()).a((double) f).b().a().d().a((entityliving) -> {
+                 return IEntitySelector.b(entityinsentient).test(entityliving);
+@@ -35,7 +37,10 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+         } else {
+             this.f = (new PathfinderTargetCondition()).a((double) f).b().a().d();
+         }
+-
++        // Yatopia start - Port lithium
++        this.tracker = new NearbyEntityTracker<>(oclass, entityinsentient, f);
++        entityinsentient.getListener().addListener(this.tracker);
++        // Yatopia end
+     }
+ 
+     @Override
+@@ -48,9 +53,9 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+             }
+ 
+             if (this.e == EntityHuman.class) {
+-                this.b = this.a.world.a(this.f, this.a, this.a.locX(), this.a.getHeadY(), this.a.locZ());
++                this.b = this.tracker.getClosestEntity(null, this.f); // Yatopia - Port lithium
+             } else {
+-                this.b = this.a.world.b(this.e, this.f, this.a, this.a.locX(), this.a.getHeadY(), this.a.locZ(), this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c));
++                this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.f); // Yatopia - Port lithium
+             }
+ 
+             return this.b != null;
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
+index 29cd71efe86eea2227f373c15c39dc530e9e8199..7dcd055b37bb7051127e10f5d191d23e0562b29e 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
+@@ -7,7 +7,12 @@ import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap; // Tuinity
+ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+ import it.unimi.dsi.fastutil.longs.LongSet;
++import me.jellysquid.mods.lithium.common.util.Collector;
++import me.jellysquid.mods.lithium.common.world.interests.PointOfInterestCollectors;
++import me.jellysquid.mods.lithium.common.world.interests.PointOfInterestTypeHelper;
++
+ import java.io.File;
++import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.Comparator;
+ import java.util.List;
+@@ -193,7 +198,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+ 
+     public long count(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) { return a(predicate, blockposition, i, villageplace_occupancy); } // Purpur - OBFHELPER
+     public long a(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
+-        return this.cList(predicate, blockposition, i, villageplace_occupancy).size(); // Yatopia
++        return this.getAllWithinCircle(predicate, blockposition, i, villageplace_occupancy).size(); // Yatopia
+     }
+ 
+     public boolean a(VillagePlaceType villageplacetype, BlockPosition blockposition) {
+@@ -236,6 +241,35 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         return ret;
+     }
+ 
++    private List<VillagePlaceRecord> getAllWithinCircle(Predicate<VillagePlaceType> predicate, BlockPosition pos, int radius, Occupancy status) {
++        List<VillagePlaceRecord> points = new ArrayList<>();
++
++        this.collectWithinCircle(predicate, pos, radius, status, points::add);
++
++        return points;
++    }
++
++    private void collectWithinCircle(Predicate<VillagePlaceType> predicate, BlockPosition pos, int radius, Occupancy status, Collector<VillagePlaceRecord> collector) {
++        Collector<VillagePlaceRecord> filter = PointOfInterestCollectors.collectAllWithinRadius(pos, radius, collector);
++        Collector<VillagePlaceSection> consumer = PointOfInterestCollectors.collectAllMatching(predicate, status, filter);
++
++        int minChunkX = (pos.getX() - radius - 1) >> 4;
++        int minChunkZ = (pos.getZ() - radius - 1) >> 4;
++
++        int maxChunkX = (pos.getX() + radius + 1) >> 4;
++        int maxChunkZ = (pos.getZ() + radius + 1) >> 4;
++
++        // noinspection unchecked
++
++        for (int x = minChunkX; x <= maxChunkX; x++) {
++            for (int z = minChunkZ; z <= maxChunkZ; z++) {
++                if (!this.collectWithinChunkColumn(x, z, consumer)) {
++                    return;
++                }
++            }
++        }
++    }
++
+     public java.util.List<BlockPosition> cListPositions(Predicate<VillagePlaceType> predicate, Predicate<VillagePlaceRecord> recordFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
+         int j = i * i;
+         java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
+@@ -255,12 +289,12 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         });
+     }
+ 
++    /**
++     * @reason Retrieve all points of interest in one operation
++     * @author JellySquid
++     */
+     public Stream<VillagePlaceRecord> a(Predicate<VillagePlaceType> predicate, ChunkCoordIntPair chunkcoordintpair, VillagePlace.Occupancy villageplace_occupancy) {
+-        return IntStream.range(0, 16).boxed().map((integer) -> {
+-            return this.d(SectionPosition.a(chunkcoordintpair, integer).s());
+-        }).filter(Optional::isPresent).flatMap((optional) -> {
+-            return ((VillagePlaceSection) optional.get()).a(predicate, villageplace_occupancy);
+-        });
++        return this.getWithinChunkColumn(chunkcoordintpair.x, chunkcoordintpair.z).flatMap((set) -> set.get(predicate, villageplace_occupancy));
+     }
+ 
+     // Yatopia start
+@@ -273,12 +307,16 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         }
+         return ret;
+     }
+-    // Yatopia end
++
++    /**
++     * @reason Retrieve all points of interest in one operation
++     * @author JellySquid
++     */
+     public Stream<BlockPosition> a(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> predicate1, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
+         return this.c(predicate, blockposition, i, villageplace_occupancy).map(VillagePlaceRecord::f).filter(predicate1);
+     }
+ 
+-    // Yatopia start
++
+     public java.util.List<BlockPosition> bList(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> posFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
+         java.util.List<BlockPosition> ret = aList(predicate, posFilter, pos, i, occupancy);
+         ret.sort(Comparator.comparingDouble((pos1) -> pos1.distanceSquared(pos)));
+@@ -404,24 +442,28 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         this.updateDistanceTracking(i); // Tuinity - move to new distance tracking util
+     }
+ 
++    /**
++     * @reason Avoid Stream API
++     * @author Jellysquid
++     */
+     public void a(ChunkCoordIntPair chunkcoordintpair, ChunkSection chunksection) {
+-        SectionPosition sectionposition = SectionPosition.a(chunkcoordintpair, chunksection.getYPosition() >> 4);
++        SectionPosition sectionPos = SectionPosition.from(chunkcoordintpair, chunksection.getYPosition() >> 4);
+ 
+-        SystemUtils.a(this.d(sectionposition.s()), (villageplacesection) -> {
+-            villageplacesection.a((biconsumer) -> {
+-                if (a(chunksection)) {
+-                    this.a(chunksection, sectionposition, biconsumer);
+-                }
++        VillagePlaceSection set = this.get(sectionPos.asLong()).orElse(null);
+ 
++        if (set != null) {
++            set.refresh((consumer) -> {
++                if (PointOfInterestTypeHelper.shouldScan(chunksection)) {
++                    this.scanAndPopulate(chunksection, sectionPos, consumer);
++                }
+             });
+-        }, () -> {
+-            if (a(chunksection)) {
+-                VillagePlaceSection villageplacesection = (VillagePlaceSection) this.e(sectionposition.s());
++        } else {
++            if (PointOfInterestTypeHelper.shouldScan(chunksection)) {
++                set = this.getOrCreate(sectionPos.asLong());
+ 
+-                this.a(chunksection, sectionposition, villageplacesection::a);
++                this.scanAndPopulate(chunksection, sectionPos, set::add);
+             }
+-
+-        });
++        }
+     }
+ 
+     private static boolean a(ChunkSection chunksection) {
+@@ -431,6 +473,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         return chunksection.a(set::contains);
+     }
+ 
++    private void scanAndPopulate(ChunkSection chunksection, SectionPosition sectionposition, BiConsumer<BlockPosition, VillagePlaceType> biconsumer){ a(chunksection, sectionposition, biconsumer); } // Yatopia - OBFHELPER
+     private void a(ChunkSection chunksection, SectionPosition sectionposition, BiConsumer<BlockPosition, VillagePlaceType> biconsumer) {
+         sectionposition.tList().forEach((blockposition) -> { // Yatopia
+             IBlockData iblockdata = chunksection.getType(SectionPosition.b(blockposition.getX()), SectionPosition.b(blockposition.getY()), SectionPosition.b(blockposition.getZ()));
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java
+index 866e9a434423702d2edaf9b52fa0e6219e13c2d7..640aee2b8afd66082cc867b14980f06d9811fc28 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java
+@@ -26,6 +26,7 @@ import net.minecraft.core.SectionPosition;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ import org.apache.logging.log4j.util.Supplier;
++import me.jellysquid.mods.lithium.common.util.Collector;
+ 
+ public class VillagePlaceSection {
+ 
+@@ -73,7 +74,28 @@ public class VillagePlaceSection {
+         }
+         return ret;
+     }
++
++    public boolean get(Predicate<VillagePlaceType> type, VillagePlace.Occupancy status, Collector<VillagePlaceRecord> consumer) {
++        for (Map.Entry<VillagePlaceType, Set<VillagePlaceRecord>> entry : this.getData().entrySet()) {
++            if (!type.test(entry.getKey())) {
++                continue;
++            }
++
++            for (VillagePlaceRecord poi : entry.getValue()) {
++                if (!status.getPredicate().test(poi)) {
++                    continue;
++                }
++
++                if (!consumer.collect(poi)) {
++                    return false;
++                }
++            }
++        }
++
++        return true;
++    }
+     // Yatopia end
++    public Stream<VillagePlaceRecord> get(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy villageplace_occupancy){ return a(predicate, villageplace_occupancy); } // Yatopia - OBFHELPER
+     public Stream<VillagePlaceRecord> a(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy villageplace_occupancy) {
+         return this.c.entrySet().stream().filter((entry) -> {
+             return predicate.test(entry.getKey());
+@@ -82,6 +104,7 @@ public class VillagePlaceSection {
+         }).filter(villageplace_occupancy.a());
+     }
+ 
++    public void add(BlockPosition blockPosition, VillagePlaceType villagePlaceType) { a(blockPosition, villagePlaceType); } // Yatopia - OBFHELPER
+     public void a(BlockPosition blockposition, VillagePlaceType villageplacetype) {
+         if (this.a(new VillagePlaceRecord(blockposition, villageplacetype, this.d))) {
+             VillagePlaceSection.LOGGER.debug("Added POI of type {} @ {}", new Supplier[]{() -> {
+@@ -160,6 +183,7 @@ public class VillagePlaceSection {
+         return villageplacerecord != null ? Optional.of(villageplacerecord.g()) : Optional.empty();
+     }
+ 
++    public void refresh(Consumer<BiConsumer<BlockPosition, VillagePlaceType>> consumer){ a(consumer); } // Yatopia - OBFHELPER
+     public void a(Consumer<BiConsumer<BlockPosition, VillagePlaceType>> consumer) {
+         if (!this.e) {
+             Short2ObjectMap<VillagePlaceRecord> short2objectmap = new Short2ObjectOpenHashMap(this.b);
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceType.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceType.java
+index 4af526ecbed506161cb021ea320b0f21112d7bf0..4a7b3750f1b3ce3143053215dbca6da6eee052bd 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceType.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceType.java
+@@ -4,7 +4,11 @@ import com.google.common.base.Suppliers;
+ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.ImmutableSet;
+ import com.google.common.collect.Maps;
++import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
++import me.jellysquid.mods.lithium.common.world.interests.PointOfInterestTypeHelper;
++
+ import java.util.Map;
+ import java.util.Optional;
+ import java.util.Set;
+@@ -46,7 +50,8 @@ public class VillagePlaceType {
+     }).filter((iblockdata) -> {
+         return iblockdata.get(BlockBed.PART) == BlockPropertyBedPart.HEAD;
+     }).collect(ImmutableSet.toImmutableSet());
+-    private static final Map<IBlockData, VillagePlaceType> A = Maps.newHashMap();
++    private static final Map<IBlockData, VillagePlaceType> A = new Reference2ReferenceOpenHashMap<>(); // Yatopia - Port Lithium
++    public static final Map<IBlockData, VillagePlaceType> getBlockStateToPointOfInterestType(){ return A; } // Yatopia - OBFHELPER
+     public static final VillagePlaceType c = a("unemployed", ImmutableSet.of(), 1, VillagePlaceType.a, 1);
+     public static final VillagePlaceType d = a("armorer", a(Blocks.BLAST_FURNACE), 1, 1);
+     public static final VillagePlaceType e = a("butcher", a(Blocks.SMOKER), 1, 1);
+@@ -75,6 +80,12 @@ public class VillagePlaceType {
+     private final Predicate<VillagePlaceType> E;
+     private final int F;
+ 
++    // Yatopia Start - Port lithium
++    static {
++        PointOfInterestTypeHelper.init(new ObjectArraySet<>(getBlockStateToPointOfInterestType().keySet()));
++    }
++    // Yatopia End
++
+     private static Set<IBlockData> a(Block block) {
+         return ImmutableSet.copyOf(block.getStates().a());
+     }
+diff --git a/src/main/java/net/minecraft/world/entity/raid/EntityRaider.java b/src/main/java/net/minecraft/world/entity/raid/EntityRaider.java
+index 8eec32af12c69e1963dcd304a25ec4811b2f1f5a..e4bb472002934f749ff0e2f43744c73fcd74d3cc 100644
+--- a/src/main/java/net/minecraft/world/entity/raid/EntityRaider.java
++++ b/src/main/java/net/minecraft/world/entity/raid/EntityRaider.java
+@@ -47,9 +47,10 @@ import net.minecraft.world.phys.Vec3D;
+ 
+ public abstract class EntityRaider extends EntityMonsterPatrolling {
+ 
++    private static final ItemStack CACHED_OMINOUS_BANNER = Raid.getOminousBanner(); // Yatopia - Port lithium
+     protected static final DataWatcherObject<Boolean> c = DataWatcher.a(EntityRaider.class, DataWatcherRegistry.i);
+     private static final Predicate<EntityItem> b = (entityitem) -> {
+-        return !entityitem.p() && entityitem.isAlive() && ItemStack.matches(entityitem.getItemStack(), Raid.s());
++        return !entityitem.p() && entityitem.isAlive() && ItemStack.matches(entityitem.getItemStack(), CACHED_OMINOUS_BANNER); // Yatopia - Port lithium
+     };
+     @Nullable
+     protected Raid d;
+@@ -151,7 +152,7 @@ public abstract class EntityRaider extends EntityMonsterPatrolling {
+                     }
+                 }
+ 
+-                if (!itemstack.isEmpty() && ItemStack.matches(itemstack, Raid.s()) && entityhuman != null) {
++                if (!itemstack.isEmpty() && ItemStack.matches(itemstack, CACHED_OMINOUS_BANNER) && entityhuman != null) { // Yatopia - Port lithium
+                     MobEffect mobeffect = entityhuman.getEffect(MobEffects.BAD_OMEN);
+                     byte b0 = 1;
+                     int i;
+@@ -242,7 +243,7 @@ public abstract class EntityRaider extends EntityMonsterPatrolling {
+         ItemStack itemstack = entityitem.getItemStack();
+         boolean flag = this.fb() && this.fa().b(this.fc()) != null;
+ 
+-        if (this.fb() && !flag && ItemStack.matches(itemstack, Raid.s())) {
++        if (this.fb() && !flag && ItemStack.matches(itemstack, CACHED_OMINOUS_BANNER)) { // Yatopia - Port lithium
+             EnumItemSlot enumitemslot = EnumItemSlot.HEAD;
+             ItemStack itemstack1 = this.getEquipment(enumitemslot);
+             double d0 = (double) this.e(enumitemslot);
+@@ -535,7 +536,7 @@ public abstract class EntityRaider extends EntityMonsterPatrolling {
+             if ((!getRaider().world.purpurConfig.pillagerBypassMobGriefing && !getRaider().world.getGameRules().getBoolean(GameRules.MOB_GRIEFING)) || !getRaider().canPickupLoot()) return false; // Paper - respect game and entity rules for picking up items // Purpur
+             Raid raid = this.b.fa();
+ 
+-            if (this.b.fb() && !this.b.fa().a() && this.b.eN() && !ItemStack.matches(this.b.getEquipment(EnumItemSlot.HEAD), Raid.s())) {
++            if (this.b.fb() && !this.b.fa().a() && this.b.eN() && !ItemStack.matches(this.b.getEquipment(EnumItemSlot.HEAD), CACHED_OMINOUS_BANNER)) { // Yatopia - Port lithium
+                 EntityRaider entityraider = raid.b(this.b.fc());
+ 
+                 if (entityraider == null || !entityraider.isAlive()) {
+diff --git a/src/main/java/net/minecraft/world/entity/raid/Raid.java b/src/main/java/net/minecraft/world/entity/raid/Raid.java
+index f9d03b6d11ad5ffbfe5be072e8631f046bcd1646..52def6de2225cf5ed70c807b74fb5c2ccd133503 100644
+--- a/src/main/java/net/minecraft/world/entity/raid/Raid.java
++++ b/src/main/java/net/minecraft/world/entity/raid/Raid.java
+@@ -227,8 +227,14 @@ public class Raid {
+         this.status = Raid.Status.STOPPED;
+     }
+ 
++    private boolean isBarDirty; // Yatopia - Port lithium
+     public void o() {
+         if (!this.isStopped()) {
++            if (this.isBarDirty) { // Yatopia Start - Port lithium
++                this.bossBattle.setProgress(MathHelper.a(this.sumMobHealth() / this.totalHealth, 0.0F, 1.0F));
++
++                this.isBarDirty = false;
++            } // Yatopia End
+             if (this.status == Raid.Status.ONGOING) {
+                 boolean flag = this.active;
+ 
+@@ -596,7 +602,7 @@ public class Raid {
+     }
+ 
+     public void updateProgress() {
+-        this.bossBattle.setProgress(MathHelper.a(this.sumMobHealth() / this.totalHealth, 0.0F, 1.0F));
++        this.isBarDirty = true; // Yatopia - Port lithium
+     }
+ 
+     public float sumMobHealth() {
+@@ -647,6 +653,7 @@ public class Raid {
+         this.world.getPersistentRaid().b();
+     }
+ 
++    public static ItemStack getOminousBanner(){ return s(); } // Yatopia - OBFHELPER
+     public static ItemStack s() {
+         ItemStack itemstack = new ItemStack(Items.WHITE_BANNER);
+         NBTTagCompound nbttagcompound = itemstack.a("BlockEntityTag");
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index f5badbe0dee5c40cf83a5d2993d27ed70ddd2c85..db2b1863b7f46be53839fb3e86870745fb7567fd 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -97,6 +97,7 @@ import org.bukkit.event.block.BlockPhysicsEvent;
+ // CraftBukkit end
+ 
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++import me.jellysquid.mods.lithium.common.entity.tracker.EntityTrackerEngine; // Yatopia
+ 
+ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlockingWorldAccess { // Yatopia
+ 
+@@ -291,6 +292,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+     }
+ 
+     // Tuinity end - optimise checkDespawn
++    private EntityTrackerEngine tracker; // Yatopia - Port lithium
+ 
+     protected World(WorldDataMutable worlddatamutable, ResourceKey<World> resourcekey, final DimensionManager dimensionmanager, Supplier<GameProfilerFiller> supplier, boolean flag, boolean flag1, long i, org.bukkit.generator.ChunkGenerator gen, org.bukkit.World.Environment env, java.util.concurrent.Executor executor) { // Paper
+         this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.WorldDataServer) worlddatamutable).getName()); // Spigot
+@@ -368,8 +370,14 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+         this.keepSpawnInMemory = this.paperConfig.keepSpawnInMemory; // Paper
+         this.entityLimiter = new org.spigotmc.TickLimiter(spigotConfig.entityMaxTickTime);
+         this.tileLimiter = new org.spigotmc.TickLimiter(spigotConfig.tileMaxTickTime);
++        this.tracker = new EntityTrackerEngine(); // Yatopia - Port lithium
+     }
+ 
++    // Yatopia start - Port lithium
++    public EntityTrackerEngine getEntityTracker() {
++        return this.tracker;
++    } // Yatopia end
++
+     // Paper start
+     // ret true if no collision
+     public final boolean checkEntityCollision(IBlockData data, Entity source, VoxelShapeCollision voxelshapedcollision,
+@@ -536,6 +544,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+         return b(blockposition.getY());
+     }
+ 
++    public static boolean isOutOfBuildLimitVertically(int y){ return b(y); } // Yatopia - OBFHELPER
+     public static boolean b(int i) {
+         return i < 0 || i >= 256;
+     }
+diff --git a/src/main/java/net/minecraft/world/level/block/Block.java b/src/main/java/net/minecraft/world/level/block/Block.java
+index eecb17e887bf0d1680a5fb5198a8b4246c14e548..3319c419a9eaf91224396c8b19eb057abd8094e6 100644
+--- a/src/main/java/net/minecraft/world/level/block/Block.java
++++ b/src/main/java/net/minecraft/world/level/block/Block.java
+@@ -55,6 +55,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
+ import net.minecraft.world.phys.shapes.VoxelShapes;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import me.jellysquid.mods.lithium.common.ai.pathing.PathNodeDefaults;
+ 
+ public class Block extends BlockBase implements IMaterial {
+ 
+@@ -89,6 +90,17 @@ public class Block extends BlockBase implements IMaterial {
+         return timing;
+     }
+     // Paper end
++
++    // Yatopia start - Port lithium
++    public net.minecraft.world.level.pathfinder.PathType getPathNodeType(IBlockData state) {
++        return PathNodeDefaults.getNodeType(state);
++    }
++
++    public net.minecraft.world.level.pathfinder.PathType getNeighborPathNodeType(IBlockData state) {
++        return PathNodeDefaults.getNeighborNodeType(state);
++    }
++    // Yatopia end
++
+     public Material getMaterial() { return material; } // Purpur - OBFHELPER
+     @Nullable
+     private String name;
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+index e6c37db1a8b51dda1e9d493d8fbfecd4ddf1aeb3..4cb0213b0f786aacbb7ef2f682587ec127554e35 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+@@ -2,6 +2,8 @@ package net.minecraft.world.level.block.state;
+ 
+ import com.google.common.collect.ImmutableMap;
+ import com.mojang.serialization.MapCodec;
++import org.apache.commons.lang3.Validate;
++
+ import java.util.Arrays;
+ import java.util.Collections;
+ import java.util.List;
+@@ -62,6 +64,7 @@ import net.minecraft.world.phys.Vec3D;
+ import net.minecraft.world.phys.shapes.VoxelShape;
+ import net.minecraft.world.phys.shapes.VoxelShapeCollision;
+ import net.minecraft.world.phys.shapes.VoxelShapes;
++import net.minecraft.world.level.pathfinder.PathType;
+ 
+ public abstract class BlockBase {
+ 
+@@ -348,6 +351,8 @@ public abstract class BlockBase {
+ 
+     public abstract static class BlockData extends IBlockDataHolder<Block, IBlockData> {
+ 
++        public net.minecraft.world.level.pathfinder.PathType pathNodeType = PathType.OPEN; // Yatopia - Port lithium
++        public net.minecraft.world.level.pathfinder.PathType pathNodeTypeNeighbor = PathType.OPEN; // Yatopia - Port lithium
+         private final int b; public final int getEmittedLight() { return this.b; } // Tuinity - OBFHELPER
+         private final boolean e; public final boolean isTransparentOnSomeFaces() { return this.e; } // Tuinity - OBFHELPER
+         private final boolean f;
+@@ -419,6 +424,16 @@ public abstract class BlockBase {
+         }
+         // Tuinity end
+ 
++        // Yatopia start - Port lithium
++        public net.minecraft.world.level.pathfinder.PathType getPathNodeType() {
++            return this.pathNodeType;
++        }
++
++        public net.minecraft.world.level.pathfinder.PathType getNeighborPathNodeType() {
++            return this.pathNodeTypeNeighbor;
++        }
++        // Yatopia end
++
+         public void a() {
+             this.fluid = this.getBlock().d(this.p()); // Paper - moved from getFluid()
+             this.isTicking = this.getBlock().isTicking(this.p()); // Paper - moved from isTicking()
+@@ -428,6 +443,9 @@ public abstract class BlockBase {
+             this.shapeExceedsCube = this.a == null || this.a.c; // Tuinity - moved from actual method to here
+             this.staticPathType = null; // Tuinity - cache static path type
+             this.neighbourOverridePathType = null; // Tuinity - cache static path types
++            IBlockData state = this.getBlockData(); // Yatopia - Port lithium
++            this.pathNodeType = Validate.notNull(this.getBlock().getPathNodeType(state)); // Yatopia - Port lithium
++            this.pathNodeTypeNeighbor = Validate.notNull(this.getBlock().getNeighborPathNodeType(state)); // Yatopia - Port lithium
+             this.opacityIfCached = this.a == null || this.isConditionallyFullOpaque() ? -1 : this.a.getOpacity(); // Tuinity - cache opacity for light
+             // Tuinity start - optimise culling shape cache for light
+             if (this.a != null && this.a.getCullingShapeCache() != null) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/Chunk.java b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
+index c07fb5ca761c0f2067bd103026ded618a8620947..cbe21ec18561c991aa27dd48d536c78e358d5b0e 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/Chunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
+@@ -68,6 +68,7 @@ import net.minecraft.world.level.material.FluidTypes;
+ import net.minecraft.world.phys.AxisAlignedBB;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import net.minecraft.world.entity.EntityLiving; // Yatopia
+ 
+ public class Chunk implements IChunkAccess {
+ 
+@@ -852,6 +853,11 @@ public class Chunk implements IChunkAccess {
+         if (!this.entitySlices[i].remove(entity)) { // Tuinity - optimise hard colliding entities // Tuinity - entities by class // Tuinity
+             return;
+         }
++        // Yatopia start - Port lithium
++        if (entity instanceof EntityLiving) {
++            this.world.getEntityTracker().onEntityAdded(entity.chunkX, entity.chunkY, entity.chunkZ, (EntityLiving) entity);
++        }
++        // Yatopia end
+         if (entity instanceof EntityItem) {
+             itemCounts[i]--;
+         } else if (entity instanceof IInventory) {
+@@ -861,6 +867,11 @@ public class Chunk implements IChunkAccess {
+         this.markDirty(); // Paper
+         // Paper end
+         this.entities.remove(entity); // Paper
++        // Yatopia start - Port lithium
++        if (entity instanceof EntityLiving) {
++            this.world.getEntityTracker().onEntityRemoved(entity.chunkX, entity.chunkY, entity.chunkZ, (EntityLiving) entity);
++        }
++        // Yatopia end
+     }
+ 
+     public final int getHighestBlockY(HeightMap.Type heightmap_type, int i, int j) { return this.getHighestBlock(heightmap_type, i, j) + 1; } // Paper - sort of an obfhelper, but without -1
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ChunkSection.java b/src/main/java/net/minecraft/world/level/chunk/ChunkSection.java
+index b5eb43174d2c2f34bb17bbcdb803aafe58989678..92f6301005031f4afab225e9fd01010eacd3ed26 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ChunkSection.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ChunkSection.java
+@@ -177,6 +177,7 @@ public class ChunkSection {
+         return 2 + this.blockIds.c();
+     }
+ 
++    public boolean hasAny(Predicate<IBlockData> predicate) { return a(predicate); } // Yatopia - OBFHELPER
+     public boolean a(Predicate<IBlockData> predicate) {
+         return this.blockIds.contains(predicate);
+     }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
+index f70c14385c95763b5f270a6e2ce372cf047ba7bb..5968712468ad1bea4894d31d0d08b213735743e5 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
++++ b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
+@@ -13,10 +13,13 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import it.unimi.dsi.fastutil.longs.LongLinkedOpenHashSet;
+ import java.io.File;
+ import java.io.IOException;
++import java.util.BitSet;
+ import java.util.Map;
++import java.util.Objects;
+ import java.util.Optional;
+ import java.util.function.BooleanSupplier;
+ import java.util.function.Function;
++import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+ import net.minecraft.SharedConstants;
+ import net.minecraft.SystemUtils;
+@@ -29,27 +32,118 @@ import net.minecraft.world.level.ChunkCoordIntPair;
+ import net.minecraft.world.level.World;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import me.jellysquid.mods.lithium.common.util.Collector;
++import me.jellysquid.mods.lithium.common.util.collections.ListeningLong2ObjectOpenHashMap;
+ 
+ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseable { // Paper - nuke IOWorker
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     // Paper - nuke IOWorker
+-    private final Long2ObjectMap<Optional<R>> c = new Long2ObjectOpenHashMap(); protected final Long2ObjectMap<Optional<R>> getDataBySection() { return this.c; } // Tuinity - OBFHELPER
++    private Long2ObjectMap<Optional<R>> c = new Long2ObjectOpenHashMap(); protected final Long2ObjectMap<Optional<R>> getDataBySection() { return this.c; } // Tuinity - OBFHELPER
+     public final LongLinkedOpenHashSet d = new LongLinkedOpenHashSet();  protected final LongLinkedOpenHashSet getDirtySections() { return this.d; } // Paper - private -> public // Tuinity - OBFHELPER
+     private final Function<Runnable, Codec<R>> e;
+     private final Function<Runnable, R> f;
+     private final DataFixer g;
+     private final DataFixTypes h;
+ 
++    private Long2ObjectOpenHashMap<BitSet> columns; // Yatopia - Port lithium
++
+     public RegionFileSection(File file, Function<Runnable, Codec<R>> function, Function<Runnable, R> function1, DataFixer datafixer, DataFixTypes datafixtypes, boolean flag) {
+         super(file, flag); // Paper - nuke IOWorker
+         this.e = function;
+         this.f = function1;
+         this.g = datafixer;
+         this.h = datafixtypes;
++        // Yatopia Start - Port lithium
++        this.columns = new Long2ObjectOpenHashMap<>();
++        this.c = new ListeningLong2ObjectOpenHashMap<>(this::onEntryAdded, this::onEntryRemoved);
+         //this.b = new IOWorker(file, flag, file.getName()); // Paper - nuke IOWorker
+     }
+ 
++    private void onEntryRemoved(long key, Optional<R> value) {
++        // NO-OP... vanilla never removes anything, leaking entries.
++        // We might want to fix this.
++    }
++
++    private void onEntryAdded(long key, Optional<R> value) {
++        int y = SectionPosition.unpackY(key);
++
++        // We only care about items belonging to a valid sub-chunk
++        if (y < 0 || y >= 16) {
++            return;
++        }
++
++        int x = SectionPosition.unpackX(key);
++        int z = SectionPosition.unpackZ(key);
++
++        long pos = ChunkCoordIntPair.pair(x, z);
++
++        BitSet flags = this.columns.get(pos);
++
++        if (flags == null) {
++            this.columns.put(pos, flags = new BitSet(16));
++        }
++
++        flags.set(y, value.isPresent());
++    }
++
++    public Stream<R> getWithinChunkColumn(int chunkX, int chunkZ) {
++        BitSet flags = this.getCachedColumnInfo(chunkX, chunkZ);
++
++        // No items are present in this column
++        if (flags.isEmpty()) {
++            return Stream.empty();
++        }
++
++        return flags.stream()
++                .mapToObj((chunkY) -> this.getDataBySection().get(SectionPosition.asLong(chunkX, chunkY, chunkZ)).orElse(null))
++                .filter(Objects::nonNull);
++    }
++
++    public boolean collectWithinChunkColumn(int chunkX, int chunkZ, Collector<R> consumer) {
++        BitSet flags = this.getCachedColumnInfo(chunkX, chunkZ);
++
++        // No items are present in this column
++        if (flags.isEmpty()) {
++            return true;
++        }
++
++        for (int chunkY = flags.nextSetBit(0); chunkY >= 0; chunkY = flags.nextSetBit(chunkY + 1)) {
++            R obj = this.getDataBySection().get(SectionPosition.asLong(chunkX, chunkY, chunkZ)).orElse(null);
++
++            if (obj != null && !consumer.collect(obj)) {
++                return false;
++            }
++        }
++
++        return true;
++    }
++
++    private BitSet getCachedColumnInfo(int chunkX, int chunkZ) {
++        long pos = ChunkCoordIntPair.pair(chunkX, chunkZ);
++
++        BitSet flags = this.getColumnInfo(pos, false);
++
++        if (flags != null) {
++            return flags;
++        }
++
++        this.loadDataAt(new ChunkCoordIntPair(pos));
++
++        return this.getColumnInfo(pos, true);
++    }
++
++    private BitSet getColumnInfo(long pos, boolean required) {
++        BitSet set = this.columns.get(pos);
++
++        if (set == null && required) {
++            throw new NullPointerException("No data is present for column: " + new ChunkCoordIntPair(pos));
++        }
++
++        return set;
++    }
++    // Yatopia end
++
+     protected void a(BooleanSupplier booleansupplier) {
+         while (!this.d.isEmpty() && booleansupplier.getAsBoolean()) {
+             ChunkCoordIntPair chunkcoordintpair = SectionPosition.a(this.d.firstLong()).r(); // Paper - conflict here to avoid obfhelpers
+@@ -92,6 +186,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+         return true;
+     }
+     // Tuinity end - actually unload POI data
++    protected Optional<R> get(long i){ return d(i); } // Yatopia - OBFHELPER
+ 
+     @Nullable public final Optional<R> getIfLoaded(long value) { return this.c(value); } // Tuinity - OBFHELPER // Tuinity - OBFHELPER
+     @Nullable protected Optional<R> c(long i) { // Tuinity - OBFHELPER
+@@ -125,6 +220,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+         return World.b(SectionPosition.c(sectionposition.b()));
+     }
+ 
++    protected R getOrCreate(long i){ return e(i); } // Yatopia - OBFHELPER
+     protected R e(long i) {
+         Optional<R> optional = this.d(i);
+ 
+@@ -140,6 +236,7 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+         }
+     }
+ 
++    public void loadDataAt(ChunkCoordIntPair chunkcoordintpair) { b(chunkcoordintpair); } // Yatopia - OBFHELPER
+     private void b(ChunkCoordIntPair chunkcoordintpair) {
+         // Paper start - load data in function
+         this.loadInData(chunkcoordintpair, this.c(chunkcoordintpair));
+diff --git a/src/main/java/net/minecraft/world/level/pathfinder/Pathfinder.java b/src/main/java/net/minecraft/world/level/pathfinder/Pathfinder.java
+index 76e19f3a4ae988f6f3b59763d639fa5e084fa0bf..5dbd1dca0a06bf11169f66a226a33f65269e5bcd 100644
+--- a/src/main/java/net/minecraft/world/level/pathfinder/Pathfinder.java
++++ b/src/main/java/net/minecraft/world/level/pathfinder/Pathfinder.java
+@@ -3,6 +3,8 @@ package net.minecraft.world.level.pathfinder;
+ import com.google.common.collect.ImmutableSet;
+ import com.google.common.collect.Lists;
+ import com.google.common.collect.Sets;
++import me.jellysquid.mods.lithium.common.ai.pathing.PathNodeCache;
++
+ import java.util.Comparator;
+ import java.util.Iterator;
+ import java.util.List;
+@@ -48,7 +50,7 @@ public class Pathfinder {
+     @Nullable
+     private PathEntity a(PathPoint pathpoint, List<Map.Entry<PathDestination, BlockPosition>> list, float f, int i, float f1) { // Paper - optimize collection
+         //Set<PathDestination> set = map.keySet(); // Paper
+-
++        PathNodeCache.enableChunkCache(); // Yatopia - Port lithium
+         pathpoint.e = 0.0F;
+         pathpoint.f = this.a(pathpoint, list); // Paper - optimize collection
+         pathpoint.g = pathpoint.f;
+diff --git a/src/main/java/net/minecraft/world/level/pathfinder/PathfinderNormal.java b/src/main/java/net/minecraft/world/level/pathfinder/PathfinderNormal.java
+index 9d08094165cf18d99116b5c721fff888f3cb42e2..175a99162415e7e77cb2ccf8e2ff60e0976c0cbb 100644
+--- a/src/main/java/net/minecraft/world/level/pathfinder/PathfinderNormal.java
++++ b/src/main/java/net/minecraft/world/level/pathfinder/PathfinderNormal.java
+@@ -4,6 +4,9 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+ import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
+ import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
++import me.jellysquid.mods.lithium.common.ai.pathing.PathNodeCache;
++import me.jellysquid.mods.lithium.common.world.WorldHelper;
++
+ import java.util.EnumSet;
+ import java.util.Iterator;
+ import javax.annotation.Nullable;
+@@ -30,6 +33,10 @@ import net.minecraft.world.level.material.Material;
+ import net.minecraft.world.phys.AxisAlignedBB;
+ import net.minecraft.world.phys.Vec3D;
+ import net.minecraft.world.phys.shapes.VoxelShape;
++import net.minecraft.world.level.chunk.ChunkSection; // Yatopia
++import net.minecraft.world.level.chunk.IChunkAccess; // Yatopia
++import net.minecraft.world.level.World; // Yatopia
++import net.minecraft.world.level.ICollisionAccess; // Yatopia
+ 
+ public class PathfinderNormal extends PathfinderAbstract {
+ 
+@@ -476,68 +483,111 @@ public class PathfinderNormal extends PathfinderAbstract {
+         return pathtype;
+     }
+ 
++    /**
++     * @reason Use optimized implementation
++     * @author JellySquid
++     */
+     public static PathType a(IBlockAccess iblockaccess, BlockPosition.MutableBlockPosition blockposition_mutableblockposition, PathType pathtype) {
+-        int i = blockposition_mutableblockposition.getX();
+-        int j = blockposition_mutableblockposition.getY();
+-        int k = blockposition_mutableblockposition.getZ();
++        // Yatopia start - Port lithium
++        int x = blockposition_mutableblockposition.getX();
++        int y = blockposition_mutableblockposition.getY();
++        int z = blockposition_mutableblockposition.getZ();
++
++        ChunkSection section = null;
++
++        // Check that all the block's neighbors are within the same chunk column. If so, we can isolate all our block
++        // reads to just one chunk and avoid hits against the server chunk manager.
++        if (iblockaccess instanceof ICollisionAccess && WorldHelper.areNeighborsWithinSameChunk(blockposition_mutableblockposition)) {
++            // If the y-coordinate is within bounds, we can cache the chunk section. Otherwise, the if statement to check
++            // if the cached chunk section was initialized will early-exit.
++            if (!World.b(y)) {
++                // This cast is always safe and is necessary to obtain direct references to chunk sections.
++                IChunkAccess chunk = (IChunkAccess) ((ICollisionAccess) iblockaccess).c(x >> 4, z >> 4);
++
++                // If the chunk is absent, the cached section above will remain null, as there is no chunk section anyways.
++                // An empty chunk or section will never pose any danger sources, which will be caught later.
++                if (chunk != null) {
++                    section = chunk.getSections()[y >> 4];
++                }
++            }
+ 
+-        for (int l = -1; l <= 1; ++l) {
+-            for (int i1 = -1; i1 <= 1; ++i1) {
+-                for (int j1 = -1; j1 <= 1; ++j1) {
+-                    if (l != 0 || j1 != 0) {
+-                        blockposition_mutableblockposition.d(i + l, j + i1, k + j1);
+-                        // Paper start
+-                        IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition_mutableblockposition);
+-                        if (iblockdata == null) {
+-                            pathtype = PathType.BLOCKED;
+-                        } else {
+-                        // Paper end
+-                            // Tuinity start - reduce pathfinder branching
+-                            if (iblockdata.neighbourOverridePathType == PathType.OPEN) {
+-                                continue;
+-                            } else if (iblockdata.neighbourOverridePathType != null) {
+-                                return iblockdata.neighbourOverridePathType;
+-                            }
+-                            // Tuinity end - reduce pathfinder branching
+-                        if (iblockdata.a(Blocks.CACTUS)) {
+-                            return iblockdata.neighbourOverridePathType = PathType.DANGER_CACTUS; // Tuinity - reduce pathfinder branching
+-                        }
++            // If we can guarantee that blocks won't be modified while the cache is active, try to see if the chunk
++            // section is empty or contains any dangerous blocks within the palette. If not, we can assume any checks
++            // against this chunk section will always fail, allowing us to fast-exit.
++            if (ChunkSection.isEmpty(section) || PathNodeCache.isSectionSafeAsNeighbor(section)) {
++                return pathtype;
++            }
++        }
+ 
+-                        if (iblockdata.a(Blocks.SWEET_BERRY_BUSH) || iblockdata.a(Blocks.STONECUTTER)) { // Purpur
+-                            return iblockdata.neighbourOverridePathType = PathType.DANGER_OTHER; // Tuinity - reduce pathfinder branching
+-                        }
++        int xStart = x - 1;
++        int yStart = y - 1;
++        int zStart = z - 1;
++
++        int xEnd = x + 1;
++        int yEnd = y + 1;
++        int zEnd = z + 1;
++
++        // Vanilla iteration order is XYZ
++        for (int adjX = xStart; adjX <= xEnd; adjX++) {
++            for (int adjY = yStart; adjY <= yEnd; adjY++) {
++                for (int adjZ = zStart; adjZ <= zEnd; adjZ++) {
++                    // Skip the vertical column of the origin block
++                    if (adjX == x && adjZ == z) {
++                        continue;
++                    }
+ 
+-                        if (a(iblockdata)) {
+-                            return iblockdata.neighbourOverridePathType = PathType.DANGER_FIRE; // Tuinity - reduce pathfinder branching
+-                        }
++                    IBlockData state;
+ 
+-                        if (iblockdata.getFluid().a((Tag) TagsFluid.WATER)) { // Paper - remove another getType call
+-                            return iblockdata.neighbourOverridePathType = PathType.WATER_BORDER; // Tuinity - reduce pathfinder branching
+-                        }
+-                        iblockdata.neighbourOverridePathType = PathType.OPEN; // Tuinity - reduce pathfinder branching
+-                        } // Paper
++                    // If we're not accessing blocks outside a given section, we can greatly accelerate block state
++                    // retrieval by calling upon the cached chunk directly.
++                    if (section != null) {
++                        state = section.getType(adjX & 15, adjY & 15, adjZ & 15);
++                    } else {
++                        state = iblockaccess.getType(blockposition_mutableblockposition.setValues(adjX, adjY, adjZ));
++                    }
++
++                    // Ensure that the block isn't air first to avoid expensive hash table accesses
++                    if (state.isAir()) {
++                        continue;
++                    }
++
++                    PathType neighborType = PathNodeCache.getNeighborPathNodeType(state);
++
++                    if (neighborType != PathType.OPEN) {
++                        return neighborType;
+                     }
+                 }
+             }
+         }
+ 
+-        return pathtype;
++        return pathtype; // Yatopia end
+     }
+ 
++    /**
++     * @reason Use optimized implementation which avoids scanning blocks for dangers where possible
++     * @author JellySquid
++     */
+     protected static PathType b(IBlockAccess iblockaccess, BlockPosition blockposition) {
+-        IBlockData iblockdata = iblockaccess.getTypeIfLoaded(blockposition); // Paper
+-        if (iblockdata == null) return PathType.BLOCKED; // Paper
+-        // Tuinity start - reduce pathfinder branches
+-        if (iblockdata.staticPathType != null) {
+-            return iblockdata.staticPathType;
+-        }
+-        if (iblockdata.getShapeCache() == null) {
+-            // while it might be called static, it might vary on shape! However, only a few blocks have variable shape.
+-            // So we rarely enter here.
+-            return getStaticTypeSlow(iblockaccess, blockposition, iblockdata);
+-        } else {
+-            return iblockdata.staticPathType = getStaticTypeSlow(iblockaccess, blockposition, iblockdata);
++        // Yatopia start - Port lithium
++        IBlockData blockState = iblockaccess.getType(blockposition);
++        if (blockState == null) return PathType.BLOCKED;
++        PathType type = PathNodeCache.getPathNodeType(blockState);
++
++        // If the node type is open, it means that we were unable to determine a more specific type, so we need
++        // to check the fallback path.
++        if (type == PathType.OPEN) {
++            // This is only ever called in vanilla after all other possibilities are exhausted, but before fluid checks
++            // It should be safe to perform it last in actuality and take advantage of the cache for fluid types as well
++            // since fluids will always pass this check.
++            if (!blockState.a(iblockaccess, blockposition, PathMode.LAND)) {
++                return PathType.BLOCKED;
++            }
++
++            // All checks succeed, this path node really is open!
++            return PathType.OPEN;
+         }
++        return type;
++        // Yatopia end
+     }
+     protected static PathType getStaticTypeSlow(IBlockAccess iblockaccess, BlockPosition blockposition, IBlockData iblockdata) {
+         // Tuinity end - reduce pathfinder branches
