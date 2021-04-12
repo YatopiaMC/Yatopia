@@ -5,10 +5,13 @@ pipeline {
         stage('Cleanup') {
             steps {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
+                sh 'git config --global gc.auto 0'
                 sh 'rm -rf ./target'
-                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work/Spigot/Spigot-API ./Paper/work/Spigot/Spigot-Server'
+                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work'
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
+                sh 'find /home/jenkins/workspace/YatopiaMC_Yatopia_ver_1.16.5 -type d -exec chmod 755 {} \\;'
                 sh 'chmod +x ./gradlew'
+                sh './gradlew clean'
             }
         }
         stage('Init project & submodules') {
@@ -51,7 +54,7 @@ pipeline {
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
                         sh '''
-                        ./gradlew clean build publish
+                        ./gradlew build publish
                         mkdir -p "./target"
                         basedir=$(pwd)
                         paperworkdir="$basedir/Paper/work"
@@ -69,11 +72,14 @@ pipeline {
                     }
                 }
             }
+        }
+            
+        stage('Archive Jars') {
+            steps {
+                archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
+            }
             post {
-                success {
-                    archiveArtifacts "target/*.jar"
-                }
-                failure {
+                always {
                     cleanWs()
                 }
             }
