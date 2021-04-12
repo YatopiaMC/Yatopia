@@ -74,15 +74,13 @@ pipeline {
             }
         }
             
-    stage('Archive Jars') {
-      steps {
-        archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
-      }
-    }
-    post {
-      always {
-        cleanWs()
-          sh 'rm -rf /home/jenkins/workspace/YatopiaMC_Yatopia_ver_1.16.5'
+        stage('Archive Jars') {
+            steps {
+                archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
+            }
+            post {
+                always {
+                    cleanWs()
                 }
             }
         }
