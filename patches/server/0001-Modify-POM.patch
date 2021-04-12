@@ -5,7 +5,7 @@ Subject: [PATCH] Modify POM
 
 
 diff --git a/pom.xml b/pom.xml
-index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c34fdee911 100644
+index cea712b94bb32ccda2895670859839d660bd0748..d16dce599382f285685e0990a63dd1bbadc62cac 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -1,11 +1,11 @@
@@ -23,7 +23,7 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
  
      <properties>
          <!-- <skipTests>true</skipTests> Paper - This [was] not going to end well -->
-@@ -19,17 +19,26 @@
+@@ -19,12 +19,21 @@
      </properties>
  
      <parent>
@@ -44,6 +44,10 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
 +     </distributionManagement>
 +     <!-- Yatopia end -->
 +
+     <dependencyManagement>
+         <dependencies>
+             <dependency>
+@@ -40,8 +49,8 @@
      <dependencies>
          <dependency>
              <!-- Purpur start - our "upstream" is Paper (not Tuinity), so this is necessary for DependencyLoading.kt to work properly -->
@@ -54,7 +58,7 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
              <!-- Purpur end -->
              <version>${project.version}</version>
              <scope>compile</scope>
-@@ -44,7 +53,7 @@
+@@ -56,7 +65,7 @@
          <dependency>
              <groupId>io.netty</groupId>
              <artifactId>netty-all</artifactId>
@@ -63,7 +67,7 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
          </dependency>
          <!-- Tuinity end - fix compile issue (cannot see new api) by moving netty include BEFORE server jar -->
          <dependency>
-@@ -61,7 +70,7 @@
+@@ -73,7 +82,7 @@
          <dependency>
              <groupId>org.jline</groupId>
              <artifactId>jline-terminal-jansi</artifactId>
@@ -72,30 +76,7 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
              <scope>runtime</scope>
          </dependency>
          <!--
-@@ -73,19 +82,19 @@
-         <dependency>
-             <groupId>org.apache.logging.log4j</groupId>
-             <artifactId>log4j-core</artifactId>
--            <version>2.8.1</version>
-+            <version>2.14.1</version>
-             <scope>compile</scope>
-         </dependency>
-         <dependency>
-             <groupId>org.apache.logging.log4j</groupId>
-             <artifactId>log4j-slf4j-impl</artifactId>
--            <version>2.8.1</version>
-+            <version>2.14.1</version>
-             <scope>runtime</scope>
-         </dependency>
-         <dependency>
-             <groupId>org.apache.logging.log4j</groupId>
-             <artifactId>log4j-iostreams</artifactId>
--            <version>2.8.1</version>
-+            <version>2.14.1</version>
-             <scope>compile</scope>
-             <exclusions>
-                 <!-- included in minecraft-server -->
-@@ -144,14 +153,14 @@
+@@ -151,14 +160,14 @@
          <dependency>
              <groupId>org.hamcrest</groupId>
              <artifactId>hamcrest-library</artifactId>
@@ -112,7 +93,7 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
              <scope>test</scope>
          </dependency>
          <!-- for optimized protocol handling -->
-@@ -175,6 +184,12 @@
+@@ -182,6 +191,12 @@
              <version>master-SNAPSHOT</version>
              <scope>compile</scope>
          </dependency>
@@ -125,7 +106,15 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
      </dependencies>
  
      <repositories>
-@@ -191,19 +206,32 @@
+@@ -190,27 +205,37 @@
+             <id>jitpack.io</id>
+             <url>https://jitpack.io</url>
+         </repository>
+-    </repositories>
+-
+-    <repositories>
+         <!-- Purpur - Snapshots -->
+         <repository>
              <id>purpur-snapshots</id>
              <url>https://repo.pl3x.net/</url>
          </repository>
@@ -161,7 +150,7 @@ index bfbd0ac9bbff81892759017a6af0dc18c405613f..70d99371578778bb7b589856ac6438c3
                      <scmDirectory>..</scmDirectory>
                  </configuration>
                  <executions>
-@@ -376,7 +404,7 @@
+@@ -385,7 +410,7 @@
                      <dependency>
                          <groupId>org.jetbrains.kotlin</groupId>
                          <artifactId>kotlin-stdlib</artifactId>
