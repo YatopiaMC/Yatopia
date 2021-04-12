@@ -422,6 +422,7 @@ This is an overview over all patches that are currently used.
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  add config for logging login location      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
+| server |  lithium AI      | JellySquid |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
@@ -430,6 +431,13 @@ This is an overview over all patches that are currently used.
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
+| server |  lithium block      | JellySquid |  |
+| server |  lithium entity      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
+| server |  lithium gen      | Hugo Planque |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
+| server |  lithium shape      | JellySquid |  |
 | server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
+| server |  lithium: optimize &#96;BlockPos.iterateOutwards&#96; by caching      | 2No2Name |  |
+| server |  lithium: skip ticking block entities that are doing nothing      | 2No2Name |  |
+| server |  tic-tacs: unblocking      | Gegy |  |
