@@ -5,10 +5,10 @@ Subject: [PATCH] Reduce entity chunk ticking checks from 3 to 1
 
 
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 8fa26ce7a9eed8ec43791079d6416eb2cd4a9398..81b0ced87adbeffc7fd2343910735cd0f4c1bf13 100644
+index 78443d5bf8f1f297cf68a88d8caf8e8abc9cdba7..10dcb8066493ddb2895e60f5d8d6f241c5f474fa 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
-@@ -1081,11 +1081,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1083,11 +1083,12 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  // CraftBukkit end */
  
                  gameprofilerfiller.enter("checkDespawn");
@@ -22,7 +22,7 @@ index 8fa26ce7a9eed8ec43791079d6416eb2cd4a9398..81b0ced87adbeffc7fd2343910735cd0
                              this.updateNavigatorsInRegion(entity);
                          }
                      } else {
-@@ -1115,7 +1116,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1117,7 +1118,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                      this.entitiesById.remove(entity.getId()); // Tuinity
                      this.unregisterEntity(entity);
                  } else if (entity.inChunk && entity.valid) { // Tuinity start - optimise notify()
@@ -31,7 +31,7 @@ index 8fa26ce7a9eed8ec43791079d6416eb2cd4a9398..81b0ced87adbeffc7fd2343910735cd0
                          this.updateNavigatorsInRegion(entity);
                      }
                  } else {
-@@ -1415,7 +1416,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1417,7 +1418,9 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      }
      // Tuinity end - log detailed entity tick information
  
@@ -42,7 +42,7 @@ index 8fa26ce7a9eed8ec43791079d6416eb2cd4a9398..81b0ced87adbeffc7fd2343910735cd0
          // Tuinity start - log detailed entity tick information
          com.tuinity.tuinity.util.TickThread.ensureTickThread("Cannot tick an entity off-main");
          try {
-@@ -1423,7 +1426,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1425,7 +1428,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  currentlyTickingEntity.lazySet(entity);
              }
              // Tuinity end - log detailed entity tick information
