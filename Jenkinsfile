@@ -72,8 +72,9 @@ pipeline {
                     }
                 }
             }
+        }
             
-     stage('Archive Jars') {
+    stage('Archive Jars') {
       steps {
         archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
       }
