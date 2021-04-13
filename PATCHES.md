@@ -444,9 +444,10 @@ This is an overview over all patches that are currently used.
 | server |  lithium block      | JellySquid |  |
 | server |  lithium entity      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
-| server |  lithium gen      | Hugo Planque |  |
+| server |  lithium gen      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
 | server |  lithium shape      | JellySquid |  |
 | server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
 | server |  lithium: optimize &#96;BlockPos.iterateOutwards&#96; by caching      | 2No2Name |  |
+| server |  lithium: skip ticking block entities that are doing nothing      | 2No2Name |  |
 | server |  tic-tacs: unblocking      | Gegy |  |
