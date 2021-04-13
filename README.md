@@ -20,6 +20,7 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Airplane](https://github.com/Technove/Airplane)
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
 * [LazyDFU](https://github.com/astei/lazydfu)
+* [Tic-Tacs](https://github.com/Gegy/tic-tacs)
 
 
 ## Try it out 
