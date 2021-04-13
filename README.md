@@ -18,6 +18,8 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Origami](https://github.com/Minebench/Origami)
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 * [Airplane](https://github.com/Technove/Airplane)
+* [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
+* [LazyDFU](https://github.com/astei/lazydfu)
 
 
 ## Try it out 
