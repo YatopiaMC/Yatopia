@@ -8,7 +8,6 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
-| server |  (AI-Improvements) Optimized tan for ControllerLook      | bl4ckscor3 |  |
 | server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
@@ -436,7 +435,7 @@ This is an overview over all patches that are currently used.
 | server |  lithium block      | JellySquid |  |
 | server |  lithium entity      | JellySquid |  |
 | server |  lithium enum_values      | JellySquid |  |
-| server |  lithium gen      | Hugo Planque |  |
+| server |  lithium gen      | JellySquid |  |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
 | server |  lithium shape      | JellySquid |  |
 | server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
