@@ -319,6 +319,7 @@ This is an overview over all patches that are currently used.
 | server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | api |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | server |  Phantoms burn in light      | draycia |  |
+| server |  Piglin portal spawn modifier      | BillyGalbreath |  |
 | server |  Pigs give saddle back      | William Blake Galbreath |  |
 | server |  Player invulnerabilities      | William Blake Galbreath |  |
 | api |  Player invulnerabilities      | William Blake Galbreath |  |
