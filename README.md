@@ -121,7 +121,7 @@ License information can be found [here](/Licensing/LICENSE.md).
 
 ## Security
 
-Security information can be found found [here](/SECURITY.md).
+Security information can be found [here](/SECURITY.md).
 
 ## Statistics
 [![bStats Graph Data](https://bstats.org/signatures/server-implementation/Yatopia.svg)](https://bstats.org/plugin/server-implementation/Yatopia)
