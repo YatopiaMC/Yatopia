@@ -106,7 +106,7 @@ dependencies {
 
 (Modified from [starlis/empirecraft](https://github.com/starlis/empirecraft/))
 <p>
-APIs are tough to design. In projects such as Bukkit, Spigot, Sponge, Paper, etc once an API is commited, it's almost forever. You can't go breaking it without solid justification. This is the politics game.
+APIs are tough to design. In projects such as Bukkit, Spigot, Sponge, Paper, etc once an API is committed, it's almost forever. You can't go breaking it without solid justification. This is the politics game.
 
 With that in mind, much thought has to be given to the API in now and future use cases and applications to ensure it can be extended without breaking.
 
