@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Andrew Steinborn <git@steinborn.me>
+Date: Tue, 2 Feb 2021 20:59:35 -0500
+Subject: [PATCH] Port LazyDFU
+
+
+diff --git a/src/main/java/me/steinborn/lazydfu/mod/LazyDataFixerBuilder.java b/src/main/java/me/steinborn/lazydfu/mod/LazyDataFixerBuilder.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..081aa46531a9df1dc732669a2c1e3180790468c4
+--- /dev/null
++++ b/src/main/java/me/steinborn/lazydfu/mod/LazyDataFixerBuilder.java
+@@ -0,0 +1,23 @@
++package me.steinborn.lazydfu.mod;
++
++import com.mojang.datafixers.DataFixerBuilder;
++import com.mojang.datafixers.DataFixer;
++
++import java.util.concurrent.Executor;
++
++/**
++ * This version of {@code DataFixerBuilder} does not immediately initialize rules.
++ */
++public class LazyDataFixerBuilder extends DataFixerBuilder {
++
++    private static final Executor NO_OP_EXECUTOR = command -> {};
++
++    public LazyDataFixerBuilder(int dataVersion) {
++        super(dataVersion);
++    }
++
++    @Override
++    public DataFixer build(Executor executor) {
++        return super.build(NO_OP_EXECUTOR);
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/util/datafix/DataConverterRegistry.java b/src/main/java/net/minecraft/util/datafix/DataConverterRegistry.java
+index 625dcfaeffb83a0b8b53778c32287cac8daae540..5a22fd08cc2a09d8695ca060dee80183364164a1 100644
+--- a/src/main/java/net/minecraft/util/datafix/DataConverterRegistry.java
++++ b/src/main/java/net/minecraft/util/datafix/DataConverterRegistry.java
+@@ -202,7 +202,7 @@ public class DataConverterRegistry {
+     // Yatopia start
+     private static final DataFixer c;
+     static {
+-        DataFixerBuilder datafixerbuilder = new DataFixerBuilder(SharedConstants.getGameVersion().getWorldVersion());
++        DataFixerBuilder datafixerbuilder = new me.steinborn.lazydfu.mod.LazyDataFixerBuilder(SharedConstants.getGameVersion().getWorldVersion()); // Yatopia - Port LazyDFU
+ 
+         a(datafixerbuilder);
+         c = datafixerbuilder.build(SystemUtils.d);

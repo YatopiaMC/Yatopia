@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sun, 24 Jan 2021 23:42:56 +0100
+Subject: [PATCH] lithium gen
+
+Co-authored-by: Hugo Planque <hookwood01@gmail.com>
+
+diff --git a/src/main/java/net/minecraft/world/level/newbiome/area/AreaLazy.java b/src/main/java/net/minecraft/world/level/newbiome/area/AreaLazy.java
+index 69a021b84cd3f6e2a397a03cfbb562a94f72aace..9a897ad2b53e281cf165106d03737d2ec517eb29 100644
+--- a/src/main/java/net/minecraft/world/level/newbiome/area/AreaLazy.java
++++ b/src/main/java/net/minecraft/world/level/newbiome/area/AreaLazy.java
+@@ -16,6 +16,7 @@ public final class AreaLazy implements Area {
+         this.a = areatransformer8;
+     }
+ 
++    public int sample(int i, int j){ return a(i, j); } // Yatopia - OBFHELPER
+     @Override
+     public int a(int i, int j) {
+         long k = ChunkCoordIntPair.pair(i, j);
+diff --git a/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java b/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java
+index 8b61bce3d7587832ddb2c0e29e76f9c68ddf5d8b..acf74fccde2fc1fc3bd065f7d1bd2f5ba7f475e4 100644
+--- a/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java
++++ b/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java
+@@ -15,13 +15,14 @@ public class GenLayer {
+ 
+     private static final Logger LOGGER = LogManager.getLogger();
+     private final AreaLazy b;
+-
++    private final ThreadLocal<AreaLazy> tlSampler; // Yatopia - Port lithium
+     public GenLayer(AreaFactory<AreaLazy> areafactory) {
+         this.b = (AreaLazy) areafactory.make();
++        this.tlSampler = ThreadLocal.withInitial(areafactory::make); // Yatopia - Port lithium
+     }
+ 
+     public BiomeBase a(IRegistry<BiomeBase> iregistry, int i, int j) {
+-        int k = this.b.a(i, j);
++        int k = this.tlSampler.get().sample(i, j); // Yatopia - Port lithium
+         ResourceKey<BiomeBase> resourcekey = BiomeRegistry.a(k);
+ 
+         if (resourcekey == null) {

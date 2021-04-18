@@ -24,5 +24,22 @@ val libraryImports = setOf<LibraryImport>(
     LibraryImport("com.mojang", "brigadier", "com/mojang/brigadier", "CommandDispatcher"),
     LibraryImport("com.mojang", "brigadier", "com/mojang/brigadier/tree", "LiteralCommandNode"),
     LibraryImport("com.mojang", "brigadier", "com/mojang/brigadier/suggestion", "SuggestionsBuilder"),
-    LibraryImport("com.mojang", "brigadier", "com/mojang/brigadier/arguments", "BoolArgumentType")
+    LibraryImport("com.mojang", "brigadier", "com/mojang/brigadier/arguments", "BoolArgumentType"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers", "FieldFinder"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers", "DataFixUtils"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers", "TypeRewriteRule"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers", "Typed"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers", "TypedOptic"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers", "View"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/functions", "Apply"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/functions", "Comp"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/functions", "PointFree"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/functions", "PointFreeRule"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/optics", "IdAdapter"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/optics", "Inj1"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/optics", "Inj2"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/optics", "Optics"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/optics", "Proj1"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/optics", "Proj2"),
+    LibraryImport("com.mojang", "datafixerupper", "com/mojang/datafixers/types", "Type")
 )
