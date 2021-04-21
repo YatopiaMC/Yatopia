@@ -6,7 +6,7 @@ Subject: [PATCH] lithium entity
 Co-authored-by: Hugo Planque <hookwood01@gmail.com>
 
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index bbe9eea55b18e1198916df29cbd922092b485eed..6a24932b17bb8d2e48334e61bfd5290c1c1e2be6 100644
+index 4cae70c41bbd977b6a5661e43a5ddd3694e89580..29b30c159fae686a28f395d3e5a2236bc9237c1b 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -286,6 +286,10 @@ public abstract class EntityLiving extends Entity {
@@ -31,11 +31,11 @@ index bbe9eea55b18e1198916df29cbd922092b485eed..6a24932b17bb8d2e48334e61bfd5290c
          this.ar = this.as;
          if (this.justCreated) {
              this.getBedPosition().ifPresent(this::a);
-@@ -1784,6 +1792,26 @@ public abstract class EntityLiving extends Entity {
+@@ -1783,7 +1791,24 @@ public abstract class EntityLiving extends Entity {
+     }
  
      public IBlockData ds() {
-         return this.world.getBlockStateIfLoaded(this.getChunkCoordinates()); // Yatopia
-+        /*
+-        return this.world.getBlockStateIfLoaded(this.getChunkCoordinates()); // Yatopia
 +        // Yatopia start - port lithium
 +        int x = MathHelper.floor(this.locX());
 +        int y = MathHelper.floor(this.locY());
@@ -47,14 +47,13 @@ index bbe9eea55b18e1198916df29cbd922092b485eed..6a24932b17bb8d2e48334e61bfd5290c
 +            return this.lastStateAtFeet;
 +        }
 +
-+        IBlockData state = this.world.getType(getChunkCoordinates());
++        IBlockData state = this.world.getBlockStateIfLoaded(this.getChunkCoordinates());
 +
 +        this.lastPos = pos;
 +        this.lastStateAtFeet = state;
 +
 +        return state;
 +        // Yatopia end
-+        */
      }
  
      private boolean c(BlockPosition blockposition, IBlockData iblockdata) {
