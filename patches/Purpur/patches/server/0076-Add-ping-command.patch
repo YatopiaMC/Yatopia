@@ -5,14 +5,14 @@ Subject: [PATCH] Add /ping command
 
 
 diff --git a/src/main/java/net/minecraft/commands/CommandDispatcher.java b/src/main/java/net/minecraft/commands/CommandDispatcher.java
-index 6fc5ee06c3bed8d9aa0e13dd7fa8d70ff6711f85..e8fe4984fdc67536561a1ad08b328a30b30b8717 100644
+index c25440e810e61bcdc299a0caebaec54b6862dd3c..2566c5ea7ba2bbeed43ba74944c038b53f7f9fde 100644
 --- a/src/main/java/net/minecraft/commands/CommandDispatcher.java
 +++ b/src/main/java/net/minecraft/commands/CommandDispatcher.java
 @@ -191,6 +191,7 @@ public class CommandDispatcher {
              CommandIdleTimeout.a(this.b);
              CommandStop.a(this.b);
              CommandWhitelist.a(this.b);
-+            net.pl3x.purpur.command.PingCommand.register(getDispatcher()); // Purpur
++            net.pl3x.purpur.command.PingCommand.register(dispatcher()); // Purpur
          }
  
          if (commanddispatcher_servertype.d) {
@@ -28,14 +28,6 @@ index 6fc5ee06c3bed8d9aa0e13dd7fa8d70ff6711f85..e8fe4984fdc67536561a1ad08b328a30
 +    public static <T> RequiredArgumentBuilder<CommandListenerWrapper, T> argument(String s, ArgumentType<T> argumenttype) { return a(s, argumenttype); } // Purpur - OBFHELPER
      public static <T> RequiredArgumentBuilder<CommandListenerWrapper, T> a(String s, ArgumentType<T> argumenttype) {
          return RequiredArgumentBuilder.argument(s, argumenttype);
-     }
-@@ -441,6 +444,7 @@ public class CommandDispatcher {
-         };
-     }
- 
-+    public com.mojang.brigadier.CommandDispatcher<CommandListenerWrapper> getDispatcher() { return a(); } // Purpur - OBFHELPER
-     public com.mojang.brigadier.CommandDispatcher<CommandListenerWrapper> a() {
-         return this.b;
      }
 diff --git a/src/main/java/net/minecraft/commands/CommandListenerWrapper.java b/src/main/java/net/minecraft/commands/CommandListenerWrapper.java
 index 8402af32cc476d7f468842eb4f34c7521d72bcc8..4480fe75cfad35a5104b5116c5ec2c80d18f15f5 100644

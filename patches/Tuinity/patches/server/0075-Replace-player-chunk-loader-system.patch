@@ -1032,7 +1032,7 @@ index 0000000000000000000000000000000000000000..0d577aa1c7868ce89c3902535adcb554
 +    }
 +}
 diff --git a/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java b/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
-index edb9b246bf327f67a8500f77f81b46eb9e04c9b0..d29b537bbe4f852162b720d6b23b741829af21f9 100644
+index edb9b246bf327f67a8500f77f81b46eb9e04c9b0..e1dc7c1025e19f7393a45719af8fe7aae016184d 100644
 --- a/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
 +++ b/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
 @@ -244,6 +244,25 @@ public final class TuinityConfig {
@@ -1049,12 +1049,12 @@ index edb9b246bf327f67a8500f77f81b46eb9e04c9b0..d29b537bbe4f852162b720d6b23b7418
 +
 +    private static void newPlayerChunkManagement() {
 +        playerMinChunkLoadRadius = TuinityConfig.getInt("player-chunks.min-load-radius", 2);
-+        playerMaxConcurrentChunkSends = TuinityConfig.getDouble("player-chunks.max-concurrent-sends", 15.0);
++        playerMaxConcurrentChunkSends = TuinityConfig.getDouble("player-chunks.max-concurrent-sends", 5.0);
 +        playerMaxConcurrentChunkLoads = TuinityConfig.getDouble("player-chunks.max-concurrent-loads", -6.0);
 +        playerAutoConfigureSendViewDistance = TuinityConfig.getBoolean("player-chunks.autoconfig-send-distance", true);
 +        // this costs server bandwidth. latest phosphor or starlight on the client fixes mc162253 anyways.
 +        enableMC162253Workaround = TuinityConfig.getBoolean("player-chunks.enable-mc162253-workaround", true);
-+        playerTargetChunkSendRate = TuinityConfig.getDouble("player-chunks.target-chunk-send-rate", 81.0 * 20.0);
++        playerTargetChunkSendRate = TuinityConfig.getDouble("player-chunks.target-chunk-send-rate", -35.0);
 +        playerFrustumPrioritisation = TuinityConfig.getBoolean("player-chunks.enable-frustum-priority", false);
 +    }
 +
@@ -1661,7 +1661,7 @@ index a802c45538943b570ca0daa3a40607dc80e696eb..af01f5d635eada7175b9d7fdb47a6553
                  // Paper end - per player view distance
              }
 diff --git a/src/main/java/net/minecraft/world/level/chunk/Chunk.java b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
-index d6b34c6abebeac8445da3e76f341066952182e2b..df35ae12ecbe88ab396bed9850ef80433ff42fd4 100644
+index d6b34c6abebeac8445da3e76f341066952182e2b..fc07e2014e961da5d97095c4ee6f972e2ece3ec3 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/Chunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
 @@ -406,12 +406,12 @@ public class Chunk implements IChunkAccess {
@@ -1680,7 +1680,7 @@ index d6b34c6abebeac8445da3e76f341066952182e2b..df35ae12ecbe88ab396bed9850ef8043
                      }
                  });
              }
-@@ -419,31 +419,7 @@ public class Chunk implements IChunkAccess {
+@@ -419,31 +419,18 @@ public class Chunk implements IChunkAccess {
  
          // this code handles the chunk sending
          if (!areNeighboursLoaded(bitsetBefore, 1) && areNeighboursLoaded(bitsetAfter, 1)) {
@@ -1709,11 +1709,22 @@ index d6b34c6abebeac8445da3e76f341066952182e2b..df35ae12ecbe88ab396bed9850ef8043
 -                    }
 -                })));
 -            }
-+            chunkMap.playerChunkManager.onChunkSendReady(this.loc.x, this.loc.z); // Tuinity - replace old player chunk loading system
++            // Tuinity start - replace old player chunk loading system
++            chunkProviderServer.serverThreadQueue.execute(() -> {
++                if (!Chunk.this.areNeighboursLoaded(1)) {
++                    return;
++                }
++                Chunk.this.A();
++                if (!Chunk.this.areNeighboursLoaded(1)) {
++                    return;
++                }
++                chunkMap.playerChunkManager.onChunkSendReady(this.loc.x, this.loc.z);
++            });
++            // Tuinity end - replace old player chunk loading system
          }
          // Paper end - no-tick view distance
      }
-@@ -1027,6 +1003,7 @@ public class Chunk implements IChunkAccess {
+@@ -1027,6 +1014,7 @@ public class Chunk implements IChunkAccess {
          // Paper end - neighbour cache
          org.bukkit.Server server = this.world.getServer();
          ((WorldServer)this.world).getChunkProvider().addLoadedChunk(this); // Paper
@@ -1739,10 +1750,10 @@ index 3fe1508b091e1fd0325eae50138d02fa6445c9ff..a19a26a88f247d359354902efeece992
          return new Vec3D((double) baseblockposition.getX() + 0.5D, (double) baseblockposition.getY() + 0.5D, (double) baseblockposition.getZ() + 0.5D);
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index b0801ca77620753ab61dba62429ce76e95aaba8f..91005e112950d79e1120e5595570970b94cd3c67 100644
+index 0128a24f1de7468ff60ba2de0ed825ff62363f6b..09cef73a92679e47c8670e4e4c1ba988878aee24 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -2638,14 +2638,14 @@ public class CraftWorld implements World {
+@@ -2631,14 +2631,14 @@ public class CraftWorld implements World {
              throw new IllegalArgumentException("View distance " + viewDistance + " is out of range of [2, 32]");
          }
          PlayerChunkMap chunkMap = getHandle().getChunkProvider().playerChunkMap;
@@ -1759,7 +1770,7 @@ index b0801ca77620753ab61dba62429ce76e95aaba8f..91005e112950d79e1120e5595570970b
      }
  
      @Override
-@@ -2654,11 +2654,22 @@ public class CraftWorld implements World {
+@@ -2647,11 +2647,22 @@ public class CraftWorld implements World {
              throw new IllegalArgumentException("View distance " + viewDistance + " is out of range of [2, 32]");
          }
          PlayerChunkMap chunkMap = getHandle().getChunkProvider().playerChunkMap;
