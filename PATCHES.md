@@ -151,6 +151,7 @@ This is an overview over all patches that are currently used.
 | server |  Consolidate flush calls for entity tracker packets      | Spottedleaf |  |
 | server |  Controllable Minecarts      | William Blake Galbreath |  |
 | server |  Copy passenger list in enderTeleportTo      | Spottedleaf |  |
+| server |  Correctly handle recursion for chunkholder updates      | Spottedleaf |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
 | server |  Crying obsidian valid for portal frames      | William Blake Galbreath |  |
 | server |  Custom Locale Support      | Zoe |  |
@@ -169,10 +170,12 @@ This is an overview over all patches that are currently used.
 | server |  Distance manager tick timings      | Spottedleaf |  |
 | server |  Do not allow the server to unload chunks at request of      | Spottedleaf |  |
 | server |  Do not allow ticket level changes while unloading      | Spottedleaf |  |
+| server |  Do not copy visible chunks      | Spottedleaf |  |
 | server |  Do not load chunks during a crash report      | Spottedleaf |  |
 | server |  Do not retain playerchunkmap instance in light thread factory      | Spottedleaf |  |
 | server |  Do not run close logic for inventories on chunk unload      | Spottedleaf |  |
 | server |  Do not run raytrace logic for AIR      | Spottedleaf |  |
+| server |  Do not schedule poi task for each block write on chunk gen      | Spottedleaf |  |
 | server |  Do not update TE&#39;s in generating chunks      | Spottedleaf |  |
 | server |  Don&#39;t allow StructureLocateEvent to change worlds      | Spottedleaf |  |
 | server |  Don&#39;t get entity equipment if not needed      | Paul Sauve |  |
@@ -362,6 +365,7 @@ This is an overview over all patches that are currently used.
 | server |  Remove streams      | Paul Sauve |  |
 | server |  Remove streams for villager AI      | Spottedleaf |  |
 | server |  Replace player chunk loader system      | Spottedleaf |  |
+| server |  Replace ticket level propagator      | Spottedleaf |  |
 | server |  Revert MC-4 fix      | Spottedleaf |  |
 | server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
 | server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |
