@@ -432,7 +432,7 @@ This is an overview over all patches that are currently used.
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  fixup! Threaded WorldGen      | ishland |  |
 | server |  fixup! Threaded WorldGen      | ishland |  |
-| server |  lithium AI      | JellySquid |  |
+| server |  lithium AI      | JellySquid | Hugo Planque |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
@@ -442,12 +442,12 @@ This is an overview over all patches that are currently used.
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
-| server |  lithium block      | JellySquid |  |
-| server |  lithium entity      | JellySquid |  |
+| server |  lithium block      | JellySquid | Hugo Planque |
+| server |  lithium entity      | JellySquid | Hugo Planque |
 | server |  lithium enum_values      | JellySquid |  |
-| server |  lithium gen      | JellySquid |  |
+| server |  lithium gen      | JellySquid | Hugo Planque |
 | server |  lithium reduce allocations      | JellySquid | Mykyta Komarnytskyy |
-| server |  lithium shape      | JellySquid |  |
+| server |  lithium shape      | JellySquid | Hugo Planque |
 | server |  lithium: cache chunk gen sea level      | SuperCoder7979 |  |
 | server |  lithium: optimize &#96;BlockPos.iterateOutwards&#96; by caching      | 2No2Name |  |
 | server |  lithium: skip ticking block entities that are doing nothing      | 2No2Name |  |

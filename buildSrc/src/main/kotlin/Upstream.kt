@@ -15,7 +15,7 @@ open class Upstream(in_name: String, in_useBlackList: Boolean, in_list: String, 
 
     var serverList = list.stream().filter { patch -> patch.startsWith("server/") }
         ?.sorted()?.map { patch -> patch.substring(7, patch.length) }?.collect(Collectors.toList())
-    var apiList = list.stream().filter { patch -> patch.startsWith("API/") }
+    var apiList = list.stream().filter { patch -> patch.startsWith("api/") }
         ?.sorted()?.map { patch -> patch.substring(4, patch.length) }?.collect(Collectors.toList())
 
 
