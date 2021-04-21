@@ -7,7 +7,7 @@ A massive improvement to world generation.
 This patch actually schedules chunk status upgrade later rather than doing it right away.
 
 diff --git a/pom.xml b/pom.xml
-index 39488ce4694d0a1bac949d6d6bfd99569b2d035e..32e76575c7a96b14c7f6b379315fca1704636a43 100644
+index d0259f18488e1ecf0276865e0ff7958726a40033..f0a73238612327d71cf78801df816823d80893a0 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -203,6 +203,12 @@
@@ -76,10 +76,10 @@ index ce440ae5cc843fc6101dd11fd45d9089795411e4..06de830c859f3fa04b8542a238f24aa8
          return SystemUtils.e;
      }
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 89ddf0b9ac4a7aef44d15b5797ec54715a012260..ceb0b9ffd2f4d0fc227c82c44b796fc5ab34d498 100644
+index 6fd059412e07e1b3b2597b693df5a4f439ebe382..d397fc9f924b8c7947392a8385fd6074d215dfb8 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -952,6 +952,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -962,6 +962,8 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          // Spigot end
          // Paper start - move final shutdown items here
          LOGGER.info("Flushing Chunk IO");
@@ -142,7 +142,7 @@ index 424cd048f905cd0ed3f7a4545a26ffde8da1f91f..194321b7183d3aaa8031608a979dde71
          if (chunkMapDistance.delayDistanceManagerTick) return false; // Paper
          if (this.playerChunkMap.unloadingPlayerChunk) { MinecraftServer.LOGGER.fatal("Cannot tick distance manager while unloading playerchunks", new Throwable()); throw new IllegalStateException("Cannot tick distance manager while unloading playerchunks"); } // Tuinity
 diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
-index 58d2f1a10186e889bdd2249724a7f21f3a0a6a6e..b9d38413da1adbffd21df301f03cf181d4cd5cdc 100644
+index 0b9ed4042612f5242e5b2d057b716170f22c78b1..0a2edb9ac73ed71e67833f17824d3be5909e3445 100644
 --- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 @@ -113,6 +113,18 @@ import org.spigotmc.AsyncCatcher;
@@ -164,7 +164,7 @@ index 58d2f1a10186e889bdd2249724a7f21f3a0a6a6e..b9d38413da1adbffd21df301f03cf181
      private static final Logger LOGGER = LogManager.getLogger();
      public static final int GOLDEN_TICKET = 33 + ChunkStatus.b();
      // Paper start - faster copying
-@@ -1407,7 +1419,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+@@ -1372,7 +1384,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
                  return;
              }
              // Paper end
@@ -174,24 +174,15 @@ index 58d2f1a10186e889bdd2249724a7f21f3a0a6a6e..b9d38413da1adbffd21df301f03cf181
              return CompletableFuture.completedFuture(either);
          }, this.mainInvokingExecutor);
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 9ae4377bb9277ca15d2c56f3db880fe3d6435f4f..048e405d7aab8dd46f875683cda9a33784f0ad4b 100644
+index e6f85b07f731859c8b8c380afad699ccc1d6c3e8..113f3395fdf99e505750352f9b2851582731cc99 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
-@@ -2787,28 +2787,26 @@ public class WorldServer extends World implements GeneratorAccessSeed, NonBlocki
- 
-         // Paper start
-         BlockPosition blockposition1 = blockposition.immutableCopy();
--        this.getMinecraftServer().execute(() -> {
-+        // Yatopia start - reduce scheduling overhead
-+            chunkProvider.poiQueue.add(() -> {
-                 if (!optional.isPresent() && this.getPoiStorage().test(blockposition1, com.google.common.base.Predicates.alwaysTrue())) {
-                     this.getPoiStorage().remove(blockposition1);
-                 }
--        });
-         if (!Objects.equals(optional, optional1)) {
-             //BlockPosition blockposition1 = blockposition.immutableCopy();
+@@ -2791,14 +2791,13 @@ public class WorldServer extends World implements GeneratorAccessSeed, NonBlocki
+             BlockPosition blockposition1 = blockposition.immutableCopy(); // Tuinity - oh god not for each block set
              // Paper end
  
++            // Yatopia start - reduce scheduling overhead
++            chunkProvider.poiQueue.add(() -> {
              optional.ifPresent((villageplacetype) -> {
 -                this.getMinecraftServer().execute(() -> {
                      this.y().a(blockposition1);
@@ -200,16 +191,20 @@ index 9ae4377bb9277ca15d2c56f3db880fe3d6435f4f..048e405d7aab8dd46f875683cda9a337
              });
              optional1.ifPresent((villageplacetype) -> {
 -                this.getMinecraftServer().execute(() -> {
+                     // Tuinity start - remove POIs before inserting, better version of paper's diff
+                     if (!optional.isPresent() && this.getPoiStorage().test(blockposition1, com.google.common.base.Predicates.alwaysTrue())) {
+                         this.getPoiStorage().remove(blockposition1);
+@@ -2806,8 +2805,9 @@ public class WorldServer extends World implements GeneratorAccessSeed, NonBlocki
+                     // Tuinity end - remove POIs before inserting, better version of paper's diff
                      this.y().a(blockposition1, villageplacetype);
                      PacketDebug.a(this, blockposition1);
 -                });
              });
++            });
++            // Yatopia end
          }
-+        });
-+        // Yatopia end
      }
  
-     public final VillagePlace getPoiStorage() { return this.y(); } // Paper - OBFHELPER
 diff --git a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java
 index 28b2c69ef1ad7938b09dd39e34008956f4922483..0505fd4d6882bfaa63805464a056f66ad060930e 100644
 --- a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java

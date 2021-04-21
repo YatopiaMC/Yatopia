@@ -55,7 +55,7 @@ index a33cbd6504fd0d5c5e50aa63009d70533c01f686..e4f8bb15201e89d0832e3bcdfcbc1266
              if (valid && !this.isSpectator() || this.world.isLoaded(this.getChunkCoordinates())) { // Paper - don't tick dead players that are not in the world currently (pending respawn)
                  super.tick();
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 7cedb4aaf4a002945866a0ca56eb9b0e7ae28de6..e054e98e413ed02b76e63b29c52bd70a559ad15d 100644
+index 8e978b74e3f5573123fa831bc1e64c38c4cbd2e6..d7f95bd32842fdee0ce53fc97d31ffb3577cdc78 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
 @@ -176,8 +176,9 @@ import org.bukkit.event.weather.LightningStrikeEvent;
@@ -244,7 +244,7 @@ index 4492f2579da79bd58def922894f40422fbeaf54c..cd1f94e5c1c923ee9d8dd451406ac2be
                          if (fluid.a(tag)) {
                              double d2 = (double) ((float) i2 + fluid.getHeight(this.world, blockposition_mutableblockposition));
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 5096afa6c11810decc4b4bd73867c48594b932b2..c1d4dd2ba75115b1f53c4ce6a3b49bd840973b8e 100644
+index cb4d336e0812ad44d0a936f875853440c556f8b7..a057be22f488f76b926c81dc5c63e7f9c3fb54a1 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -140,6 +140,7 @@ import org.bukkit.event.entity.EntityTeleportEvent;
@@ -342,7 +342,7 @@ index 5096afa6c11810decc4b4bd73867c48594b932b2..c1d4dd2ba75115b1f53c4ce6a3b49bd8
  
                  f = this.onGround ? f5 * 0.91F : 0.91F;
                  Vec3D vec3d6 = this.a(vec3d, f5);
-@@ -3549,7 +3552,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3550,7 +3553,7 @@ public abstract class EntityLiving extends Entity {
  
              while (!flag2 && blockposition.getY() > 0) {
                  BlockPosition blockposition1 = blockposition.down();
@@ -351,7 +351,7 @@ index 5096afa6c11810decc4b4bd73867c48594b932b2..c1d4dd2ba75115b1f53c4ce6a3b49bd8
  
                  if (iblockdata.getMaterial().isSolid()) {
                      flag2 = true;
-@@ -3644,7 +3647,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3645,7 +3648,7 @@ public abstract class EntityLiving extends Entity {
              this.stopRiding();
          }
  
@@ -360,7 +360,7 @@ index 5096afa6c11810decc4b4bd73867c48594b932b2..c1d4dd2ba75115b1f53c4ce6a3b49bd8
  
          if (iblockdata.getBlock() instanceof BlockBed) {
              this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, true), 3);
-@@ -3663,7 +3666,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3664,7 +3667,7 @@ public abstract class EntityLiving extends Entity {
  
      private boolean x() {
          return (Boolean) this.getBedPosition().map((blockposition) -> {
@@ -369,7 +369,7 @@ index 5096afa6c11810decc4b4bd73867c48594b932b2..c1d4dd2ba75115b1f53c4ce6a3b49bd8
          }).orElse(false);
      }
  
-@@ -3673,7 +3676,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3674,7 +3677,7 @@ public abstract class EntityLiving extends Entity {
  
          this.world.getClass();
          optional.filter(world::isLoaded).ifPresent((blockposition) -> {

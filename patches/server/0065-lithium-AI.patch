@@ -865,7 +865,7 @@ index a206a729b3afa01bf591fa4da1e5c14902da4778..716f91246c4a45fd49af806afd1781f1
          return (int) (i << 22 >> 42);
      }
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index e054e98e413ed02b76e63b29c52bd70a559ad15d..9ae4377bb9277ca15d2c56f3db880fe3d6435f4f 100644
+index d7f95bd32842fdee0ce53fc97d31ffb3577cdc78..e6f85b07f731859c8b8c380afad699ccc1d6c3e8 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
 @@ -177,6 +177,7 @@ import org.bukkit.event.world.TimeSkipEvent;
@@ -906,7 +906,7 @@ index cd1f94e5c1c923ee9d8dd451406ac2bee360e9c3..7befe4263a2d046922438e1a9853f2d8
      public Throwable addedToWorldStack; // Paper - entity debug
      public CraftEntity getBukkitEntity() {
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index c1d4dd2ba75115b1f53c4ce6a3b49bd840973b8e..4cae70c41bbd977b6a5661e43a5ddd3694e89580 100644
+index a057be22f488f76b926c81dc5c63e7f9c3fb54a1..a897ad3de8c18be8bb3c320950a7421477040e8a 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -141,9 +141,11 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -1723,7 +1723,7 @@ index b6de70c3630d96d0782a657c0389ce03839d8c43..611066964d11b2da7ab6dd59c6083c5c
              // Tuinity start - optimise culling shape cache for light
              if (this.a != null && this.a.getCullingShapeCache() != null) {
 diff --git a/src/main/java/net/minecraft/world/level/chunk/Chunk.java b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
-index c07fb5ca761c0f2067bd103026ded618a8620947..cbe21ec18561c991aa27dd48d536c78e358d5b0e 100644
+index 2e8eb0bb8fb4f7ce6b92fe01a81327da30e614ae..34af81b75e7927cccc0d4aea1b80ab677ca31795 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/Chunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
 @@ -68,6 +68,7 @@ import net.minecraft.world.level.material.FluidTypes;
@@ -1734,7 +1734,7 @@ index c07fb5ca761c0f2067bd103026ded618a8620947..cbe21ec18561c991aa27dd48d536c78e
  
  public class Chunk implements IChunkAccess {
  
-@@ -852,6 +853,11 @@ public class Chunk implements IChunkAccess {
+@@ -863,6 +864,11 @@ public class Chunk implements IChunkAccess {
          if (!this.entitySlices[i].remove(entity)) { // Tuinity - optimise hard colliding entities // Tuinity - entities by class // Tuinity
              return;
          }
@@ -1746,7 +1746,7 @@ index c07fb5ca761c0f2067bd103026ded618a8620947..cbe21ec18561c991aa27dd48d536c78e
          if (entity instanceof EntityItem) {
              itemCounts[i]--;
          } else if (entity instanceof IInventory) {
-@@ -861,6 +867,11 @@ public class Chunk implements IChunkAccess {
+@@ -872,6 +878,11 @@ public class Chunk implements IChunkAccess {
          this.markDirty(); // Paper
          // Paper end
          this.entities.remove(entity); // Paper
