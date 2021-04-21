@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Wed, 21 Apr 2021 14:13:14 -0400
+Subject: [PATCH] lithium AI fixup: use vanilla method for getClosestEntity
+
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
+index 01f9a626e761dd8cc26216e316e3a39362dc463d..6c0905e3bfa1cb45b9ced83b7f3e4aec72082895 100644
+--- a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
+@@ -64,10 +64,14 @@ public class NearbyEntityTracker<T extends EntityLiving> implements NearbyEntity
+      * @return the closest Entity that meets all requirements (distance, box intersection, predicate, type T)
+      */
+     public T getClosestEntity(AxisAlignedBB box, PathfinderTargetCondition targetPredicate) {
++        // Yatopia start - use vanilla method for getClosestEntity
+         double x = this.self.locX();
+         double y = this.self.locY();
+         double z = this.self.locZ();
++        return this.self.world.b(this.clazz, targetPredicate, this.self, x, y, z, box);
++        // Yatopia end
+ 
++        /*
+         T nearest = null;
+         double nearestDistance = Double.POSITIVE_INFINITY;
+ 
+@@ -85,6 +89,7 @@ public class NearbyEntityTracker<T extends EntityLiving> implements NearbyEntity
+         }
+ 
+         return null;
++        */
+     }
+ 
+     @Override
