@@ -4,30 +4,95 @@ Date: Wed, 21 Apr 2021 14:13:14 -0400
 Subject: [PATCH] lithium AI fixup: use vanilla method for getClosestEntity
 
 
-diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
-index 01f9a626e761dd8cc26216e316e3a39362dc463d..6c0905e3bfa1cb45b9ced83b7f3e4aec72082895 100644
---- a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
-+++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
-@@ -64,10 +64,14 @@ public class NearbyEntityTracker<T extends EntityLiving> implements NearbyEntity
-      * @return the closest Entity that meets all requirements (distance, box intersection, predicate, type T)
-      */
-     public T getClosestEntity(AxisAlignedBB box, PathfinderTargetCondition targetPredicate) {
-+        // Yatopia start - use vanilla method for getClosestEntity
-         double x = this.self.locX();
-         double y = this.self.locY();
-         double z = this.self.locZ();
-+        return this.self.world.b(this.clazz, targetPredicate, this.self, x, y, z, box);
-+        // Yatopia end
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
+index eea1a396f06e8feaa5637ba4e589a13169f514da..804bdc1c2d759799ecf48d9fd0b9e8b23d22851e 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
+@@ -1,6 +1,6 @@
+ package net.minecraft.world.entity.ai.goal;
  
+-import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
++// import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
+ 
+ import java.util.EnumSet;
+ import java.util.function.Predicate;
+@@ -27,7 +27,7 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+     protected final Predicate<EntityLiving> g;
+     protected final Predicate<EntityLiving> h;
+     private final PathfinderTargetCondition k;
+-    private NearbyEntityTracker<T> tracker; // Yatopia - Port Lithium
++    // private NearbyEntityTracker<T> tracker; // Yatopia - Port Lithium
+ 
+     public PathfinderGoalAvoidTarget(EntityCreature entitycreature, Class<T> oclass, float f, double d0, double d1) {
+         this(entitycreature, oclass, entityliving -> true, f, d0, d1, IEntitySelector.e::test); // Purpur - decompile fix
+@@ -44,10 +44,12 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+         this.e = entitycreature.getNavigation();
+         this.a(EnumSet.of(PathfinderGoal.Type.MOVE));
+         this.k = (new PathfinderTargetCondition()).a((double) f).a(predicate1.and(predicate));
 +        /*
-         T nearest = null;
-         double nearestDistance = Double.POSITIVE_INFINITY;
+         // Yatopia start - Port Lithium
+         this.tracker = new NearbyEntityTracker<>(oclass, entitycreature, f);
+         entitycreature.getListener().addListener(this.tracker);
+         // Yatopia end
++        */
+     }
  
-@@ -85,6 +89,7 @@ public class NearbyEntityTracker<T extends EntityLiving> implements NearbyEntity
+     public PathfinderGoalAvoidTarget(EntityCreature entitycreature, Class<T> oclass, float f, double d0, double d1, Predicate<EntityLiving> predicate) {
+@@ -58,7 +60,8 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+ 
+     @Override
+     public boolean a() {
+-        this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.k); // Yatopia - Port lithium
++        // this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.k); // Yatopia - Port lithium
++        this.b = this.a.world.b(this.f, this.k, this.a, this.a.locX(), this.a.locY(), this.a.locZ(), this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c));
+         if (this.b == null) {
+             return false;
+         } else {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
+index 8b41274aa388a758bd8acf9637e2a19caf744c57..c42b0032124df3ee4bc28fb6a5166e712edd1e1f 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
+@@ -1,6 +1,6 @@
+ package net.minecraft.world.entity.ai.goal;
+ 
+-import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
++// import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
+ import java.util.EnumSet;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.entity.EntityInsentient;
+@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.EntityHuman;
+ 
+ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+ 
+-    private NearbyEntityTracker<? extends EntityLiving> tracker; // Yatopia - Port lithium
++    // private NearbyEntityTracker<? extends EntityLiving> tracker; // Yatopia - Port lithium
+     protected final EntityInsentient a;
+     protected Entity b;
+     protected final float c;
+@@ -37,10 +37,12 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+         } else {
+             this.f = (new PathfinderTargetCondition()).a((double) f).b().a().d();
          }
- 
-         return null;
++        /*
+         // Yatopia start - Port lithium
+         this.tracker = new NearbyEntityTracker<>(oclass, entityinsentient, f);
+         entityinsentient.getListener().addListener(this.tracker);
+         // Yatopia end
 +        */
      }
  
      @Override
+@@ -53,9 +55,11 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+             }
+ 
+             if (this.e == EntityHuman.class) {
+-                this.b = this.tracker.getClosestEntity(null, this.f); // Yatopia - Port lithium
++                // this.b = this.tracker.getClosestEntity(null, this.f); // Yatopia - Port lithium
++                this.b = this.a.world.a(this.f, this.a, this.a.locX(), this.a.getHeadY(), this.a.locZ());
+             } else {
+-                this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.f); // Yatopia - Port lithium
++                // this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.f); // Yatopia - Port lithium
++                this.b = this.a.world.b(this.e, this.f, this.a, this.a.locX(), this.a.getHeadY(), this.a.locZ(), this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c));
+             }
+ 
+             return this.b != null;
