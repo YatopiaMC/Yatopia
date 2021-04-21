@@ -27,37 +27,43 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index ab019b577002677a4ce788106f8e5a1d7757a2ae..946e476e1ca8c3ced119c64a05643c8c64760724 100644
+index ab019b577002677a4ce788106f8e5a1d7757a2ae..0e452ea9c5d098326d22a20aa67e423f85843db7 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -47,4 +47,30 @@ public class AirplaneConfig {
+@@ -47,4 +47,36 @@ public class AirplaneConfig {
          }
      }
  
 +
-+    public static int maximumActivationPrio = 20;
-+    public static int activationDistanceMod = 9;
-+    public static boolean dynamicVillagerBehavior = true;
-+    public static boolean dynamicPiglinBehavior = true;
-+    public static boolean dynamicHoglinBehavior = true;
++    public static int startDistance;
++    public static int startDistanceSquared;
++    public static int maximumActivationPrio;
++    public static int activationDistanceMod;
++    public static boolean dynamicVillagerBehavior;
++    public static boolean dynamicPiglinBehavior;
++    public static boolean dynamicHoglinBehavior;
 +
 +    private static void dynamicActivationRange() {
 +        config.setComment("activation-range", "Optimizes how entities act when", "they're far away from the player");
 +
-+        maximumActivationPrio = config.getInt("activation-range.max-tick-freq", maximumActivationPrio,
++        startDistance = config.getInt("activation-range.start-distance", 12,
++          "This value determines how far away an entity has to be",
++          "from the player to start being effected by DEAR.");
++        startDistanceSquared = startDistance * startDistance;
++        maximumActivationPrio = config.getInt("activation-range.max-tick-freq", 20,
 +          "This value defines how often in ticks, the furthest entity",
 +          "will get their pathfinders and behaviors ticked. 20 = 1s");
-+        activationDistanceMod = config.getInt("activation-range.activation-dist-mod", activationDistanceMod,
++        activationDistanceMod = config.getInt("activation-range.activation-dist-mod", 8,
 +          "This value defines how much distance modifies an entity's",
 +          "tick frequency. freq = (distanceToPlayer^2) / (2^value)",
-+          "If you want further away entities to tick less often, use 8.",
-+          "If you want further away entities to tick more often, try 10.");
++          "If you want further away entities to tick less often, use 7.",
++          "If you want further away entities to tick more often, try 9.");
 +
 +        config.setComment("behavior-activation", "A list of entities to use the dynamic activation range", "to modify how often their behaviors are ticked");
 +
-+        dynamicVillagerBehavior = config.getBoolean("behavior-activation.villager", dynamicVillagerBehavior);
-+        dynamicPiglinBehavior = config.getBoolean("behavior-activation.piglin", dynamicPiglinBehavior);
-+        dynamicHoglinBehavior = config.getBoolean("behavior-activation.hoglin", dynamicHoglinBehavior);
++        dynamicVillagerBehavior = config.getBoolean("behavior-activation.villager", true);
++        dynamicPiglinBehavior = config.getBoolean("behavior-activation.piglin", true);
++        dynamicHoglinBehavior = config.getBoolean("behavior-activation.hoglin", true);
 +    }
 +
  }
@@ -105,7 +111,7 @@ index aae13c2e6c2a30b69c33417932c6a4d0aefeb7f5..f4440a5c4aedb1d7d303517f86a07c85
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("navigation");
 diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
-index 637928664f8c7b1c694a234e507c20724294e450..f303c5d6b2e55fc9fd8b49ec21121805e7351034 100644
+index 637928664f8c7b1c694a234e507c20724294e450..02e8288473138dcea008d6157318758e8d7ee3be 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
 @@ -44,9 +44,14 @@ public class PathfinderGoalSelector {
@@ -116,7 +122,7 @@ index 637928664f8c7b1c694a234e507c20724294e450..f303c5d6b2e55fc9fd8b49ec21121805
 -        incRate();
 -        return getCurRate() % getTickRate() == 0;
 +    public boolean inactiveTick(int tickRate) { // Airplane - take tick rate
-+        tickRate = Math.max(tickRate, getTickRate()); // Airplane
++        tickRate = Math.min(tickRate, getTickRate()); // Airplane
 +        if (this.curRate++ % tickRate != 0) { // Airplane - use tick rate / increment curRate every tick
 +            //incRate();
 +            return false;
@@ -194,7 +200,7 @@ index 2d0b83923d58cc7b6918b4e2ff2bece13ca26899..d8028675fc82883d716bcfb44431ca6a
          if (this.bF) {
              this.bF = false;
 diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
-index 5c2eaca0bc63c7880ee928aba6a24761737aa649..6c4c4580faef39e48de5af4db003cf2e3b8a99b5 100644
+index 5c2eaca0bc63c7880ee928aba6a24761737aa649..8b36ca5062f8e0e8bd58aa506e91704a747de81b 100644
 --- a/src/main/java/org/spigotmc/ActivationRange.java
 +++ b/src/main/java/org/spigotmc/ActivationRange.java
 @@ -47,6 +47,9 @@ import net.minecraft.world.entity.schedule.Activity;
@@ -225,23 +231,19 @@ index 5c2eaca0bc63c7880ee928aba6a24761737aa649..6c4c4580faef39e48de5af4db003cf2e
      {
          // Paper start
          Entity[] rawData = chunk.entities.getRawData();
-@@ -249,11 +252,19 @@ public class ActivationRange
+@@ -249,6 +252,15 @@ public class ActivationRange
              //for ( Entity entity : (Collection<Entity>) slice )
              // Paper end
              {
 +                // Airplane start
 +                Vec3D entityVec = entity.getPositionVector();
 +                double diffX = playerVec.x - entityVec.x, diffY = playerVec.y - entityVec.y, diffZ = playerVec.z - entityVec.z;
-+                int priority = Math.max(1, (int) (diffX * diffX + diffY * diffY + diffZ * diffZ) >> gg.airplane.AirplaneConfig.activationDistanceMod);
++                int squaredDistance = (int) (diffX * diffX + diffY * diffY + diffZ * diffZ);
++                entity.activatedPriority = squaredDistance > gg.airplane.AirplaneConfig.startDistanceSquared ?
++                  Math.max(1, Math.min(squaredDistance >> gg.airplane.AirplaneConfig.activationDistanceMod, gg.airplane.AirplaneConfig.maximumActivationPrio)) :
++                  1;
++                // Airplane end
++
                  if (MinecraftServer.currentTick > entity.activatedTick) {
                      if (entity.defaultActivationState || entity.activationType.boundingBox.c(entity.getBoundingBox())) { // Paper
                          entity.activatedTick = MinecraftServer.currentTick;
-                     }
-+                    entity.activatedPriority = Math.min(gg.airplane.AirplaneConfig.maximumActivationPrio, priority);
-+                } else {
-+                    entity.activatedPriority = Math.min(gg.airplane.AirplaneConfig.maximumActivationPrio, Math.min(priority, entity.activatedPriority));
-                 }
-+                // Airplane end
-             }
-         }
-     }

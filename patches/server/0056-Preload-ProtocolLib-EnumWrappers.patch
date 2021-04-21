@@ -6,10 +6,10 @@ Subject: [PATCH] Preload ProtocolLib EnumWrappers
 Currently, ProtocolLib load EnumWrappers lazily and causing memory effects issues. This patch preloads EnumWrappers to prevent further NPE.
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 01775d93c5cc6eda99c0a7190b5ce43be36d52cc..ada7639c31fe6952f689bc2e437db57abe1b1037 100644
+index ee0b256632e23bc18f94cbcf478e9dc7fc2c50e9..95922cdce7483f215aa139f280e20a8858955879 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1078,6 +1078,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1088,6 +1088,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
                  // Paper end
  
                  PaperJvmChecker.checkJvm(); // Paper jvm version nag
