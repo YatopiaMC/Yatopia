@@ -6,21 +6,20 @@ Subject: [PATCH] lithium entity
 Co-authored-by: Hugo Planque <hookwood01@gmail.com>
 
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index a897ad3de8c18be8bb3c320950a7421477040e8a..a182cb8d641dbf8756267901a682f8e3e2a4c67c 100644
+index a057be22f488f76b926c81dc5c63e7f9c3fb54a1..45924c33b2928e25dedaae22d06f2a7a181ead25 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-@@ -286,6 +286,10 @@ public abstract class EntityLiving extends Entity {
-     public NearbyEntityListenerMulti getListener() {
-         return this.tracker;
+@@ -279,6 +279,9 @@ public abstract class EntityLiving extends Entity {
+         this.bg = this.a(new Dynamic(dynamicopsnbt, dynamicopsnbt.createMap((Map) ImmutableMap.of(dynamicopsnbt.createString("memories"), dynamicopsnbt.emptyMap()))));
      }
-+
+ 
 +    private IBlockData lastStateAtFeet = null;
 +
 +    private long lastPos = Long.MIN_VALUE;
-     // Yatopia end
      protected void initAttributes() {} // Purpur
  
-@@ -363,6 +367,10 @@ public abstract class EntityLiving extends Entity {
+     public BehaviorController<?> getBehaviorController() {
+@@ -355,6 +358,10 @@ public abstract class EntityLiving extends Entity {
  
      @Override
      public void entityBaseTick() {
@@ -31,7 +30,7 @@ index a897ad3de8c18be8bb3c320950a7421477040e8a..a182cb8d641dbf8756267901a682f8e3
          this.ar = this.as;
          if (this.justCreated) {
              this.getBedPosition().ifPresent(this::a);
-@@ -1783,7 +1791,24 @@ public abstract class EntityLiving extends Entity {
+@@ -1775,7 +1782,24 @@ public abstract class EntityLiving extends Entity {
      }
  
      public IBlockData ds() {
