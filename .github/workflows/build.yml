@@ -24,19 +24,17 @@ jobs:
       
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        java: [16, 11, 8]
-      fail-fast: false
-
+        java: [ '8', '11', '16' ]
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK ${{ matrix.java }}
+    - name: Set up JDK ${{ matrix.Java }}
       uses: actions/setup-java@v2
       with:    
         distribution: 'adopt'
         java-version: ${{ matrix.java }}
+        check-latest: true
         
     - name: Pull Gradle Cache
       uses: actions/cache@v2
