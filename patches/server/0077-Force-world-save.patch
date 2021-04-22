@@ -5,10 +5,10 @@ Subject: [PATCH] Force world save
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
-index 308bc6ea4cb2ffaa3ab2ac7ce9863320980cd242..43670af9a44253fac1596471933c06a04849750c 100644
+index 55d497f4305de50e58c7e0788724576f81128138..edb45dd2933b985efb29d61b2a844615f5f1cc9f 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
-@@ -404,6 +404,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -366,6 +366,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          }).orElse(false);
      }
  
@@ -16,7 +16,7 @@ index 308bc6ea4cb2ffaa3ab2ac7ce9863320980cd242..43670af9a44253fac1596471933c06a0
      @Override
      public void a(BooleanSupplier booleansupplier) {
          // Paper start - async chunk io
-@@ -411,7 +412,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -373,7 +374,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
              super.a(booleansupplier);
          } else {
              //super.a(booleansupplier); // re-implement below
@@ -26,14 +26,13 @@ index 308bc6ea4cb2ffaa3ab2ac7ce9863320980cd242..43670af9a44253fac1596471933c06a0
  
                  NBTTagCompound data;
 diff --git a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
-index 5968712468ad1bea4894d31d0d08b213735743e5..e2cbeecf2646ffc174366eefe83241b8816f2641 100644
+index f70c14385c95763b5f270a6e2ce372cf047ba7bb..4454489153f7932deaaebe8aa32ecb603764f42b 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/storage/RegionFileSection.java
-@@ -143,9 +143,9 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
-         return set;
+@@ -50,8 +50,9 @@ public class RegionFileSection<R> extends RegionFileCache implements AutoCloseab
+         //this.b = new IOWorker(file, flag, file.getName()); // Paper - nuke IOWorker
      }
-     // Yatopia end
--
+ 
 +    private final java.util.concurrent.atomic.AtomicBoolean hasWorked = new java.util.concurrent.atomic.AtomicBoolean(false); // Yatopia - enforce one chunk unload per tick
      protected void a(BooleanSupplier booleansupplier) {
 -        while (!this.d.isEmpty() && booleansupplier.getAsBoolean()) {

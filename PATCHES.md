@@ -437,8 +437,6 @@ This is an overview over all patches that are currently used.
 | server |  dont load chunks for physics      | Aikar |  |
 | server |  fixup! Threaded WorldGen      | ishland |  |
 | server |  fixup! Threaded WorldGen      | ishland |  |
-| server |  lithium AI      | JellySquid | Hugo Planque |
-| server |  lithium AI fixup: use vanilla method for getClosestEntity      | Simon Gardling |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
