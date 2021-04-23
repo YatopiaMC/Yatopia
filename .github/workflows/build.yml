@@ -42,7 +42,7 @@ jobs:
       id: gradle-cache
       with:
         path: ~/.gradle
-        key: ${{ runner.os }}-maven-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-java-${{ matrix.java }}
+        key: ${{ runner.os }}-mavenCache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-openjdk-${{ matrix.java }}
             
     - name: Setup Yatopia Project
       run: |
@@ -61,7 +61,7 @@ jobs:
       id: decompile-cache
       with:
         path: Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
-        key: ${{ hashFiles('Paper/work/BuildData/mappings/bukkit-$STEPS_MCVER_OUTPUTS_MCVER-cl.csrg') }}-${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-java-${{ matrix.java }}-minecraft-decomp
+        key: ${{ hashFiles('Paper/work/BuildData/mappings/bukkit-$STEPS_MCVER_OUTPUTS_MCVER-cl.csrg') }}-${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-openjdk-${{ matrix.java }}-minecraft-decomp
         
     - name: Apply Patches
       run: |
@@ -73,7 +73,7 @@ jobs:
       id: maven-cache
       with:
         path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-mavenCache-${{ hashFiles('**/pom.xml') }}
 
     - name: Build Yatopia
       run: |
