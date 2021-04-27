@@ -1223,7 +1223,7 @@ index 9e96376a1d710c0ba7a763868b23fc586253e1a8..fe040615ff03478a20cdf8376f89a6b7
          try {
              boolean execChunkTask = com.destroystokyo.paper.io.chunk.ChunkTaskManager.pollChunkWaitQueue() || ChunkProviderServer.this.world.asyncChunkTaskManager.pollNextChunkTask(); // Paper
 diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-index bffc0824151a6597d91cd854b343b2586f6b9322..62b95dcba8606330fbb3239e74c5eaf8baa3c51d 100644
+index b7eb11ee5a5922612fd051e7397327111a8e3125..fb61b6ac167b34486282a24e598020fb96081f28 100644
 --- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
 @@ -261,7 +261,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -1554,7 +1554,7 @@ index 1e627159cbb35fac47d4d158299ec3da7c1f9bf5..d7eede51f1c4ebbe8e00b16efd6331c8
                          }
                      }
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index e9ff47b239372bd628097e6e7f43fa9bd5f4d73d..0b5cf23932c3c626d8805d4db97d2bbab63634cf 100644
+index e373232cfb4aff039e9163cab82df33ec9c0d50d..c705bf1e651a764d56b87ebc5a86a938d8bd34bb 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -270,7 +270,7 @@ public abstract class PlayerList {
@@ -1566,7 +1566,7 @@ index e9ff47b239372bd628097e6e7f43fa9bd5f4d73d..0b5cf23932c3c626d8805d4db97d2bba
          entityplayer.getBukkitEntity().sendSupportedChannels(); // CraftBukkit
          playerconnection.sendPacket(new PacketPlayOutCustomPayload(PacketPlayOutCustomPayload.a, (new PacketDataSerializer(Unpooled.buffer())).a(this.getServer().getServerModName())));
          playerconnection.sendPacket(new PacketPlayOutServerDifficulty(worlddata.getDifficulty(), worlddata.isDifficultyLocked()));
-@@ -950,7 +950,7 @@ public abstract class PlayerList {
+@@ -952,7 +952,7 @@ public abstract class PlayerList {
          // CraftBukkit start
          WorldData worlddata = worldserver1.getWorldData();
          entityplayer1.playerConnection.sendPacket(new PacketPlayOutRespawn(worldserver1.getDimensionManager(), worldserver1.getDimensionKey(), BiomeManager.a(worldserver1.getSeed()), entityplayer1.playerInteractManager.getGameMode(), entityplayer1.playerInteractManager.c(), worldserver1.isDebugWorld(), worldserver1.isFlatWorld(), flag));
@@ -1575,7 +1575,7 @@ index e9ff47b239372bd628097e6e7f43fa9bd5f4d73d..0b5cf23932c3c626d8805d4db97d2bba
          entityplayer1.spawnIn(worldserver1);
          entityplayer1.dead = false;
          entityplayer1.playerConnection.teleport(new Location(worldserver1.getWorld(), entityplayer1.locX(), entityplayer1.locY(), entityplayer1.locZ(), entityplayer1.yaw, entityplayer1.pitch));
-@@ -1219,7 +1219,7 @@ public abstract class PlayerList {
+@@ -1221,7 +1221,7 @@ public abstract class PlayerList {
              // Really shouldn't happen...
              backingSet = world != null ? world.players.toArray() : players.toArray();
          } else {
@@ -1750,10 +1750,10 @@ index 3fe1508b091e1fd0325eae50138d02fa6445c9ff..a19a26a88f247d359354902efeece992
          return new Vec3D((double) baseblockposition.getX() + 0.5D, (double) baseblockposition.getY() + 0.5D, (double) baseblockposition.getZ() + 0.5D);
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 0128a24f1de7468ff60ba2de0ed825ff62363f6b..09cef73a92679e47c8670e4e4c1ba988878aee24 100644
+index edb0c77d0345f1fbf1b7e7c549639f3b726ff218..2152900a4f92c5a3b08b3fe05a700b7c35631a4f 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -2631,14 +2631,14 @@ public class CraftWorld implements World {
+@@ -2701,14 +2701,14 @@ public class CraftWorld implements World {
              throw new IllegalArgumentException("View distance " + viewDistance + " is out of range of [2, 32]");
          }
          PlayerChunkMap chunkMap = getHandle().getChunkProvider().playerChunkMap;
@@ -1770,7 +1770,7 @@ index 0128a24f1de7468ff60ba2de0ed825ff62363f6b..09cef73a92679e47c8670e4e4c1ba988
      }
  
      @Override
-@@ -2647,11 +2647,22 @@ public class CraftWorld implements World {
+@@ -2717,11 +2717,22 @@ public class CraftWorld implements World {
              throw new IllegalArgumentException("View distance " + viewDistance + " is out of range of [2, 32]");
          }
          PlayerChunkMap chunkMap = getHandle().getChunkProvider().playerChunkMap;
