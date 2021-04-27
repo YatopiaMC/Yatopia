@@ -1,0 +1,720 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sun, 24 Jan 2021 12:17:19 +0100
+Subject: [PATCH] lithium AI
+
+Co-authored-by: Hugo Planque <hookwood01@gmail.com>
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/EntityTrackerEngine.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/EntityTrackerEngine.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..23ea99d0ec8622eadadc2073022e59c4aac8dc3a
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/EntityTrackerEngine.java
+@@ -0,0 +1,254 @@
++package me.jellysquid.mods.lithium.common.entity.tracker;
++
++import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
++import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListener;
++import net.minecraft.core.BlockPosition;
++import net.minecraft.world.entity.EntityLiving;
++import net.minecraft.core.SectionPosition;
++import net.minecraft.world.level.levelgen.structure.StructureBoundingBox;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Set;
++
++/**
++ * Tracks the entities within a world and provides notifications to listeners when a tracked entity enters or leaves a
++ * watched area. This removes the necessity to constantly poll the world for nearby entities each tick and generally
++ * provides a sizable boost to performance.
++ */
++public class EntityTrackerEngine {
++    private final Long2ObjectOpenHashMap<TrackedEntityList> sections;
++    private final Reference2ReferenceOpenHashMap<NearbyEntityListener, List<TrackedEntityList>> sectionsByEntity;
++
++
++    public EntityTrackerEngine() {
++        this.sections = new Long2ObjectOpenHashMap<>();
++        this.sectionsByEntity = new Reference2ReferenceOpenHashMap<>();
++    }
++
++    /**
++     * Called when an entity is added to the world.
++     */
++    public void onEntityAdded(int x, int y, int z, EntityLiving entity) {
++        if (this.addEntity(x, y, z, entity)) {
++            this.addListener(x, y, z, entity.getListener());
++        }
++    }
++
++    /**
++     * Called when an entity is removed from the world.
++     */
++    public void onEntityRemoved(int x, int y, int z, EntityLiving entity) {
++        if (this.removeEntity(x, y, z, entity)) {
++            this.removeListener(entity.getListener());
++        }
++    }
++
++    private boolean addEntity(int x, int y, int z, EntityLiving entity) {
++        return this.getOrCreateList(x, y, z).addTrackedEntity(entity);
++    }
++
++    private boolean removeEntity(int x, int y, int z, EntityLiving entity) {
++        TrackedEntityList list = this.getList(x, y, z);
++
++        if (list == null) {
++            return false;
++        }
++
++        return list.removeTrackedEntity(entity);
++    }
++
++    private void addListener(int x, int y, int z, NearbyEntityListener listener) {
++        int r = listener.getChunkRange();
++
++        if (r == 0) {
++            return;
++        }
++
++        if (this.sectionsByEntity.containsKey(listener)) {
++
++            throw new IllegalStateException(errorMessageAlreadyListening(this.sectionsByEntity, listener, SectionPosition.a(x, y, z)));
++        }
++
++        int yMin = Math.max(0, y - r);
++        int yMax = Math.min(y + r, 15);
++
++        List<TrackedEntityList> all = new ArrayList<>((2 * r + 1) * (yMax - yMin + 1) * (2 * r + 1));
++
++        for (int x2 = x - r; x2 <= x + r; x2++) {
++            for (int y2 = yMin; y2 <= yMax; y2++) {
++                for (int z2 = z - r; z2 <= z + r; z2++) {
++                    TrackedEntityList list = this.getOrCreateList(x2, y2, z2);
++                    list.addListener(listener);
++
++                    all.add(list);
++                }
++            }
++        }
++
++        this.sectionsByEntity.put(listener, all);
++    }
++
++    private void removeListener(NearbyEntityListener listener) {
++        int r = listener.getChunkRange();
++
++        if (r == 0) {
++            return;
++        }
++
++        List<TrackedEntityList> all = this.sectionsByEntity.remove(listener);
++
++        if (all != null) {
++            for (TrackedEntityList list : all) {
++                list.removeListener(listener);
++            }
++        } else {
++            throw new IllegalArgumentException("Entity listener not tracked:" + listener.toString());
++        }
++    }
++
++    // Faster implementation which avoids removing from/adding to every list twice on an entity move event
++    private void moveListener(int aX, int aY, int aZ, int bX, int bY, int bZ, NearbyEntityListener listener) {
++        int radius = listener.getChunkRange();
++
++        if (radius == 0) {
++            return;
++        }
++
++        StructureBoundingBox before = new StructureBoundingBox(aX - radius, aY - radius, aZ - radius, aX + radius, aY + radius, aZ + radius);
++        StructureBoundingBox after = new StructureBoundingBox(aX - radius, aY - radius, aZ - radius, bX + radius, bY + radius, bZ + radius);
++
++        StructureBoundingBox merged = new StructureBoundingBox(before);
++        merged.c(after);
++
++        BlockPosition.MutableBlockPosition pos = new BlockPosition.MutableBlockPosition();
++
++        for (int x = merged.a; x <= merged.d; x++) {
++            for (int y = merged.b; y <= merged.e; y++) {
++                for (int z = merged.c; z <= merged.f; z++) {
++                    pos.setValues(x, y, z);
++
++                    boolean leaving = before.hasPoint(pos);
++                    boolean entering = after.hasPoint(pos);
++
++                    // Nothing to change
++                    if (leaving == entering) {
++                        continue;
++                    }
++
++                    if (leaving) {
++                        // The listener has left the chunk
++                        TrackedEntityList list = this.getList(x, y, z);
++
++                        if (list == null) {
++                            throw new IllegalStateException("Expected there to be a listener list while moving entity but there was none");
++                        }
++
++                        list.removeListener(listener);
++                    } else {
++                        // The listener has entered the chunk
++                        TrackedEntityList list = this.getOrCreateList(x, y, z);
++                        list.addListener(listener);
++                    }
++                }
++            }
++        }
++    }
++
++    private TrackedEntityList getOrCreateList(int x, int y, int z) {
++        return this.sections.computeIfAbsent(encode(x, y, z), TrackedEntityList::new);
++    }
++
++    private TrackedEntityList getList(int x, int y, int z) {
++        return this.sections.get(encode(x, y, z));
++    }
++
++    private static long encode(int x, int y, int z) {
++        return SectionPosition.asLong(x, y, z);
++    }
++
++    private static SectionPosition decode(long xyz) {
++        return SectionPosition.a(xyz);
++    }
++
++    private class TrackedEntityList {
++        private final Set<EntityLiving> entities = new ReferenceOpenHashSet<>();
++        private final Set<NearbyEntityListener> listeners = new ReferenceOpenHashSet<>();
++
++        private final long key;
++
++        private TrackedEntityList(long key) {
++            this.key = key;
++        }
++
++        public void addListener(NearbyEntityListener listener) {
++            for (EntityLiving entity : this.entities) {
++                listener.onEntityEnteredRange(entity);
++            }
++
++            this.listeners.add(listener);
++        }
++
++        public void removeListener(NearbyEntityListener listener) {
++            if (this.listeners.remove(listener)) {
++                for (EntityLiving entity : this.entities) {
++                    listener.onEntityLeftRange(entity);
++                }
++
++                this.checkEmpty();
++            }
++        }
++
++        public boolean addTrackedEntity(EntityLiving entity) {
++            for (NearbyEntityListener listener : this.listeners) {
++                listener.onEntityEnteredRange(entity);
++            }
++
++            return this.entities.add(entity);
++        }
++
++        public boolean removeTrackedEntity(EntityLiving entity) {
++            boolean ret = this.entities.remove(entity);
++
++            if (ret) {
++                for (NearbyEntityListener listener : this.listeners) {
++                    listener.onEntityLeftRange(entity);
++                }
++
++                this.checkEmpty();
++            }
++
++            return ret;
++        }
++
++        private void checkEmpty() {
++            if (this.entities.isEmpty() && this.listeners.isEmpty()) {
++                EntityTrackerEngine.this.sections.remove(this.key);
++            }
++        }
++    }
++
++
++    private static String errorMessageAlreadyListening(Reference2ReferenceOpenHashMap<NearbyEntityListener, List<TrackedEntityList>> sectionsByEntity, NearbyEntityListener listener, SectionPosition newLocation) {
++        StringBuilder builder = new StringBuilder();
++        builder.append("Adding Entity listener a second time: ").append(listener.toString());
++        builder.append("\n");
++        builder.append(" wants to listen at: ").append(newLocation.toString());
++        builder.append(" with cube radius: ").append(listener.getChunkRange());
++        builder.append("\n");
++        builder.append(" but was already listening at chunk sections: ");
++        String[] comma = new String[]{""};
++        if (sectionsByEntity.get(listener) == null) {
++            builder.append("null");
++        } else {
++            sectionsByEntity.get(listener).forEach(a -> {
++                builder.append(comma[0]);
++                builder.append(decode(a.key).toString());
++                comma[0] = ", ";
++            });
++        }
++        return builder.toString();
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListener.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListener.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f84366ad98333c2b17b838883d9a3889572bba63
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListener.java
+@@ -0,0 +1,25 @@
++package me.jellysquid.mods.lithium.common.entity.tracker.nearby;
++
++import net.minecraft.world.entity.EntityLiving;
++
++/**
++ * The main interface used to receive events from the
++ * {@link me.jellysquid.mods.lithium.common.entity.tracker.EntityTrackerEngine} of a world.
++ */
++public interface NearbyEntityListener {
++    /**
++     * Returns the range (in chunks) of this listener. This must never change during the lifetime of the listener.
++     * TODO: Allow entity listeners to change the radius they receive updates within
++     */
++    int getChunkRange();
++
++    /**
++     * Called by the entity tracker when an entity enters the range of this listener.
++     */
++    void onEntityEnteredRange(EntityLiving entity);
++
++    /**
++     * Called by the entity tracker when an entity leaves the range of this listener or is removed from the world.
++     */
++    void onEntityLeftRange(EntityLiving entity);
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListenerMulti.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListenerMulti.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..a56b23f0fbc1f2e31a79aa8b47635fecdf2490c9
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityListenerMulti.java
+@@ -0,0 +1,59 @@
++package me.jellysquid.mods.lithium.common.entity.tracker.nearby;
++
++import net.minecraft.world.entity.EntityLiving;
++
++import java.util.ArrayList;
++import java.util.List;
++
++/**
++ * Allows for multiple listeners on an entity to be grouped under one logical listener. No guarantees are made about the
++ * order of which each sub-listener will be notified.
++ */
++public class NearbyEntityListenerMulti implements NearbyEntityListener {
++    private final List<NearbyEntityListener> listeners = new ArrayList<>();
++
++    public void addListener(NearbyEntityListener listener) {
++        this.listeners.add(listener);
++    }
++
++    public void removeListener(NearbyEntityListener listener) {
++        this.listeners.remove(listener);
++    }
++
++    @Override
++    public int getChunkRange() {
++        int range = 0;
++
++        for (NearbyEntityListener listener : this.listeners) {
++            range = Math.max(range, listener.getChunkRange());
++        }
++
++        return range;
++    }
++
++    @Override
++    public void onEntityEnteredRange(EntityLiving entity) {
++        for (NearbyEntityListener listener : this.listeners) {
++            listener.onEntityEnteredRange(entity);
++        }
++    }
++
++    @Override
++    public void onEntityLeftRange(EntityLiving entity) {
++        for (NearbyEntityListener listener : this.listeners) {
++            listener.onEntityLeftRange(entity);
++        }
++    }
++
++    @Override
++    public String toString() {
++        StringBuilder sublisteners = new StringBuilder();
++        String comma = "";
++        for (NearbyEntityListener listener : this.listeners) {
++            sublisteners.append(comma).append(listener.toString());
++            comma = ","; //trick to drop the first comma
++        }
++
++        return super.toString() + " with sublisteners: [" + sublisteners + "]";
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..01f9a626e761dd8cc26216e316e3a39362dc463d
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/entity/tracker/nearby/NearbyEntityTracker.java
+@@ -0,0 +1,94 @@
++package me.jellysquid.mods.lithium.common.entity.tracker.nearby;
++
++import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
++import net.minecraft.world.phys.AxisAlignedBB;
++import net.minecraft.world.entity.EntityLiving;
++import net.minecraft.util.MathHelper;
++import net.minecraft.nbt.NBTTagCompound;
++import net.minecraft.world.entity.ai.targeting.PathfinderTargetCondition;
++
++import java.util.Set;
++
++/**
++ * Maintains a collection of all entities within the range of this listener. This allows AI goals to quickly
++ * assess nearby entities which match the provided class.
++ */
++public class NearbyEntityTracker<T extends EntityLiving> implements NearbyEntityListener {
++    private final Class<T> clazz;
++    private final EntityLiving self;
++
++    private final int rangeC;
++    private final float rangeSq;
++
++    private final Set<T> nearby = new ReferenceOpenHashSet<>();
++
++    public NearbyEntityTracker(Class<T> clazz, EntityLiving self, float range) {
++        this.clazz = clazz;
++        this.self = self;
++        this.rangeSq = range * range;
++        this.rangeC = Math.max((MathHelper.f(range) + 15) >> 4, 1);
++    }
++
++    @Override
++    public int getChunkRange() {
++        return this.rangeC;
++    }
++
++    @SuppressWarnings("unchecked")
++    @Override
++    public void onEntityEnteredRange(EntityLiving entity) {
++        if (!this.clazz.isInstance(entity)) {
++            return;
++        }
++
++        this.nearby.add((T) entity);
++    }
++
++    @SuppressWarnings("unchecked")
++    @Override
++    public void onEntityLeftRange(EntityLiving entity) {
++        if (this.nearby.isEmpty() || !this.clazz.isInstance(entity)) {
++            return;
++        }
++
++        this.nearby.remove((T) entity);
++    }
++
++    /**
++     * Gets the closest T (extends LivingEntity) to the center of this tracker that also intersects with the given box and meets the
++     * requirements of the targetPredicate.
++     * The result may be different from vanilla if there are multiple closest entities.
++     *
++     * @param box             the box the entities have to intersect
++     * @param targetPredicate predicate the entity has to meet
++     * @return the closest Entity that meets all requirements (distance, box intersection, predicate, type T)
++     */
++    public T getClosestEntity(AxisAlignedBB box, PathfinderTargetCondition targetPredicate) {
++        double x = this.self.locX();
++        double y = this.self.locY();
++        double z = this.self.locZ();
++
++        T nearest = null;
++        double nearestDistance = Double.POSITIVE_INFINITY;
++
++        for (T entity : this.nearby) {
++            double distance = entity.getDistanceSquared(x, y, z);
++
++            if (distance < nearestDistance && (box == null || box.intersects(entity.getBoundingBox())) && targetPredicate.test(this.self, entity)) {
++                nearest = entity;
++                nearestDistance = distance;
++            }
++        }
++
++        if (nearestDistance <= this.rangeSq) {
++            return nearest;
++        }
++
++        return null;
++    }
++
++    @Override
++    public String toString() {
++        return super.toString() + " for entity class: " + this.clazz.getName() + ", in rangeSq: " + this.rangeSq + ", around entity: " + this.self.toString() + " with NBT: " + this.self.save(new NBTTagCompound());
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index d7f95bd32842fdee0ce53fc97d31ffb3577cdc78..e6f85b07f731859c8b8c380afad699ccc1d6c3e8 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -177,6 +177,7 @@ import org.bukkit.event.world.TimeSkipEvent;
+ // CraftBukkit end
+ import it.unimi.dsi.fastutil.ints.IntArrayList; // Tuinity
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++import me.jellysquid.mods.lithium.common.entity.tracker.EntityTrackerEngine; // Yatopia
+ 
+ public class WorldServer extends World implements GeneratorAccessSeed, NonBlockingWorldAccess { // Yatopia
+ 
+@@ -2031,6 +2032,16 @@ public class WorldServer extends World implements GeneratorAccessSeed, NonBlocki
+             while (iterator.hasNext()) {
+                 Entity entity = (Entity) iterator.next();
+ 
++                if (entity instanceof EntityLiving) { // Yatopia start - Port lithium
++
++                    int chunkX = MathHelper.floor(entity.locX()) >> 4;
++                    int chunkY = MathHelper.clamp(MathHelper.floor(entity.locY()) >> 4, 0, 15);
++                    int chunkZ = MathHelper.floor(entity.locZ()) >> 4;
++
++                    EntityTrackerEngine tracker = this.getEntityTracker();
++                    tracker.onEntityRemoved(chunkX, chunkY, chunkZ, (EntityLiving) entity);
++                } // Yatopia End
++
+                 if (!(entity instanceof EntityPlayer)) {
+                     if (false && this.tickingEntities) { // Tuinity
+                         throw (IllegalStateException) SystemUtils.c((Throwable) (new IllegalStateException("Removing entity while ticking!")));
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index cd1f94e5c1c923ee9d8dd451406ac2bee360e9c3..7befe4263a2d046922438e1a9853f2d8290ee230 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -177,6 +177,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+     private CraftEntity bukkitEntity;
+ 
+     public PlayerChunkMap.EntityTracker tracker; // Paper package private -> public
++    public PlayerChunkMap.EntityTracker getTracker() { return tracker; } // Yatopia
+     public boolean collisionLoadChunks = false; // Paper
+     public Throwable addedToWorldStack; // Paper - entity debug
+     public CraftEntity getBukkitEntity() {
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index a057be22f488f76b926c81dc5c63e7f9c3fb54a1..a897ad3de8c18be8bb3c320950a7421477040e8a 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -141,9 +141,11 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
+ // CraftBukkit end
+ 
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityListenerMulti; // Yatopia
+ 
+ public abstract class EntityLiving extends Entity {
+ 
++    private NearbyEntityListenerMulti tracker; // Yatopia - Port lithium
+     private static final UUID b = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+     private static final UUID c = UUID.fromString("87f46a96-686f-4796-b035-22e16ee9e038");
+     private static final AttributeModifier d = new AttributeModifier(EntityLiving.b, "Sprinting speed boost", 0.30000001192092896D, AttributeModifier.Operation.MULTIPLY_TOTAL);
+@@ -277,8 +279,14 @@ public abstract class EntityLiving extends Entity {
+         DynamicOpsNBT dynamicopsnbt = DynamicOpsNBT.a;
+ 
+         this.bg = this.a(new Dynamic(dynamicopsnbt, dynamicopsnbt.createMap((Map) ImmutableMap.of(dynamicopsnbt.createString("memories"), dynamicopsnbt.emptyMap()))));
++        this.tracker = new NearbyEntityListenerMulti(); // Yatopia - Port lithium
+     }
+ 
++    // Yatopia start - Port lithium
++    public NearbyEntityListenerMulti getListener() {
++        return this.tracker;
++    }
++    // Yatopia end
+     protected void initAttributes() {} // Purpur
+ 
+     public BehaviorController<?> getBehaviorController() {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
+index 35502bd2f7d9cebf5cfe1060e300a5032dbe6a5d..eea1a396f06e8feaa5637ba4e589a13169f514da 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalAvoidTarget.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.world.entity.ai.goal;
+ 
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
++
+ import java.util.EnumSet;
+ import java.util.function.Predicate;
+ import net.minecraft.world.entity.Entity;
+@@ -25,6 +27,7 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+     protected final Predicate<EntityLiving> g;
+     protected final Predicate<EntityLiving> h;
+     private final PathfinderTargetCondition k;
++    private NearbyEntityTracker<T> tracker; // Yatopia - Port Lithium
+ 
+     public PathfinderGoalAvoidTarget(EntityCreature entitycreature, Class<T> oclass, float f, double d0, double d1) {
+         this(entitycreature, oclass, entityliving -> true, f, d0, d1, IEntitySelector.e::test); // Purpur - decompile fix
+@@ -41,6 +44,10 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+         this.e = entitycreature.getNavigation();
+         this.a(EnumSet.of(PathfinderGoal.Type.MOVE));
+         this.k = (new PathfinderTargetCondition()).a((double) f).a(predicate1.and(predicate));
++        // Yatopia start - Port Lithium
++        this.tracker = new NearbyEntityTracker<>(oclass, entitycreature, f);
++        entitycreature.getListener().addListener(this.tracker);
++        // Yatopia end
+     }
+ 
+     public PathfinderGoalAvoidTarget(EntityCreature entitycreature, Class<T> oclass, float f, double d0, double d1, Predicate<EntityLiving> predicate) {
+@@ -51,7 +58,7 @@ public class PathfinderGoalAvoidTarget<T extends EntityLiving> extends Pathfinde
+ 
+     @Override
+     public boolean a() {
+-        this.b = this.a.world.b(this.f, this.k, this.a, this.a.locX(), this.a.locY(), this.a.locZ(), this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c));
++        this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.k); // Yatopia - Port lithium
+         if (this.b == null) {
+             return false;
+         } else {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
+index 3bcbad5e298cf05c1b41476a08a3a69cb7fdf79f..8b41274aa388a758bd8acf9637e2a19caf744c57 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalLookAtPlayer.java
+@@ -1,5 +1,6 @@
+ package net.minecraft.world.entity.ai.goal;
+ 
++import me.jellysquid.mods.lithium.common.entity.tracker.nearby.NearbyEntityTracker;
+ import java.util.EnumSet;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.entity.EntityInsentient;
+@@ -10,6 +11,7 @@ import net.minecraft.world.entity.player.EntityHuman;
+ 
+ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+ 
++    private NearbyEntityTracker<? extends EntityLiving> tracker; // Yatopia - Port lithium
+     protected final EntityInsentient a;
+     protected Entity b;
+     protected final float c;
+@@ -27,7 +29,7 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+         this.e = oclass;
+         this.c = f;
+         this.d = f1;
+-        this.a(EnumSet.of(PathfinderGoal.Type.LOOK));
++        this.a(EnumSet.of(Type.LOOK)); // Yatopia - Port lithium
+         if (oclass == EntityHuman.class) {
+             this.f = (new PathfinderTargetCondition()).a((double) f).b().a().d().a((entityliving) -> {
+                 return IEntitySelector.b(entityinsentient).test(entityliving);
+@@ -35,7 +37,10 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+         } else {
+             this.f = (new PathfinderTargetCondition()).a((double) f).b().a().d();
+         }
+-
++        // Yatopia start - Port lithium
++        this.tracker = new NearbyEntityTracker<>(oclass, entityinsentient, f);
++        entityinsentient.getListener().addListener(this.tracker);
++        // Yatopia end
+     }
+ 
+     @Override
+@@ -48,9 +53,9 @@ public class PathfinderGoalLookAtPlayer extends PathfinderGoal {
+             }
+ 
+             if (this.e == EntityHuman.class) {
+-                this.b = this.a.world.a(this.f, this.a, this.a.locX(), this.a.getHeadY(), this.a.locZ());
++                this.b = this.tracker.getClosestEntity(null, this.f); // Yatopia - Port lithium
+             } else {
+-                this.b = this.a.world.b(this.e, this.f, this.a, this.a.locX(), this.a.getHeadY(), this.a.locZ(), this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c));
++                this.b = this.tracker.getClosestEntity(this.a.getBoundingBox().grow((double) this.c, 3.0D, (double) this.c), this.f); // Yatopia - Port lithium
+             }
+ 
+             return this.b != null;
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index f5badbe0dee5c40cf83a5d2993d27ed70ddd2c85..db2b1863b7f46be53839fb3e86870745fb7567fd 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -97,6 +97,7 @@ import org.bukkit.event.block.BlockPhysicsEvent;
+ // CraftBukkit end
+ 
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++import me.jellysquid.mods.lithium.common.entity.tracker.EntityTrackerEngine; // Yatopia
+ 
+ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlockingWorldAccess { // Yatopia
+ 
+@@ -291,6 +292,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+     }
+ 
+     // Tuinity end - optimise checkDespawn
++    private EntityTrackerEngine tracker; // Yatopia - Port lithium
+ 
+     protected World(WorldDataMutable worlddatamutable, ResourceKey<World> resourcekey, final DimensionManager dimensionmanager, Supplier<GameProfilerFiller> supplier, boolean flag, boolean flag1, long i, org.bukkit.generator.ChunkGenerator gen, org.bukkit.World.Environment env, java.util.concurrent.Executor executor) { // Paper
+         this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.WorldDataServer) worlddatamutable).getName()); // Spigot
+@@ -368,8 +370,14 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+         this.keepSpawnInMemory = this.paperConfig.keepSpawnInMemory; // Paper
+         this.entityLimiter = new org.spigotmc.TickLimiter(spigotConfig.entityMaxTickTime);
+         this.tileLimiter = new org.spigotmc.TickLimiter(spigotConfig.tileMaxTickTime);
++        this.tracker = new EntityTrackerEngine(); // Yatopia - Port lithium
+     }
+ 
++    // Yatopia start - Port lithium
++    public EntityTrackerEngine getEntityTracker() {
++        return this.tracker;
++    } // Yatopia end
++
+     // Paper start
+     // ret true if no collision
+     public final boolean checkEntityCollision(IBlockData data, Entity source, VoxelShapeCollision voxelshapedcollision,
+@@ -536,6 +544,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+         return b(blockposition.getY());
+     }
+ 
++    public static boolean isOutOfBuildLimitVertically(int y){ return b(y); } // Yatopia - OBFHELPER
+     public static boolean b(int i) {
+         return i < 0 || i >= 256;
+     }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/Chunk.java b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
+index 2e8eb0bb8fb4f7ce6b92fe01a81327da30e614ae..34af81b75e7927cccc0d4aea1b80ab677ca31795 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/Chunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
+@@ -68,6 +68,7 @@ import net.minecraft.world.level.material.FluidTypes;
+ import net.minecraft.world.phys.AxisAlignedBB;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import net.minecraft.world.entity.EntityLiving; // Yatopia
+ 
+ public class Chunk implements IChunkAccess {
+ 
+@@ -863,6 +864,11 @@ public class Chunk implements IChunkAccess {
+         if (!this.entitySlices[i].remove(entity)) { // Tuinity - optimise hard colliding entities // Tuinity - entities by class // Tuinity
+             return;
+         }
++        // Yatopia start - Port lithium
++        if (entity instanceof EntityLiving) {
++            this.world.getEntityTracker().onEntityAdded(entity.chunkX, entity.chunkY, entity.chunkZ, (EntityLiving) entity);
++        }
++        // Yatopia end
+         if (entity instanceof EntityItem) {
+             itemCounts[i]--;
+         } else if (entity instanceof IInventory) {
+@@ -872,6 +878,11 @@ public class Chunk implements IChunkAccess {
+         this.markDirty(); // Paper
+         // Paper end
+         this.entities.remove(entity); // Paper
++        // Yatopia start - Port lithium
++        if (entity instanceof EntityLiving) {
++            this.world.getEntityTracker().onEntityRemoved(entity.chunkX, entity.chunkY, entity.chunkZ, (EntityLiving) entity);
++        }
++        // Yatopia end
+     }
+ 
+     public final int getHighestBlockY(HeightMap.Type heightmap_type, int i, int j) { return this.getHighestBlock(heightmap_type, i, j) + 1; } // Paper - sort of an obfhelper, but without -1
+diff --git a/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java b/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
+index 292821f039d99a03ba4daeb3a941616ef5f6287e..9b7110a805b81906512acc3771217a56a102db67 100644
+--- a/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
++++ b/src/main/java/net/pl3x/purpur/controller/ControllerLookWASD.java
+@@ -42,7 +42,7 @@ public class ControllerLookWASD extends ControllerLook {
+         entity.setHeadRotation(entity.yaw);
+         entity.pitch = normalizePitch(pitch + pitchOffset);
+ 
+-        entity.tracker.broadcast(new PacketPlayOutEntity
++        entity.getTracker().broadcast(new PacketPlayOutEntity // Yatopia
+                 .PacketPlayOutRelEntityMoveLook(entity.getId(),
+                 (short) 0, (short) 0, (short) 0,
+                 (byte) MathHelper.d(entity.yaw * 256.0F / 360.0F),
