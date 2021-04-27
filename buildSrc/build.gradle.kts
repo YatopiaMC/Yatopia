@@ -1,5 +1,5 @@
 val kotlinxDomVersion = "0.0.10"
-val shadowVersion = "6.1.0"
+val shadowVersion = "7.0.0"
 val mustacheVersion = "0.9.6"
 val javaxMailVersion = "1.4.4"
 
