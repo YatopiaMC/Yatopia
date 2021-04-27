@@ -1,5 +1,4 @@
 import kotlinx.dom.elements
-import kotlinx.dom.parseXml
 import kotlinx.dom.search
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -9,9 +8,7 @@ import org.gradle.kotlin.dsl.project
 import org.w3c.dom.Element
 
 fun RepositoryHandler.loadRepositories(project: Project) {
-  val pomFile = project.projectDir.resolve("pom.xml")
-  if (!pomFile.exists()) return
-  val dom = parseXml(pomFile)
+  val dom = project.parsePom() ?: return
   val repositoriesBlock = dom.search("repositories").firstOrNull() ?: return
 
   // Load repositories
@@ -22,9 +19,7 @@ fun RepositoryHandler.loadRepositories(project: Project) {
 }
 
 fun DependencyHandlerScope.loadDependencies(project: Project) {
-  val pomFile = project.projectDir.resolve("pom.xml")
-  if (!pomFile.exists()) return
-  val dom = parseXml(pomFile)
+  val dom = project.parsePom() ?: return
 
   // Load dependencies
   dom.search("dependencies").forEach {
