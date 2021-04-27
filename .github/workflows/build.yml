@@ -15,19 +15,26 @@ on:
       - 'Jenkinsfile'
         
 jobs:
-  build:
+  validation:
+    name: "Gradle Wrapper Validation"
     runs-on: ubuntu-latest
-
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gradle/wrapper-validation-action@v1
+      
+  build:
+    needs: validation
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [15, 11, 8]
+        java: [ '8', '11', '15', '16' ]
       fail-fast: false
-
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK ${{ matrix.java }}
-      uses: actions/setup-java@v1
+    - name: Set up JDK ${{ matrix.Java }}
+      uses: actions/setup-java@v2
       with:
+        distribution: 'adopt'    
         java-version: ${{ matrix.java }}
         
     - name: Pull Gradle Cache
@@ -35,7 +42,7 @@ jobs:
       id: gradle-cache
       with:
         path: ~/.gradle
-        key: ${{ runner.os }}-maven-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-java-${{ matrix.java }}
+        key: ${{ runner.os }}-mavenCache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-openjdk-${{ matrix.java }}
             
     - name: Setup Yatopia Project
       run: |
@@ -54,7 +61,7 @@ jobs:
       id: decompile-cache
       with:
         path: Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
-        key: ${{ hashFiles('Paper/work/BuildData/mappings/bukkit-$STEPS_MCVER_OUTPUTS_MCVER-cl.csrg') }}-${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-java-${{ matrix.java }}-minecraft-decomp
+        key: ${{ hashFiles('Paper/work/BuildData/mappings/bukkit-$STEPS_MCVER_OUTPUTS_MCVER-cl.csrg') }}-${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-openjdk-${{ matrix.java }}-minecraft-decomp
         
     - name: Apply Patches
       run: |
@@ -66,7 +73,7 @@ jobs:
       id: maven-cache
       with:
         path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-mavenCache-${{ hashFiles('**/pom.xml') }}
 
     - name: Build Yatopia
       run: |
@@ -76,5 +83,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Yatopia-${{ matrix.java }}
-        path: yatopia-1.16.5-paperclip.jar
+        path: yatopia-${{ steps.mcver.outputs.mcver }}-paperclip.jar
       

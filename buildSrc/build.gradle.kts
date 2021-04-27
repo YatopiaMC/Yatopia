@@ -1,5 +1,5 @@
 val kotlinxDomVersion = "0.0.10"
-val shadowVersion = "6.1.0"
+val shadowVersion = "7.0.0"
 val mustacheVersion = "0.9.6"
 val javaxMailVersion = "1.4.4"
 
@@ -9,14 +9,13 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://plugins.gradle.org/m2/")
     maven("https://jitpack.io/")
 }
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx.dom:$kotlinxDomVersion")
-    implementation("com.github.jengelman.gradle.plugins:shadow:$shadowVersion")
+    implementation("com.github.johnrengelman:shadow:$shadowVersion")
     implementation("com.github.spullara.mustache.java:compiler:$mustacheVersion")
     implementation("javax.mail:mail:$javaxMailVersion")
     implementation("com.github.ishlandbukkit:jbsdiff:deff66b794")
