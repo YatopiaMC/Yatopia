@@ -4,7 +4,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import transformer.ModifiedLog4j2PluginsCacheFileTransformer
 import relocation.ToothpickRelocator
 import kotlinx.dom.elements
-import kotlinx.dom.parseXml
 import kotlinx.dom.search
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -184,9 +183,7 @@ private fun Project.configureServerProject() {
         relocationSet.add(PatchesMetadata.Relocation("", "net.minecraft.server.v${toothpick.nmsPackage}", false))
 
         // Make sure we relocate deps the same as Paper et al.
-        val pomFile = project.projectDir.resolve("pom.xml")
-        if (!pomFile.exists()) return@getting
-        val dom = parseXml(pomFile)
+        val dom = project.parsePom() ?: return@getting
         val buildSection = dom.search("build").first()
         val plugins = buildSection.search("plugins").first()
         plugins.elements("plugin").filter {
