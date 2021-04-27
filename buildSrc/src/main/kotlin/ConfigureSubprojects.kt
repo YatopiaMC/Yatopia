@@ -4,7 +4,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import transformer.ModifiedLog4j2PluginsCacheFileTransformer
 import relocation.ToothpickRelocator
 import kotlinx.dom.elements
-import kotlinx.dom.parseXml
 import kotlinx.dom.search
 import org.gradle.api.Project
 import org.gradle.api.Task

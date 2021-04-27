@@ -31,10 +31,7 @@ private fun DependencyHandlerScope.loadDependencies(project: Project, dependenci
   dependenciesBlock.elements("dependency").forEach { dependencyElem ->
     val groupId = dependencyElem.search("groupId").first().textContent
     val artifactId = dependencyElem.search("artifactId").first().textContent
-    val version = dependencyElem.search("version").firstOrNull()?.textContent?.applyReplacements(
-      "project.version" to "${project.rootProject.toothpick.minecraftVersion}-${project.rootProject.toothpick.nmsRevision}",
-      "minecraft.version" to project.toothpick.minecraftVersion
-    )
+    val version = dependencyElem.search("version").firstOrNull()?.textContent
     val scope = dependencyElem.search("scope").firstOrNull()?.textContent
     val classifier = dependencyElem.search("classifier").firstOrNull()?.textContent
 
