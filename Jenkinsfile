@@ -1,8 +1,16 @@
 pipeline {
     agent { label 'slave' }
     options { timestamps() }
+
+    environment {
+        discord_webhook1 = credentials('yatopia_discord_webhook')
+    }
+
     stages {
         stage('Cleanup') {
+            tools {
+                jdk "OpenJDK 8"
+            }
             steps {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
                 sh 'git config --global gc.auto 0'
@@ -14,6 +22,9 @@ pipeline {
             }
         }
         stage('Init project & submodules') {
+            tools {
+                jdk "OpenJDK 8"
+            }
             steps {
                 withMaven(
                     maven: '3',
@@ -80,6 +91,14 @@ pipeline {
             post {
                 always {
                     cleanWs()
+                }
+            }
+        }
+
+        stage('Discord Webhook') {
+            steps {
+                script {
+                    discordSend description: "Yatopia Jenkins Build", footer: "Yatopia", link: env.BUILD_URL, result: currentBuild.currentResult, title: JOB_NAME, webhookURL: discord_webhook1
                 }
             }
         }
