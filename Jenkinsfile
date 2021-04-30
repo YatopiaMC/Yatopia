@@ -15,7 +15,13 @@ pipeline {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
                 sh 'git config --global gc.auto 0'
                 sh 'rm -rf ./target'
-                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server ./Paper/work'
+                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server'
+
+                sh 'mv ./Paper/work/Minecraft ./ || true' 
+                sh 'rm -fr ./Paper/work/*'
+                sh 'mv ./Minecraft ./Paper/work/ || true'
+
+
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
                 sh 'chmod +x ./gradlew'
                 sh './gradlew clean'
