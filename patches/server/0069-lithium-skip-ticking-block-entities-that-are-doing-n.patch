@@ -737,7 +737,7 @@ index 35c4d5414db66b977a354ac50d35a6aa0fcd4cf8..35aef3647c025eaa763e2b9a5a4e266d
      public Timing tickTimer = MinecraftTimings.getTileEntityTimings(this); // Paper
      // CraftBukkit start - data containers
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
-index d97acd72c30e1051f3e14c3c23b1a6b6e6fa42f0..b11c260908791d7fca711954ae0b715a9bd0634f 100644
+index d79094386a564a44d5a519477309f669ea045876..f714c1e4e4e70095e43ec86e76368d0ebc71887a 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
 @@ -23,6 +23,9 @@ import net.minecraft.world.level.block.BlockBeehive;
@@ -750,13 +750,12 @@ index d97acd72c30e1051f3e14c3c23b1a6b6e6fa42f0..b11c260908791d7fca711954ae0b715a
  
  public class TileEntityBeehive extends TileEntity implements ITickable {
  
-@@ -30,11 +33,25 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
+@@ -30,11 +33,24 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
      @Nullable
      public BlockPosition flowerPos = null;
-     public int maxBees = 3; // CraftBukkit - allow setting max amount of bees a hive can hold
+     public int maxBees = net.pl3x.purpur.PurpurConfig.beeInsideBeeHive; // CraftBukkit - allow setting max amount of bees a hive can hold // Purpur - Change max bees inside beehive and bee_nest
 +    public boolean doInit = true; // Yatopia
 +    public boolean isTicking = true; // Yatopia
-+
  
      public TileEntityBeehive() {
          super(TileEntityTypes.BEEHIVE);
@@ -776,7 +775,7 @@ index d97acd72c30e1051f3e14c3c23b1a6b6e6fa42f0..b11c260908791d7fca711954ae0b715a
      @Override
      public void update() {
          if (this.d()) {
-@@ -304,6 +321,12 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
+@@ -304,6 +320,12 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
  
      @Override
      public void tick() {
@@ -789,7 +788,7 @@ index d97acd72c30e1051f3e14c3c23b1a6b6e6fa42f0..b11c260908791d7fca711954ae0b715a
          if (this.bees.size() == 0) { return; } // Yatopia - TE optimizations
          if (!this.world.isClientSide) {
              this.y();
-@@ -324,6 +347,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
+@@ -324,6 +346,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
      @Override
      public void load(IBlockData iblockdata, NBTTagCompound nbttagcompound) {
          super.load(iblockdata, nbttagcompound);

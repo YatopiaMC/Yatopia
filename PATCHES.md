@@ -115,11 +115,13 @@ This is an overview over all patches that are currently used.
 | server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
 | server |  Config for powered rail activation distance      | Encode42 |  |
 | server |  Config for skipping night      | Ben Kerllenevich |  |
+| server |  Config for wither explosion radius      | Ben Kerllenevich |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
 | server |  Config to allow Note Block sounds when blocked      | Encode42 |  |
 | server |  Config to allow for unsafe enchants      | Encode42 |  |
 | server |  Config to always tame in Creative      | Encode42 |  |
+| server |  Config to change max number of bees      | DoctaEnkoda |  |
 | server |  Config to disable Llama caravans      | Encode42 |  |
 | server |  Config to disable hostile mob spawn on ice      | Encode42 |  |
 | server |  Config to disable method profiler      | Paul Sauve |  |
@@ -134,6 +136,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable TPS Catchup      | William Blake Galbreath |  |
 | server |  Configurable chance for wolves to spawn rabid      | Encode42 |  |
 | server |  Configurable criterion triggers      | Mykyta Komarnytskyy |  |
+| server |  Configurable damage settings for magma blocks      | Ben Kerllenevich |  |
 | server |  Configurable daylight cycle      | William Blake Galbreath |  |
 | server |  Configurable default wolf collar color      | Encode42 |  |
 | server |  Configurable dungeon seed      | William Blake Galbreath |  |
@@ -152,7 +155,6 @@ This is an overview over all patches that are currently used.
 | server |  Configurable void damage height      | William Blake Galbreath |  |
 | api |  Conflict on change for adventure deprecations      | BillyGalbreath |  |
 | server |  Consolidate flush calls for entity tracker packets      | Spottedleaf |  |
-| server |  Controllable Minecarts      | William Blake Galbreath |  |
 | server |  Copy passenger list in enderTeleportTo      | Spottedleaf |  |
 | server |  Correctly handle recursion for chunkholder updates      | Spottedleaf |  |
 | server |  Cows eat mushrooms      | William Blake Galbreath |  |
@@ -276,6 +278,7 @@ This is an overview over all patches that are currently used.
 | server |  Make sure inlined getChunkAt has inlined logic for loaded      | Spottedleaf |  |
 | server |  Manually inline methods in BlockPosition      | Spottedleaf |  |
 | server |  Mending mends most damages equipment first      | William Blake Galbreath |  |
+| server |  Minecart settings and WASD controls      | William Blake Galbreath |  |
 | server |  Modify POM      | YatopiaMC |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |

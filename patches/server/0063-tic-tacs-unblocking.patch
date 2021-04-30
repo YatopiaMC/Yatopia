@@ -42,10 +42,10 @@ index 0000000000000000000000000000000000000000..0d99f3b4930045632d88fa4acb3b8159
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-index c819aa0f8a96e74366081d6bd957ad68348792aa..b5e85808552d3c242516c5e31f890992a21d9574 100644
+index f4b0bcf4e5fdfd4381e1410a929ed3a166ce4d00..4fc4d3d2ec98535626dc21d667ee2822f71dc845 100644
 --- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-@@ -657,6 +657,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -655,6 +655,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
      }
  
      public void playerTick() {
@@ -70,7 +70,7 @@ index e7462367084007a149279d9bdb74ed26177d47df..ce9c580963bd6d8f0130bc28774dd91e
      public static final BlockPosition a = new BlockPosition(100, 50, 0);
      private static final Logger LOGGER = LogManager.getLogger();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9069dfa7d 100644
+index 04dbacd89ebb630df7ee5663d0096c01d43d27af..30cf0acb92c6c8b9745926d09a1d8f6edf7e143b 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -142,9 +142,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
@@ -108,7 +108,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
  
              this.a(vec3d1.y, this.onGround, iblockdata, blockposition);
              Vec3D vec3d2 = this.getMot();
-@@ -967,9 +976,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -973,9 +982,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          int k = MathHelper.floor(this.loc.z);
          BlockPosition blockposition = new BlockPosition(i, j, k);
  
@@ -120,7 +120,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
              Block block = iblockdata.getBlock();
  
              if (block.a((Tag) TagsBlock.FENCES) || block.a((Tag) TagsBlock.WALLS) || block instanceof BlockFenceGate) {
-@@ -981,17 +990,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -987,17 +996,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      protected float getBlockJumpFactor() {
@@ -146,7 +146,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
      }
  
      protected BlockPosition as() {
-@@ -1336,7 +1349,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1342,7 +1355,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                      for (int i = blockposition.getX(); i <= blockposition1.getX(); ++i) {
                          // Tuinity end - reorder iteration to more cache aware
                          blockposition_mutableblockposition.d(i, j, k);
@@ -155,7 +155,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
  
                          // Tuinity start - move fire checking in here - reuse getType from this method
                          if (checkFire) {
-@@ -1372,7 +1385,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1378,7 +1391,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      protected void b(BlockPosition blockposition, IBlockData iblockdata) {
          if (!iblockdata.getMaterial().isLiquid()) {
@@ -164,7 +164,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
              SoundEffectType soundeffecttype = iblockdata1.a(Blocks.SNOW) ? iblockdata1.getStepSound() : iblockdata.getStepSound();
  
              this.playSound(soundeffecttype.getStepSound(), soundeffecttype.getVolume() * 0.15F, soundeffecttype.getPitch());
-@@ -1463,7 +1476,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1469,7 +1482,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      public final boolean isInBubbleColumn() { return k(); } // Paper - OBFHELPER
      private boolean k() {
@@ -173,7 +173,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
      }
  
      public boolean isInWaterOrRain() {
-@@ -1534,7 +1547,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1540,7 +1553,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          }
  
          BlockPosition blockposition = new BlockPosition(this.locX(), d0, this.locZ());
@@ -182,7 +182,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
          Iterator iterator = TagsFluid.b().iterator();
  
          Tag tag;
-@@ -1592,7 +1605,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1598,7 +1611,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      protected IBlockData aN() {
@@ -191,7 +191,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
      }
  
      public boolean aO() {
-@@ -1604,7 +1617,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1610,7 +1623,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          int j = MathHelper.floor(this.locY() - 0.20000000298023224D);
          int k = MathHelper.floor(this.locZ());
          BlockPosition blockposition = new BlockPosition(i, j, k);
@@ -200,7 +200,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
  
          if (iblockdata.h() != EnumRenderType.INVISIBLE) {
              Vec3D vec3d = this.getMot();
-@@ -2858,7 +2871,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2864,7 +2877,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
              EnumDirection enumdirection1 = aenumdirection[j];
  
              blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection1);
@@ -209,7 +209,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
                  double d4 = vec3d.a(enumdirection1.n());
                  double d5 = enumdirection1.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0D - d4 : d4;
  
-@@ -3074,14 +3087,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3080,14 +3093,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
                  return (ShapeDetectorShape) this.findOrCreatePortal(worldserver, blockposition, flag2, event.getSearchRadius(), event.getCanCreatePortal(), event.getCreationRadius()).map((blockutil_rectangle) -> {
                      // CraftBukkit end
@@ -226,7 +226,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
                          });
  
                          vec3d = this.a(enumdirection_enumaxis, blockutil_rectangle1);
-@@ -3448,6 +3461,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3454,6 +3467,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      public boolean cl() {
@@ -234,7 +234,7 @@ index 1c7d6fd2ceedd866cfd4ece540cf1511e0fde41f..3c435ce71d1184e9bedff712a75917b9
          boolean flag = this.au;
  
          this.au = false;
-@@ -3651,7 +3665,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3657,7 +3671,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                  for (int i2 = k; i2 < l; ++i2) {
                      for (int j2 = i1; j2 < j1; ++j2) {
                          blockposition_mutableblockposition.d(l1, i2, j2);
