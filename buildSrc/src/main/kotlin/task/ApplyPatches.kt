@@ -14,6 +14,7 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import bashCmd
 
 internal fun Project.createApplyPatchesTask(
     receiver: Task.() -> Unit = {}
@@ -98,5 +99,7 @@ internal fun Project.createApplyPatchesTask(
             if (wasGitSigningEnabled) reEnableGitSigning(projectDir)
             logger.lifecycle(">>> Done applying patches to $name")
         }
+        bashCmd("sh scripts/init.sh", printOut = true)
+        bashCmd("sh scripts/apply.sh", printOut = true)
     }
 }

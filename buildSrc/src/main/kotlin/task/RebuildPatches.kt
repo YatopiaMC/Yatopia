@@ -11,6 +11,7 @@ import upstreams
 import java.io.File
 import java.nio.file.Paths
 import Upstream
+import bashCmd
 
 @Suppress("UNUSED_VARIABLE")
 internal fun Project.createRebuildPatchesTask(
@@ -20,7 +21,9 @@ internal fun Project.createRebuildPatchesTask(
     group = taskGroup
     doLast {
         for ((name, subproject) in toothpick.subprojects) {
-            val (sourceRepo, projectDir, patchesDir) = subproject
+            val (sourceRepo, projectDir_1, patchesDir) = subproject
+            val projectDir = (if (patchesDir.endsWith("server")) File("${projectDir_1}") else projectDir_1)
+
             var previousUpstreamName = "origin/master"
             val folder = (if (patchesDir.endsWith("server")) "server" else "api")
 
@@ -40,6 +43,9 @@ internal fun Project.createRebuildPatchesTask(
 
             logger.lifecycle(">>> Done rebuilding patches for $name")
         }
+
+        bashCmd("sh scripts/rebuildPatches.sh", printOut = true)
+        bashCmd("sh scripts/install.sh", printOut = true)
     }
 }
 
