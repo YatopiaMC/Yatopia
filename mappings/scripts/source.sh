@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # inputdirprefix="" #for testing
 inputdirprefix="Yatopia-" #for testing

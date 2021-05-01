@@ -45,8 +45,8 @@ internal fun Project.createRebuildPatchesTask(
         }
         bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
 
-        bashCmd("sh mappings/scripts/rebuildPatches.sh", printOut = true)
-        bashCmd("sh mappings/scripts/install.sh", printOut = true)
+        bashCmd("bash mappings/scripts/rebuildPatches.sh", printOut = true)
+        bashCmd("bash mappings/scripts/install.sh", printOut = true)
     }
 }
 

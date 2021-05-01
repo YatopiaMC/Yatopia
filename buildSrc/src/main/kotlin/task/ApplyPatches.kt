@@ -101,7 +101,7 @@ internal fun Project.createApplyPatchesTask(
         }
         bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
 
-        bashCmd("sh mappings/scripts/init.sh", printOut = true)
-        bashCmd("sh mappings/scripts/apply.sh", printOut = true)
+        bashCmd("bash mappings/scripts/init.sh", printOut = true)
+        bashCmd("bash mappings/scripts/apply.sh", printOut = true)
     }
 }
