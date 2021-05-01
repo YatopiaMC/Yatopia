@@ -60,6 +60,53 @@ internal fun Project.createApplyPatchesTask(
         return false;
     }
 
+    fun applyPatchesYarn(): Boolean {
+        val projectDir = Paths.get("$rootDir/Yatopia-Server_yarn").toFile()
+        val importDir = Paths.get("$rootDir/mappings/work/Yatopia-Server_yarn_unpatched").toFile()
+        logger.lifecycle(">>> Resetting subproject $name")
+        if (projectDir.exists()) {
+            ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
+            ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
+        } else {
+            ensureSuccess(gitCmd("clone", importDir.toString(), projectDir.toString(), printOut = true))
+        }
+        logger.lifecycle(">>> Done resetting subproject $name")
+
+        projectDir.mkdirs()
+        val applyName = "mappedPatches"
+        val name = "Yatopia-Server_yarn"
+        val patchDir: Path = Paths.get("$rootDir/mappedPatches")
+        if (Files.notExists(patchDir)) return true
+        
+
+        val patchPaths = Files.newDirectoryStream(patchDir)
+            .map { it.toFile() }
+            .filter { it.name.endsWith(".patch") }
+            .sorted()
+            .takeIf { it.isNotEmpty() } ?: return true
+        val patches = patchPaths.map { it.absolutePath }.toTypedArray()
+
+        logger.lifecycle(">>> Applying $applyName patches to $name")
+
+        gitCmd("am", "--abort")
+
+        //Cursed Apply Mode that makes fixing stuff a lot easier
+        if (checkCursed(project)) {
+            for (patch in patches) {
+                val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
+                    "--rerere-autoupdate", "--whitespace=fix", "--reject", "-C0", patch)
+                if (gitCmd(*gitCommand.toTypedArray(), dir = projectDir, printOut = true).exitCode != 0) {
+                    gitCmd("add", ".", dir = projectDir, printOut = true)
+                    gitCmd("am", "--continue", dir = projectDir, printOut = true)
+                }
+            }
+        } else {
+            val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
+                "--rerere-autoupdate", "--whitespace=fix",  *patches)
+        }
+        return false;
+    }
+
     doLast {
         for ((name, subproject) in toothpick.subprojects) {
             val (sourceRepo, projectDir, patchesDir) = subproject
@@ -102,6 +149,7 @@ internal fun Project.createApplyPatchesTask(
         bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
 
         bashCmd("bash mappings/scripts/init.sh", printOut = true)
-        bashCmd("bash mappings/scripts/apply.sh", printOut = true)
+        if (applyPatchesYarn()) {}
+        
     }
 }
