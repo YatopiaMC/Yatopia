@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 cd ..
-basedir="$(pwd -P)"
+basedir="$(cd .. && pwd -P)"
 
 echo "Rebuilding patch files from current fork state..."
 savePatches(){

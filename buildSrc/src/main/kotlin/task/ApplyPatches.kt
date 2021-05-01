@@ -99,7 +99,9 @@ internal fun Project.createApplyPatchesTask(
             if (wasGitSigningEnabled) reEnableGitSigning(projectDir)
             logger.lifecycle(">>> Done applying patches to $name")
         }
-        bashCmd("sh scripts/init.sh", printOut = true)
-        bashCmd("sh scripts/apply.sh", printOut = true)
+        bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
+
+        bashCmd("sh mappings/scripts/init.sh", printOut = true)
+        bashCmd("sh mappings/scripts/apply.sh", printOut = true)
     }
 }

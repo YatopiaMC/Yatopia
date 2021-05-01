@@ -2,7 +2,7 @@
 # set -e
 cd "$(dirname "$0")"
 cd ..
-basedir="$(pwd -P)"
+basedir="$(cd .. && pwd -P)"
 
 gitcmd="git -c commit.gpgsign=false"
 
@@ -44,4 +44,4 @@ applyPatch(){
     fi
 }
 
-(applyPatch Yatopia-Server_yarn_unpatched Yatopia-Server_yarn HEAD mappedPatches)
+(applyPatch mappings/work/Yatopia-Server_yarn_unpatched Yatopia-Server_yarn HEAD mappedPatches)

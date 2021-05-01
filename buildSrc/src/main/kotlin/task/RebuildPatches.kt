@@ -43,9 +43,10 @@ internal fun Project.createRebuildPatchesTask(
 
             logger.lifecycle(">>> Done rebuilding patches for $name")
         }
+        bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
 
-        bashCmd("sh scripts/rebuildPatches.sh", printOut = true)
-        bashCmd("sh scripts/install.sh", printOut = true)
+        bashCmd("sh mappings/scripts/rebuildPatches.sh", printOut = true)
+        bashCmd("sh mappings/scripts/install.sh", printOut = true)
     }
 }
 
