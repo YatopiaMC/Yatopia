@@ -1,4 +1,4 @@
-From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From 43e57e915fd414ab40058d23ac0c8ef6e43d3e77 Mon Sep 17 00:00:00 2001
 From: Spottedleaf <spottedleaf@spottedleaf.dev>
 Date: Sun, 24 Jan 2021 20:27:32 -0800
 Subject: [PATCH] Replace player chunk loader system
@@ -49,7 +49,7 @@ values help the responsitivity to player movement and
 higher values help loading when the server is at a low TPS.
 
 diff --git a/src/main/java/co/aikar/timings/TimingsExport.java b/src/main/java/co/aikar/timings/TimingsExport.java
-index 5dfa0658838c4801cdf260eae8b98163f729e5af..35810f42d7a0cd50a4cbe90e8d698fe57914c889 100644
+index 5dfa06588..35810f42d 100644
 --- a/src/main/java/co/aikar/timings/TimingsExport.java
 +++ b/src/main/java/co/aikar/timings/TimingsExport.java
 @@ -154,7 +154,7 @@ public class TimingsExport extends Thread {
@@ -63,7 +63,7 @@ index 5dfa0658838c4801cdf260eae8b98163f729e5af..35810f42d7a0cd50a4cbe90e8d698fe5
  
 diff --git a/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java b/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..0d577aa1c7868ce89c3902535adcb554b1f47551
+index 000000000..0d577aa1c
 --- /dev/null
 +++ b/src/main/java/com/tuinity/tuinity/chunk/PlayerChunkLoader.java
 @@ -0,0 +1,964 @@
@@ -1032,7 +1032,7 @@ index 0000000000000000000000000000000000000000..0d577aa1c7868ce89c3902535adcb554
 +    }
 +}
 diff --git a/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java b/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
-index edb9b246bf327f67a8500f77f81b46eb9e04c9b0..e1dc7c1025e19f7393a45719af8fe7aae016184d 100644
+index edb9b246b..e1dc7c102 100644
 --- a/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
 +++ b/src/main/java/com/tuinity/tuinity/config/TuinityConfig.java
 @@ -244,6 +244,25 @@ public final class TuinityConfig {
@@ -1062,7 +1062,7 @@ index edb9b246bf327f67a8500f77f81b46eb9e04c9b0..e1dc7c1025e19f7393a45719af8fe7aa
  
          public final String worldName;
 diff --git a/src/main/java/net/minecraft/network/NetworkManager.java b/src/main/java/net/minecraft/network/NetworkManager.java
-index 02ad0611836160a1d0ba6b26476e6bd336d55681..0f8cbe1f656b46f71c6494bd2e0057be63017272 100644
+index 02ad06118..0f8cbe1f6 100644
 --- a/src/main/java/net/minecraft/network/NetworkManager.java
 +++ b/src/main/java/net/minecraft/network/NetworkManager.java
 @@ -123,6 +123,28 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
@@ -1116,7 +1116,7 @@ index 02ad0611836160a1d0ba6b26476e6bd336d55681..0f8cbe1f656b46f71c6494bd2e0057be
      // Paper end
  
 diff --git a/src/main/java/net/minecraft/server/MCUtil.java b/src/main/java/net/minecraft/server/MCUtil.java
-index e832ea0497b2d6af7556bda7f6728e72c48d80a8..b7399d17dd64ca8b1f1fab405cb0ac914dc53b98 100644
+index e832ea049..b7399d17d 100644
 --- a/src/main/java/net/minecraft/server/MCUtil.java
 +++ b/src/main/java/net/minecraft/server/MCUtil.java
 @@ -697,7 +697,7 @@ public final class MCUtil {
@@ -1129,7 +1129,7 @@ index e832ea0497b2d6af7556bda7f6728e72c48d80a8..b7399d17dd64ca8b1f1fab405cb0ac91
              worldData.addProperty("keep-spawn-loaded-range", world.paperConfig.keepLoadedRange);
              worldData.addProperty("visible-chunk-count", visibleChunks.size());
 diff --git a/src/main/java/net/minecraft/server/level/ChunkMapDistance.java b/src/main/java/net/minecraft/server/level/ChunkMapDistance.java
-index c474ee61d98772a2852c44dec1c4a1037472ed2c..ad90735b5daa658cdd5467eadcb29183d018b1fd 100644
+index c474ee61d..ad90735b5 100644
 --- a/src/main/java/net/minecraft/server/level/ChunkMapDistance.java
 +++ b/src/main/java/net/minecraft/server/level/ChunkMapDistance.java
 @@ -42,7 +42,7 @@ public abstract class ChunkMapDistance {
@@ -1203,7 +1203,7 @@ index c474ee61d98772a2852c44dec1c4a1037472ed2c..ad90735b5daa658cdd5467eadcb29183
      class b extends ChunkMap {
  
 diff --git a/src/main/java/net/minecraft/server/level/ChunkProviderServer.java b/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
-index 9e96376a1d710c0ba7a763868b23fc586253e1a8..fe040615ff03478a20cdf8376f89a6b7d100ba61 100644
+index 9e96376a1..fe040615f 100644
 --- a/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
 @@ -946,6 +946,7 @@ public class ChunkProviderServer extends IChunkProvider {
@@ -1223,7 +1223,7 @@ index 9e96376a1d710c0ba7a763868b23fc586253e1a8..fe040615ff03478a20cdf8376f89a6b7
          try {
              boolean execChunkTask = com.destroystokyo.paper.io.chunk.ChunkTaskManager.pollChunkWaitQueue() || ChunkProviderServer.this.world.asyncChunkTaskManager.pollNextChunkTask(); // Paper
 diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-index b7eb11ee5a5922612fd051e7397327111a8e3125..fb61b6ac167b34486282a24e598020fb96081f28 100644
+index b7eb11ee5..fb61b6ac1 100644
 --- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
 @@ -261,7 +261,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -1236,7 +1236,7 @@ index b7eb11ee5a5922612fd051e7397327111a8e3125..fb61b6ac167b34486282a24e598020fb
  
      public EntityPlayer(MinecraftServer minecraftserver, WorldServer worldserver, GameProfile gameprofile, PlayerInteractManager playerinteractmanager) {
 diff --git a/src/main/java/net/minecraft/server/level/PlayerChunk.java b/src/main/java/net/minecraft/server/level/PlayerChunk.java
-index a8edac296cbdb053bca4b56a890c3e9e5544d3a6..d9b134302f739efd93f50e93c8730b474f9a8ccf 100644
+index a8edac296..d9b134302 100644
 --- a/src/main/java/net/minecraft/server/level/PlayerChunk.java
 +++ b/src/main/java/net/minecraft/server/level/PlayerChunk.java
 @@ -501,7 +501,7 @@ public class PlayerChunk {
@@ -1265,7 +1265,7 @@ index a8edac296cbdb053bca4b56a890c3e9e5544d3a6..d9b134302f739efd93f50e93c8730b47
              }
          }
 diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
-index 1e627159cbb35fac47d4d158299ec3da7c1f9bf5..d7eede51f1c4ebbe8e00b16efd6331c87db53bb4 100644
+index 1e627159c..d7eede51f 100644
 --- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 @@ -236,20 +236,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -1554,7 +1554,7 @@ index 1e627159cbb35fac47d4d158299ec3da7c1f9bf5..d7eede51f1c4ebbe8e00b16efd6331c8
                          }
                      }
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index a1eea57a876e3ba0d39c4d4881d6558a9829874e..b5043eabe63fe703a321cff6c0f6449cf729cd0e 100644
+index a1eea57a8..b5043eabe 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -270,7 +270,7 @@ public abstract class PlayerList {
@@ -1585,7 +1585,7 @@ index a1eea57a876e3ba0d39c4d4881d6558a9829874e..b5043eabe63fe703a321cff6c0f6449c
                  return;
              }
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLightning.java b/src/main/java/net/minecraft/world/entity/EntityLightning.java
-index 85f571a791bce63989890f277857bc7bdeec0cb5..9e4137768c7d8966759324a4b368330c35faa8a5 100644
+index 85f571a79..9e4137768 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLightning.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLightning.java
 @@ -81,8 +81,9 @@ public class EntityLightning extends Entity {
@@ -1600,7 +1600,7 @@ index 85f571a791bce63989890f277857bc7bdeec0cb5..9e4137768c7d8966759324a4b368330c
                  double deltaZ = this.locZ() - player.locZ();
                  double distanceSquared = deltaX * deltaX + deltaZ * deltaZ;
 diff --git a/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java b/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java
-index c296fcf80c2f3f210fa020416973ec8d5db541ba..07160de8725787551df327c0790b2d6e0876524f 100644
+index c296fcf80..07160de87 100644
 --- a/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java
 +++ b/src/main/java/net/minecraft/world/entity/boss/enderdragon/EntityEnderDragon.java
 @@ -625,9 +625,9 @@ public class EntityEnderDragon extends EntityInsentient implements IMonster {
@@ -1616,7 +1616,7 @@ index c296fcf80c2f3f210fa020416973ec8d5db541ba..07160de8725787551df327c0790b2d6e
                      double deltaX = this.locX() - player.locX();
                      double deltaZ = this.locZ() - player.locZ();
 diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
-index 229eabe0510e6c3660236ed0fb3e80d41074642c..930fc752ec0a988b17bc556cd428161638a14f27 100644
+index 229eabe05..930fc752e 100644
 --- a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
 +++ b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
 @@ -264,9 +264,9 @@ public class EntityWither extends EntityMonster implements IRangedEntity {
@@ -1632,7 +1632,7 @@ index 229eabe0510e6c3660236ed0fb3e80d41074642c..930fc752ec0a988b17bc556cd4281616
                          double deltaZ = this.locZ() - player.locZ();
                          double distanceSquared = deltaX * deltaX + deltaZ * deltaZ;
 diff --git a/src/main/java/net/minecraft/world/item/ItemEnderEye.java b/src/main/java/net/minecraft/world/item/ItemEnderEye.java
-index f74685a7cdb905af8e9712ca8597e7ed3dc8b120..feedbd8c97c1b1c56eaff359e6a940696d416906 100644
+index f74685a7c..feedbd8c9 100644
 --- a/src/main/java/net/minecraft/world/item/ItemEnderEye.java
 +++ b/src/main/java/net/minecraft/world/item/ItemEnderEye.java
 @@ -60,9 +60,10 @@ public class ItemEnderEye extends Item {
@@ -1648,7 +1648,7 @@ index f74685a7cdb905af8e9712ca8597e7ed3dc8b120..feedbd8c97c1b1c56eaff359e6a94069
                          double deltaZ = soundPos.getZ() - player.locZ();
                          double distanceSquared = deltaX * deltaX + deltaZ * deltaZ;
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index a802c45538943b570ca0daa3a40607dc80e696eb..af01f5d635eada7175b9d7fdb47a65530686a539 100644
+index a802c4553..af01f5d63 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
 @@ -606,7 +606,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -1661,7 +1661,7 @@ index a802c45538943b570ca0daa3a40607dc80e696eb..af01f5d635eada7175b9d7fdb47a6553
                  // Paper end - per player view distance
              }
 diff --git a/src/main/java/net/minecraft/world/level/chunk/Chunk.java b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
-index d6b34c6abebeac8445da3e76f341066952182e2b..fc07e2014e961da5d97095c4ee6f972e2ece3ec3 100644
+index d6b34c6ab..fc07e2014 100644
 --- a/src/main/java/net/minecraft/world/level/chunk/Chunk.java
 +++ b/src/main/java/net/minecraft/world/level/chunk/Chunk.java
 @@ -406,12 +406,12 @@ public class Chunk implements IChunkAccess {
@@ -1733,7 +1733,7 @@ index d6b34c6abebeac8445da3e76f341066952182e2b..fc07e2014e961da5d97095c4ee6f972e
              /*
               * If it's a new world, the first few chunks are generated inside
 diff --git a/src/main/java/net/minecraft/world/phys/Vec3D.java b/src/main/java/net/minecraft/world/phys/Vec3D.java
-index 3fe1508b091e1fd0325eae50138d02fa6445c9ff..a19a26a88f247d359354902efeece9923f3e0e0b 100644
+index 3fe1508b0..a19a26a88 100644
 --- a/src/main/java/net/minecraft/world/phys/Vec3D.java
 +++ b/src/main/java/net/minecraft/world/phys/Vec3D.java
 @@ -14,6 +14,12 @@ public class Vec3D implements IPosition {
@@ -1750,7 +1750,7 @@ index 3fe1508b091e1fd0325eae50138d02fa6445c9ff..a19a26a88f247d359354902efeece992
          return new Vec3D((double) baseblockposition.getX() + 0.5D, (double) baseblockposition.getY() + 0.5D, (double) baseblockposition.getZ() + 0.5D);
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 7a94e9efddbffca4627a0685e2baee8e7d6a3176..41ee7b1f2fe9a220abe1d96749887ad9babe9f95 100644
+index 7a94e9efd..41ee7b1f2 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 @@ -2701,14 +2701,14 @@ public class CraftWorld implements World {
@@ -1795,7 +1795,7 @@ index 7a94e9efddbffca4627a0685e2baee8e7d6a3176..41ee7b1f2fe9a220abe1d96749887ad9
      // Spigot start
      private final org.bukkit.World.Spigot spigot = new org.bukkit.World.Spigot()
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index e5549439b3d4d608cf37dd33b6c8c9e10dfe9328..45e786565ac988abadffda2e7ba3ff1e2880b786 100644
+index e5549439b..45e786565 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -2257,15 +2257,70 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
@@ -1871,3 +1871,6 @@ index e5549439b3d4d608cf37dd33b6c8c9e10dfe9328..45e786565ac988abadffda2e7ba3ff1e
  
      @Override
      public <T> T getClientOption(ClientOption<T> type) {
+-- 
+2.31.1
+
