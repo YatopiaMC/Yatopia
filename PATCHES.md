@@ -341,7 +341,6 @@ This is an overview over all patches that are currently used.
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
 | server |  Port Cadmium      | Lucy-t |  |
-| server |  Port LazyDFU      | Andrew Steinborn |  |
 | server |  Preload ProtocolLib EnumWrappers      | ishland |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |

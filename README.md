@@ -19,7 +19,6 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Purpur](https://github.com/pl3xgaming/Purpur)
 * [Airplane](https://github.com/Technove/Airplane)
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
-* [LazyDFU](https://github.com/astei/lazydfu)
 * [Tic-Tacs](https://github.com/Gegy/tic-tacs)
 
 
