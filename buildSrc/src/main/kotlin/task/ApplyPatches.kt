@@ -61,21 +61,23 @@ internal fun Project.createApplyPatchesTask(
     }
 
     fun applyPatchesYarn(): Boolean { // Todo actually port to kotlin
-        val projectDir = Paths.get("$rootDir/$forkName-Server_yarn").toFile()
-        val importDir = Paths.get("$rootDir/mappings/work/$forkName-Server_yarn_unpatched").toFile()
+        val projectDir = Paths.get("${rootProject.projectDir}/$forkName-Server_yarn").toFile()
+        val importDir = Paths.get("${rootProject.projectDir}/mappings/work/$forkName-Server_yarn_unpatched").toFile()
         logger.lifecycle(">>> Resetting subproject $name")
         if (projectDir.exists()) {
             ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
             ensureSuccess(gitCmd("reset", "--hard", "origin/master", dir = projectDir))
         } else {
             ensureSuccess(gitCmd("clone", importDir.toString(), projectDir.toString(), printOut = true))
+            ensureSuccess(gitCmd("checkout", "-b", "upstream/upstream", printOut = true, dir = projectDir))
+            ensureSuccess(gitCmd("checkout", "master", printOut = true, dir = projectDir))
         }
         logger.lifecycle(">>> Done resetting subproject $name")
 
         projectDir.mkdirs()
         val applyName = "mappedPatches"
         val name = "$forkName-Server_yarn"
-        val patchDir: Path = Paths.get("$rootDir/mappedPatches")
+        val patchDir: Path = Paths.get("${rootProject.projectDir}/mappedPatches")
         if (Files.notExists(patchDir)) return true
         
 

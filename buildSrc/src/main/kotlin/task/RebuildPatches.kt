@@ -45,7 +45,7 @@ internal fun Project.createRebuildPatchesTask(
         }
         bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
 
-        bashCmd("bash mappings/scripts/rebuildPatches.sh", printOut = true)
+        updatePatches(File("${rootProject.projectDir}/mappedPatches"), toothpick.forkName, "Server_yarn", File("${rootProject.projectDir}/${toothpick.forkName}-Server_yarn"), "upstream/upstream", branchName = "master")
         bashCmd("bash mappings/scripts/install.sh", printOut = true)
     }
 }
@@ -55,7 +55,8 @@ private fun Project.updatePatches(
     name: String,
     folder: String,
     projectDir: File,
-    previousUpstreamName: String
+    previousUpstreamName: String,
+    branchName: String = ""
 ) {
     logger.lifecycle(">>> Rebuilding patches for $name-$folder")
     if (!patchPath.exists()) {
@@ -67,7 +68,12 @@ private fun Project.updatePatches(
         ?.forEach { it -> it.delete() }
 
     ensureSuccess(
-        if (name != "Yatopia") {
+        if (branchName != "") {
+            gitCmd(
+                "checkout", branchName, dir = projectDir,
+                printOut = true
+            )
+        } else if (name != "Yatopia") {
             gitCmd(
                 "checkout", "$name-$folder", dir = projectDir,
                 printOut = true
