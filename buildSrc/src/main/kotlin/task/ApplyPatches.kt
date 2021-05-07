@@ -60,9 +60,9 @@ internal fun Project.createApplyPatchesTask(
         return false;
     }
 
-    fun applyPatchesYarn(): Boolean {
-        val projectDir = Paths.get("$rootDir/Yatopia-Server_yarn").toFile()
-        val importDir = Paths.get("$rootDir/mappings/work/Yatopia-Server_yarn_unpatched").toFile()
+    fun applyPatchesYarn(): Boolean { // Todo actually port to kotlin
+        val projectDir = Paths.get("$rootDir/$forkName-Server_yarn").toFile()
+        val importDir = Paths.get("$rootDir/mappings/work/$forkName-Server_yarn_unpatched").toFile()
         logger.lifecycle(">>> Resetting subproject $name")
         if (projectDir.exists()) {
             ensureSuccess(gitCmd("fetch", "origin", dir = projectDir))
@@ -74,7 +74,7 @@ internal fun Project.createApplyPatchesTask(
 
         projectDir.mkdirs()
         val applyName = "mappedPatches"
-        val name = "Yatopia-Server_yarn"
+        val name = "$forkName-Server_yarn"
         val patchDir: Path = Paths.get("$rootDir/mappedPatches")
         if (Files.notExists(patchDir)) return true
         
@@ -105,6 +105,20 @@ internal fun Project.createApplyPatchesTask(
                 "--rerere-autoupdate", "--whitespace=fix",  *patches)
         }
         return false;
+    }
+
+    fun initYarn() { // Todo actually port to kotlin
+        val paperDecompDir = toothpick.paperDecompDir
+        bashCmd("cd mappings/mapper && ./gradlew installDist", printOut = true)
+        bashCmd("rm -fr mappings/work/Base", printOut = true)
+        bashCmd("mkdir -p mappings/work/Base/src/main/java/com/mojang", printOut = true)
+        bashCmd("cp -r $forkName-Server/src/main/java/* mappings/work/Base/src/main/java/", printOut = true)
+        bashCmd("cp -r $paperDecompDir/libraries/com.mojang/*/* mappings/work/Base/src/main/java/", printOut = true)
+        bashCmd("rm -fr mappings/work/$forkName-Server_yarn_unpatched && mkdir -p mappings/work/$forkName-Server_yarn_unpatched/src/main/java", printOut = true)
+        bashCmd("cp $forkName-Server/.gitignore $forkName-Server/pom.xml $forkName-Server/checkstyle.xml $forkName-Server/CONTRIBUTING.md $forkName-Server/LGPL.txt $forkName-Server/LICENCE.txt $forkName-Server/README.md mappings/work/$forkName-Server_yarn_unpatched/", printOut = true)
+        bashCmd("JAVA_OPTS='-Xms1G -Xmx2G' mappings/mapper/build/install/mapper/bin/mapper mappings/map.srg mappings/work/Base/src/main/java mappings/work/$forkName-Server_yarn_unpatched/src/main/java", printOut = true)
+        bashCmd("find -name '*.java' | xargs --max-procs=4 --no-run-if-empty sed -i '/^import [a-zA-Z0-9]*;$/d'", dir = File("${rootProject.projectDir}/mappings/work/$forkName-Server_yarn_unpatched/src/main/java"))
+        bashCmd("git init && git add . && git commit --quiet --message=init", dir = File("${rootProject.projectDir}/mappings/work/$forkName-Server_yarn_unpatched"), printOut = true)
     }
 
     doLast {
@@ -148,7 +162,7 @@ internal fun Project.createApplyPatchesTask(
         }
         bashCmd("rm -fr patches/server/*-Mapped-Patches.patch")
 
-        bashCmd("bash mappings/scripts/init.sh", printOut = true)
+        initYarn()
         if (applyPatchesYarn()) {}
         
     }
