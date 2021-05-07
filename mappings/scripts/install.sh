@@ -37,6 +37,15 @@ git diff --cached > a.patch
 
 
 cd "${basedir}/${inputdirprefix}Server"
+if [ $(git log --pretty=format:'%s' | grep '<Mapped Patches>' | wc -l) != "0" ]; then
+    latestcommit=$(git log --pretty=format:'%s' | head -n1)
+    echo "found 'Mapped Patches' commit"
+    if [ "$latestcommit" == "<Mapped Patches>" ]; then
+        echo "'Mapped Patches' commit is the latest commit, reverting before applying..."
+        git reset --hard HEAD^
+    fi
+fi
+
 patch -p1 < "$basedir/mappings/work/Yatopia-Server_remapped/a.patch"
 git add .
 git commit -m "<Mapped Patches>"
