@@ -103,6 +103,9 @@ internal fun Project.createImportMCDevTask(
         val patchesDir = toothpick.serverProject.patchesDir
         getAndApplyNMS(patchesDir)
 
+        val patchesDirMapped = File("${project.getRootDir()}/mappedPatches")
+        getAndApplyNMS(patchesDirMapped)
+
 
         // Imports from MCDevImports.kt
         nmsImports.forEach(::importNMS)
