@@ -92,19 +92,11 @@ internal fun Project.createApplyPatchesTask(
 
         gitCmd("am", "--abort")
 
-        //Cursed Apply Mode that makes fixing stuff a lot easier
-        if (checkCursed(project)) {
-            for (patch in patches) {
-                val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
-                    "--rerere-autoupdate", "--whitespace=fix", "--reject", "-C0", patch)
-                if (gitCmd(*gitCommand.toTypedArray(), dir = projectDir, printOut = true).exitCode != 0) {
-                    gitCmd("add", ".", dir = projectDir, printOut = true)
-                    gitCmd("am", "--continue", dir = projectDir, printOut = true)
-                }
-            }
-        } else {
-            val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
-                "--rerere-autoupdate", "--whitespace=fix",  *patches)
+        val gitCommand = arrayListOf("am", "--3way", "--ignore-whitespace",
+            "--rerere-autoupdate", "--whitespace=fix",  *patches)
+        if (gitCmd(*gitCommand.toTypedArray(), dir = projectDir, printOut = true).exitCode != 0) {
+            gitCmd("add", ".", dir = projectDir, printOut = true)
+            gitCmd("am", "--continue", dir = projectDir, printOut = true)
         }
         return false;
     }
