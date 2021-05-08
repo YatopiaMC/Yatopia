@@ -106,6 +106,7 @@ internal fun Project.createApplyPatchesTask(
         bashCmd("cd mappings/mapper && ./gradlew installDist", printOut = true)
         bashCmd("rm -fr mappings/work/Base", printOut = true)
         bashCmd("mkdir -p mappings/work/Base/src/main/java/com/mojang", printOut = true)
+        bashCmd("cp -r $paperDecompDir/spigot/* mappings/work/Base/src/main/java/", printOut = true, dir = project.getRootDir())
         bashCmd("cp -r $forkName-Server/src/main/java/* mappings/work/Base/src/main/java/", printOut = true)
         bashCmd("cp -r $paperDecompDir/libraries/com.mojang/*/* mappings/work/Base/src/main/java/", printOut = true)
         bashCmd("rm -fr mappings/work/$forkName-Server_yarn_unpatched && mkdir -p mappings/work/$forkName-Server_yarn_unpatched/src/main/java", printOut = true)
