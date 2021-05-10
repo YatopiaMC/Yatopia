@@ -5,10 +5,10 @@ Subject: [PATCH] ItemStack convenience methods
 
 
 diff --git a/src/main/java/org/bukkit/Material.java b/src/main/java/org/bukkit/Material.java
-index 9b1c9e60dba9ea3ef8d8e164f13dd76daf57db8e..5b41f1016ed2d5ace2b47d3dd398314230af84b7 100644
+index 9b1c9e60dba9ea3ef8d8e164f13dd76daf57db8e..b04e9de7183f00a9a47c1fce26895c83c8c0cfd8 100644
 --- a/src/main/java/org/bukkit/Material.java
 +++ b/src/main/java/org/bukkit/Material.java
-@@ -8718,4 +8718,36 @@ public enum Material implements Keyed {
+@@ -8718,4 +8718,40 @@ public enum Material implements Keyed {
              // </editor-fold>
          }
      }
@@ -37,6 +37,10 @@ index 9b1c9e60dba9ea3ef8d8e164f13dd76daf57db8e..5b41f1016ed2d5ace2b47d3dd3983142
 +            case DIAMOND_CHESTPLATE:
 +            case DIAMOND_HELMET:
 +            case DIAMOND_LEGGINGS:
++            case NETHERITE_BOOTS:
++            case NETHERITE_CHESTPLATE:
++            case NETHERITE_HELMET:
++            case NETHERITE_LEGGINGS:
 +            case TURTLE_HELMET:
 +                return true;
 +            default:
@@ -46,7 +50,7 @@ index 9b1c9e60dba9ea3ef8d8e164f13dd76daf57db8e..5b41f1016ed2d5ace2b47d3dd3983142
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/inventory/ItemStack.java b/src/main/java/org/bukkit/inventory/ItemStack.java
-index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670e52ba684 100644
+index 3c64c6ef397af102a3e085fe6b77a888d5c3de84..8c6d6399b8562631f391a5a18cbde7ae5ef4a46b 100644
 --- a/src/main/java/org/bukkit/inventory/ItemStack.java
 +++ b/src/main/java/org/bukkit/inventory/ItemStack.java
 @@ -17,6 +17,18 @@ import org.bukkit.inventory.meta.ItemMeta;
@@ -68,8 +72,8 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
  
  /**
   * Represents a stack of items.
-@@ -843,4 +855,627 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
-         return itemMeta != null && itemMeta.hasItemFlag(flag);
+@@ -853,4 +865,626 @@ public class ItemStack implements Cloneable, ConfigurationSerializable, net.kyor
+         return Bukkit.getUnsafe().getItemStackRarity(this);
      }
      // Paper end
 +
@@ -104,7 +108,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this has a display name
 +     */
 +    public boolean hasDisplayName() {
-+        return getItemMeta().hasDisplayName();
++        return hasItemMeta() && getItemMeta().hasDisplayName();
 +    }
 +
 +    /**
@@ -137,7 +141,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this has a localized name
 +     */
 +    public boolean hasLocalizedName() {
-+        return getItemMeta().hasLocalizedName();
++        return hasItemMeta() && getItemMeta().hasLocalizedName();
 +    }
 +
 +    /**
@@ -146,7 +150,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this has lore
 +     */
 +    public boolean hasLore() {
-+        return getItemMeta().hasLore();
++        return hasItemMeta() && getItemMeta().hasLore();
 +    }
 +
 +    /**
@@ -156,7 +160,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this enchantment exists for this meta
 +     */
 +    public boolean hasEnchant(@NotNull Enchantment ench) {
-+        return getItemMeta().hasEnchant(ench);
++        return hasItemMeta() && getItemMeta().hasEnchant(ench);
 +    }
 +
 +    /**
@@ -217,7 +221,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if an enchantment exists on this meta
 +     */
 +    public boolean hasEnchants() {
-+        return getItemMeta().hasEnchants();
++        return hasItemMeta() && getItemMeta().hasEnchants();
 +    }
 +
 +    /**
@@ -228,7 +232,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if the enchantment conflicts, false otherwise
 +     */
 +    public boolean hasConflictingEnchant(@NotNull Enchantment ench) {
-+        return getItemMeta().hasConflictingEnchant(ench);
++        return hasItemMeta() && getItemMeta().hasConflictingEnchant(ench);
 +    }
 +
 +    /**
@@ -269,7 +273,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this has custom model data
 +     */
 +    public boolean hasCustomModelData() {
-+        return getItemMeta().hasCustomModelData();
++        return hasItemMeta() && getItemMeta().hasCustomModelData();
 +    }
 +
 +    /**
@@ -278,7 +282,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return whether block data is already attached
 +     */
 +    public boolean hasBlockData() {
-+        return ((BlockDataMeta) getItemMeta()).hasBlockData();
++        return hasItemMeta() && ((BlockDataMeta) getItemMeta()).hasBlockData();
 +    }
 +
 +    /**
@@ -335,7 +339,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this has a repair penalty
 +     */
 +    public boolean hasRepairCost() {
-+        return ((Repairable) getItemMeta()).hasRepairCost();
++        return hasItemMeta() && ((Repairable) getItemMeta()).hasRepairCost();
 +    }
 +
 +    /**
@@ -345,7 +349,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if the unbreakable tag is true
 +     */
 +    public boolean isUnbreakable() {
-+        return getItemMeta().isUnbreakable();
++        return hasItemMeta() && getItemMeta().isUnbreakable();
 +    }
 +
 +    /**
@@ -365,7 +369,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if any AttributeModifiers exist
 +     */
 +    public boolean hasAttributeModifiers() {
-+        return getItemMeta().hasAttributeModifiers();
++        return hasItemMeta() && getItemMeta().hasAttributeModifiers();
 +    }
 +
 +    /**
@@ -529,7 +533,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this has damage
 +     */
 +    public boolean hasDamage() {
-+        return ((Damageable) getItemMeta()).hasDamage();
++        return hasItemMeta() && ((Damageable) getItemMeta()).hasDamage();
 +    }
 +
 +    /**
@@ -601,7 +605,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this item has placeable keys
 +     */
 +    public boolean hasPlaceableKeys() {
-+        return getItemMeta().hasPlaceableKeys();
++        return hasItemMeta() && getItemMeta().hasPlaceableKeys();
 +    }
 +
 +    /**
@@ -610,7 +614,7 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +     * @return true if this item has destroyable keys
 +     */
 +    public boolean hasDestroyableKeys() {
-+        return getItemMeta().hasDestroyableKeys();
++        return hasItemMeta() && getItemMeta().hasDestroyableKeys();
 +    }
 +
 +    /**
@@ -693,6 +697,5 @@ index 58f99e3ebac9a01ebffe4d208e16cbee474d4aa3..314658c7dac1b1fbb440ec85133e6670
 +        }
 +        return random.nextInt(unbreaking + 1) > 0;
 +    }
-+
 +    // Purpur end
  }

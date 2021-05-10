@@ -216,6 +216,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix Log4j Warning      | snoopdoooggyttv |  |
 | server |  Fix NPE in pickup logic for arrow      | Spottedleaf |  |
+| server |  Fix SPIGOT-6278      | BillyGalbreath |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
@@ -351,7 +352,6 @@ This is an overview over all patches that are currently used.
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
 | server |  Projectile offset config      | YouHaveTrouble |  |
-| server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
 | server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |

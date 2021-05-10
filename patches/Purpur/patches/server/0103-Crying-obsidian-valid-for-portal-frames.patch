@@ -5,31 +5,19 @@ Subject: [PATCH] Crying obsidian valid for portal frames
 
 
 diff --git a/src/main/java/net/minecraft/world/level/block/Block.java b/src/main/java/net/minecraft/world/level/block/Block.java
-index fb7d5fa53c51766f348271285a2e921be1ca0497..1bc6380a805c1f76ffde67951d32d911e8f1f4a7 100644
+index fb7d5fa53c51766f348271285a2e921be1ca0497..4ae6917ed5560b9d25a3dfcd7938934a99eed905 100644
 --- a/src/main/java/net/minecraft/world/level/block/Block.java
 +++ b/src/main/java/net/minecraft/world/level/block/Block.java
 @@ -140,6 +140,7 @@ public class Block extends BlockBase implements IMaterial {
          return tag.isTagged(this);
      }
  
-+    public boolean equals(Block block) { return a(block); } // Purpur - OBFHELPER
++    public boolean isSameInstance(Block block) { return a(block); } // Purpur - OBFHELPER
      public boolean a(Block block) {
          return this == block;
      }
-diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
-index e5f66cdf95b6073545efc8d1527b0a5e2741f79d..23a3b1b317b6b3e9d812f5a7b09b099b0528c59e 100644
---- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
-+++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
-@@ -741,6 +741,7 @@ public abstract class BlockBase {
-             return this.getBlock().a(tag) && predicate.test(this);
-         }
- 
-+        public boolean equals(Block block) { return a(block); } // Purpur - OBFHELPER
-         public boolean a(Block block) {
-             return this.getBlock().a(block);
-         }
 diff --git a/src/main/java/net/minecraft/world/level/portal/BlockPortalShape.java b/src/main/java/net/minecraft/world/level/portal/BlockPortalShape.java
-index 3f8a674345bcad8289a48d2daa5e2a283528e952..3c35f5d171df518f491cad1f49882622903302a6 100644
+index 3f8a674345bcad8289a48d2daa5e2a283528e952..a9dc57561f0570cc32196991ac305d6a0c0aff8f 100644
 --- a/src/main/java/net/minecraft/world/level/portal/BlockPortalShape.java
 +++ b/src/main/java/net/minecraft/world/level/portal/BlockPortalShape.java
 @@ -30,7 +30,7 @@ import org.bukkit.event.world.PortalCreateEvent;
@@ -37,7 +25,7 @@ index 3f8a674345bcad8289a48d2daa5e2a283528e952..3c35f5d171df518f491cad1f49882622
  
      private static final BlockBase.e a = (iblockdata, iblockaccess, blockposition) -> {
 -        return iblockdata.a(Blocks.OBSIDIAN);
-+        return iblockdata.equals(Blocks.OBSIDIAN) || (net.pl3x.purpur.PurpurConfig.cryingObsidianValidForPortalFrame && iblockdata.equals(Blocks.CRYING_OBSIDIAN)); // Purpur
++        return iblockdata.isSameInstance(Blocks.OBSIDIAN) || (net.pl3x.purpur.PurpurConfig.cryingObsidianValidForPortalFrame && iblockdata.isSameInstance(Blocks.CRYING_OBSIDIAN)); // Purpur
      };
      private final GeneratorAccess b;
      private final EnumDirection.EnumAxis c;
