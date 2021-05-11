@@ -17,9 +17,9 @@ pipeline {
                 sh 'rm -rf ./target'
                 sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server'
 
-                sh 'mv ./Paper/work/Minecraft ./ || true' 
+                // sh 'mv ./Paper/work/Minecraft ./ || true' 
                 sh 'rm -fr ./Paper/work/*'
-                sh 'mv ./Minecraft ./Paper/work/ || true'
+                // sh 'mv ./Minecraft ./Paper/work/ || true'
 
 
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
