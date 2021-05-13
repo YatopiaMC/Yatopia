@@ -20,6 +20,7 @@ This is an overview over all patches that are currently used.
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add IntelliJ IDEA runnable      | Zoe |  |
+| server |  Add MC-4 fix back      | BillyGalbreath |  |
 | server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
 | server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
@@ -33,6 +34,7 @@ This is an overview over all patches that are currently used.
 | server |  Add config for snow on blue ice      | BillyGalbreath |  |
 | server |  Add config for villager trading      | Ben Kerllenevich |  |
 | server |  Add configurable snowball damage      | BillyGalbreath |  |
+| server |  Add credits command      | Encode42 |  |
 | server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | server |  Add demo command      | BillyGalbreath |  |
@@ -84,8 +86,9 @@ This is an overview over all patches that are currently used.
 | api |  Allow inventory resizing      | William Blake Galbreath |  |
 | server |  Allow leashing villagers      | William Blake Galbreath |  |
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
-| server |  Allow to change the piston push limit      | tr7zw |  |
 | server |  Allow toggling special MobSpawners per world      | jmp |  |
+| server |  Allows to display progress messages by player instead to      | DoctaEnkoda |  |
+| server |  Allows you to change the thrust limit of a piston by World      | DoctaEnkoda |  |
 | api |  Alphabetize in-game /plugins list      | BillyGalbreath |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
 | server |  Anvil API      | William Blake Galbreath |  |
@@ -113,6 +116,7 @@ This is an overview over all patches that are currently used.
 | api |  ChatColor conveniences      | William Blake Galbreath |  |
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
 | server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
+| server |  Config for changing the blocks that turn into paths      | 12emin34 |  |
 | server |  Config for powered rail activation distance      | Encode42 |  |
 | server |  Config for skipping night      | Ben Kerllenevich |  |
 | server |  Config for wither explosion radius      | Ben Kerllenevich |  |
@@ -152,7 +156,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable sponge absorption      | Encode42 |  |
 | server |  Configurable villager brain ticks      | William Blake Galbreath |  |
 | server |  Configurable villager breeding      | draycia |  |
-| server |  Configurable void damage height      | William Blake Galbreath |  |
+| server |  Configurable void damage height and damage      | William Blake Galbreath |  |
 | api |  Conflict on change for adventure deprecations      | BillyGalbreath |  |
 | server |  Consolidate flush calls for entity tracker packets      | Spottedleaf |  |
 | server |  Copy passenger list in enderTeleportTo      | Spottedleaf |  |
@@ -212,6 +216,7 @@ This is an overview over all patches that are currently used.
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix Log4j Warning      | snoopdoooggyttv |  |
 | server |  Fix NPE in pickup logic for arrow      | Spottedleaf |  |
+| server |  Fix SPIGOT-6278      | BillyGalbreath |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
@@ -226,6 +231,7 @@ This is an overview over all patches that are currently used.
 | server |  Flying squids! Oh my!      | William Blake Galbreath |  |
 | server |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | api |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
+| server |  Gamemode extra permissions      | BillyGalbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
@@ -341,12 +347,10 @@ This is an overview over all patches that are currently used.
 | api |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
-| server |  Port Cadmium      | Lucy-t |  |
 | server |  Preload ProtocolLib EnumWrappers      | ishland |  |
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
 | server |  Projectile offset config      | YouHaveTrouble |  |
-| server |  Properly handle cancellation of projectile hit event      | Spottedleaf |  |
 | server |  Purpur config files      | William Blake Galbreath |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
 | server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |
