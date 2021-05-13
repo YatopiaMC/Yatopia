@@ -102,13 +102,37 @@ internal fun Project.createApplyPatchesTask(
     }
 
     fun initYarn() { // Todo actually port to kotlin
-        val paperDecompDir = toothpick.paperDecompDir
         bashCmd("cd mappings/mapper && ./gradlew installDist", printOut = true)
         bashCmd("rm -fr mappings/work/Base", printOut = true)
         bashCmd("mkdir -p mappings/work/Base/src/main/java/com/mojang", printOut = true)
-        bashCmd("cp -r $paperDecompDir/spigot/* mappings/work/Base/src/main/java/", printOut = true, dir = project.getRootDir())
+        bashCmd("cp -r ${toothpick.paperDecompDir}/spigot/* mappings/work/Base/src/main/java/", printOut = true)
+
+        // Todo start - make this code better
+        val patchPaths = Files.newDirectoryStream(Paths.get("${rootProject.projectDir}/patches/server"))
+            .map { it.toFile() }
+            .filter { it.name.endsWith(".patch") }
+            .sorted()
+            .toList()
+
+        val linesRaw = patchPaths.asSequence()
+            .flatMap { it.readLines().asSequence() }
+
+        val lines = linesRaw
+            .filter { line -> line.startsWith("--- a/src/main/java/") && !linesRaw.contains("+++ b/${line.substringAfter("""-- a/""")}") }
+            .toList().distinct()
+
+        val removedFiles = lines.asSequence()
+            .filter { line -> line.startsWith("--- a/src/main/java/") }
+            .distinct()
+            .map { it.substringAfter("/src/main/java/") }
+            .toSet()
+        // Todo end
+
         bashCmd("cp -r $forkName-Server/src/main/java/* mappings/work/Base/src/main/java/", printOut = true)
-        bashCmd("cp -r $paperDecompDir/libraries/com.mojang/*/* mappings/work/Base/src/main/java/", printOut = true)
+        bashCmd("cp -r ${toothpick.paperDecompDir}/libraries/com.mojang/*/* mappings/work/Base/src/main/java/", printOut = true)
+
+        removedFiles.forEach{ bashCmd("rm -frv mappings/work/Base/src/main/java/$it", printOut = true) }
+
         bashCmd("rm -fr mappings/work/$forkName-Server_yarn_unpatched && mkdir -p mappings/work/$forkName-Server_yarn_unpatched/src/main/java", printOut = true)
         bashCmd("cp $forkName-Server/.gitignore $forkName-Server/pom.xml $forkName-Server/checkstyle.xml $forkName-Server/CONTRIBUTING.md $forkName-Server/LGPL.txt $forkName-Server/LICENCE.txt $forkName-Server/README.md mappings/work/$forkName-Server_yarn_unpatched/", printOut = true)
         bashCmd("JAVA_OPTS='-Xms1G -Xmx2G' mappings/mapper/build/install/mapper/bin/mapper mappings/map.srg mappings/work/Base/src/main/java mappings/work/$forkName-Server_yarn_unpatched/src/main/java", printOut = true)
