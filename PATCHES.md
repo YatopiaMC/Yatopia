@@ -265,6 +265,7 @@ This is an overview over all patches that are currently used.
 | api |  Lagging threshold      | William Blake Galbreath |  |
 | server |  Left handed API      | BillyGalbreath |  |
 | api |  Left handed API      | BillyGalbreath |  |
+| server |  Lithium: CompactSineLUT      | JellySquid |  |
 | server |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | api |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | server |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
