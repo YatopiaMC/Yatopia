@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Fri, 23 Apr 2021 11:11:20 -0400
+Subject: [PATCH] java 11
+
+
+diff --git a/pom.xml b/pom.xml
+index f0a73238612327d71cf78801df816823d80893a0..57a87372c039fb410c97eaa00227b429b90da2b1 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -14,8 +14,8 @@
+         <bt.name>git</bt.name>
+         <minecraft.version>1.16.5</minecraft.version>
+         <minecraft_version>1_16_R3</minecraft_version>
+-        <maven.compiler.source>1.8</maven.compiler.source>
+-        <maven.compiler.target>1.8</maven.compiler.target>
++        <maven.compiler.source>11</maven.compiler.source>
++        <maven.compiler.target>11</maven.compiler.target>
+     </properties>
+ 
+     <parent>
+diff --git a/src/main/java/io/papermc/paper/util/PaperJvmChecker.java b/src/main/java/io/papermc/paper/util/PaperJvmChecker.java
+index c6ea429819c07e7f4bc257cad73463a030767825..3fdca3afeefdb7f850934f9b1b5312f8979b50f3 100644
+--- a/src/main/java/io/papermc/paper/util/PaperJvmChecker.java
++++ b/src/main/java/io/papermc/paper/util/PaperJvmChecker.java
+@@ -28,21 +28,17 @@ public class PaperJvmChecker {
+     public static void checkJvm() {
+         if (getJvmVersion() < 11) {
+             final Logger logger = LogManager.getLogger();
+-            logger.warn("************************************************************");
+-            logger.warn("* WARNING - YOU ARE RUNNING AN OUTDATED VERSION OF JAVA.");
+-            logger.warn("* PAPER WILL STOP BEING COMPATIBLE WITH THIS VERSION OF");
+-            logger.warn("* JAVA WHEN MINECRAFT 1.17 IS RELEASED.");
+-            logger.warn("*");
+-            logger.warn("* Please update the version of Java you use to run Paper");
+-            logger.warn("* to at least Java 11. When Paper for Minecraft 1.17 is");
+-            logger.warn("* released support for versions of Java before 11 will");
+-            logger.warn("* be dropped.");
+-            logger.warn("*");
+-            logger.warn("* Current Java version: {}", System.getProperty("java.version"));
+-            logger.warn("*");
+-            logger.warn("* Check this forum post for more information: ");
+-            logger.warn("*   https://papermc.io/java11");
+-            logger.warn("************************************************************");
++            // Yatopia start - require java 11+
++            // Note - no clue how someone would run a jar built for java 11 on a java version lower than 11, but doesn't hurt to update this warning I guess.
++            logger.fatal("************************************************************");
++            logger.fatal("* ERROR - YOU ARE RUNNING AN OUTDATED VERSION OF JAVA.");
++            logger.fatal("* YOU NEED TO BE RUNNING JAVA 11 OR HIGHER");
++            logger.fatal("* In order to achieve Yatopia's high performance,");
++            logger.fatal("* Yatopia uses features only found in Java 11 or higher.");
++            logger.fatal("* If you do not know how to install Java 11 or have any other questions,");
++            logger.fatal("* Join our discord server (https://discord.io/YatopiaMC) and ask for support in #yatopia-help");
++            logger.fatal("************************************************************");
++            // Yatopia end
+         }
+     }
+ }

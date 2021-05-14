@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Cleanup') {
             tools {
-                jdk "OpenJDK 8"
+                jdk "OpenJDK 11"
             }
             steps {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
@@ -29,7 +29,7 @@ pipeline {
         }
         stage('Init project & submodules') {
             tools {
-                jdk "OpenJDK 8"
+                jdk "OpenJDK 11"
             }
             steps {
                 withMaven(
@@ -43,7 +43,7 @@ pipeline {
         }
         stage('Decompile & apply patches') {
             tools {
-                jdk "OpenJDK 8"
+                jdk "OpenJDK 11"
             }
             steps {
                 withMaven(
@@ -60,7 +60,7 @@ pipeline {
         }
         stage('Build') {
             tools {
-                jdk "OpenJDK 8"
+                jdk "OpenJDK 11"
             }
             steps {
                 withMaven(
@@ -76,7 +76,8 @@ pipeline {
                         paperworkdir="$basedir/Paper/work"
                         mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
                         
-                        patchedJarPath="$basedir/Yatopia-Server/build/libs/yatopia-server-$mcver-R0.1-SNAPSHOT.jar"
+                        patchedJarPath=$(find "$basedir/Yatopia-Server/build/libs/" -type f -name "*.jar" | grep -v '\\-sources.jar$')
+
                         vanillaJarPath="$paperworkdir/Minecraft/$mcver/$mcver.jar"
 
                         cd "$paperworkdir/Paperclip"
