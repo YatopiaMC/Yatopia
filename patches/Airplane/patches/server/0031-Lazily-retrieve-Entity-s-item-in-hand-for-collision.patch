@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sun, 9 May 2021 18:35:05 -0500
+Subject: [PATCH] Lazily retrieve Entity's item in hand for collision
+
+
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java
+index 45e6943d141082f510833dc92e41a016de766ca5..a51b47892c726f4b4b10d870991e9b8517f57fb7 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java
+@@ -23,7 +23,8 @@ public class VoxelShapeCollisionEntity implements VoxelShapeCollision {
+     };
+     private final boolean b;
+     private final double c;
+-    private final Item d;
++    private Item d; // Airplane
++    private Entity entity; // Airplane
+     private final Predicate<FluidType> e;
+ 
+     protected VoxelShapeCollisionEntity(boolean flag, double d0, Item item, Predicate<FluidType> predicate) {
+@@ -31,6 +32,7 @@ public class VoxelShapeCollisionEntity implements VoxelShapeCollision {
+         this.c = d0;
+         this.d = item;
+         this.e = predicate;
++        this.entity = null; // Airplane
+     }
+ 
+     @Deprecated
+@@ -57,14 +59,16 @@ public class VoxelShapeCollisionEntity implements VoxelShapeCollision {
+         this(
+             entity.by(),
+             entity.locY(),
+-            entity instanceof EntityLiving ? ((EntityLiving) entity).getItemInMainHand().getItem() : Items.AIR,
++            null, //entity instanceof EntityLiving ? ((EntityLiving) entity).getItemInMainHand().getItem() : Items.AIR, // Airplane - lazy
+             entity instanceof EntityLiving ? ((EntityLiving) entity)::a : (fluidtype) -> false
+         );
++        this.entity = entity;
+         // Airplane end
+     }
+ 
+     @Override
+     public boolean a(Item item) {
++        if (this.d == null) this.d = this.entity instanceof EntityLiving ? ((EntityLiving) this.entity).getItemInMainHand().getItem() : Items.AIR; // Airplane
+         return this.d == item;
+     }
+ 

@@ -119,3 +119,33 @@ index 95d0c9f22d79194ca83ca6f6a8e6d91180a3c8da..5c712af849abf1e5f58a7760b19c5434
          }
  
          public LootTableInfo build(LootContextParameterSet lootcontextparameterset) {
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java
+index dcb3e4b0cf34699ed77208f8122710bbdfa3d063..45e6943d141082f510833dc92e41a016de766ca5 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeCollisionEntity.java
+@@ -35,6 +35,8 @@ public class VoxelShapeCollisionEntity implements VoxelShapeCollision {
+ 
+     @Deprecated
+     protected VoxelShapeCollisionEntity(Entity entity) {
++        // Airplane start - compile fixes
++        /*
+         boolean flag = entity.by();
+         double d0 = entity.locY();
+         Item item = entity instanceof EntityLiving ? ((EntityLiving) entity).getItemInMainHand().getItem() : Items.AIR;
+@@ -50,8 +52,15 @@ public class VoxelShapeCollisionEntity implements VoxelShapeCollision {
+                 return false;
+             };
+         }
++         */
+ 
+-        this(flag, d0, item, predicate);
++        this(
++            entity.by(),
++            entity.locY(),
++            entity instanceof EntityLiving ? ((EntityLiving) entity).getItemInMainHand().getItem() : Items.AIR,
++            entity instanceof EntityLiving ? ((EntityLiving) entity)::a : (fluidtype) -> false
++        );
++        // Airplane end
+     }
+ 
+     @Override

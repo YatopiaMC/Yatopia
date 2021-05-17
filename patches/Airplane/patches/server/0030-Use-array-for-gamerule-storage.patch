@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sun, 9 May 2021 16:49:49 -0500
+Subject: [PATCH] Use array for gamerule storage
+
+
+diff --git a/src/main/java/net/minecraft/world/level/GameRules.java b/src/main/java/net/minecraft/world/level/GameRules.java
+index 3783f3a83e3e70d77cf0fa1021f62a89c5950af5..d0c63be6ebfa2f95fb3d63eed2e11b1c5cd6384e 100644
+--- a/src/main/java/net/minecraft/world/level/GameRules.java
++++ b/src/main/java/net/minecraft/world/level/GameRules.java
+@@ -86,6 +86,7 @@ public class GameRules {
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> FORGIVE_DEAD_PLAYERS = a("forgiveDeadPlayers", GameRules.GameRuleCategory.MOBS, GameRules.GameRuleBoolean.b(true));
+     public static final GameRules.GameRuleKey<GameRules.GameRuleBoolean> UNIVERSAL_ANGER = a("universalAnger", GameRules.GameRuleCategory.MOBS, GameRules.GameRuleBoolean.b(false));
+     private final Map<GameRules.GameRuleKey<?>, GameRules.GameRuleValue<?>> J;
++    private final GameRules.GameRuleValue<?>[] gameruleArray;
+ 
+     private static <T extends GameRules.GameRuleValue<T>> GameRules.GameRuleKey<T> a(String s, GameRules.GameRuleCategory gamerules_gamerulecategory, GameRules.GameRuleDefinition<T> gamerules_gameruledefinition) {
+         GameRules.GameRuleKey<T> gamerules_gamerulekey = new GameRules.GameRuleKey<>(s, gamerules_gamerulecategory);
+@@ -104,17 +105,31 @@ public class GameRules {
+     }
+ 
+     public GameRules() {
+-        this.J = (Map) GameRules.I.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (entry) -> {
++        // Airplane start - use this()
++        this((Map) GameRules.I.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (entry) -> {
+             return ((GameRules.GameRuleDefinition) entry.getValue()).getValue();
+-        }));
++        })));
++        // Airplane end
+     }
+ 
+     private GameRules(Map<GameRules.GameRuleKey<?>, GameRules.GameRuleValue<?>> map) {
+         this.J = map;
++
++        int arraySize = map.keySet().stream().mapToInt(key -> key.gameRuleIndex).max().orElse(-1) + 1;
++        GameRules.GameRuleValue<?>[] values = new GameRules.GameRuleValue[arraySize];
++
++        for (Entry<GameRuleKey<?>, GameRuleValue<?>> entry : map.entrySet()) {
++            values[entry.getKey().gameRuleIndex] = entry.getValue();
++        }
++
++        this.gameruleArray = values;
+     }
+ 
+     public <T extends GameRules.GameRuleValue<T>> T get(GameRules.GameRuleKey<T> gamerules_gamerulekey) {
+-        return (T) this.J.get(gamerules_gamerulekey); // CraftBukkit - decompile error
++        // Airplane start
++        return gamerules_gamerulekey == null ? null : (T) this.gameruleArray[gamerules_gamerulekey.gameRuleIndex];
++        //return (T) this.J.get(gamerules_gamerulekey); // CraftBukkit - decompile error
++        // Airplane end
+     }
+ 
+     public NBTTagCompound a() {
+@@ -357,6 +372,10 @@ public class GameRules {
+     }
+ 
+     public static final class GameRuleKey<T extends GameRules.GameRuleValue<T>> {
++        // Airplane start
++        private static int lastGameRuleIndex = 0;
++        public final int gameRuleIndex = lastGameRuleIndex++;
++        // Airplane end
+ 
+         private final String a;
+         private final GameRules.GameRuleCategory b;
