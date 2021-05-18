@@ -14,7 +14,6 @@ This is an overview over all patches that are currently used.
 | server |  Actually unload POI data      | Spottedleaf |  |
 | server |  Add /ping command      | William Blake Galbreath |  |
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
-| api |  Add ChatColor.getById      | Aikar |  |
 | server |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | api |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | server |  Add GameProfileLookupEvent      | tr7zw |  |
