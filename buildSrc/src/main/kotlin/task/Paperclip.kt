@@ -12,6 +12,7 @@ import toothpick
 internal fun Project.createPaperclipTask(
     receiver: Task.() -> Unit = {}
 ): Task = tasks.create("paperclip") {
+    dependsOn(":yatopia-server:jar")
     receiver(this)
     group = taskGroup
     doLast {
