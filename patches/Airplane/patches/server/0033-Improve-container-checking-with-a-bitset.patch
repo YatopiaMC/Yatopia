@@ -1,0 +1,510 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Wed, 19 May 2021 13:08:26 -0500
+Subject: [PATCH] Improve container checking with a bitset
+
+
+diff --git a/src/main/java/gg/airplane/structs/ItemListWithBitset.java b/src/main/java/gg/airplane/structs/ItemListWithBitset.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be2ff1fdf7
+--- /dev/null
++++ b/src/main/java/gg/airplane/structs/ItemListWithBitset.java
+@@ -0,0 +1,105 @@
++package gg.airplane.structs;
++
++import net.minecraft.core.NonNullList;
++import net.minecraft.world.item.ItemStack;
++import org.apache.commons.lang.Validate;
++import org.jetbrains.annotations.NotNull;
++
++import java.util.Arrays;
++
++public class ItemListWithBitset extends NonNullList<ItemStack> {
++    public static ItemListWithBitset fromNonNullList(NonNullList<ItemStack> list) {
++        if (list instanceof ItemListWithBitset) {
++            return (ItemListWithBitset) list;
++        }
++        return new ItemListWithBitset(list);
++    }
++
++    private static ItemStack[] createArray(int size) {
++        ItemStack[] array = new ItemStack[size];
++        Arrays.fill(array, ItemStack.NULL_ITEM);
++        return array;
++    }
++
++    private final ItemStack[] items;
++
++    private int bitSet = 0;
++    private final int allBits;
++
++    private ItemListWithBitset(NonNullList<ItemStack> list) {
++        this(list.size());
++
++        for (int i = 0; i < list.size(); i++) {
++            this.set(i, list.get(i));
++        }
++    }
++
++    public ItemListWithBitset(int size) {
++        super(null, ItemStack.NULL_ITEM);
++
++        Validate.isTrue(size < Integer.BYTES * 8, "size is too large");
++
++        this.items = createArray(size);
++        this.allBits = ((1 << size) - 1);
++    }
++
++    public boolean isCompletelyEmpty() {
++        return this.bitSet == 0;
++    }
++
++    public boolean hasFullStacks() {
++        return (this.bitSet & this.allBits) == allBits;
++    }
++
++    @Override
++    public ItemStack set(int index, ItemStack itemStack) {
++        ItemStack existing = this.items[index];
++
++        this.items[index] = itemStack;
++
++        if (itemStack == ItemStack.NULL_ITEM) {
++            this.bitSet &= ~(1 << index);
++        } else {
++            this.bitSet |= 1 << index;
++        }
++
++        return existing;
++    }
++
++    @NotNull
++    @Override
++    public ItemStack get(int var0) {
++        return this.items[var0];
++    }
++
++    @Override
++    public int size() {
++        return this.items.length;
++    }
++
++    @Override
++    public void clear() {
++        Arrays.fill(this.items, ItemStack.NULL_ITEM);
++    }
++
++    // these are unsupported for block inventories which have a static size
++    @Override
++    public void add(int var0, ItemStack var1) {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public ItemStack remove(int var0) {
++        throw new UnsupportedOperationException();
++    }
++
++    @Override
++    public String toString() {
++        return "ItemListWithBitset{" +
++          "items=" + Arrays.toString(items) +
++          ", bitSet=" + Long.toString(bitSet, 2) +
++          ", allBits=" + Long.toString(allBits, 2) +
++          ", size=" + this.items.length +
++          '}';
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index 081d5a013574101a3d113c8c6375396fae0244c4..c0ccf44643bc9628743043adb7894066b9812e60 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -846,6 +846,22 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+         return result;
+     }
+ 
++    // Airplane start - skip type lookup if already completed, but still run check
++    public TileEntity getAndCheckTileEntity(IBlockData data, BlockPosition pos) {
++        TileEntity result = super.getTileEntity(pos, false);
++        Block type = data.getBlock();
++
++        // copied from above
++        if (result != null && type != Blocks.AIR) {
++            if (!result.getTileType().isValidBlock(type)) {
++                result = fixTileEntity(pos, type, result);
++            }
++        }
++
++        return result;
++    }
++    // Airplane end
++
+     private TileEntity fixTileEntity(BlockPosition pos, Block type, TileEntity found) {
+         this.getServer().getLogger().log(Level.SEVERE, "Block at {0}, {1}, {2} is {3} but has {4}" + ". "
+                 + "Bukkit will attempt to fix this, but there may be additional damage that we cannot recover.", new Object[]{pos.getX(), pos.getY(), pos.getZ(), type, found});
+diff --git a/src/main/java/net/minecraft/world/IInventory.java b/src/main/java/net/minecraft/world/IInventory.java
+index 774ba6a923f7e329f6af5efc17e1c46e87ed2d77..8faf3850f4c965feec42f6998563b7265a8f599e 100644
+--- a/src/main/java/net/minecraft/world/IInventory.java
++++ b/src/main/java/net/minecraft/world/IInventory.java
+@@ -1,6 +1,8 @@
+ package net.minecraft.world;
+ 
+ import java.util.Set;
++
++import net.minecraft.core.EnumDirection; // Airplane
+ import net.minecraft.world.entity.player.EntityHuman;
+ import net.minecraft.world.item.Item;
+ import net.minecraft.world.item.ItemStack;
+@@ -18,6 +20,70 @@ public interface IInventory extends Clearable {
+ 
+     ItemStack getItem(int i);
+ 
++    // Airplane start - allow the inventory to override and optimize these frequent calls
++    default boolean hasEmptySlot(EnumDirection enumdirection) { // there is a slot with 0 items in it
++        if (this instanceof IWorldInventory) {
++            for (int i : ((IWorldInventory) this).getSlotsForFace(enumdirection)) {
++                if (this.getHopperItem(i).isEmpty()) {
++                    return true;
++                }
++            }
++        } else {
++            int size = this.getSize();
++            for (int i = 0; i < size; i++) {
++                if (this.getHopperItem(i).isEmpty()) {
++                    return true;
++                }
++            }
++        }
++        return false;
++    }
++
++    default boolean isCompletelyFull(EnumDirection enumdirection) { // every stack is maxed
++        if (this instanceof IWorldInventory) {
++            for (int i : ((IWorldInventory) this).getSlotsForFace(enumdirection)) {
++                ItemStack itemStack = this.getHopperItem(i);
++                if (itemStack.getCount() < itemStack.getMaxStackSize()) {
++                    return false;
++                }
++            }
++        } else {
++            int size = this.getSize();
++            for (int i = 0; i < size; i++) {
++                ItemStack itemStack = this.getHopperItem(i);
++                if (itemStack.getCount() < itemStack.getMaxStackSize()) {
++                    return false;
++                }
++            }
++        }
++        return true;
++    }
++
++    default boolean isCompletelyEmpty(EnumDirection enumdirection) {
++        if (this instanceof IWorldInventory) {
++            for (int i : ((IWorldInventory) this).getSlotsForFace(enumdirection)) {
++                if (!this.getHopperItem(i).isEmpty()) {
++                    return false;
++                }
++            }
++        } else {
++            int size = this.getSize();
++            for (int i = 0; i < size; i++) {
++                if (!this.getHopperItem(i).isEmpty()) {
++                    return false;
++                }
++            }
++        }
++        return true;
++    }
++    // Airplane end
++
++    // Airplane start - way for inventories to know it's a hopper, skipping certain steps
++    default ItemStack getHopperItem(int index) {
++        return this.getItem(index);
++    }
++    // Airplane end
++
+     ItemStack splitStack(int i, int j);
+ 
+     ItemStack splitWithoutUpdate(int i);
+diff --git a/src/main/java/net/minecraft/world/InventoryLargeChest.java b/src/main/java/net/minecraft/world/InventoryLargeChest.java
+index 92818df3689e35b921eb04678c84d2dd4b21ddbe..f6b723062a9cd0667efcc0171df71e9df93def06 100644
+--- a/src/main/java/net/minecraft/world/InventoryLargeChest.java
++++ b/src/main/java/net/minecraft/world/InventoryLargeChest.java
+@@ -1,5 +1,6 @@
+ package net.minecraft.world;
+ 
++import net.minecraft.core.EnumDirection; // Airplane
+ import net.minecraft.world.entity.player.EntityHuman;
+ import net.minecraft.world.item.ItemStack;
+ 
+@@ -91,6 +92,30 @@ public class InventoryLargeChest implements IInventory {
+         return i >= this.left.getSize() ? this.right.getItem(i - this.left.getSize()) : this.left.getItem(i);
+     }
+ 
++    // Airplane start
++    @Override
++    public boolean hasEmptySlot(EnumDirection enumdirection) {
++        return this.left.hasEmptySlot(null) || this.right.hasEmptySlot(null);
++    }
++
++    @Override
++    public boolean isCompletelyFull(EnumDirection enumdirection) {
++        return this.left.isCompletelyFull(null) && this.right.isCompletelyFull(null);
++    }
++
++    @Override
++    public boolean isCompletelyEmpty(EnumDirection enumdirection) {
++        return this.left.isCompletelyEmpty(null) && this.right.isCompletelyEmpty(null);
++    }
++    // Airplane end
++
++    // Airplane start
++    @Override
++    public ItemStack getHopperItem(int i) {
++        return i >= this.left.getSize() ? this.right.getHopperItem(i - this.left.getSize()) : this.left.getHopperItem(i);
++    }
++    // Airplane end
++
+     @Override
+     public ItemStack splitStack(int i, int j) {
+         return i >= this.left.getSize() ? this.right.splitStack(i - this.left.getSize(), j) : this.left.splitStack(i, j);
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java
+index 111f62d0e5b40e945793b8f504f2c035c0884a6a..cfabc9047cd3e972af84700725355d0fe149b221 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java
+@@ -36,7 +36,7 @@ import org.bukkit.entity.HumanEntity;
+ 
+ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITickable
+ 
+-    private NonNullList<ItemStack> items;
++    private gg.airplane.structs.ItemListWithBitset items; // Airplane
+     protected float a;
+     protected float b;
+     public int viewingCount;
+@@ -75,9 +75,31 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+ 
+     protected TileEntityChest(TileEntityTypes<?> tileentitytypes) {
+         super(tileentitytypes);
++        // Airplane start
++        /*
+         this.items = NonNullList.a(27, ItemStack.b);
++         */
++        this.items = new gg.airplane.structs.ItemListWithBitset(27);
++        // Airplane end
+     }
+ 
++    // Airplane start
++    @Override
++    public boolean hasEmptySlot(EnumDirection enumdirection) {
++        return !this.items.hasFullStacks();
++    }
++
++    @Override
++    public boolean isCompletelyFull(EnumDirection enumdirection) {
++        return this.items.hasFullStacks() && super.isCompletelyFull(enumdirection);
++    }
++
++    @Override
++    public boolean isCompletelyEmpty(EnumDirection enumdirection) {
++        return this.items.isCompletelyEmpty() || super.isCompletelyEmpty(enumdirection);
++    }
++    // Airplane end
++
+     public TileEntityChest() {
+         this(TileEntityTypes.CHEST);
+     }
+@@ -95,7 +117,7 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+     @Override
+     public void load(IBlockData iblockdata, NBTTagCompound nbttagcompound) {
+         super.load(iblockdata, nbttagcompound);
+-        this.items = NonNullList.a(this.getSize(), ItemStack.b);
++        this.items = new gg.airplane.structs.ItemListWithBitset(this.getSize()); // Airplane
+         if (!this.b(nbttagcompound)) {
+             ContainerUtil.b(nbttagcompound, this.items);
+         }
+@@ -295,7 +317,7 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+ 
+     @Override
+     protected void a(NonNullList<ItemStack> nonnulllist) {
+-        this.items = nonnulllist;
++        this.items = gg.airplane.structs.ItemListWithBitset.fromNonNullList(nonnulllist); // Airplane
+     }
+ 
+     public static int a(IBlockAccess iblockaccess, BlockPosition blockposition) {
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityHopper.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityHopper.java
+index 537dc52e5ff3325555ee6049bc7f277952983b76..056d280c7db6fc532d83b2a547d6a01402a49bd0 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityHopper.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityHopper.java
+@@ -46,7 +46,7 @@ import org.bukkit.inventory.Inventory;
+ 
+ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITickable {
+ 
+-    private NonNullList<ItemStack> items;
++    private gg.airplane.structs.ItemListWithBitset items; // Airplane
+     private int j;
+     private long k;
+ 
+@@ -82,14 +82,31 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+ 
+     public TileEntityHopper() {
+         super(TileEntityTypes.HOPPER);
+-        this.items = NonNullList.a(5, ItemStack.b);
++        this.items = new gg.airplane.structs.ItemListWithBitset(5); // Airplane
+         this.j = -1;
+     }
+ 
++    // Airplane start
++    @Override
++    public boolean hasEmptySlot(EnumDirection enumdirection) {
++        return !this.items.hasFullStacks();
++    }
++
++    @Override
++    public boolean isCompletelyFull(EnumDirection enumdirection) {
++        return this.items.hasFullStacks() && super.isCompletelyFull(enumdirection);
++    }
++
++    @Override
++    public boolean isCompletelyEmpty(EnumDirection enumdirection) {
++        return this.items.isCompletelyEmpty() || super.isCompletelyEmpty(enumdirection);
++    }
++    // Airplane end
++
+     @Override
+     public void load(IBlockData iblockdata, NBTTagCompound nbttagcompound) {
+         super.load(iblockdata, nbttagcompound);
+-        this.items = NonNullList.a(this.getSize(), ItemStack.b);
++        this.items = new gg.airplane.structs.ItemListWithBitset(this.getSize()); // Airplane
+         if (!this.b(nbttagcompound)) {
+             ContainerUtil.b(nbttagcompound, this.items);
+         }
+@@ -181,16 +198,19 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+     }
+ 
+     private boolean j() {
+-        Iterator iterator = this.items.iterator();
++        // Airplane start - no iterator
++        //Iterator iterator = this.items.iterator();
++        int i = 0;
+ 
+         ItemStack itemstack;
+ 
+         do {
+-            if (!iterator.hasNext()) {
++            if (i >= this.items.size()) {
+                 return true;
+             }
+ 
+-            itemstack = (ItemStack) iterator.next();
++            itemstack = (ItemStack) this.items.get(i++);
++            // Airplane end
+         } while (!itemstack.isEmpty() && itemstack.getCount() == itemstack.getMaxStackSize());
+ 
+         return false;
+@@ -205,7 +225,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+         skipPushModeEventFire = skipHopperEvents;
+         boolean foundItem = false;
+         for (int i = 0; i < this.getSize(); ++i) {
+-            ItemStack item = this.getItem(i);
++            ItemStack item = this.getHopperItem(i); // Airplane
+             if (!item.isEmpty()) {
+                 foundItem = true;
+                 ItemStack origItemStack = item;
+@@ -429,14 +449,14 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+     private static boolean anyMatch(IInventory iinventory, EnumDirection enumdirection, java.util.function.BiPredicate<ItemStack, Integer> test) {
+         if (iinventory instanceof IWorldInventory) {
+             for (int i : ((IWorldInventory) iinventory).getSlotsForFace(enumdirection)) {
+-                if (test.test(iinventory.getItem(i), i)) {
++                if (test.test(iinventory.getHopperItem(i), i)) { // Airplane
+                     return true;
+                 }
+             }
+         } else {
+             int size = iinventory.getSize();
+             for (int i = 0; i < size; i++) {
+-                if (test.test(iinventory.getItem(i), i)) {
++                if (test.test(iinventory.getHopperItem(i), i)) { // Airplane
+                     return true;
+                 }
+             }
+@@ -450,12 +470,22 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+ 
+     private boolean b(IInventory iinventory, EnumDirection enumdirection) {
+         // Paper start - no streams
++        // Airplane start - use direct method
++        /*
+         return allMatch(iinventory, enumdirection, STACK_SIZE_TEST);
++        */
++        return iinventory.isCompletelyFull(enumdirection);
++        // Airplane end
+         // Paper end
+     }
+ 
+     private static boolean c(IInventory iinventory, EnumDirection enumdirection) {
++        // Airplane start - use direct method
++        /*
+         return allMatch(iinventory, enumdirection, IS_EMPTY_TEST);
++         */
++        return iinventory.isCompletelyEmpty(enumdirection);
++        // Airplane end
+     }
+ 
+     public static boolean a(IHopper ihopper) {
+@@ -594,7 +624,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+ 
+         if (a(iinventory1, itemstack, i, enumdirection)) {
+             boolean flag = false;
+-            boolean flag1 = iinventory1.isEmpty();
++            boolean flag1 = iinventory1.isCompletelyEmpty(enumdirection); // Airplane
+ 
+             if (itemstack1.isEmpty()) {
+                 IGNORE_TILE_UPDATES = true; // Paper
+@@ -677,7 +707,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+         if (block instanceof IInventoryHolder) {
+             object = ((IInventoryHolder) block).a(iblockdata, world, blockposition);
+         } else if (block.isTileEntity()) {
+-            TileEntity tileentity = world.getTileEntity(blockposition);
++            TileEntity tileentity = ((net.minecraft.server.level.WorldServer) world).getAndCheckTileEntity(iblockdata, blockposition); // Airplane - skip validation check, since we already looked it up
+ 
+             if (tileentity instanceof IInventory) {
+                 object = (IInventory) tileentity;
+@@ -736,7 +766,7 @@ public class TileEntityHopper extends TileEntityLootable implements IHopper, ITi
+ 
+     @Override
+     protected void a(NonNullList<ItemStack> nonnulllist) {
+-        this.items = nonnulllist;
++        this.items = gg.airplane.structs.ItemListWithBitset.fromNonNullList(nonnulllist); // Airplane
+     }
+ 
+     public void a(Entity entity) {
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityLootable.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityLootable.java
+index f0da819627035bed83561128a11059424d2b7e30..36ef5b11f12da1a7e3c8031ec84d28ba22d59a5c 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityLootable.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityLootable.java
+@@ -98,7 +98,11 @@ public abstract class TileEntityLootable extends TileEntityContainer {
+     public boolean isEmpty() {
+         this.d((EntityHuman) null);
+         // Paper start
+-        for (ItemStack itemStack : this.f()) {
++        // Airplane start - don't use abstract iterator
++        java.util.List<ItemStack> list = this.f();
++        for (int i = 0, size = list.size(); i < size; i++) {
++            ItemStack itemStack = list.get(i);
++            // Airplane end
+             if (!itemStack.isEmpty()) {
+                 return false;
+             }
+@@ -107,6 +111,13 @@ public abstract class TileEntityLootable extends TileEntityContainer {
+         return true;
+     }
+ 
++    // Airplane start - skip loot check for hoppers
++    @Override
++    public final ItemStack getHopperItem(int index) {
++        return this.f().get(index);
++    }
++    // Airplane end
++
+     @Override
+     public ItemStack getItem(int i) {
+         if (i == 0) this.d((EntityHuman) null); // Paper

@@ -121,6 +121,7 @@ This is an overview over all patches that are currently used.
 | server |  Config for health to impact Creeper explosion radius      | Encode42 |  |
 | server |  Config for powered rail activation distance      | Encode42 |  |
 | server |  Config for skipping night      | Ben Kerllenevich |  |
+| server |  Config for unverified username message      | Ben Kerllenevich |  |
 | server |  Config for wither explosion radius      | Ben Kerllenevich |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
@@ -243,7 +244,6 @@ This is an overview over all patches that are currently used.
 | server |  Hide hidden players from entity selector      | BillyGalbreath |  |
 | server |  Highly optimise single and multi-AABB VoxelShapes and      | Spottedleaf |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
-| server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
 | server |  Implement Mob Blindness      | Encode42 |  |
 | server |  Implement TPSBar      | BillyGalbreath |  |
@@ -254,6 +254,7 @@ This is an overview over all patches that are currently used.
 | server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
 | server |  Improve abnormal server shutdown process      | Spottedleaf |  |
 | server |  Improve async tp to not load chunks when crossing worlds      | Spottedleaf |  |
+| server |  Improve container checking with a bitset      | Paul Sauve |  |
 | server |  Improve fluid direction caching      | Paul Sauve |  |
 | server |  Improve paper prevent moving into unloaded chunk check      | Spottedleaf |  |
 | server |  Improved oversized chunk data packet handling      | Spottedleaf |  |
