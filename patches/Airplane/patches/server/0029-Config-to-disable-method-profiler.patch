@@ -38,3 +38,24 @@ index 3fcb61435e5e28a62803686f9ea0aa0c006a5b12..073df4e4e21b7a57e8d4159e2c5d68bd
          return this.methodProfiler;
      }
  
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index f0420b87025a090a659542a00614e805bf850fd2..e4d54ffaf2795e40e9d57550d2508ab4cd4ef7b9 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -18,6 +18,8 @@ import java.util.function.Consumer;
+ import java.util.function.Predicate;
+ import java.util.function.Supplier;
+ import javax.annotation.Nullable;
++
++import gg.airplane.AirplaneConfig;
+ import net.minecraft.CrashReport;
+ import net.minecraft.CrashReportSystemDetails;
+ import net.minecraft.ReportedException;
+@@ -1806,6 +1808,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     }
+ 
+     public GameProfilerFiller getMethodProfiler() {
++        if (AirplaneConfig.disableMethodProfiler) return net.minecraft.util.profiling.GameProfilerDisabled.a; // Airplane
+         return (GameProfilerFiller) this.methodProfiler.get();
+     }
+ 

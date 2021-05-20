@@ -272,7 +272,6 @@ This is an overview over all patches that are currently used.
 | server |  Lag compensate block breaking      | Spottedleaf |  |
 | server |  Lagging threshold      | William Blake Galbreath |  |
 | api |  Lagging threshold      | William Blake Galbreath |  |
-| server |  Lazily retrieve Entity&#39;s item in hand for collision      | Paul Sauve |  |
 | server |  Left handed API      | BillyGalbreath |  |
 | api |  Left handed API      | BillyGalbreath |  |
 | server |  Lithium: CompactSineLUT      | JellySquid |  |
@@ -289,6 +288,7 @@ This is an overview over all patches that are currently used.
 | server |  MC-Dev fixes      | Spottedleaf |  |
 | server |  Make CallbackExecutor strict again      | Spottedleaf |  |
 | server |  Make Iron Golems Swim      | William Blake Galbreath |  |
+| server |  Make VoxelShapeCollisionEntity lazier      | Paul Sauve |  |
 | server |  Make entity breeding times configurable      | jmp |  |
 | server |  Make entity tracker use highest range of passengers      | Spottedleaf |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
@@ -441,6 +441,7 @@ This is an overview over all patches that are currently used.
 | server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
 | server |  Use hash table for maintaing changed block set      | Spottedleaf |  |
 | server |  Use list for fast iteration over pathfinder goals      | Paul Sauve |  |
+| server |  Use raw iterator where possible      | Paul Sauve |  |
 | server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Util patch      | Spottedleaf |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
