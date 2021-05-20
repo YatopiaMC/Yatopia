@@ -6,18 +6,15 @@
 [![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.5)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.5/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/YatopiaMC)
 [![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopiamc.org%2F)](https://api.yatopiamc.org/v2/latestBuild?branch=ver/1.16.5)
-<h3>Blazing fast <a href="https://github.com/Spottedleaf/Tuinity">Tuinity</a> fork with best in class performance.</h3>
+<h3>Blazing fast <a href="https://github.com/pl3xgaming/Purpur">Purpur</a> fork with best in class performance.</h3>
 </div>
 
 ## So what is Yatopia?
-Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) forks and optimization mods, as well as many unique optimizations. We borrow code from the following repos:
-
+Yatopia is a performance-oriented fork of [Purpur](https://github.com/pl3xgaming/Purpur) that adds even more optimizations overtop the already great performance that Purpur inherits from it's upstreams. We have also ported some optimizations from the following projects:
 * [Akarin](https://github.com/Akarin-project/Akarin)
 * [EMC](https://github.com/starlis/empirecraft)
 * [Lithium](https://github.com/jellysquid3/lithium-fabric)
 * [Origami](https://github.com/Minebench/Origami)
-* [Purpur](https://github.com/pl3xgaming/Purpur)
-* [Airplane](https://github.com/Technove/Airplane)
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
 * [Tic-Tacs](https://github.com/Gegy/tic-tacs)
 
@@ -26,23 +23,18 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopiamc.org/download.html). You can also download the latest development build [here](https://api.yatopiamc.org/v2/latestBuild/download?branch=ver/1.16.5).
 
 ## Documentation
-
- You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md).
+You can find a full explanation of the Yatopia configuration file on the [wiki](https://github.com/YatopiaMC/Yatopia/wiki). Check out the list of patches included in this project and who created them [here](PATCHES.md).
 
 ## Building and setting up
-
 Run the following commands in the root directory:
 
 ```shell
-./gradlew initGitSubmodules
-./gradlew setupUpstream
 ./gradlew applyPatches
-./gradlew paperclip
+./gradlew build paperclip
 ```
 
 
 ## Using Yatopia-API
-
 To build your plugin against the Yatopia-API, first add the CodeMC maven repository:
 
 # Maven
@@ -105,7 +97,6 @@ dependencies {
 ```
 
 ## Why aren't there many API additions?
-
 (Modified from [starlis/empirecraft](https://github.com/starlis/empirecraft/))
 <p>
 APIs are tough to design. In projects such as Bukkit, Spigot, Sponge, Paper, etc once an API is committed, it's almost forever. You can't go breaking it without solid justification. This is the politics game.
@@ -118,11 +109,9 @@ That being said we make light API additions when requested.
 </p>
 
 ## License
-
 License information can be found [here](/Licensing/LICENSE.md).
 
 ## Security
-
 Security information can be found [here](/SECURITY.md).
 
 ## Statistics
