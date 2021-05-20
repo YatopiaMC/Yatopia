@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E3=84=97=E3=84=A0=CB=8B=20=E3=84=91=E3=84=A7=CB=8A?=
+ <tsao-chi@the-lingo.org>
+Date: Fri, 10 Apr 2020 15:47:15 +0800
+Subject: [PATCH] (Akarin) Swaps the predicate order of collision
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 0a82e55126bce0604633b9e9714fe4131369dc38..4693ffed3ba641ff08520facd76ef4d902926012 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -1768,8 +1768,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+     public void pickup(EntityHuman entityhuman) {}
+ 
+     public void collide(Entity entity) {
++        if (entity.noclip || this.noclip) return; // Akarin - Test this earlier
+         if (!this.isSameVehicle(entity)) {
+-            if (!entity.noclip && !this.noclip) {
++            if (true || !entity.noclip && !this.noclip) { // Akarin - Moved up
+                 if (this.world.paperConfig.onlyPlayersCollide && !(entity instanceof EntityPlayer || this instanceof EntityPlayer)) return; // Paper
+                 double d0 = entity.locX() - this.locX();
+                 double d1 = entity.locZ() - this.locZ();

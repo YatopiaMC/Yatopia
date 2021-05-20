@@ -13,56 +13,11 @@ The whole code is based around 1 class, the EntityFilter class. Whole filtering 
 
 Co-authored-by: tr7zw <tr7zw@live.de>
 
-diff --git a/src/main/java/de/minebench/origami/OrigamiConfig.java b/src/main/java/de/minebench/origami/OrigamiConfig.java
-index e72be36d860630afb879b40bf028c5e456169634..d2a9455c0e97a51dcf1513322c23e41d8253fbc2 100644
---- a/src/main/java/de/minebench/origami/OrigamiConfig.java
-+++ b/src/main/java/de/minebench/origami/OrigamiConfig.java
-@@ -127,6 +127,39 @@ public final class OrigamiConfig {
-         private void pigmenDontTargetUnlessHit() {
-             pigmenDontTargetUnlessHit = getBoolean("pigmen.dont-target-unless-hit", pigmenDontTargetUnlessHit);
-         }
-+
-+        // Yatopia start
-+        public boolean playerCollisions = true;
-+        public boolean animalCollisions = true;
-+        public boolean ambientCollisions = true;
-+        public boolean monsterCollisions = true;
-+        public boolean villagerCollisions = true;
-+        public boolean pillagerCollisions = true;
-+        public boolean ironGolemCollisions = true;
-+        public boolean miscCollisions = true;
-+        public boolean itemCollisions = true;
-+        public boolean waterCreatureCollisions = true;
-+        public boolean waterAmbientCollisions = true;
-+        public boolean allCollisionsEnabled = false;
-+        private void specificCollisionSettings() {
-+            playerCollisions = getBoolean("collisions.players", playerCollisions);
-+            animalCollisions = getBoolean("collisions.animals", animalCollisions);
-+            ambientCollisions = getBoolean("collisions.ambient", ambientCollisions);
-+            monsterCollisions = getBoolean("collisions.monsters", monsterCollisions);
-+            villagerCollisions = getBoolean("collisions.villagers", villagerCollisions);
-+            pillagerCollisions = getBoolean("collisions.pillagers", pillagerCollisions);
-+            ironGolemCollisions = getBoolean("collisions.iron-golems", ironGolemCollisions);
-+            miscCollisions = getBoolean("collisions.misc", miscCollisions);
-+            itemCollisions = getBoolean("collisions.items", itemCollisions);
-+            waterCreatureCollisions = getBoolean("collisions.water-creature", waterCreatureCollisions);
-+            waterAmbientCollisions = getBoolean("collisions.water-ambient", waterAmbientCollisions);
-+
-+            allCollisionsEnabled =
-+                    playerCollisions && animalCollisions && ambientCollisions && monsterCollisions && villagerCollisions
-+                            && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
-+                            && waterCreatureCollisions && waterAmbientCollisions;
-+        }
-+        // Yatopia end
-     }
- 
- }
-\ No newline at end of file
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 82af1ac4743e96f8934796359d30f8ee9426e8de..61b39dca71580ea07da32943efc6e1024067b1ee 100644
+index a2cc723cce852f34532d0cb8c9cd066f8fdb60ce..4ea424511c997287ffb7c3d3cef455077d9f4be1 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-@@ -3069,7 +3069,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3073,7 +3073,7 @@ public abstract class EntityLiving extends Entity {
          // Paper - end don't run getEntities if we're not going to use its result
          // Tuinity start - reduce memory allocation from collideNearby
          List<Entity> list = com.tuinity.tuinity.util.CachedLists.getTempGetEntitiesList();
@@ -73,13 +28,13 @@ index 82af1ac4743e96f8934796359d30f8ee9426e8de..61b39dca71580ea07da32943efc6e102
  
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/EntityFilter.java b/src/main/java/org/yatopiamc/yatopia/server/EntityFilter.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20e5651fdc
+index 0000000000000000000000000000000000000000..2382a9ee51bbf8b4d4eba2f7f90ba891c84241e4
 --- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/EntityFilter.java
 @@ -0,0 +1,145 @@
 +package org.yatopiamc.yatopia.server;
 +
-+import de.minebench.origami.OrigamiConfig;
++import org.yatopiamc.yatopia.server.YatopiaConfig;
 +import java.util.function.Predicate;
 +import net.minecraft.world.entity.Entity;
 +import net.minecraft.world.entity.EntityTypes;
@@ -90,8 +45,8 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +public class EntityFilter {
 +
 +    public static Predicate<Entity> getFilter(Entity entity, boolean ignoreClimbing) {
-+        OrigamiConfig.WorldConfig config = entity.world.origamiConfig;
-+        if (config.allCollisionsEnabled) {
++       
++        if (YatopiaConfig.allCollisionsEnabled) {
 +            return IEntitySelector.pushable(entity, ignoreClimbing);
 +        }
 +
@@ -137,24 +92,24 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +        };
 +
 +        ret = ret.and((tested) -> {
-+            if (tested.getEntityType() == EntityTypes.PLAYER && config.playerCollisions) {
++            if (tested.getEntityType() == EntityTypes.PLAYER && YatopiaConfig.playerCollisions) {
 +                return true;
 +            }
-+            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.CREATURE && config.animalCollisions) {
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.CREATURE && YatopiaConfig.animalCollisions) {
 +                return true;
 +            }
-+            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.AMBIENT && config.ambientCollisions) {
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.AMBIENT && YatopiaConfig.ambientCollisions) {
 +                return true;
 +            }
 +            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.MONSTER) {
-+                if (config.monsterCollisions) {
-+                    if (config.pillagerCollisions) {
++                if (YatopiaConfig.monsterCollisions) {
++                    if (YatopiaConfig.pillagerCollisions) {
 +                        return true;
 +                    } else {
 +                        return tested.getEntityType() != EntityTypes.PILLAGER;
 +                    }
 +                } else {
-+                    if (config.pillagerCollisions) {
++                    if (YatopiaConfig.pillagerCollisions) {
 +                        return tested.getEntityType() == EntityTypes.PILLAGER;
 +                    } else {
 +                        return false;
@@ -162,28 +117,28 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +                }
 +            }
 +            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.MISC) {
-+                if (config.miscCollisions) {
-+                    if (config.villagerCollisions && config.ironGolemCollisions && config.itemCollisions) {
++                if (YatopiaConfig.miscCollisions) {
++                    if (YatopiaConfig.villagerCollisions && YatopiaConfig.ironGolemCollisions && YatopiaConfig.itemCollisions) {
 +                        return true;
 +                    }
-+                    if (!config.villagerCollisions) {
++                    if (!YatopiaConfig.villagerCollisions) {
 +                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
 +                            return false;
 +                        }
 +                    }
-+                    if (!config.ironGolemCollisions) {
++                    if (!YatopiaConfig.ironGolemCollisions) {
 +                        if (tested.getEntityType() == EntityTypes.IRON_GOLEM) {
 +                            return false;
 +                        }
 +                    }
-+                    if (!config.itemCollisions) {
++                    if (!YatopiaConfig.itemCollisions) {
 +                        if (tested.getEntityType() == EntityTypes.ITEM) {
 +                            return false;
 +                        }
 +                    }
 +                    return true;
 +                } else {
-+                    if (config.villagerCollisions && config.ironGolemCollisions && config.itemCollisions) {
++                    if (YatopiaConfig.villagerCollisions && YatopiaConfig.ironGolemCollisions && YatopiaConfig.itemCollisions) {
 +                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
 +                            return true;
 +                        }
@@ -194,7 +149,7 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +                            return true;
 +                        }
 +                    }
-+                    if (config.villagerCollisions && config.ironGolemCollisions) {
++                    if (YatopiaConfig.villagerCollisions && YatopiaConfig.ironGolemCollisions) {
 +                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
 +                            return true;
 +                        }
@@ -202,7 +157,7 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +                            return true;
 +                        }
 +                    }
-+                    if (config.villagerCollisions) {
++                    if (YatopiaConfig.villagerCollisions) {
 +                        if (tested.getEntityType() == EntityTypes.VILLAGER) {
 +                            return true;
 +                        }
@@ -210,10 +165,10 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +                    return false;
 +                }
 +            }
-+            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_CREATURE && config.waterCreatureCollisions) {
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_CREATURE && YatopiaConfig.waterCreatureCollisions) {
 +                return true;
 +            }
-+            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_AMBIENT && config.waterAmbientCollisions) {
++            if (tested.getEntityType().getEnumCreatureType() == EnumCreatureType.WATER_AMBIENT && YatopiaConfig.waterAmbientCollisions) {
 +                return true;
 +            }
 +            return false;
@@ -222,3 +177,42 @@ index 0000000000000000000000000000000000000000..77df98d9b622e66ce47d1640819a5d20
 +        return ret;
 +    }
 +}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index f5a43e607f9c13e07a0f5e7e139eed93f159185b..795889fecf14180cdec2f289dd38984f10dddae7 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -189,4 +189,34 @@ public class YatopiaConfig {
+     private static void brandName() {
+         brandName = getString("brand-name", brandName);
+     }
++
++    public static boolean playerCollisions = true;
++    public static boolean animalCollisions = true;
++    public static boolean ambientCollisions = true;
++    public static boolean monsterCollisions = true;
++    public static boolean villagerCollisions = true;
++    public static boolean pillagerCollisions = true;
++    public static boolean ironGolemCollisions = true;
++    public static boolean miscCollisions = true;
++    public static boolean itemCollisions = true;
++    public static boolean waterCreatureCollisions = true;
++    public static boolean waterAmbientCollisions = true;
++    public static boolean allCollisionsEnabled = false;
++    private static void specificCollisionSettings() {
++        playerCollisions = getBoolean("collisions.players", playerCollisions);
++        animalCollisions = getBoolean("collisions.animals", animalCollisions);
++        ambientCollisions = getBoolean("collisions.ambient", ambientCollisions);
++        monsterCollisions = getBoolean("collisions.monsters", monsterCollisions);
++        villagerCollisions = getBoolean("collisions.villagers", villagerCollisions);
++        pillagerCollisions = getBoolean("collisions.pillagers", pillagerCollisions);
++        ironGolemCollisions = getBoolean("collisions.iron-golems", ironGolemCollisions);
++        miscCollisions = getBoolean("collisions.misc", miscCollisions);
++        itemCollisions = getBoolean("collisions.items", itemCollisions);
++        waterCreatureCollisions = getBoolean("collisions.water-creature", waterCreatureCollisions);
++        waterAmbientCollisions = getBoolean("collisions.water-ambient", waterAmbientCollisions);
++        allCollisionsEnabled =
++                playerCollisions && animalCollisions && ambientCollisions && monsterCollisions && villagerCollisions
++                        && pillagerCollisions && ironGolemCollisions && miscCollisions && itemCollisions
++                        && waterCreatureCollisions && waterAmbientCollisions;
++    }
+ }

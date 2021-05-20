@@ -1,0 +1,407 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Gegy <gegy1000@gmail.com>
+Date: Tue, 9 Feb 2021 13:23:12 -0500
+Subject: [PATCH] tic-tacs: unblocking
+
+Code originally licenced under LGPLv3 for the tic-tacs project: https://github.com/Gegy/tic-tacs
+
+diff --git a/src/main/java/net/gegy1000/tictacs/NonBlockingWorldAccess.java b/src/main/java/net/gegy1000/tictacs/NonBlockingWorldAccess.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..0d99f3b4930045632d88fa4acb3b8159ee9cf9f3
+--- /dev/null
++++ b/src/main/java/net/gegy1000/tictacs/NonBlockingWorldAccess.java
+@@ -0,0 +1,29 @@
++package net.gegy1000.tictacs;
++
++import net.minecraft.world.level.block.state.IBlockData;
++import net.minecraft.world.level.block.Blocks;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.level.material.FluidTypes;
++import net.minecraft.core.BlockPosition;
++import net.minecraft.world.level.IWorldReader;
++import net.minecraft.world.level.material.FluidTypes;
++
++public interface NonBlockingWorldAccess extends IWorldReader {
++
++    public static final IBlockData DEFAULT_BLOCK_STATE = Blocks.AIR.getBlockData();
++    public static final Fluid DEFAULT_FLUID_STATE = FluidTypes.EMPTY.getFluidData();
++
++    default IBlockData getBlockStateIfLoaded(BlockPosition pos) {
++        if (this.isLoaded(pos)) {
++            return this.getType(pos);
++        }
++        return DEFAULT_BLOCK_STATE;
++    }
++
++    default Fluid getFluidStateIfLoaded(BlockPosition pos) {
++        if (this.isLoaded(pos)) {
++            return this.getFluid(pos);
++        }
++        return DEFAULT_FLUID_STATE;
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
+index 313517288e6ab7888310462a69fb8771f6d9b17e..3949cbce1f18f033260906cc145e52736a6a7f14 100644
+--- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
++++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
+@@ -663,6 +663,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+     }
+ 
+     public void playerTick() {
++        if (!this.world.isLoaded(this.getChunkCoordinates())) return; // Yatopia - tic-tac unblocking
++
+         try {
+             if (valid && !this.isSpectator() || this.world.isLoaded(this.getChunkCoordinates())) { // Paper - don't tick dead players that are not in the world currently (pending respawn)
+                 super.tick();
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index 42c2871d7e2d881ab2a2ca3a1ff330363bfd8884..03d7db0ff4aac7c0f565ce8c778e0ff96394ef3d 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -176,8 +176,9 @@ import org.bukkit.event.weather.LightningStrikeEvent;
+ import org.bukkit.event.world.TimeSkipEvent;
+ // CraftBukkit end
+ import it.unimi.dsi.fastutil.ints.IntArrayList; // Tuinity
++import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
+ 
+-public class WorldServer extends World implements GeneratorAccessSeed {
++public class WorldServer extends World implements GeneratorAccessSeed, NonBlockingWorldAccess { // Yatopia
+ 
+     public static final BlockPosition a = new BlockPosition(100, 50, 0);
+     private static final Logger LOGGER = LogManager.getLogger();
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index da6c87202d5d9c4b367bebd28e94484506604184..c94404b46da2b005e9f8f74905aef2569f3b6e2a 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -141,9 +141,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
+ import org.bukkit.event.player.PlayerTeleportEvent;
+ import org.bukkit.plugin.PluginManager;
+ // CraftBukkit end
++import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
+ 
+ public abstract class Entity implements INamableTileEntity, ICommandListener, net.minecraft.server.KeyedObject { // Paper
+ 
++    public boolean updateNeeded; // Yatopia
++    private boolean chunkPosUpdateRequested; // Yatopia
+     // CraftBukkit start
+     private static final int CURRENT_LEVEL = 2;
+     boolean preserveMotion = true; // Paper - keep initial motion on first setPositionRotation
+@@ -802,6 +805,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+     }
+     // Tuinity end - detailed watchdog information
+     public void move(EnumMoveType enummovetype, Vec3D vec3d) {
++        // Yatopia start - tic-tacs unblocking
++        BlockPosition pos = this.getChunkCoordinates();
++        if (!this.world.isLoaded(pos)) {
++            return;
++        }
++        // Yatopia end
+         // Tuinity start - detailed watchdog information
+         com.tuinity.tuinity.util.TickThread.ensureTickThread("Cannot move an entity off-main");
+         synchronized (this.posLock) {
+@@ -852,7 +861,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+             this.v = vec3d.y != vec3d1.y;
+             this.onGround = this.v && vec3d.y < 0.0D;
+             BlockPosition blockposition = this.ap();
+-            IBlockData iblockdata = this.world.getType(blockposition);
++            IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition); // Yatopia
+ 
+             this.a(vec3d1.y, this.onGround, iblockdata, blockposition);
+             Vec3D vec3d2 = this.getMot();
+@@ -966,9 +975,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+         int k = MathHelper.floor(this.loc.z);
+         BlockPosition blockposition = new BlockPosition(i, j, k);
+ 
+-        if (this.world.getType(blockposition).isAir()) {
++        if (this.world.getBlockStateIfLoaded(blockposition).isAir()) { // Yatopia
+             BlockPosition blockposition1 = blockposition.down();
+-            IBlockData iblockdata = this.world.getType(blockposition1);
++            IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition1); // Yatopia
+             Block block = iblockdata.getBlock();
+ 
+             if (block.a((Tag) TagsBlock.FENCES) || block.a((Tag) TagsBlock.WALLS) || block instanceof BlockFenceGate) {
+@@ -980,17 +989,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+     }
+ 
+     protected float getBlockJumpFactor() {
+-        float f = this.world.getType(this.getChunkCoordinates()).getBlock().getJumpFactor();
+-        float f1 = this.world.getType(this.as()).getBlock().getJumpFactor();
++        // Yatopia start - tic-tacs unblocking
++        float f = this.world.getBlockStateIfLoaded(this.getChunkCoordinates()).getBlock().getJumpFactor();
++        float f1 = this.world.getBlockStateIfLoaded(this.as()).getBlock().getJumpFactor();
++        // Yatopia end
+ 
+         return (double) f == 1.0D ? f1 : f;
+     }
+ 
+     protected float getBlockSpeedFactor() {
+-        Block block = this.world.getType(this.getChunkCoordinates()).getBlock();
++        // Yatopia start - tic-tacs unblocking
++        Block block = this.world.getBlockStateIfLoaded(this.getChunkCoordinates()).getBlock();
+         float f = block.getSpeedFactor();
+ 
+-        return block != Blocks.WATER && block != Blocks.BUBBLE_COLUMN ? ((double) f == 1.0D ? this.world.getType(this.as()).getBlock().getSpeedFactor() : f) : f;
++        return block != Blocks.WATER && block != Blocks.BUBBLE_COLUMN ? ((double) f == 1.0D ? this.world.getBlockStateIfLoaded(this.as()).getBlock().getSpeedFactor() : f) : f;
++        // Yatopia end
+     }
+ 
+     protected BlockPosition as() {
+@@ -1335,7 +1348,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+                     for (int i = blockposition.getX(); i <= blockposition1.getX(); ++i) {
+                         // Tuinity end - reorder iteration to more cache aware
+                         blockposition_mutableblockposition.d(i, j, k);
+-                        IBlockData iblockdata = this.world.getType(blockposition_mutableblockposition);
++                        IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition_mutableblockposition);
+ 
+                         // Tuinity start - move fire checking in here - reuse getType from this method
+                         if (checkFire) {
+@@ -1371,7 +1384,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+ 
+     protected void b(BlockPosition blockposition, IBlockData iblockdata) {
+         if (!iblockdata.getMaterial().isLiquid()) {
+-            IBlockData iblockdata1 = this.world.getType(blockposition.up());
++            IBlockData iblockdata1 = this.world.getBlockStateIfLoaded(blockposition.up()); // Yatopia
+             SoundEffectType soundeffecttype = iblockdata1.a(Blocks.SNOW) ? iblockdata1.getStepSound() : iblockdata.getStepSound();
+ 
+             this.playSound(soundeffecttype.getStepSound(), soundeffecttype.getVolume() * 0.15F, soundeffecttype.getPitch());
+@@ -1462,7 +1475,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+ 
+     public final boolean isInBubbleColumn() { return k(); } // Paper - OBFHELPER
+     private boolean k() {
+-        return this.world.getType(this.getChunkCoordinates()).a(Blocks.BUBBLE_COLUMN);
++        return this.world.getBlockStateIfLoaded(this.getChunkCoordinates()).a(Blocks.BUBBLE_COLUMN); // Yatopia
+     }
+ 
+     public boolean isInWaterOrRain() {
+@@ -1533,7 +1546,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+         }
+ 
+         BlockPosition blockposition = new BlockPosition(this.locX(), d0, this.locZ());
+-        Fluid fluid = this.world.getFluid(blockposition);
++        Fluid fluid = this.world.getFluidStateIfLoaded(blockposition); // Yatopia
+         Iterator iterator = TagsFluid.b().iterator();
+ 
+         Tag tag;
+@@ -1591,7 +1604,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+     }
+ 
+     protected IBlockData aN() {
+-        return this.world.getType(this.ap());
++        return this.world.getBlockStateIfLoaded(this.ap()); // Yatopia
+     }
+ 
+     public boolean aO() {
+@@ -1603,7 +1616,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+         int j = MathHelper.floor(this.locY() - 0.20000000298023224D);
+         int k = MathHelper.floor(this.locZ());
+         BlockPosition blockposition = new BlockPosition(i, j, k);
+-        IBlockData iblockdata = this.world.getType(blockposition);
++        IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition); // Yatopia
+ 
+         if (iblockdata.h() != EnumRenderType.INVISIBLE) {
+             Vec3D vec3d = this.getMot();
+@@ -2856,7 +2869,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+             EnumDirection enumdirection1 = aenumdirection[j];
+ 
+             blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection1);
+-            if (!this.world.getType(blockposition_mutableblockposition).r(this.world, blockposition_mutableblockposition)) {
++            if (!this.world.getBlockStateIfLoaded(blockposition_mutableblockposition).r(this.world, blockposition_mutableblockposition)) { // Yatopia
+                 double d4 = vec3d.a(enumdirection1.n());
+                 double d5 = enumdirection1.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0D - d4 : d4;
+ 
+@@ -3072,14 +3085,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+ 
+                 return (ShapeDetectorShape) this.findOrCreatePortal(worldserver, blockposition, flag2, event.getSearchRadius(), event.getCanCreatePortal(), event.getCreationRadius()).map((blockutil_rectangle) -> {
+                     // CraftBukkit end
+-                    IBlockData iblockdata = this.world.getType(this.ac);
++                    IBlockData iblockdata = this.world.getBlockStateIfLoaded(this.ac); // Yatopia
+                     EnumDirection.EnumAxis enumdirection_enumaxis;
+                     Vec3D vec3d;
+ 
+                     if (iblockdata.b(BlockProperties.E)) {
+                         enumdirection_enumaxis = (EnumDirection.EnumAxis) iblockdata.get(BlockProperties.E);
+                         BlockUtil.Rectangle blockutil_rectangle1 = BlockUtil.a(this.ac, enumdirection_enumaxis, 21, EnumDirection.EnumAxis.Y, 21, (blockposition1) -> {
+-                            return this.world.getType(blockposition1) == iblockdata;
++                            return this.world.getBlockStateIfLoaded(blockposition1) == iblockdata; // Yatopia
+                         });
+ 
+                         vec3d = this.a(enumdirection_enumaxis, blockutil_rectangle1);
+@@ -3446,6 +3459,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+     }
+ 
+     public boolean cl() {
++        if (!this.updateNeeded) this.chunkPosUpdateRequested = true; // Yatopia
+         boolean flag = this.au;
+ 
+         this.au = false;
+@@ -3649,7 +3663,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+                 for (int i2 = k; i2 < l; ++i2) {
+                     for (int j2 = i1; j2 < j1; ++j2) {
+                         blockposition_mutableblockposition.d(l1, i2, j2);
+-                        Fluid fluid = this.world.getFluid(blockposition_mutableblockposition);
++                        Fluid fluid = this.world.getFluidStateIfLoaded(blockposition_mutableblockposition); // Yatopia
+ 
+                         if (fluid.a(tag)) {
+                             double d2 = (double) ((float) i2 + fluid.getHeight(this.world, blockposition_mutableblockposition));
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index fec6ea84a3edaad62b7dbb8747dfa12ea931fb5d..2cd168270fcd1aaee9f56211dc0aea73da723164 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -140,6 +140,7 @@ import org.bukkit.event.entity.EntityTeleportEvent;
+ import org.bukkit.event.player.PlayerItemConsumeEvent;
+ // CraftBukkit end
+ 
++import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
+ 
+ public abstract class EntityLiving extends Entity {
+ 
+@@ -393,7 +394,7 @@ public abstract class EntityLiving extends Entity {
+         boolean flag1 = flag && ((EntityHuman) this).abilities.isInvulnerable;
+ 
+         if (this.isAlive()) {
+-            if (this.a((Tag) TagsFluid.WATER) && !this.world.getType(new BlockPosition(this.locX(), this.getHeadY(), this.locZ())).a(Blocks.BUBBLE_COLUMN)) {
++            if (this.a((Tag) TagsFluid.WATER) && !this.world.getBlockStateIfLoaded(new BlockPosition(this.locX(), this.getHeadY(), this.locZ())).a(Blocks.BUBBLE_COLUMN)) { // Yatopia
+                 if (!this.canBreatheUnderwater() && !MobEffectUtil.c(this) && !flag1) {  // Paper - use OBFHELPER so it can be overridden
+                     this.setAirTicks(this.l(this.getAirTicks()));
+                     if (this.getAirTicks() == -this.world.purpurConfig.drowningDamageInterval) { // Purpur
+@@ -486,7 +487,7 @@ public abstract class EntityLiving extends Entity {
+     }
+ 
+     protected boolean cP() {
+-        return this.world.getType(this.as()).a((Tag) TagsBlock.SOUL_SPEED_BLOCKS);
++        return this.world.getBlockStateIfLoaded(this.as()).a((Tag) TagsBlock.SOUL_SPEED_BLOCKS); // Yatopia
+     }
+ 
+     @Override
+@@ -534,6 +535,8 @@ public abstract class EntityLiving extends Entity {
+     }
+ 
+     protected void c(BlockPosition blockposition) {
++        if (!this.world.isLoaded(blockposition)) return; // Yatopia
++
+         int i = EnchantmentManager.a(Enchantments.FROST_WALKER, this);
+ 
+         if (i > 0) {
+@@ -1589,7 +1592,7 @@ public abstract class EntityLiving extends Entity {
+                     BlockPosition blockposition = this.getChunkCoordinates();
+                     IBlockData iblockdata = Blocks.WITHER_ROSE.getBlockData();
+ 
+-                    if (this.world.getType(blockposition).isAir() && iblockdata.canPlace(this.world, blockposition)) {
++                    if (this.world.getBlockStateIfLoaded(blockposition).isAir() && iblockdata.canPlace(this.world, blockposition)) { // Yatopia
+                         this.world.setTypeAndData(blockposition, iblockdata, 3);
+                         flag = true;
+                     }
+@@ -1794,12 +1797,12 @@ public abstract class EntityLiving extends Entity {
+     // Airplane end
+ 
+     public IBlockData ds() {
+-        return this.world.getType(this.getChunkCoordinates());
++        return this.world.getBlockStateIfLoaded(this.getChunkCoordinates()); // Yatopia
+     }
+ 
+     private boolean c(BlockPosition blockposition, IBlockData iblockdata) {
+         if ((Boolean) iblockdata.get(BlockTrapdoor.OPEN)) {
+-            IBlockData iblockdata1 = this.world.getType(blockposition.down());
++            IBlockData iblockdata1 = this.world.getBlockStateIfLoaded(blockposition.down()); // Yatopia
+ 
+             if (iblockdata1.a(Blocks.LADDER) && iblockdata1.get(BlockLadder.FACING) == iblockdata.get(BlockTrapdoor.FACING)) {
+                 return true;
+@@ -1846,7 +1849,7 @@ public abstract class EntityLiving extends Entity {
+             int i = MathHelper.floor(this.locX());
+             int j = MathHelper.floor(this.locY() - 0.20000000298023224D);
+             int k = MathHelper.floor(this.locZ());
+-            IBlockData iblockdata = this.world.getType(new BlockPosition(i, j, k));
++            IBlockData iblockdata = this.world.getBlockStateIfLoaded(new BlockPosition(i, j, k)); // Yatopia
+ 
+             if (!iblockdata.isAir()) {
+                 SoundEffectType soundeffecttype = iblockdata.getStepSound();
+@@ -2332,7 +2335,7 @@ public abstract class EntityLiving extends Entity {
+     private void a(Entity entity) {
+         Vec3D vec3d;
+ 
+-        if (!entity.dead && !this.world.getType(entity.getChunkCoordinates()).getBlock().a((Tag) TagsBlock.PORTALS)) {
++        if (!entity.dead && !this.world.getBlockStateIfLoaded(entity.getChunkCoordinates()).getBlock().a((Tag) TagsBlock.PORTALS)) { // Yatopia
+             vec3d = entity.b(this);
+         } else {
+             vec3d = new Vec3D(entity.locX(), entity.locY() + (double) entity.getHeight(), entity.locZ());
+@@ -2386,7 +2389,7 @@ public abstract class EntityLiving extends Entity {
+                 this.fallDistance = 0.0F;
+             }
+ 
+-            Fluid fluid = this.world.getFluid(this.getChunkCoordinates());
++            Fluid fluid = this.world.getFluidStateIfLoaded(this.getChunkCoordinates()); // Yatopia
+             double d1;
+             float f;
+ 
+@@ -2502,7 +2505,7 @@ public abstract class EntityLiving extends Entity {
+                 }
+             } else {
+                 BlockPosition blockposition = this.as();
+-                float f5 = this.world.getType(blockposition).getBlock().getFrictionFactor();
++                float f5 = this.world.getBlockStateIfLoaded(blockposition).getBlock().getFrictionFactor(); // Yatopia
+ 
+                 f = this.onGround ? f5 * 0.91F : 0.91F;
+                 Vec3D vec3d6 = this.a(vec3d, f5);
+@@ -3567,7 +3570,7 @@ public abstract class EntityLiving extends Entity {
+ 
+             while (!flag2 && blockposition.getY() > 0) {
+                 BlockPosition blockposition1 = blockposition.down();
+-                IBlockData iblockdata = world.getType(blockposition1);
++                IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition1); // Yatopia
+ 
+                 if (iblockdata.getMaterial().isSolid()) {
+                     flag2 = true;
+@@ -3662,7 +3665,7 @@ public abstract class EntityLiving extends Entity {
+             this.stopRiding();
+         }
+ 
+-        IBlockData iblockdata = this.world.getType(blockposition);
++        IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition); // Yatopia
+ 
+         if (iblockdata.getBlock() instanceof BlockBed) {
+             this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, true), 3);
+@@ -3681,7 +3684,7 @@ public abstract class EntityLiving extends Entity {
+ 
+     private boolean x() {
+         return (Boolean) this.getBedPosition().map((blockposition) -> {
+-            return this.world.getType(blockposition).getBlock() instanceof BlockBed;
++            return this.world.getBlockStateIfLoaded(blockposition).getBlock() instanceof BlockBed; // Yatopia
+         }).orElse(false);
+     }
+ 
+@@ -3691,7 +3694,7 @@ public abstract class EntityLiving extends Entity {
+ 
+         this.world.getClass();
+         optional.filter(world::isLoaded).ifPresent((blockposition) -> {
+-            IBlockData iblockdata = this.world.getType(blockposition);
++            IBlockData iblockdata = this.world.getBlockStateIfLoaded(blockposition); // Yatopia
+ 
+             if (iblockdata.getBlock() instanceof BlockBed) {
+                 this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, false), 3);
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index 5f88cd3415fb164d86564d95f849f3eac8635699..50161ff4cb6c63ec1a76726c2781e1dfb95f05ab 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -96,7 +96,9 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
+ import org.bukkit.event.block.BlockPhysicsEvent;
+ // CraftBukkit end
+ 
+-public abstract class World implements GeneratorAccess, AutoCloseable {
++import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
++
++public abstract class World implements GeneratorAccess, AutoCloseable, NonBlockingWorldAccess { // Yatopia
+ 
+     protected static final Logger LOGGER = LogManager.getLogger();
+     public static final Codec<ResourceKey<World>> f = MinecraftKey.a.xmap(ResourceKey.b(IRegistry.L), ResourceKey::a);
+diff --git a/src/main/java/net/minecraft/world/level/material/FluidType.java b/src/main/java/net/minecraft/world/level/material/FluidType.java
+index 6a60f53407db840150b84f4d2a709cc2e92362a4..bf3300607f9142486dc790a600d4c2ffa998d376 100644
+--- a/src/main/java/net/minecraft/world/level/material/FluidType.java
++++ b/src/main/java/net/minecraft/world/level/material/FluidType.java
+@@ -38,6 +38,7 @@ public abstract class FluidType {
+         this.a = fluid;
+     }
+ 
++    public final Fluid getFluidData() { return this.h(); } // Yatopia - OBFHELPER
+     public final Fluid h() {
+         return this.a;
+     }

@@ -27,7 +27,7 @@ index 4b171a2a60e24947e884f8988920f335bd99a471..5431ec9e8794397b3082a1eb49f82767
              String hostName = "BrokenHost";
              try {
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index 4f7fed0418df17b80cb41e16bb1978c5cb284810..1bbedddf940bd3be281ab2572256b3d1de9b266d 100644
+index df6eaa94f2928242dbd69a918d0b0b919bd3436b..fe19cb7a1c63208419a0a4b71b2f1fab45732506 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -228,6 +228,15 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
@@ -47,7 +47,7 @@ index 4f7fed0418df17b80cb41e16bb1978c5cb284810..1bbedddf940bd3be281ab2572256b3d1
          this.setAllowFlight(dedicatedserverproperties.allowFlight);
          this.setResourcePack(dedicatedserverproperties.resourcePack, this.ba());
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index d8d54274b5a294391b8bf2bc660c6b623914f5bf..5764a8ff2b63c59ae07b86c3e4f9a2a9b9129089 100644
+index c7dd42c70a3215c57f12336050f78bf5458cce5c..4aa61fe614d3bb830570af8e6702686f89aa79c3 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -272,7 +272,7 @@ public abstract class PlayerList {
@@ -60,7 +60,7 @@ index d8d54274b5a294391b8bf2bc660c6b623914f5bf..5764a8ff2b63c59ae07b86c3e4f9a2a9
          playerconnection.sendPacket(new PacketPlayOutAbilities(entityplayer.abilities));
          playerconnection.sendPacket(new PacketPlayOutHeldItemSlot(entityplayer.inventory.itemInHandIndex));
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 255f6b53db10191e8a6a2241d4cb4d6d8cad3a0b..82af1ac4743e96f8934796359d30f8ee9426e8de 100644
+index 2dc40e11eae98400b426175ceb2c92cd5942291c..a2cc723cce852f34532d0cb8c9cd066f8fdb60ce 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -367,6 +367,7 @@ public abstract class EntityLiving extends Entity {
@@ -80,10 +80,10 @@ index 255f6b53db10191e8a6a2241d4cb4d6d8cad3a0b..82af1ac4743e96f8934796359d30f8ee
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index de0d085921445444aaa3e7077050d1f82ffd1863..4992079d3cc1b2f43bd9e93fc2ab1334c35106f3 100644
+index d160df421bfb23ce976395dac61eb0b7bf92bce0..2d5923377f845b76370ca57cddae792259970445 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -860,6 +860,7 @@ public final class CraftServer implements Server {
+@@ -877,6 +877,7 @@ public final class CraftServer implements Server {
              playerList.getProfileBans().load();
          } catch (IOException ex) {
              logger.log(Level.WARNING, "Failed to load banned-players.json, " + ex.getMessage());
@@ -91,7 +91,7 @@ index de0d085921445444aaa3e7077050d1f82ffd1863..4992079d3cc1b2f43bd9e93fc2ab1334
          }
  
          org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
-@@ -2384,6 +2385,13 @@ public final class CraftServer implements Server {
+@@ -2405,6 +2406,13 @@ public final class CraftServer implements Server {
              org.spigotmc.RestartCommand.restart();
          }
  
@@ -106,12 +106,12 @@ index de0d085921445444aaa3e7077050d1f82ffd1863..4992079d3cc1b2f43bd9e93fc2ab1334
          public void broadcast(BaseComponent component) {
              for (Player player : getOnlinePlayers()) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 73d2287cc4b45b440612b863cea0ca5067e99ed9..86912aeec22feb7c519ede370651f292ec5a01da 100644
+index ce3c1bc494439d0f102eff1adaf472bc47cb2580..6514d1cf3019e02810aff0786e5e4d8a705e41f9 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -164,6 +164,14 @@ public class Main {
+@@ -162,6 +162,14 @@ public class Main {
                          .describedAs("Yml file");
-                 // Origami end - Server Config
+                 // Purpur end
  
 +                // Yatopia start
 +                acceptsAll(asList("yatopia", "yatopia-settings"), "File for yatopia settings")

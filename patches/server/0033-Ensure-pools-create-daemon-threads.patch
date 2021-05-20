@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Mon, 5 Oct 2020 17:09:00 +0300
+Subject: [PATCH] Ensure pools create daemon threads
+
+If only 1 non-daemon thread is left to run when the server is shutting down, the server won't shut down.
+This patche ensures that executors make daemon threads.
+
+diff --git a/src/main/java/net/minecraft/server/MCUtil.java b/src/main/java/net/minecraft/server/MCUtil.java
+index b7399d17dd64ca8b1f1fab405cb0ac914dc53b98..add92c6ba9556b0a2695b007e0d83d7334412c2d 100644
+--- a/src/main/java/net/minecraft/server/MCUtil.java
++++ b/src/main/java/net/minecraft/server/MCUtil.java
+@@ -59,12 +59,12 @@ public final class MCUtil {
+     public static final ThreadPoolExecutor asyncExecutor = new ThreadPoolExecutor(
+         0, 2, 60L, TimeUnit.SECONDS,
+         new LinkedBlockingQueue<Runnable>(),
+-        new ThreadFactoryBuilder().setNameFormat("Paper Async Task Handler Thread - %1$d").build()
++        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("Paper Async Task Handler Thread - %1$d").build() // Yatopia - daemon
+     );
+     public static final ThreadPoolExecutor cleanerExecutor = new ThreadPoolExecutor(
+         1, 1, 0L, TimeUnit.SECONDS,
+         new LinkedBlockingQueue<Runnable>(),
+-        new ThreadFactoryBuilder().setNameFormat("Paper Object Cleaner").build()
++        new ThreadFactoryBuilder().setDaemon(true).setNameFormat("Paper Object Cleaner").build() // Yatopia - daemon
+     );
+ 
+     public static final long INVALID_CHUNK_KEY = getCoordinateKey(Integer.MAX_VALUE, Integer.MAX_VALUE);
+diff --git a/src/main/java/net/minecraft/server/network/LoginListener.java b/src/main/java/net/minecraft/server/network/LoginListener.java
+index 1e9e2ecc8e87104eb28ebd5363d1ca36b2adaaea..e67e2abdc4c152a4be9281f269b5e28810f30025 100644
+--- a/src/main/java/net/minecraft/server/network/LoginListener.java
++++ b/src/main/java/net/minecraft/server/network/LoginListener.java
+@@ -129,7 +129,11 @@ public class LoginListener implements PacketLoginInListener {
+     // Paper start - Cache authenticator threads
+     private static final AtomicInteger threadId = new AtomicInteger(0);
+     private static final java.util.concurrent.ExecutorService authenticatorPool = java.util.concurrent.Executors.newCachedThreadPool(
+-            r -> new Thread(r, "User Authenticator #" + threadId.incrementAndGet())
++            r -> { // Yatopia start - make sure produced threads are daemon ones
++                Thread thread = new Thread(r, "User Authenticator #" + threadId.incrementAndGet());
++                thread.setDaemon(true);
++                return thread;
++            } // Yatopia end
+     );
+     // Paper end
+     // Spigot start

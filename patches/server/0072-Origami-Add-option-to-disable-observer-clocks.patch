@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Thu, 20 May 2021 12:32:29 -0400
+Subject: [PATCH] (Origami) Add option to disable observer clocks
+
+
+diff --git a/src/main/java/net/minecraft/world/level/block/BlockObserver.java b/src/main/java/net/minecraft/world/level/block/BlockObserver.java
+index 291fd45f6f97c561edaaf8b659920d2c3b6aba46..41f53242258812020655e0b86a925f255ca65422 100644
+--- a/src/main/java/net/minecraft/world/level/block/BlockObserver.java
++++ b/src/main/java/net/minecraft/world/level/block/BlockObserver.java
+@@ -64,7 +64,8 @@ public class BlockObserver extends BlockDirectional {
+ 
+     @Override
+     public IBlockData updateState(IBlockData iblockdata, EnumDirection enumdirection, IBlockData iblockdata1, GeneratorAccess generatoraccess, BlockPosition blockposition, BlockPosition blockposition1) {
+-        if (iblockdata.get(BlockObserver.FACING) == enumdirection && !(Boolean) iblockdata.get(BlockObserver.b)) {
++        if (iblockdata.get(BlockObserver.FACING) == enumdirection && !(Boolean) iblockdata.get(BlockObserver.b)
++                && (!org.yatopiamc.yatopia.server.YatopiaConfig.disableObserverClocks || !(iblockdata1.getBlock() instanceof BlockObserver) || iblockdata1.get(BlockObserver.FACING).opposite() != enumdirection)) { // Origami - disable Observer clocks
+             this.a(generatoraccess, blockposition);
+         }
+ 
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 1b31ebedf672bd90373785e10e3f178f8c9f8f7d..86b2ecbd01a743ab61b0e19d99d942b64f1346e5 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -301,4 +301,8 @@ public class YatopiaConfig {
+         fixProtocolLib = getBoolean("settings.fix-protocollib", fixProtocolLib);
+     }
+ 
++    public static boolean disableObserverClocks = false;
++    private static void observerClock() {
++        disableObserverClocks = getBoolean("disable-observer-clocks", disableObserverClocks);
++    }
+ }

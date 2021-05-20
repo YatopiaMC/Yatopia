@@ -1,5 +1,14 @@
 import java.util.Locale
 
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        jcenter()
+        maven("https://repo.jpenilla.xyz/snapshots")
+    }
+}
+
 val forkName = "Yatopia"
 val forkNameLowercase = forkName.toLowerCase(Locale.ENGLISH)
 
@@ -13,7 +22,6 @@ setupSubproject("$forkNameLowercase-server") {
     projectDir = File("$forkName-Server")
     buildFileName = "../subprojects/server.gradle.kts"
 }
-setupSubproject("Yatoclip") { }
 
 inline fun setupSubproject(name: String, block: ProjectDescriptor.() -> Unit) {
     include(name)

@@ -1,7 +1,10 @@
+
+import xyz.jpenilla.toothpick.gitCmd
+import xyz.jpenilla.toothpick.toothpick
+
 plugins {
     `java-library`
-    `maven-publish`
-    toothpick
+    id("xyz.jpenilla.toothpick") version "1.0.0-SNAPSHOT"
 }
 
 toothpick {
@@ -9,7 +12,9 @@ toothpick {
     groupId = "org.yatopiamc"
     val versionTag = System.getenv("BUILD_NUMBER")
         ?: "\"${gitCmd("rev-parse", "--short", "HEAD").output}\""
-    if(!System.getenv("BRANCH_NAME").isNullOrEmpty()) {
+    
+    var currentBranch = ""
+    if (!System.getenv("BRANCH_NAME").isNullOrEmpty()) {
         currentBranch = System.getenv("BRANCH_NAME")
     } else if (!System.getenv("GITHUB_HEAD_REF").isNullOrEmpty()) {
         currentBranch = System.getenv("GITHUB_HEAD_REF")
@@ -19,6 +24,7 @@ toothpick {
         currentBranch = gitCmd("rev-parse", "--abbrev-ref", "HEAD").output.toString().trim()
         if(currentBranch == "HEAD") logger.warn("You are currently in \'detached HEAD\' state, branch information isn\'t available")
     }
+    
     forkVersion = "git-$forkName-$currentBranch-$versionTag"
     forkUrl = "https://github.com/YatopiaMC/Yatopia"
 
@@ -26,13 +32,10 @@ toothpick {
     nmsPackage = "1_16_R3"
     nmsRevision = "R0.1-SNAPSHOT"
 
-    upstream = "Paper"
-    upstreamBranch = "origin/master"
+    upstream = "Purpur"
+    upstreamBranch = "origin/ver/1.16.5"
 
-    paperclipName = "yatopia-$minecraftVersion-paperclip.jar"
-
-    patchCreditsOutput = "PATCHES.md"
-    patchCreditsTemplate = ".template.md"
+    paperclipName = "yatopia-$minecraftVersion-paperclip"
 
     server {
         project = project(":$forkNameLowercase-server")
@@ -42,8 +45,6 @@ toothpick {
         project = project(":$forkNameLowercase-api")
         patchesDir = rootProject.projectDir.resolve("patches/api")
     }
-
-    logger.lifecycle("Configured version string: $calcVersionString")
 }
 
 subprojects {
@@ -55,7 +56,6 @@ subprojects {
         maven("https://repo.codemc.io/repository/maven-public/")
         maven("https://jitpack.io")
         mavenLocal()
-        maven("${rootProjectDir}/.repository")
     }
 
     java {

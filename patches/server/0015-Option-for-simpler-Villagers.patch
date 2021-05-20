@@ -1,0 +1,170 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Fri, 31 Jul 2020 21:58:24 -0500
+Subject: [PATCH] Option for simpler Villagers
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
+index 4903d79ad1036df8f52aded6ddaca604d4a8434a..3ddbf0beed54cd355da486078d1c26defc0512b7 100644
+--- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
++++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
+@@ -103,6 +103,7 @@ import org.bukkit.event.entity.VillagerReplenishTradeEvent;
+ 
+ public class EntityVillager extends EntityVillagerAbstract implements ReputationHandler, VillagerDataHolder {
+ 
++    private boolean simplerVillagerBehavior = org.yatopiamc.yatopia.server.YatopiaConfig.simplerVillagerBehavior; // Yatopia - so we don't make them bork upon reload
+     private static final DataWatcherObject<VillagerData> br = DataWatcher.a(EntityVillager.class, DataWatcherRegistry.q);
+     public static final Map<Item, Integer> bp = ImmutableMap.of(Items.BREAD, 4, Items.POTATO, 1, Items.CARROT, 1, Items.BEETROOT, 1);
+     private static final Set<Item> bs = ImmutableSet.of(Items.BREAD, Items.POTATO, Items.CARROT, Items.WHEAT, Items.WHEAT_SEEDS, Items.BEETROOT, new Item[]{Items.BEETROOT_SEEDS});
+@@ -139,8 +140,14 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     public EntityVillager(EntityTypes<? extends EntityVillager> entitytypes, World world, VillagerType villagertype) {
+         super(entitytypes, world);
+         this.by = new Reputation();
++        if (!simplerVillagerBehavior) {
+         ((Navigation) this.getNavigation()).a(true);
+         this.getNavigation().d(true);
++        // Yatopia start
++        } else {
++            initPathfinder();
++        }
++        // Yatopia end
+         this.setCanPickupLoot(true);
+         this.setVillagerData(this.getVillagerData().withType(villagertype).withProfession(VillagerProfession.NONE));
+         this.brainTickOffset = getRandom().nextInt(100); // Purpur
+@@ -161,6 +168,38 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     protected void initPathfinder() {
+         this.goalSelector.a(0, new PathfinderGoalHasRider(this)); // Purpur
+         if (world.purpurConfig.villagerFollowEmeraldBlock) this.goalSelector.a(3, new PathfinderGoalTempt(this, 1.0D, false, TEMPT_ITEMS));
++        // Yatopia Start
++        if (!simplerVillagerBehavior) {
++            // safety
++            return;
++        }
++        this.goalSelector.a(0, new net.minecraft.world.entity.ai.goal.PathfinderGoalFloat(this));
++        if (org.yatopiamc.yatopia.server.YatopiaConfig.villagersHideAtNight) {
++            this.goalSelector.a(0, new net.minecraft.world.entity.ai.goal.PathfinderGoalUseItem<>(this, net.minecraft.world.item.alchemy.PotionUtil.a(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.INVISIBILITY), SoundEffects.ENTITY_WANDERING_TRADER_DISAPPEARED, (entityvillagertrader) -> {
++                return !this.world.isDay() && !entityvillagertrader.isInvisible();
++            }));
++            this.goalSelector.a(0, new net.minecraft.world.entity.ai.goal.PathfinderGoalUseItem<>(this, new ItemStack(Items.MILK_BUCKET), SoundEffects.ENTITY_WANDERING_TRADER_REAPPEARED, (entityvillagertrader) -> {
++                return this.world.isDay() && entityvillagertrader.isInvisible();
++            }));
++        }
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalTradeWithPlayer(this));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityZombie.class, 8.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityEvoker.class, 12.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityVindicator.class, 8.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityVex.class, 8.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityPillager.class, 15.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalAvoidTarget<>(this, net.minecraft.world.entity.monster.EntityIllagerIllusioner.class, 12.0F, 0.5D, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalPanic(this, 0.5D));
++        this.goalSelector.a(1, new net.minecraft.world.entity.ai.goal.PathfinderGoalLookAtTradingPlayer(this));
++        this.goalSelector.a(2, new net.minecraft.world.entity.ai.goal.PathfinderGoalStrollVillageGolem(this, 0.6D));
++        this.goalSelector.a(3, new net.minecraft.world.entity.ai.goal.PathfinderGoalMoveThroughVillage(this, 0.6D, false, 4, () -> {
++            return false;
++        }));
++        this.goalSelector.a(4, new net.minecraft.world.entity.ai.goal.PathfinderGoalMoveTowardsRestriction(this, 0.35D));
++        this.goalSelector.a(8, new net.minecraft.world.entity.ai.goal.PathfinderGoalRandomStrollLand(this, 0.35D));
++        this.goalSelector.a(9, new net.minecraft.world.entity.ai.goal.PathfinderGoalInteract(this, EntityHuman.class, 3.0F, 1.0F));
++        this.goalSelector.a(10, new net.minecraft.world.entity.ai.goal.PathfinderGoalLookAtPlayer(this, EntityInsentient.class, 8.0F));
++        // Yatopia End
+     }
+ 
+     @Override
+@@ -186,6 +225,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+ 
+     @Override
+     protected BehaviorController<?> a(Dynamic<?> dynamic) {
++        if (simplerVillagerBehavior) return super.a(dynamic); // Yatopia
+         BehaviorController<EntityVillager> behaviorcontroller = this.cK().a(dynamic);
+ 
+         this.a(behaviorcontroller);
+@@ -265,6 +305,27 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     // Spigot End
+ 
+     private int behaviorTick = 0;
++    // Yatopia start
++    private VillagerProfession getRandomProfession() {
++        int type = random.nextInt(13);
++        switch(type) {
++            case 0: return VillagerProfession.ARMORER;
++            case 1: return VillagerProfession.BUTCHER;
++            case 2: return VillagerProfession.CARTOGRAPHER;
++            case 3: return VillagerProfession.CLERIC;
++            case 4: return VillagerProfession.FARMER;
++            case 5: return VillagerProfession.FISHERMAN;
++            case 6: return VillagerProfession.FLETCHER;
++            case 7: return VillagerProfession.LEATHERWORKER;
++            case 8: return VillagerProfession.LIBRARIAN;
++            case 9: return VillagerProfession.MASON;
++            case 10: return VillagerProfession.SHEPHERD;
++            case 11: return VillagerProfession.TOOLSMITH;
++            case 12: return VillagerProfession.WEAPONSMITH;
++            default: return VillagerProfession.FARMER;
++        }
++    }
++    // Yatopia end
+ 
+     // Purpur start
+     boolean lobotomized = false;
+@@ -290,6 +351,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     protected void mobTick() { mobTick(false); }
+     protected void mobTick(boolean inactive) {
+         this.world.getMethodProfiler().enter("villagerBrain");
++        // Yatopia start
++        if (simplerVillagerBehavior && this.getVillagerData().getProfession() == VillagerProfession.NONE) {
++            this.setVillagerData(this.getVillagerData().withProfession(getRandomProfession()));
++        }
++        if (simplerVillagerBehavior && canRefresh()) restUses();
++        if (simplerVillagerBehavior) return;
++        // Yatopia end
+         // Purpur start
+         if (world.purpurConfig.villagerLobotomizeEnabled) inactive = inactive || isLobotomized();
+         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
+@@ -416,6 +484,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         this.fl();
+     }
+ 
++    public final boolean canRefresh() { return fc(); } // Yatopia - OBFHELPER
+     private void fl() {
+         Iterator iterator = this.getOffers().iterator();
+ 
+@@ -490,6 +559,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         return this.fn() && this.fm();
+     }
+ 
++    public final void restUses() { fo(); } // Yatopia - OBFHELPER
+     private void fo() {
+         int i = 2 - this.bD;
+ 
+@@ -722,6 +792,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     }
+ 
+     private void a(Entity entity) {
++        if (simplerVillagerBehavior) return; // Yatopia
+         if (this.world instanceof WorldServer) {
+             Optional<List<EntityLiving>> optional = this.bg.getMemory(MemoryModuleType.VISIBLE_MOBS);
+ 
+@@ -738,6 +809,7 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     }
+ 
+     public void a(MemoryModuleType<GlobalPos> memorymoduletype) {
++        if (simplerVillagerBehavior) return;
+         if (this.world instanceof WorldServer) {
+             MinecraftServer minecraftserver = ((WorldServer) this.world).getMinecraftServer();
+ 
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 5d01c99747acaabaaaaf2298122a6427a672e53d..da7e3d5179a4328d4a74256caa697f5d45725e59 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -224,4 +224,11 @@ public class YatopiaConfig {
+     private static void itemStuckSleepTicks() {
+         itemStuckSleepTicks = getInt("settings.itemStuckSleepTicks", 1);
+     }
++
++    public static boolean simplerVillagerBehavior = false;
++    public static boolean villagersHideAtNight = false;
++    private static void villagerSettings() {
++        simplerVillagerBehavior = getBoolean("settings.villager.simplerVillagerBehavior", false);
++        villagersHideAtNight = getBoolean("settings.villager.villagersHideAtNight", false);
++    }
+ }

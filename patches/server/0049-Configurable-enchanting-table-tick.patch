@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Wed, 23 Dec 2020 08:42:18 +0200
+Subject: [PATCH] Configurable enchanting table tick
+
+Also don't tick blockentity beehive if there are no bees in it.
+This patch is a leftover from the original tile entity optimisations, which was majorly flawed.
+
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
+index 58bf1008ab19340bce5111e006a8de0e7f39e0e5..cbee856aec7f1c220dc188d224fe9d60e17c2134 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
+@@ -309,6 +309,7 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
+ 
+     @Override
+     public void tick() {
++        if (this.bees.size() == 0) { return; } // Yatopia - TE optimizations
+         if (!this.world.isClientSide) {
+             this.y();
+             BlockPosition blockposition = this.getPosition();
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java
+index 7d81c45f8b514df1a9dafd3b1294a9ad852251f8..4b1cb089355b455c6210f2df1af797cc363997cf 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityEnchantTable.java
+@@ -50,6 +50,7 @@ public class TileEntityEnchantTable extends TileEntity implements INamableTileEn
+ 
+     @Override
+     public void tick() {
++        if (!org.yatopiamc.yatopia.server.YatopiaConfig.shouldTickEnchantingTables) { return; } // Yatopia - TE optimizations
+         this.j = this.i;
+         this.l = this.k;
+         EntityHuman entityhuman = this.world.a((double) this.position.getX() + 0.5D, (double) this.position.getY() + 0.5D, (double) this.position.getZ() + 0.5D, 3.0D, false);
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index ff54f4fc76fbdb83d3407326ef0a0b921fed4507..64c749167af530d0f65d2463e4cdb19bd60cbeb8 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -285,4 +285,9 @@ public class YatopiaConfig {
+         checkVehicleMovedQuickly = getBoolean("settings.checks.vehicle-moved-quickly", checkVehicleMovedQuickly);
+         checkVehicleMovedWrongly = getBoolean("settings.checks.vehicle-moved-wrongly", checkVehicleMovedWrongly);
+     }
++
++    public static boolean shouldTickEnchantingTables = false;
++    private static void tickEnchantingTables() {
++        shouldTickEnchantingTables = getBoolean("settings.tick.enchanting-tables", shouldTickEnchantingTables);
++    }
+ }

@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+Date: Sat, 24 Oct 2020 21:12:45 -0500
+Subject: [PATCH] Configurable BlockPhysicsEvent
+
+Bukkit's BlockPhysicsEvent is *ridiculously* spammy and can easily rack in 1,600 calls/sec on a server with just one player. This hogs a ton of CPU time.
+Paper does alleviate this quite well by only firing if plugins are listening, but a lot of common world protection plugins use this event do not offer toggles for their listeners, which makes Paper's change ineffective for most servers.
+This patch implements a hard toggle for the event.
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 4e0756807bd8a5e967d95cf5c9168ce8e806e484..3abf27c8b61a35a8f6df6237c8130838be52f765 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1544,7 +1544,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+ 
+         while (iterator.hasNext()) {
+             WorldServer worldserver = (WorldServer) iterator.next();
+-            worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
++            worldserver.hasPhysicsEvent = org.yatopiamc.yatopia.server.YatopiaConfig.fireBlockPhysicsEvent && org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper // Yatopia
+             worldserver.hasEntityMoveEvent =  EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
+             worldserver.hasRidableMoveEvent = net.pl3x.purpur.event.entity.RidableMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Purpur
+             TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index e9331f876fdda92ed5a14583e143d376b6260f5e..c9df12f7a81758be9a407c8b8699a2eb4ebe8271 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -270,4 +270,8 @@ public class YatopiaConfig {
+         criterionTriggerTick = getBoolean("settings.criterion-triggers.tick", true);
+     }
+ 
++    public static boolean fireBlockPhysicsEvent = true;
++    private static void fireBlockPhysicsEvent() {
++        fireBlockPhysicsEvent = getBoolean("settings.fire-block-physics-event", true);
++    }
+ }

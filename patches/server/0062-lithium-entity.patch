@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sun, 24 Jan 2021 22:55:55 +0100
+Subject: [PATCH] lithium entity
+
+Co-authored-by: Hugo Planque <hookwood01@gmail.com>
+
+diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+index 2cd168270fcd1aaee9f56211dc0aea73da723164..e0587addd7aed6c5aebec852a4f04df94d0377b6 100644
+--- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
++++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
+@@ -279,6 +279,9 @@ public abstract class EntityLiving extends Entity {
+         this.bg = this.a(new Dynamic(dynamicopsnbt, dynamicopsnbt.createMap((Map) ImmutableMap.of(dynamicopsnbt.createString("memories"), dynamicopsnbt.emptyMap()))));
+     }
+ 
++    private IBlockData lastStateAtFeet = null;
++
++    private long lastPos = Long.MIN_VALUE;
+     protected void initAttributes() {} // Purpur
+ 
+     public BehaviorController<?> getBehaviorController() {
+@@ -355,6 +358,10 @@ public abstract class EntityLiving extends Entity {
+ 
+     @Override
+     public void entityBaseTick() {
++        // Yatopia start - port lithium
++        this.lastStateAtFeet = null;
++        this.lastPos = Long.MIN_VALUE;
++        // Yatopia end
+         this.ar = this.as;
+         if (this.justCreated) {
+             this.getBedPosition().ifPresent(this::a);
+@@ -1797,7 +1804,24 @@ public abstract class EntityLiving extends Entity {
+     // Airplane end
+ 
+     public IBlockData ds() {
+-        return this.world.getBlockStateIfLoaded(this.getChunkCoordinates()); // Yatopia
++        // Yatopia start - port lithium
++        int x = MathHelper.floor(this.locX());
++        int y = MathHelper.floor(this.locY());
++        int z = MathHelper.floor(this.locZ());
++
++        long pos = getChunkCoordinates().asLong();
++
++        if (this.lastPos == pos) {
++            return this.lastStateAtFeet;
++        }
++
++        IBlockData state = this.world.getBlockStateIfLoaded(this.getChunkCoordinates());
++
++        this.lastPos = pos;
++        this.lastStateAtFeet = state;
++
++        return state;
++        // Yatopia end
+     }
+ 
+     private boolean c(BlockPosition blockposition, IBlockData iblockdata) {

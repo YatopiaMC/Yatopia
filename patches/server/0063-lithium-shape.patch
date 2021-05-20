@@ -1,0 +1,358 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Wed, 27 Jan 2021 21:05:05 +0100
+Subject: [PATCH] lithium shape
+
+Co-authored-by: Hugo Planque <hookwood01@gmail.com>
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/block/LithiumEntityShapeContext.java b/src/main/java/me/jellysquid/mods/lithium/common/block/LithiumEntityShapeContext.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..85d55d144a38a16d0f148a29cd11985d7febe880
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/block/LithiumEntityShapeContext.java
+@@ -0,0 +1,55 @@
++package me.jellysquid.mods.lithium.common.block;
++
++import net.minecraft.core.BlockPosition;
++import net.minecraft.world.entity.Entity;
++import net.minecraft.world.entity.EntityLiving;
++import net.minecraft.core.EnumDirection;
++import net.minecraft.world.level.material.Fluid;
++import net.minecraft.world.level.material.FluidTypeFlowing;
++import net.minecraft.world.item.Item;
++import net.minecraft.world.item.Items;
++import net.minecraft.world.phys.shapes.VoxelShape;
++import net.minecraft.world.phys.shapes.VoxelShapeCollision;
++
++/**
++ * A replacement for EntityShapeContext that does not calculate the heldItem on construction. As most instances never
++ * use this field, a lazy evaluation is faster on average. The initialization of the heldItem field takes about 1% of
++ * the server thread CPU time in a fresh world with lots of animals (singleplayer 1.16.5, renderdistance 24).
++ *
++ * @author 2No2Name
++ */
++public class LithiumEntityShapeContext implements VoxelShapeCollision {
++    private final Entity entity;
++    private final boolean descending;
++    private final double minY;
++    private Item heldItem;
++
++    public LithiumEntityShapeContext(Entity entity) {
++        this.entity = entity;
++        this.descending = entity.isDescending();
++        this.minY = entity.locY();
++    }
++
++    @Override
++    public boolean a(Item item) {
++        if (this.heldItem == null) {
++            this.heldItem = entity instanceof EntityLiving ? ((EntityLiving)entity).getItemInMainHand().getItem() : Items.AIR;
++        }
++        return this.heldItem == item;
++    }
++
++    @Override
++    public boolean a(Fluid aboveState, FluidTypeFlowing fluid) {
++        return this.entity instanceof EntityLiving && ((EntityLiving) this.entity).a(fluid) && !aboveState.getType().a(fluid);
++    }
++
++    @Override
++    public boolean b() {
++        return this.descending;
++    }
++
++    @Override
++    public boolean a(VoxelShape shape, BlockPosition pos, boolean defaultValue) {
++        return this.minY > (double)pos.getY() + shape.getMax(EnumDirection.EnumAxis.Y) - 9.999999747378752E-6D;
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/shapes/pairs/LithiumDoublePairList.java b/src/main/java/me/jellysquid/mods/lithium/common/shapes/pairs/LithiumDoublePairList.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..bfa06e714050260779fc8727b4b2cabb6f811398
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/shapes/pairs/LithiumDoublePairList.java
+@@ -0,0 +1,117 @@
++package me.jellysquid.mods.lithium.common.shapes.pairs;
++
++import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
++import it.unimi.dsi.fastutil.doubles.DoubleList;
++import net.minecraft.world.phys.shapes.VoxelShapeMerger;
++
++/**
++ * Optimized variant of {@link net.minecraft.util.shape.SimplePairList}. This implementation works directly against
++ * flat arrays and tries to organize code in a manner that hits the JIT's happy path. In my testing, this is about
++ * ~50% faster than the vanilla implementation.
++ */
++public final class LithiumDoublePairList implements VoxelShapeMerger {
++    private final double[] merged;
++    private final int[] indicesFirst;
++    private final int[] indicesSecond;
++
++    private final DoubleArrayList pairs;
++
++    public LithiumDoublePairList(DoubleList aPoints, DoubleList bPoints, boolean flag1, boolean flag2) {
++        int size = aPoints.size() + bPoints.size();
++
++        this.merged = new double[size];
++        this.indicesFirst = new int[size];
++        this.indicesSecond = new int[size];
++
++        this.pairs = DoubleArrayList.wrap(this.merged);
++
++        this.merge(getArray(aPoints), getArray(bPoints), aPoints.size(), bPoints.size(), flag1, flag2);
++    }
++
++    private void merge(double[] aPoints, double[] bPoints, int aSize, int bSize, boolean flag1, boolean flag2) {
++        int aIdx = 0;
++        int bIdx = 0;
++
++        double prev = 0.0D;
++
++        int a1 = 0, a2 = 0;
++
++        while (true) {
++            boolean aWithinBounds = aIdx < aSize;
++            boolean bWithinBounds = bIdx < bSize;
++
++            if (!aWithinBounds && !bWithinBounds) {
++                break;
++            }
++
++            boolean flip = aWithinBounds && (!bWithinBounds || aPoints[aIdx] < bPoints[bIdx] + 1.0E-7D);
++
++            double value;
++
++            if (flip) {
++                value = aPoints[aIdx++];
++            } else {
++                value = bPoints[bIdx++];
++            }
++
++            if ((aIdx == 0 || !aWithinBounds) && !flip && !flag2) {
++                continue;
++            }
++
++            if ((bIdx == 0 || !bWithinBounds) && flip && !flag1) {
++                continue;
++            }
++
++            if (a2 == 0 || prev < value - 1.0E-7D) {
++                this.indicesFirst[a1] = aIdx - 1;
++                this.indicesSecond[a1] = bIdx - 1;
++                this.merged[a2] = value;
++
++                a1++;
++                a2++;
++                prev = value;
++            } else if (a2 > 0) {
++                this.indicesFirst[a1 - 1] = aIdx - 1;
++                this.indicesSecond[a1 - 1] = bIdx - 1;
++            }
++        }
++
++        if (a2 == 0) {
++            this.merged[a2++] = Math.min(aPoints[aSize - 1], bPoints[bSize - 1]);
++        }
++
++        this.pairs.size(a2);
++    }
++
++    @Override
++    public boolean a(VoxelShapeMerger.a predicate) {
++        int l = this.pairs.size() - 1;
++
++        for (int i = 0; i < l; i++) {
++            if (!predicate.merge(this.indicesFirst[i], this.indicesSecond[i], i)) {
++                return false;
++            }
++        }
++
++        return true;
++    }
++
++    @Override
++    public DoubleList a() {
++        return this.pairs;
++    }
++
++    private static double[] getArray(DoubleList list) {
++        if (list instanceof DoubleArrayList) {
++            return ((DoubleArrayList) list).elements();
++        }
++
++        double[] points = new double[list.size()];
++
++        for (int i = 0; i < points.length; i++) {
++            points[i] = list.getDouble(i);
++        }
++
++        return points;
++    }
++}
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/collections/Object2BooleanCacheTable.java b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/Object2BooleanCacheTable.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e210e0fa39b74805429832c3d232fadb33975414
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/collections/Object2BooleanCacheTable.java
+@@ -0,0 +1,61 @@
++package me.jellysquid.mods.lithium.common.util.collections;
++
++import it.unimi.dsi.fastutil.HashCommon;
++import net.minecraft.util.MathHelper;
++
++import java.util.function.Predicate;
++
++/**
++ * A lossy hashtable implementation that stores a mapping between an object and a boolean.
++ * <p>
++ * Any hash collisions will result in an overwrite: this is safe because the correct value can always be recomputed,
++ * given that the given operator is deterministic.
++ * <p>
++ * This implementation is safe to use from multiple threads
++ */
++public final class Object2BooleanCacheTable<T> {
++    private final int capacity;
++    private final int mask;
++
++    private final Node<T>[] nodes;
++
++    private final Predicate<T> operator;
++
++    @SuppressWarnings("unchecked")
++    public Object2BooleanCacheTable(int capacity, Predicate<T> operator) {
++        this.capacity = MathHelper.smallestEncompassingPowerOfTwo(capacity);
++        this.mask = this.capacity - 1;
++
++        this.nodes = (Node<T>[]) new Node[this.capacity];
++
++        this.operator = operator;
++    }
++
++    private static <T> int hash(T key) {
++        return HashCommon.mix(key.hashCode());
++    }
++
++    public boolean get(T key) {
++        int idx = hash(key) & this.mask;
++
++        Node<T> node = this.nodes[idx];
++        if (node != null && key.equals(node.key)) {
++            return node.value;
++        }
++
++        boolean test = this.operator.test(key);
++        this.nodes[idx] = new Node<>(key, test);
++
++        return test;
++    }
++
++    static class Node<T> {
++        final T key;
++        final boolean value;
++
++        Node(T key, boolean value) {
++            this.key = key;
++            this.value = value;
++        }
++    }
++}
+diff --git a/src/main/java/net/minecraft/util/MathHelper.java b/src/main/java/net/minecraft/util/MathHelper.java
+index b95115aca72ba0cf6451096ddbd8b50a8f3bb5c6..0afb8c643cb3e5938e12183c6132797d6ed645bb 100644
+--- a/src/main/java/net/minecraft/util/MathHelper.java
++++ b/src/main/java/net/minecraft/util/MathHelper.java
+@@ -198,6 +198,7 @@ public class MathHelper {
+         return c(f, f + f3, f2);
+     }
+ 
++    public static int smallestEncompassingPowerOfTwo(int i){ return c(i); } // Yatopia - OBFHELPER
+     public static int c(int i) {
+         int j = i - 1;
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index c94404b46da2b005e9f8f74905aef2569f3b6e2a..0a82e55126bce0604633b9e9714fe4131369dc38 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -2675,6 +2675,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+         return this.isSneaking();
+     }
+ 
++    public boolean isDescending() { return by(); } // Yatopia - OBFHELPER
+     public boolean by() {
+         return this.isSneaking();
+     }
+diff --git a/src/main/java/net/minecraft/world/level/block/Block.java b/src/main/java/net/minecraft/world/level/block/Block.java
+index a835285d230ea0dffa1b28c2a7a006041f2e6b2a..ccb35c1ddbf83a7e644f88ed17b8881ff305685a 100644
+--- a/src/main/java/net/minecraft/world/level/block/Block.java
++++ b/src/main/java/net/minecraft/world/level/block/Block.java
+@@ -54,6 +54,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
+ import net.minecraft.world.phys.shapes.VoxelShapes;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import me.jellysquid.mods.lithium.common.util.collections.Object2BooleanCacheTable;
+ 
+ public class Block extends BlockBase implements IMaterial {
+ 
+@@ -216,8 +217,14 @@ public class Block extends BlockBase implements IMaterial {
+         return a(voxelshape1);
+     }
+ 
++    // Yatopia start - Port lithium
++    private static final Object2BooleanCacheTable<VoxelShape> FULL_CUBE_CACHE = new Object2BooleanCacheTable<>(
++            512,
++            shape -> !VoxelShapes.applyOperation(VoxelShapes.fullCube(), shape, OperatorBoolean.NOT_SAME)
++    );
++
+     public static boolean a(VoxelShape voxelshape) {
+-        return (Boolean) Block.a.getUnchecked(voxelshape);
++        return FULL_CUBE_CACHE.get(voxelshape); // Yatopia end
+     }
+ 
+     public boolean b(IBlockData iblockdata, IBlockAccess iblockaccess, BlockPosition blockposition) {
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java
+index fbc5fab9946b6f9233f3014f0e69f2576b2138d7..012892063405616c8ae35b6e06020008dfd147df 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java
+@@ -71,6 +71,7 @@ public abstract class VoxelShape {
+         return i >= this.a.c(enumdirection_enumaxis) ? Double.POSITIVE_INFINITY : this.a(enumdirection_enumaxis, i);
+     }
+ 
++    public double getMax(EnumDirection.EnumAxis enumdirection_enumaxis) { return c(enumdirection_enumaxis); } // Yatopia - OBFHELPER
+     public double c(EnumDirection.EnumAxis enumdirection_enumaxis) {
+         int i = this.a.b(enumdirection_enumaxis);
+ 
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeMerger.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeMerger.java
+index d2a46ce0c5c980d34dc2f4b716a174a81a68f1d0..0c594866cb291abb2e90b149d52445a628331879 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeMerger.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapeMerger.java
+@@ -2,7 +2,7 @@ package net.minecraft.world.phys.shapes;
+ 
+ import it.unimi.dsi.fastutil.doubles.DoubleList;
+ 
+-interface VoxelShapeMerger {
++public interface VoxelShapeMerger { // Yatopia - make Public
+ 
+     DoubleList a();
+ 
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java
+index 049aa5f51e7517744b25f8c2c4b5e7a7de24a73e..173197e9dc6acb31aa41ce645224fd9a2733f27c 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java
+@@ -5,6 +5,8 @@ import com.google.common.math.DoubleMath;
+ import com.google.common.math.IntMath;
+ import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+ import it.unimi.dsi.fastutil.doubles.DoubleList;
++import me.jellysquid.mods.lithium.common.shapes.pairs.LithiumDoublePairList; // Yatopia
++
+ import java.util.Arrays;
+ import java.util.Iterator;
+ import java.util.Objects;
+@@ -476,7 +478,7 @@ public final class VoxelShapes {
+         // doublelist is usually a DoubleArrayList with Infinite head/tails that falls to the final else clause
+         // This is actually the most common path, so jump to it straight away
+         if (doublelist.getDouble(0) == Double.NEGATIVE_INFINITY && doublelist.getDouble(doublelist.size() - 1) == Double.POSITIVE_INFINITY) {
+-            return new VoxelShapeMergerList(doublelist, doublelist1, flag, flag1);
++            return new LithiumDoublePairList(doublelist, doublelist1, flag, flag1); // Yatopia - Port lithium
+         }
+         // Split out rest to hopefully inline the above
+         return lessCommonMerge(i, doublelist, doublelist1, flag, flag1);

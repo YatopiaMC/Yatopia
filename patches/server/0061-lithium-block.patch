@@ -1,0 +1,232 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sun, 24 Jan 2021 16:57:03 +0100
+Subject: [PATCH] lithium block
+
+Co-authored-by: Hugo Planque <hookwood01@gmail.com>
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/tuples/FinalObject.java b/src/main/java/me/jellysquid/mods/lithium/common/util/tuples/FinalObject.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..f78927e71258e859154cca8ba78d17130b0d82c1
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/tuples/FinalObject.java
+@@ -0,0 +1,20 @@
++package me.jellysquid.mods.lithium.common.util.tuples;
++
++/**
++ * The purpose of this class is safe publication of the wrapped value. (JLS 17.5)
++ */
++public class FinalObject<T> {
++    private final T value;
++
++    public FinalObject(T value) {
++        this.value = value;
++    }
++
++    public FinalObject<T> of(T value) {
++        return new FinalObject<>(value);
++    }
++
++    public T getValue() {
++        return value;
++    }
++}
+diff --git a/src/main/java/net/minecraft/core/EnumDirection.java b/src/main/java/net/minecraft/core/EnumDirection.java
+index 1828366dace7a4c343b289012fa51779c2e1259a..2ace56d9ba639eddc6385dac0d8ee4e610db9b09 100644
+--- a/src/main/java/net/minecraft/core/EnumDirection.java
++++ b/src/main/java/net/minecraft/core/EnumDirection.java
+@@ -100,6 +100,7 @@ public enum EnumDirection implements INamable {
+         return new EnumDirection[]{enumdirection, enumdirection1, enumdirection2, enumdirection2.opposite(), enumdirection1.opposite(), enumdirection.opposite()};
+     }
+ 
++    public int get3DDataValue(){ return c(); } // Yatopia - OBFHELPER
+     public int c() {
+         return this.g;
+     }
+diff --git a/src/main/java/net/minecraft/world/level/block/piston/TileEntityPiston.java b/src/main/java/net/minecraft/world/level/block/piston/TileEntityPiston.java
+index 58c7a52612fe0f5c1e4ddacc0bf93cd81f1286b8..af2a8fdcaf5962334dcc20717f3a1ad14aebcbcb 100644
+--- a/src/main/java/net/minecraft/world/level/block/piston/TileEntityPiston.java
++++ b/src/main/java/net/minecraft/world/level/block/piston/TileEntityPiston.java
+@@ -29,9 +29,9 @@ import net.minecraft.world.phys.shapes.VoxelShapes;
+ public class TileEntityPiston extends TileEntity implements ITickable {
+ 
+     private IBlockData a;
+-    private EnumDirection b;
+-    private boolean c;
+-    private boolean g;
++    private EnumDirection b; public EnumDirection getFacing() { return b; } // Yatopia - OBFHELPER
++    private boolean c; public boolean isExtending() { return c; } // Yatopia - OBFHELPER
++    private boolean g; public boolean isSource() { return g; } // Yatopia - OBFHELPER
+     private static final ThreadLocal<EnumDirection> h = ThreadLocal.withInitial(() -> {
+         return null;
+     });
+@@ -40,6 +40,74 @@ public class TileEntityPiston extends TileEntity implements ITickable {
+     private long k;
+     private int l;
+ 
++    // Yatopia start - Port Lithium
++    private static final VoxelShape[] PISTON_BASE_WITH_MOVING_HEAD_SHAPES = precomputePistonBaseWithMovingHeadShapes();
++    /**
++     * We cache the offset and simplified VoxelShapes that are otherwise constructed on every call of getCollisionShape.
++     * For each offset direction and distance (6 directions, 2 distances each, and no direction with 0 distance) we
++     * store the offset and simplified VoxelShapes in the original VoxelShape when they are accessed the first time.
++     * We use safe publication, because both the Render and Server thread are using the cache.
++     *
++     * @param blockShape the original shape, must not be modified after passing it as an argument to this method
++     * @param offset     the offset distance
++     * @param direction  the offset direction
++     * @return blockShape offset and simplified
++     */
++    private static VoxelShape getOffsetAndSimplified(VoxelShape blockShape, float offset, EnumDirection direction) {
++        VoxelShape offsetSimplifiedShape = blockShape.getOffsetSimplifiedShape(offset, direction);
++        if (offsetSimplifiedShape == null) {
++            //create the offset shape and store it for later use
++            offsetSimplifiedShape = blockShape.offset(direction.getAdjacentX() * offset, direction.getAdjacentY() * offset, direction.getAdjacentZ() * offset).simplify();
++            blockShape.setShape(offset, direction, offsetSimplifiedShape);
++        }
++        return offsetSimplifiedShape;
++    }
++
++    /**
++     * Precompute all 18 possible configurations for the merged piston base and head shape.
++     *
++     * @return The array of the merged VoxelShapes, indexed by {@link TileEntityPiston#getIndexForMergedShape(float, EnumDirection)}
++     */
++    private static VoxelShape[] precomputePistonBaseWithMovingHeadShapes() {
++        float[] offsets = {0f, 0.5f, 1f};
++        EnumDirection[] directions = EnumDirection.values();
++
++        VoxelShape[] mergedShapes = new VoxelShape[offsets.length * directions.length];
++
++        for (EnumDirection facing : directions) {
++            VoxelShape baseShape = Blocks.PISTON.getBlockData().set(BlockPiston.EXTENDED, true)
++                    .set(BlockPiston.FACING, facing).getCollisionShape(null, null);
++            for (float offset : offsets) {
++                //this cache is only required for the merged piston head + base shape.
++                //this shape is only used when !this.extending
++                //here: isShort = this.extending != 1.0F - this.progress < 0.25F can be simplified to:
++                //isShort = f < 0.25F , because f = getAmountExtended(this.progress) can be simplified to f == 1.0F - this.progress
++                //therefore isShort is dependent on the offset:
++                boolean isShort = offset < 0.25f;
++
++                VoxelShape headShape = (Blocks.PISTON_HEAD.getBlockData().set(BlockPistonExtension.FACING, facing))
++                        .set(BlockPistonExtension.SHORT, isShort).getCollisionShape(null, null);
++
++                VoxelShape offsetHead = headShape.offset(facing.getAdjacentX() * offset,
++                        facing.getAdjacentY() * offset,
++                        facing.getAdjacentZ() * offset);
++                mergedShapes[getIndexForMergedShape(offset, facing)] = VoxelShapes.union(baseShape, offsetHead);
++            }
++
++        }
++
++        return mergedShapes;
++    }
++
++    private static int getIndexForMergedShape(float offset, EnumDirection direction) {
++        if (offset != 0f && offset != 0.5f && offset != 1f) {
++            return -1;
++        }
++        //shape of offset 0 is still dependent on the direction, due to piston head and base being directional blocks
++        return (int) (2 * offset) + (3 * direction.get3DDataValue());
++    }
++    // Yatopia End
++
+     public TileEntityPiston() {
+         super(TileEntityTypes.PISTON);
+     }
+@@ -350,13 +418,21 @@ public class TileEntityPiston extends TileEntity implements ITickable {
+             } else {
+                 iblockdata = this.a;
+             }
++            float f = this.e(this.i); // Yatopia Start - Port Lithium
++            if (this.isExtending() || !this.isSource()) {
++                //here voxelShape2.isEmpty() is guaranteed, vanilla code would call union() which calls simplify()
++                VoxelShape blockShape = iblockdata.getCollisionShape(iblockaccess, blockposition);
++
++                //we cache the simplified shapes, as the simplify() method costs a lot of CPU time and allocates several objects
++                VoxelShape offsetAndSimplified = getOffsetAndSimplified(blockShape, Math.abs(f), f < 0f ? this.getFacing().opposite() : this.getFacing());
++                return offsetAndSimplified;
++            } else {
++                //retracting piston heads have to act like their base as well, as the base block is replaced with the moving block
++                //f >= 0f is guaranteed (assuming no other mod interferes)
++                int index = getIndexForMergedShape(f, this.getFacing());
++               return  PISTON_BASE_WITH_MOVING_HEAD_SHAPES[index];
++            } // Yatopia End
+ 
+-            float f = this.e(this.i);
+-            double d0 = (double) ((float) this.b.getAdjacentX() * f);
+-            double d1 = (double) ((float) this.b.getAdjacentY() * f);
+-            double d2 = (double) ((float) this.b.getAdjacentZ() * f);
+-
+-            return VoxelShapes.a(voxelshape, iblockdata.getCollisionShape(iblockaccess, blockposition).a(d0, d1, d2));
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java
+index 9567630593da7c77a0173b93c9a57ceb7887a59b..fbc5fab9946b6f9233f3014f0e69f2576b2138d7 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShape.java
+@@ -13,9 +13,50 @@ import net.minecraft.util.MathHelper;
+ import net.minecraft.world.phys.AxisAlignedBB;
+ import net.minecraft.world.phys.MovingObjectPositionBlock;
+ import net.minecraft.world.phys.Vec3D;
++import me.jellysquid.mods.lithium.common.util.tuples.FinalObject; // Yatopia
+ 
+ public abstract class VoxelShape {
+ 
++    // Yatopia - Port Lithium
++    private FinalObject<VoxelShape>[] offsetAndSimplified;
++
++    public void setShape(float offset, EnumDirection direction, VoxelShape offsetShape) {
++        if (offsetShape == null) {
++            throw new IllegalArgumentException("offsetShape must not be null!");
++        }
++        int index = getIndexForOffsetSimplifiedShapes(offset, direction);
++        FinalObject<VoxelShape>[] offsetAndSimplified = this.offsetAndSimplified;
++        if (offsetAndSimplified == null) {
++            //noinspection unchecked
++            this.offsetAndSimplified = (offsetAndSimplified = new FinalObject[1 + (2 * 6)]);
++        }
++        //using FinalObject as it stores the value in a final field, which guarantees safe publication
++        offsetAndSimplified[index] = new FinalObject<>(offsetShape);
++    }
++
++    public VoxelShape getOffsetSimplifiedShape(float offset, EnumDirection direction) {
++        FinalObject<VoxelShape>[] offsetAndSimplified = this.offsetAndSimplified;
++        if (offsetAndSimplified == null) {
++            return null;
++        }
++        int index = getIndexForOffsetSimplifiedShapes(offset, direction);
++        //usage of FinalObject guarantees that we are seeing a fully initialized VoxelShape here, even when it was created on a different thread
++        FinalObject<VoxelShape> wrappedShape = offsetAndSimplified[index];
++        //noinspection FinalObjectAssignedToNull,FinalObjectGetWithoutIsPresent
++        return wrappedShape == null ? null : wrappedShape.getValue();
++    }
++
++    private static int getIndexForOffsetSimplifiedShapes(float offset, EnumDirection direction) {
++        if (offset != 0f && offset != 0.5f && offset != 1f) {
++            throw new IllegalArgumentException("offset must be one of {0f, 0.5f, 1f}");
++        }
++        if (offset == 0f) {
++            return 0; //can treat offsetting by 0 in all directions the same
++        }
++        return (int) (2 * offset) + 2 * direction.get3DDataValue();
++    }
++    // Yatopia End
++
+     protected final VoxelShapeDiscrete a; public final VoxelShapeDiscrete getShape() { return this.a; } // Tuinity - OBFHELPER
+     @Nullable
+     private VoxelShape[] b;
+diff --git a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java
+index 98e787e6383a39de1708428137fd7f9e057ff153..049aa5f51e7517744b25f8c2c4b5e7a7de24a73e 100644
+--- a/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java
++++ b/src/main/java/net/minecraft/world/phys/shapes/VoxelShapes.java
+@@ -187,6 +187,7 @@ public final class VoxelShapes {
+         return (long) i * (long) (j / IntMath.gcd(i, j));
+     }
+ 
++    public static VoxelShape union(VoxelShape voxelshape, VoxelShape voxelshape1) { return a(voxelshape, voxelshape1); } // Yatopia - OBFHELPER
+     public static VoxelShape a(VoxelShape voxelshape, VoxelShape voxelshape1) {
+         return a(voxelshape, voxelshape1, OperatorBoolean.OR);
+     }

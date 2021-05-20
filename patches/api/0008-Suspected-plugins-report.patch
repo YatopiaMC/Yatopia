@@ -6,10 +6,10 @@ Subject: [PATCH] Suspected plugins report
 Added "Suspected Plugins" to Watchdog, crash reports and exception messages
 
 diff --git a/src/main/java/org/bukkit/plugin/SimplePluginManager.java b/src/main/java/org/bukkit/plugin/SimplePluginManager.java
-index 26685f59b235ea5b4c4fb7ae21acb5149edaa2b3..02c20a33161094b08dc2ae9353c0504561b0b452 100644
+index ca866876f2f35a1c41eb009064412423fa09e441..8f18f91e5b2526d58651e083bdbfac0d6af3870d 100644
 --- a/src/main/java/org/bukkit/plugin/SimplePluginManager.java
 +++ b/src/main/java/org/bukkit/plugin/SimplePluginManager.java
-@@ -560,7 +560,11 @@ public final class SimplePluginManager implements PluginManager {
+@@ -572,7 +572,11 @@ public final class SimplePluginManager implements PluginManager {
  
      // Paper start
      private void handlePluginException(String msg, Throwable ex, Plugin plugin) {
@@ -22,7 +22,7 @@ index 26685f59b235ea5b4c4fb7ae21acb5149edaa2b3..02c20a33161094b08dc2ae9353c05045
          callEvent(new ServerExceptionEvent(new ServerPluginEnableDisableException(msg, ex, plugin)));
      }
      // Paper end
-@@ -621,7 +625,11 @@ public final class SimplePluginManager implements PluginManager {
+@@ -633,7 +637,11 @@ public final class SimplePluginManager implements PluginManager {
              } catch (Throwable ex) {
                  // Paper start - error reporting
                  String msg = "Could not pass event " + event.getEventName() + " to " + registration.getPlugin().getDescription().getFullName();
@@ -35,7 +35,7 @@ index 26685f59b235ea5b4c4fb7ae21acb5149edaa2b3..02c20a33161094b08dc2ae9353c05045
                  if (!(event instanceof ServerExceptionEvent)) { // We don't want to cause an endless event loop
                      callEvent(new ServerExceptionEvent(new ServerEventException(msg, ex, registration.getPlugin(), registration.getListener(), event)));
                  }
-@@ -905,4 +913,10 @@ public final class SimplePluginManager implements PluginManager {
+@@ -917,4 +925,10 @@ public final class SimplePluginManager implements PluginManager {
      }
      // Paper end
  
@@ -60,10 +60,10 @@ index 04fa3991f6ce4e9dad804f28fc6c947695857089..cb11eab6e13ed1c395b8f7db033c9a28
      }
  
 diff --git a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
-index 384edf9890dfbd1cddfdcac4db1ebe9a4d761f78..7c0c63c3f5734d59aa8b57fe3eb3c1fe0e137f12 100644
+index d3812d8cd195017841ee08ffbc53a5748fcc74ec..a5c1f217e88868f88902d55e01f75f73a7ad9a58 100644
 --- a/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
 +++ b/src/main/java/org/bukkit/plugin/java/JavaPluginLoader.java
-@@ -379,7 +379,11 @@ public final class JavaPluginLoader implements PluginLoader {
+@@ -363,7 +363,11 @@ public final class JavaPluginLoader implements PluginLoader {
              try {
                  jPlugin.setEnabled(true);
              } catch (Throwable ex) {
@@ -76,7 +76,7 @@ index 384edf9890dfbd1cddfdcac4db1ebe9a4d761f78..7c0c63c3f5734d59aa8b57fe3eb3c1fe
                  // Paper start - Disable plugins that fail to load
                  server.getPluginManager().disablePlugin(jPlugin, true); // Paper - close Classloader on disable - She's dead jim
                  return;
-@@ -414,7 +418,11 @@ public final class JavaPluginLoader implements PluginLoader {
+@@ -398,7 +402,11 @@ public final class JavaPluginLoader implements PluginLoader {
              try {
                  jPlugin.setEnabled(false);
              } catch (Throwable ex) {
@@ -89,7 +89,7 @@ index 384edf9890dfbd1cddfdcac4db1ebe9a4d761f78..7c0c63c3f5734d59aa8b57fe3eb3c1fe
              }
  
              if (cloader instanceof PluginClassLoader) {
-@@ -432,11 +440,20 @@ public final class JavaPluginLoader implements PluginLoader {
+@@ -422,11 +430,20 @@ public final class JavaPluginLoader implements PluginLoader {
                          loader.close();
                      }
                  } catch (IOException e) {
@@ -111,10 +111,10 @@ index 384edf9890dfbd1cddfdcac4db1ebe9a4d761f78..7c0c63c3f5734d59aa8b57fe3eb3c1fe
 +    // Yatopia end
  }
 diff --git a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
-index 79d839034d38c941745c6b91f973f908d6cdb8ee..676e2311d6f75e690c0b814c253d91a9d00e4da7 100644
+index bccd68dd74fd5152d8c4feacb0e5d4409199de5d..dbe270928467101a77d6391b53b035451399b269 100644
 --- a/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
 +++ b/src/main/java/org/bukkit/plugin/java/PluginClassLoader.java
-@@ -233,4 +233,13 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
+@@ -249,4 +249,13 @@ public final class PluginClassLoader extends URLClassLoader { // Spigot
                     '}';
      }
      // Paper end

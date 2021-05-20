@@ -1,0 +1,198 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 22 Sep 2020 10:09:08 +0300
+Subject: [PATCH] Optimize whitelist command for multiple additions / removals
+
+Previously the whitelist command was adding players 1 by 1. This caused massive overload
+when you were adding multiple players due to the fact it saves every time a player was
+added.
+
+These changes aim to reduce that load whenever you are using the /whitelist command.
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 4159f87d0cba08d4e2c9b0a8b55547fa87a874be..4e0756807bd8a5e967d95cf5c9168ce8e806e484 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -2115,6 +2115,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+         return new DataPackConfiguration(list, list1);
+     }
+ 
++    public final void kickNotWhitelisted(CommandListenerWrapper sender) { a(sender); } // Yatopia - OBFHELPER
+     public void a(CommandListenerWrapper commandlistenerwrapper) {
+         if (this.aN()) {
+             PlayerList playerlist = commandlistenerwrapper.getServer().getPlayerList();
+diff --git a/src/main/java/net/minecraft/server/commands/CommandWhitelist.java b/src/main/java/net/minecraft/server/commands/CommandWhitelist.java
+index cc256c6c6b39a1c16859242207042cb9c22098ed..dadec8d22341f955ddce91c3a36b111eaf36335c 100644
+--- a/src/main/java/net/minecraft/server/commands/CommandWhitelist.java
++++ b/src/main/java/net/minecraft/server/commands/CommandWhitelist.java
+@@ -21,8 +21,8 @@ public class CommandWhitelist {
+ 
+     private static final SimpleCommandExceptionType a = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.alreadyOn"));
+     private static final SimpleCommandExceptionType b = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.alreadyOff"));
+-    private static final SimpleCommandExceptionType c = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.add.failed"));
+-    private static final SimpleCommandExceptionType d = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.remove.failed"));
++    private static final SimpleCommandExceptionType c = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.add.failed")); private static final SimpleCommandExceptionType ADD_FAILED = c; // Yatopia - OBFHELPER
++    private static final SimpleCommandExceptionType d = new SimpleCommandExceptionType(new ChatMessage("commands.whitelist.remove.failed")); private static final SimpleCommandExceptionType REMOVE_FAILED = d; // Yatopia - OBFHELPER
+ 
+     public static void a(CommandDispatcher<CommandListenerWrapper> commanddispatcher) {
+         commanddispatcher.register((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) ((LiteralArgumentBuilder) net.minecraft.commands.CommandDispatcher.a("whitelist").requires((commandlistenerwrapper) -> {
+@@ -36,11 +36,25 @@ public class CommandWhitelist {
+         }))).then(net.minecraft.commands.CommandDispatcher.a("add").then(net.minecraft.commands.CommandDispatcher.a("targets", (ArgumentType) ArgumentProfile.a()).suggests((commandcontext, suggestionsbuilder) -> {
+             PlayerList playerlist = ((CommandListenerWrapper) commandcontext.getSource()).getServer().getPlayerList();
+ 
++            // Yatopia start - optimize this
++            /*
+             return ICompletionProvider.b(playerlist.getPlayers().stream().filter((entityplayer) -> {
+                 return !playerlist.getWhitelist().isWhitelisted(entityplayer.getProfile());
+             }).map((entityplayer) -> {
+                 return entityplayer.getProfile().getName();
+             }), suggestionsbuilder);
++             */
++            for (net.minecraft.server.level.EntityPlayer player : playerlist.getPlayers()) {
++                if (!playerlist.getWhitelist().isWhitelisted(player.getProfile())) {
++                    String remaining = suggestionsbuilder.getRemainingLowercase();
++                    String playerName = player.getName();
++                    if (ICompletionProvider.a(remaining, player.getNameLowercase())) {
++                        suggestionsbuilder.suggest(playerName);
++                    }
++                }
++            }
++            return suggestionsbuilder.buildFuture();
++            // Yatopia end
+         }).executes((commandcontext) -> {
+             return a((CommandListenerWrapper) commandcontext.getSource(), ArgumentProfile.a(commandcontext, "targets"));
+         })))).then(net.minecraft.commands.CommandDispatcher.a("remove").then(net.minecraft.commands.CommandDispatcher.a("targets", (ArgumentType) ArgumentProfile.a()).suggests((commandcontext, suggestionsbuilder) -> {
+@@ -61,6 +75,8 @@ public class CommandWhitelist {
+ 
+     private static int a(CommandListenerWrapper commandlistenerwrapper, Collection<GameProfile> collection) throws CommandSyntaxException {
+         WhiteList whitelist = commandlistenerwrapper.getServer().getPlayerList().getWhitelist();
++        // Yatopia start - rewrite this
++        /*
+         int i = 0;
+         Iterator iterator = collection.iterator();
+ 
+@@ -81,10 +97,27 @@ public class CommandWhitelist {
+         } else {
+             return i;
+         }
++         */
++        java.util.List<WhiteListEntry> toAdd = new java.util.ArrayList<>();
++        for (GameProfile profile : collection) {
++            if (!whitelist.isWhitelisted(profile)) {
++                toAdd.add(new WhiteListEntry(profile));
++                commandlistenerwrapper.sendMessage(new ChatMessage("commands.whitelist.add.success", ChatComponentUtils.a(profile)), true);
++            }
++        }
++        if (toAdd.isEmpty()) {
++            throw CommandWhitelist.ADD_FAILED.create();
++        } else {
++            whitelist.addAll(toAdd);
++            return toAdd.size();
++        }
++        // Yatopia end
+     }
+ 
+     private static int b(CommandListenerWrapper commandlistenerwrapper, Collection<GameProfile> collection) throws CommandSyntaxException {
+         WhiteList whitelist = commandlistenerwrapper.getServer().getPlayerList().getWhitelist();
++        // Yatopia start - rewrite this
++        /*
+         int i = 0;
+         Iterator iterator = collection.iterator();
+ 
+@@ -106,6 +139,22 @@ public class CommandWhitelist {
+             commandlistenerwrapper.getServer().a(commandlistenerwrapper);
+             return i;
+         }
++         */
++        java.util.List<net.minecraft.server.players.JsonListEntry<GameProfile>> toRemove = new java.util.ArrayList<>();
++        for (GameProfile profile : collection) {
++            if (whitelist.isWhitelisted(profile)) {
++                toRemove.add(new WhiteListEntry(profile));
++                commandlistenerwrapper.sendMessage(new ChatMessage("commands.whitelist.remove.success", ChatComponentUtils.a(profile)), true);
++            }
++        }
++        if (toRemove.isEmpty()) {
++            throw CommandWhitelist.REMOVE_FAILED.create();
++        } else {
++            whitelist.removeAll(toRemove);
++            commandlistenerwrapper.getServer().kickNotWhitelisted(commandlistenerwrapper);
++            return toRemove.size();
++        }
++        // Yatopia end
+     }
+ 
+     private static int b(CommandListenerWrapper commandlistenerwrapper) throws CommandSyntaxException {
+diff --git a/src/main/java/net/minecraft/server/players/JsonList.java b/src/main/java/net/minecraft/server/players/JsonList.java
+index 96fbb1a3d216302aa937e07bf88fdb19c6ccc764..0521fa09488ef501cc5bcdf6c3134ac920a2e94a 100644
+--- a/src/main/java/net/minecraft/server/players/JsonList.java
++++ b/src/main/java/net/minecraft/server/players/JsonList.java
+@@ -66,6 +66,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+ 
+     }
+ 
++    // Yatopia start
++    public void addAll(Iterable<V> values) {
++        for (V value : values) {
++            d.put(getMappingKey(value.getKey()), value);
++        }
++
++        try {
++            this.save();
++        } catch (IOException io) {
++            JsonList.LOGGER.warn("Could not save the list after adding a user.", io);
++        }
++    }
++    // Yatopia end
++
+     @Nullable
+     public V get(K k0) {
+         // Paper start
+@@ -96,6 +110,20 @@ public abstract class JsonList<K, V extends JsonListEntry<K>> {
+         this.remove(jsonlistentry.getKey());
+     }
+ 
++    // Yatopia start
++    public void removeAll(Iterable<JsonListEntry<K>> values) {
++        for (JsonListEntry<K> entry : values) {
++            this.d.remove(getMappingKey(entry.getKey()));
++        }
++
++        try {
++            this.save();
++        } catch (IOException io) {
++            JsonList.LOGGER.warn("Could not save the list after removing a user.", io);
++        }
++    }
++    // Yatopia end
++
+     public String[] getEntries() {
+         return (String[]) this.d.keySet().toArray(new String[this.d.size()]);
+     }
+diff --git a/src/main/java/net/minecraft/world/entity/player/EntityHuman.java b/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
+index abac4b996c7935ac6115a9ad96191f2a57afc95f..1ebe3f19e2fde6870c44191a1994514d9932e545 100644
+--- a/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
++++ b/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
+@@ -175,6 +175,7 @@ public abstract class EntityHuman extends EntityLiving {
+     // CraftBukkit start
+     public boolean fauxSleeping;
+     public int oldLevel = -1;
++    private String nameLowercase = null; // Yatopia
+ 
+     @Override
+     public CraftHumanEntity getBukkitEntity() {
+@@ -2039,6 +2040,15 @@ public abstract class EntityHuman extends EntityLiving {
+         return this.getProfile().getName();
+     }
+ 
++    // Yatopia start
++    public String getNameLowercase() {
++        if (nameLowercase == null) {
++            nameLowercase = getProfile().getName().toLowerCase(java.util.Locale.ROOT);
++        }
++        return nameLowercase;
++    }
++    // Yatopia end
++
+     @Override
+     public float b(EntityPose entitypose, EntitySize entitysize) {
+         switch (entitypose) {

@@ -1,0 +1,479 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Thu, 27 Aug 2020 10:46:17 +0300
+Subject: [PATCH] Highly optimize VillagePlace filtering
+
+Replaced all streams I could. I expect this to be dropped in the next
+major release and reimplemented again if mojang changes stuff with
+villagers again.
+
+diff --git a/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e647624f4c9afe8bc603792ad88c807ed9f01250
+--- /dev/null
++++ b/src/main/java/me/jellysquid/mods/lithium/common/util/Producer.java
+@@ -0,0 +1,53 @@
++package me.jellysquid.mods.lithium.common.util;
++
++import java.util.List;
++import java.util.Spliterator;
++import java.util.Spliterators;
++import java.util.function.Consumer;
++import java.util.function.Function;
++import java.util.stream.Stream;
++import java.util.stream.StreamSupport;
++import org.yatopiamc.yatopia.server.util.HoldingConsumer;
++
++public interface Producer<T> {
++    /**
++     * Computes the next sequence of values in a collection. If a null value is passed for {@param consumer}, then
++     * the producer will only return whether or not elements existed.
++     *
++     * @param consumer The (nullable) consumer which will accept the computed values during this run.
++     * @return True if the producer produced any values, otherwise false
++     */
++    boolean computeNext(Consumer<? super T> consumer);
++
++    default <U> Producer<U> map(Function<T, U> mapper) {
++        return consumer -> {
++            Consumer<? super T> con = (t) -> consumer.accept(mapper.apply(t));
++            return Producer.this.computeNext(con);
++        };
++    }
++
++    static <T> Stream<T> asStream(Producer<T> producer) {
++        return StreamSupport.stream(new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.NONNULL) {
++            @Override
++            public boolean tryAdvance(Consumer<? super T> action) {
++                return producer.computeNext(action);
++            }
++        }, false);
++    }
++
++    static <T> void fillList(Producer<T> producer, List<T> list) {
++        HoldingConsumer<T> consumer = new HoldingConsumer<>();
++        while (producer.computeNext(consumer)) {
++            T value = consumer.getValue();
++            if (value == null || list.contains(value)) { continue; }
++            list.add(value);
++        }
++    }
++
++    Producer<?> EMPTY_PRODUCER = consumer -> false;
++
++    @SuppressWarnings("unchecked")
++    static <T> Producer<T> empty() {
++        return (Producer<T>) EMPTY_PRODUCER;
++    }
++}
+diff --git a/src/main/java/net/minecraft/core/BlockPosition.java b/src/main/java/net/minecraft/core/BlockPosition.java
+index c2706c752f6ff5c131b6db469ae85dd703d5d381..09978014fcb1a3cb46248fb6a035725c08d70a4a 100644
+--- a/src/main/java/net/minecraft/core/BlockPosition.java
++++ b/src/main/java/net/minecraft/core/BlockPosition.java
+@@ -347,6 +347,16 @@ public class BlockPosition extends BaseBlockPosition {
+         return a(MathHelper.floor(axisalignedbb.minX), MathHelper.floor(axisalignedbb.minY), MathHelper.floor(axisalignedbb.minZ), MathHelper.floor(axisalignedbb.maxX), MathHelper.floor(axisalignedbb.maxY), MathHelper.floor(axisalignedbb.maxZ));
+     }
+ 
++    // Yatopia start
++    public static java.util.List<BlockPosition> getPositions(int i, int j, int k, int l, int i1, int j1) {
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        Iterable<BlockPosition> iterable = b(i, j, k, l, i1, j1);
++        org.yatopiamc.yatopia.server.util.HoldingConsumer<BlockPosition> consumer = new org.yatopiamc.yatopia.server.util.HoldingConsumer<>();
++        java.util.Spliterator<BlockPosition> spliterator = iterable.spliterator();
++        while (spliterator.tryAdvance(consumer)) ret.add(consumer.getValue());
++        return ret;
++    }
++    // Yatopia end
+     public static Stream<BlockPosition> a(int i, int j, int k, int l, int i1, int j1) {
+         return StreamSupport.stream(b(i, j, k, l, i1, j1).spliterator(), false);
+     }
+diff --git a/src/main/java/net/minecraft/core/SectionPosition.java b/src/main/java/net/minecraft/core/SectionPosition.java
+index 427413c668865e1660f1d81daf6a3385f08a0e38..a206a729b3afa01bf591fa4da1e5c14902da4778 100644
+--- a/src/main/java/net/minecraft/core/SectionPosition.java
++++ b/src/main/java/net/minecraft/core/SectionPosition.java
+@@ -162,6 +162,7 @@ public class SectionPosition extends BaseBlockPosition {
+         return this.p().b(8, 8, 8);
+     }
+ 
++    public final ChunkCoordIntPair asChunkPos() { return r(); } // Yatopia - OBFHELPER
+     public ChunkCoordIntPair r() {
+         return new ChunkCoordIntPair(this.a(), this.c());
+     }
+@@ -176,10 +177,12 @@ public class SectionPosition extends BaseBlockPosition {
+         return (((long) i & 4194303L) << 42) | (((long) j & 1048575L)) | (((long) k & 4194303L) << 20); // Paper - Simplify to reduce instruction count
+     }
+ 
++    public final long asLong() { return s(); } // Yatopia - OBFHELPER
+     public long s() {
+         return (((long) getX() & 4194303L) << 42) | (((long) getY() & 1048575L)) | (((long) getZ() & 4194303L) << 20); // Paper - Simplify to reduce instruction count
+     }
+ 
++    public java.util.List<BlockPosition> tList() { return BlockPosition.getPositions(d(), e(), f(), g(), h(), i()); } // Yatopia
+     public Stream<BlockPosition> t() {
+         return BlockPosition.a(this.d(), this.e(), this.f(), this.g(), this.h(), this.i());
+     }
+@@ -192,6 +195,18 @@ public class SectionPosition extends BaseBlockPosition {
+         return a(chunkcoordintpair.x - i, 0, chunkcoordintpair.z - i, chunkcoordintpair.x + i, 15, chunkcoordintpair.z + i); // Paper - simplify/inline
+     }
+ 
++    // Yatopia start
++    public static java.util.List<SectionPosition> getPosList(SectionPosition pos, int i) {
++        return getPosList(pos.getX() - i, pos.getY() - i, pos.getZ() - i, pos.getX() + i, pos.getY() + i, pos.getZ() + i);
++    }
++    public static java.util.List<SectionPosition> getPosList(ChunkCoordIntPair chunkPos, int i) {
++        return getPosList(chunkPos.x - i, 0, chunkPos.z - i, chunkPos.x + i, 15, chunkPos.z + i);
++    }
++    public static java.util.List<SectionPosition> getPosList(int i, int j, int k, int l, int i1, int j1) {
++        return org.yatopiamc.yatopia.server.YatopiaChunkSectionPos.getChunkSectionPosList(i, j, k, l,  i1, j1);
++    }
++    // Yatopia end
++
+     public static Stream<SectionPosition> a(final int i, final int j, final int k, final int l, final int i1, final int j1) {
+         return StreamSupport.stream(new AbstractSpliterator<SectionPosition>((long) ((l - i + 1) * (i1 - j + 1) * (j1 - k + 1)), 64) {
+             final CursorPosition a = new CursorPosition(i, j, k, l, i1, j1);
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
+index 6082eed2d28f3be65daa7e7eb6f2c2a89bb28ff1..29cd71efe86eea2227f373c15c39dc530e9e8199 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
+@@ -193,7 +193,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+ 
+     public long count(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) { return a(predicate, blockposition, i, villageplace_occupancy); } // Purpur - OBFHELPER
+     public long a(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
+-        return this.c(predicate, blockposition, i, villageplace_occupancy).count();
++        return this.cList(predicate, blockposition, i, villageplace_occupancy).size(); // Yatopia
+     }
+ 
+     public boolean a(VillagePlaceType villageplacetype, BlockPosition blockposition) {
+@@ -214,6 +214,39 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         });
+     }
+ 
++    // Yatopia start
++    public java.util.List<VillagePlaceRecord> bList(Predicate<VillagePlaceType> filter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
++        int j = org.apache.commons.math3.util.FastMath.floorDiv(i, 16) + 1;
++
++        java.util.List<ChunkCoordIntPair> list = ChunkCoordIntPair.streamList(new ChunkCoordIntPair(pos), j);
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
++        for (ChunkCoordIntPair chunkPos : list) {
++            for (int k = 0; k < 16; k++) { // ITS THE LAW
++                this.d(SectionPosition.a(chunkPos, k).asLong()).ifPresent(section -> ret.addAll(section.aList(filter, occupancy)));
++            }
++        }
++        return ret;
++    }
++    public java.util.List<VillagePlaceRecord> cList(Predicate<VillagePlaceType> predicate, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
++        int j = i * i;
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
++        for (VillagePlaceRecord record : this.bList(predicate, pos, i, occupancy)) {
++            if (record.getPosition().distanceSquared(pos) <= j) { ret.add(record); }
++        }
++        return ret;
++    }
++
++    public java.util.List<BlockPosition> cListPositions(Predicate<VillagePlaceType> predicate, Predicate<VillagePlaceRecord> recordFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
++        int j = i * i;
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        for (VillagePlaceRecord record : this.bList(predicate, pos, i, occupancy)) {
++            BlockPosition recordPosition = record.getPosition();
++            if (recordPosition.distanceSquared(pos) <= j && recordFilter.test(record)) { ret.add(recordPosition); }
++        }
++        return ret;
++    }
++    // Yatopia end
++
+     public Stream<VillagePlaceRecord> c(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
+         int j = i * i;
+ 
+@@ -230,10 +263,28 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         });
+     }
+ 
++    // Yatopia start
++    public java.util.List<BlockPosition> aList(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> posFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
++        java.util.List<BlockPosition> ret = new java.util.ArrayList<>();
++        int j = i * i;
++        for (VillagePlaceRecord record : this.bList(predicate, pos, i, occupancy)) {
++            BlockPosition recordPosition = record.getPosition();
++            if (recordPosition.distanceSquared(pos) <= j && posFilter.test(recordPosition)) { ret.add(recordPosition); }
++        }
++        return ret;
++    }
++    // Yatopia end
+     public Stream<BlockPosition> a(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> predicate1, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
+         return this.c(predicate, blockposition, i, villageplace_occupancy).map(VillagePlaceRecord::f).filter(predicate1);
+     }
+ 
++    // Yatopia start
++    public java.util.List<BlockPosition> bList(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> posFilter, BlockPosition pos, int i, VillagePlace.Occupancy occupancy) {
++        java.util.List<BlockPosition> ret = aList(predicate, posFilter, pos, i, occupancy);
++        ret.sort(Comparator.comparingDouble((pos1) -> pos1.distanceSquared(pos)));
++        return ret;
++    }
++    // Yatopia end
+     public Stream<BlockPosition> b(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> predicate1, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
+         return this.a(predicate, predicate1, blockposition, i, villageplace_occupancy).sorted(Comparator.comparingDouble((blockposition1) -> {
+             return blockposition1.j(blockposition);
+@@ -381,7 +432,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+     }
+ 
+     private void a(ChunkSection chunksection, SectionPosition sectionposition, BiConsumer<BlockPosition, VillagePlaceType> biconsumer) {
+-        sectionposition.t().forEach((blockposition) -> {
++        sectionposition.tList().forEach((blockposition) -> { // Yatopia
+             IBlockData iblockdata = chunksection.getType(SectionPosition.b(blockposition.getX()), SectionPosition.b(blockposition.getY()), SectionPosition.b(blockposition.getZ()));
+ 
+             VillagePlaceType.b(iblockdata).ifPresent((villageplacetype) -> {
+@@ -391,6 +442,16 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+     }
+ 
+     public void a(IWorldReader iworldreader, BlockPosition blockposition, int i) {
++        // Yatopia start - WHY?
++        java.util.List<SectionPosition> posList = SectionPosition.getPosList(new ChunkCoordIntPair(blockposition), org.apache.commons.math3.util.FastMath.floorDiv(i, 16));
++        for (SectionPosition pos : posList) {
++            boolean shouldContinue = this.d(pos.asLong()).map(VillagePlaceSection::a).orElse(false);
++            if (shouldContinue) {
++                ChunkCoordIntPair chunkPos = pos.asChunkPos();
++                if (b.add(chunkPos.pair())) { iworldreader.getChunkAt(chunkPos.x, chunkPos.z, ChunkStatus.EMPTY); }
++            }
++        }
++        /*
+         SectionPosition.b(new ChunkCoordIntPair(blockposition), Math.floorDiv(i, 16)).map((sectionposition) -> {
+             return Pair.of(sectionposition, this.d(sectionposition.s()));
+         }).filter((pair) -> {
+@@ -402,6 +463,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+         }).forEach((chunkcoordintpair) -> {
+             iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.EMPTY);
+         });
++         */ // Yatopia end
+     }
+ 
+     final class a extends LightEngineGraphSection {
+diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java
+index 41ffad7cbb6c77713736f37b3728b201d315f6d4..866e9a434423702d2edaf9b52fa0e6219e13c2d7 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java
++++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlaceSection.java
+@@ -5,6 +5,10 @@ import com.google.common.collect.Maps;
+ import com.google.common.collect.Sets;
+ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.codecs.RecordCodecBuilder;
++// Yatopia start
++import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
++import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap;
++// Yatopia end
+ import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
+ import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+ import java.util.List;
+@@ -53,12 +57,23 @@ public class VillagePlaceSection {
+ 
+     private VillagePlaceSection(Runnable runnable, boolean flag, List<VillagePlaceRecord> list) {
+         this.b = new Short2ObjectOpenHashMap();
+-        this.c = Maps.newHashMap();
++        this.c = new Reference2ReferenceOpenHashMap<>(); // Yatopia
+         this.d = runnable;
+         this.e = flag;
+         list.forEach(this::a);
+     }
+ 
++    // Yatopia start
++    public java.util.List<VillagePlaceRecord> aList(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy occupancy) {
++        java.util.List<VillagePlaceRecord> ret = new java.util.ArrayList<>();
++        for (Map.Entry<VillagePlaceType, Set<VillagePlaceRecord>> entry : c.entrySet()) {
++            if (predicate.test(entry.getKey())) {
++                for (VillagePlaceRecord record : entry.getValue()) { if (occupancy.a().test(record)) ret.add(record); }
++            }
++        }
++        return ret;
++    }
++    // Yatopia end
+     public Stream<VillagePlaceRecord> a(Predicate<VillagePlaceType> predicate, VillagePlace.Occupancy villageplace_occupancy) {
+         return this.c.entrySet().stream().filter((entry) -> {
+             return predicate.test(entry.getKey());
+@@ -101,7 +116,7 @@ public class VillagePlaceSection {
+ 
+         this.b.put(short0, villageplacerecord);
+         ((Set) this.c.computeIfAbsent(villageplacetype, (villageplacetype1) -> {
+-            return Sets.newHashSet();
++            return new ObjectOpenHashSet<>(); // Yatopia
+         })).add(villageplacerecord);
+         return true;
+     }
+diff --git a/src/main/java/net/minecraft/world/entity/animal/EntityBee.java b/src/main/java/net/minecraft/world/entity/animal/EntityBee.java
+index e425e093c233a21e5ef457e3a94defe8b74261d2..56189617dd49e62a57bf3f9050711dc0dea46b2a 100644
+--- a/src/main/java/net/minecraft/world/entity/animal/EntityBee.java
++++ b/src/main/java/net/minecraft/world/entity/animal/EntityBee.java
+@@ -856,15 +856,19 @@ public class EntityBee extends EntityAnimal implements IEntityAngerable, EntityB
+         private List<BlockPosition> j() {
+             BlockPosition blockposition = EntityBee.this.getChunkCoordinates();
+             VillagePlace villageplace = ((WorldServer) EntityBee.this.world).y();
+-            Stream<VillagePlaceRecord> stream = villageplace.c((villageplacetype) -> {
++            List<BlockPosition> stream = villageplace.cListPositions((villageplacetype) -> { // Yatopia
+                 return villageplacetype == VillagePlaceType.t || villageplacetype == VillagePlaceType.u;
+-            }, blockposition, 20, VillagePlace.Occupancy.ANY);
+-
++            }, (record) -> i(record.getPosition()), blockposition, 20, VillagePlace.Occupancy.ANY); // Yatopia
++            // Yatopia start
++            stream.sort(Comparator.comparingDouble((pos1) -> pos1.distanceSquared(blockposition)));
++            return stream;
++            /*
+             return (List) stream.map(VillagePlaceRecord::f).filter((blockposition1) -> {
+                 return EntityBee.this.i(blockposition1);
+             }).sorted(Comparator.comparingDouble((blockposition1) -> {
+                 return blockposition1.j(blockposition);
+             })).collect(Collectors.toList());
++             */ // Yatopia end
+         }
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java b/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java
+index 11271762dcf5783c3179de1afc6a882c5330b4dd..a0321663a1cb410505e2b57397c6d0020433e6e1 100644
+--- a/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java
++++ b/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java
+@@ -98,7 +98,7 @@ public class PersistentRaid extends PersistentBase {
+                 return null;
+             } else {
+                 BlockPosition blockposition = entityplayer.getChunkCoordinates();
+-                List<VillagePlaceRecord> list = (List) this.b.y().c(VillagePlaceType.b, blockposition, 64, VillagePlace.Occupancy.IS_OCCUPIED).collect(Collectors.toList());
++                List<VillagePlaceRecord> list = this.b.y().cList(VillagePlaceType.b, blockposition, 64, VillagePlace.Occupancy.IS_OCCUPIED); // Yatopia
+                 int i = 0;
+                 Vec3D vec3d = Vec3D.ORIGIN;
+ 
+diff --git a/src/main/java/net/minecraft/world/level/ChunkCoordIntPair.java b/src/main/java/net/minecraft/world/level/ChunkCoordIntPair.java
+index 53eb5b65683a2ab208edfc3f3bbf78ffee61bc85..ab169a113e69305f97c69541bcd4beabd05f9ed8 100644
+--- a/src/main/java/net/minecraft/world/level/ChunkCoordIntPair.java
++++ b/src/main/java/net/minecraft/world/level/ChunkCoordIntPair.java
+@@ -119,6 +119,15 @@ public class ChunkCoordIntPair {
+         return a(new ChunkCoordIntPair(chunkcoordintpair.x - i, chunkcoordintpair.z - i), new ChunkCoordIntPair(chunkcoordintpair.x + i, chunkcoordintpair.z + i));
+     }
+ 
++    // Yatopia start
++    public static java.util.List<ChunkCoordIntPair> streamList(ChunkCoordIntPair center, int radius) {
++        return streamList(new ChunkCoordIntPair(center.x - radius, center.z - radius), new ChunkCoordIntPair(center.x + radius, center.z + radius));
++    }
++    public static java.util.List<ChunkCoordIntPair> streamList(ChunkCoordIntPair pos1, ChunkCoordIntPair pos2) {
++        return org.yatopiamc.yatopia.server.YatopiaChunkPos.asList(pos1, pos2);
++    }
++    // Yatopia end
++
+     public static Stream<ChunkCoordIntPair> a(final ChunkCoordIntPair chunkcoordintpair, final ChunkCoordIntPair chunkcoordintpair1) {
+         int i = Math.abs(chunkcoordintpair.x - chunkcoordintpair1.x) + 1;
+         int j = Math.abs(chunkcoordintpair.z - chunkcoordintpair1.z) + 1;
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkPos.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkPos.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..09700214355375b59697577253ac5df97608690b
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkPos.java
+@@ -0,0 +1,54 @@
++package org.yatopiamc.yatopia.server;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.function.Consumer;
++import me.jellysquid.mods.lithium.common.util.Producer;
++import net.minecraft.world.level.ChunkCoordIntPair;
++
++public class YatopiaChunkPos {
++
++    public static List<ChunkCoordIntPair> asList(ChunkCoordIntPair pos1, ChunkCoordIntPair pos2) {
++        List<ChunkCoordIntPair> list = new ArrayList<>();
++        Producer.fillList(getStreamProducer(pos1, pos2), list);
++        return list;
++    }
++
++    /**
++     * [VanillaCopy] but in a producer
++     *
++     * @param pos1 pos 1
++     * @param pos2 pos 2
++     * @return producer
++     */
++    private static Producer<ChunkCoordIntPair> getStreamProducer(ChunkCoordIntPair pos1, ChunkCoordIntPair pos2) {
++        final int k = pos1.x < pos2.x ? 1 : -1;
++        final int l = pos1.z < pos2.z ? 1 : -1;
++
++        return new Producer<ChunkCoordIntPair>() {
++            private ChunkCoordIntPair pair = null;
++
++            @Override
++            public boolean computeNext(Consumer<? super ChunkCoordIntPair> consumer) {
++                if (pair == null) {
++                    pair = pos1;
++                } else {
++                    int i1 = this.pair.x;
++                    int j1 = this.pair.z;
++
++                    if (i1 == pos2.x) {
++                        if (j1 == pos2.z) {
++                            return false;
++                        }
++
++                        this.pair = new ChunkCoordIntPair(pos1.x, j1 + l);
++                    } else {
++                        this.pair = new ChunkCoordIntPair(i1 + k, j1);
++                    }
++                }
++                consumer.accept(pair);
++                return true;
++            }
++        };
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkSectionPos.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkSectionPos.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..7dc7ef3b652ad7a4cbb1c08f25d938a79a8b0030
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaChunkSectionPos.java
+@@ -0,0 +1,32 @@
++package org.yatopiamc.yatopia.server;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.function.Consumer;
++import me.jellysquid.mods.lithium.common.util.Producer;
++import net.minecraft.core.CursorPosition;
++import net.minecraft.core.SectionPosition;
++
++public class YatopiaChunkSectionPos {
++
++    public static List<SectionPosition> getChunkSectionPosList(int i, int j, int k, int l, int i1, int j1) {
++        List<SectionPosition> list = new ArrayList<>();
++        Producer.fillList(getChunkSectionPosProducer(i, j, k, l, i1, j1), list);
++        return list;
++    }
++
++    private static Producer<SectionPosition> getChunkSectionPosProducer(int i, int j, int k, int l, int i1, int j1) {
++        return new Producer<SectionPosition>() {
++            final CursorPosition cursorPos = new CursorPosition(i, j, k, l, i1, j1);
++
++            @Override
++            public boolean computeNext(Consumer<? super SectionPosition> consumer) {
++                if (cursorPos.a()) {
++                    consumer.accept(SectionPosition.a(cursorPos.b(), cursorPos.c(), cursorPos.d()));
++                    return true;
++                }
++                return false;
++            }
++        };
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/HoldingConsumer.java b/src/main/java/org/yatopiamc/yatopia/server/util/HoldingConsumer.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..adcbe5a009ef8156945b48c4d29d171ebffc4bec
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/util/HoldingConsumer.java
+@@ -0,0 +1,17 @@
++package org.yatopiamc.yatopia.server.util;
++
++import java.util.function.Consumer;
++
++public class HoldingConsumer<T> implements Consumer<T> {
++
++    private T value;
++
++    @Override
++    public void accept(T t) {
++        this.value = t;
++    }
++
++    public T getValue() {
++        return value;
++    }
++}

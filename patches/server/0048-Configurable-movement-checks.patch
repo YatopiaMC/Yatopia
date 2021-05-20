@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: l_MrBoom_l <admin@epserv.ru>
+Date: Sun, 8 Nov 2020 19:07:14 +0200
+Subject: [PATCH] Configurable movement checks
+
+
+diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
+index b5c1e7aa4da9028840acb4295aa53fa7e39a4179..a41e65048daf2ab0290ae6398ab7e9932d809c70 100644
+--- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
++++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
+@@ -606,7 +606,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                 }
+                 // Paper end
+ 
+-                if (d10 - d9 > Math.max(100.0D, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) {
++                if (org.yatopiamc.yatopia.server.YatopiaConfig.checkVehicleMovedQuickly && d10 - d9 > Math.max(100.0D, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) { // Yatopia - Configurable movement checks
+                 // CraftBukkit end
+                     PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved too quickly! {},{},{}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), d6, d7, d8);
+                     this.networkManager.sendPacket(new PacketPlayOutVehicleMove(entity));
+@@ -633,7 +633,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                 d10 = d6 * d6 + d7 * d7 + d8 * d8;
+                 boolean flag1 = false;
+ 
+-                if (d10 > org.spigotmc.SpigotConfig.movedWronglyThreshold) { // Spigot
++                if (org.yatopiamc.yatopia.server.YatopiaConfig.checkVehicleMovedWrongly && d10 > org.spigotmc.SpigotConfig.movedWronglyThreshold) { // Spigot // Yatopia - Configurable movement checks
+                     flag1 = true; // Tuinity - diff on change, this should be moved wrongly
+                     PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), Math.sqrt(d10));
+                 }
+@@ -1392,7 +1392,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                             if (!this.player.H() && (!this.player.getWorldServer().getGameRules().getBoolean(GameRules.DISABLE_ELYTRA_MOVEMENT_CHECK) || !this.player.isGliding())) {
+                                 float f2 = this.player.isGliding() ? 300.0F : 100.0F;
+ 
+-                                if (d11 - d10 > Math.max(f2, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) {
++                                if (org.yatopiamc.yatopia.server.YatopiaConfig.checkMovedQuickly && d11 - d10 > Math.max(f2, Math.pow((double) (org.spigotmc.SpigotConfig.movedTooQuicklyMultiplier * (float) i * speed), 2)) && !this.isExemptPlayer()) { // Yatopia - Configurable movement checks
+                                 // CraftBukkit end
+                                     PlayerConnection.LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getDisplayName().getString(), d7, d8, d9);
+                                     this.a(this.player.locX(), this.player.locY(), this.player.locZ(), this.player.yaw, this.player.pitch);
+@@ -1458,7 +1458,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+                             d11 = d7 * d7 + d8 * d8 + d9 * d9;
+                             boolean flag1 = false;
+ 
+-                            if (!this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot
++                            if (org.yatopiamc.yatopia.server.YatopiaConfig.checkMovedWrongly && !this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot // Yatopia - Configurable movement checks
+                                 flag1 = true; // Tuinity - diff on change, this should be moved wrongly
+                                 PlayerConnection.LOGGER.warn("{} moved wrongly! ({})", this.player.getDisplayName().getString(), d11); // Purpur
+                             }
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index c9df12f7a81758be9a407c8b8699a2eb4ebe8271..ff54f4fc76fbdb83d3407326ef0a0b921fed4507 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -274,4 +274,15 @@ public class YatopiaConfig {
+     private static void fireBlockPhysicsEvent() {
+         fireBlockPhysicsEvent = getBoolean("settings.fire-block-physics-event", true);
+     }
++
++    public static boolean checkMovedQuickly = true;
++    public static boolean checkMovedWrongly = true;
++    public static boolean checkVehicleMovedQuickly = true;
++    public static boolean checkVehicleMovedWrongly = true;
++    private static void movementChecks() {
++        checkMovedQuickly = getBoolean("settings.checks.moved-quickly", checkMovedQuickly);
++        checkMovedWrongly = getBoolean("settings.checks.moved-wrongly", checkMovedWrongly);
++        checkVehicleMovedQuickly = getBoolean("settings.checks.vehicle-moved-quickly", checkVehicleMovedQuickly);
++        checkVehicleMovedWrongly = getBoolean("settings.checks.vehicle-moved-wrongly", checkVehicleMovedWrongly);
++    }
+ }

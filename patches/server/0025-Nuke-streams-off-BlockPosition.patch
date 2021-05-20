@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 1 Sep 2020 19:11:50 +0300
+Subject: [PATCH] Nuke streams off BlockPosition
+
+
+diff --git a/src/main/java/net/minecraft/core/BlockPosition.java b/src/main/java/net/minecraft/core/BlockPosition.java
+index 09978014fcb1a3cb46248fb6a035725c08d70a4a..8cb42aa7fede543ea33d2ff945ad75df26b37f4e 100644
+--- a/src/main/java/net/minecraft/core/BlockPosition.java
++++ b/src/main/java/net/minecraft/core/BlockPosition.java
+@@ -324,7 +324,15 @@ public class BlockPosition extends BaseBlockPosition {
+     }
+ 
+     public static Optional<BlockPosition> a(BlockPosition blockposition, int i, int j, Predicate<BlockPosition> predicate) {
+-        return b(blockposition, i, j, i).filter(predicate).findFirst();
++        // Yatopia start - avoid using stream
++        // return b(blockposition, i, j, i).filter(predicate).findFirst();
++        for (BlockPosition pos : a(blockposition, i, j, i)) {
++            if (predicate.test(pos)) {
++                return Optional.of(pos);
++            }
++        }
++        return Optional.empty();
++        // Yatopia end
+     }
+ 
+     public static Stream<BlockPosition> b(BlockPosition blockposition, int i, int j, int k) {
+diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+index 0990eb8b2e2d8a5f7c1a2640727d86c37a50298e..fb47bd2ab3b9af5b989417e1d71ceee79361a467 100644
+--- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
++++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
+@@ -734,6 +734,7 @@ public abstract class BlockBase {
+             return this.getBlock().getInventory(this.p(), world, blockposition);
+         }
+ 
++        public final boolean hasTag(Tag<Block> tag) { return a(tag); } // Yatopia - OBFHELPER
+         public boolean a(Tag<Block> tag) {
+             return this.getBlock().a(tag);
+         }

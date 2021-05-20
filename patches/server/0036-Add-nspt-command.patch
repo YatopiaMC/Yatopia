@@ -1,0 +1,144 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Wed, 30 Sep 2020 18:05:45 +0300
+Subject: [PATCH] Add nspt command
+
+
+diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+index fe19cb7a1c63208419a0a4b71b2f1fab45732506..2ad5fbb7b7d3105bd5dd09e6f767b11f9cb7207a 100644
+--- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
++++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
+@@ -235,6 +235,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+             DedicatedServer.LOGGER.error("Unable to load server configuration", e);
+             return false;
+         }
++        org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands();
+         // Yatopia end
+ 
+         this.setPVP(dedicatedserverproperties.pvp);
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index 2d5923377f845b76370ca57cddae792259970445..f70320e6705fd222a355ce4a08e98a130777bb86 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -939,6 +939,7 @@ public final class CraftServer implements Server {
+         org.spigotmc.SpigotConfig.registerCommands(); // Spigot
+         com.destroystokyo.paper.PaperConfig.registerCommands(); // Paper
+         net.pl3x.purpur.PurpurConfig.registerCommands(); // Purpur
++        org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands(); // Yatopia
+         overrideAllCommandBlockCommands = commandsConfiguration.getStringList("command-block-overrides").contains("*");
+         ignoreVanillaPermissions = commandsConfiguration.getBoolean("ignore-vanilla-permissions");
+ 
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java b/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..e6eaa07c57e04bbfba9e4aa8e0e939f85169d0c8
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java
+@@ -0,0 +1,59 @@
++package org.yatopiamc.yatopia.server;
++
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collections;
++import java.util.List;
++import net.minecraft.server.MinecraftServer;
++import org.bukkit.ChatColor;
++import org.bukkit.Location;
++import org.bukkit.command.Command;
++import org.bukkit.command.CommandSender;
++
++public class NSPTCommand extends Command {
++
++    public NSPTCommand(String name) {
++        super(name);
++        this.description = "View server tick times in nanoseconds";
++        this.usageMessage = "/nspt";
++        this.setPermission("bukkit.command.nspt");
++    }
++
++    @Override
++    public List<String> tabComplete(CommandSender sender, String alias, String[] args, Location location) throws IllegalArgumentException {
++        return Collections.emptyList();
++    }
++
++    @Override
++    public boolean execute(CommandSender sender, String commandLabel, String[] args) {
++        if (!testPermission(sender)) return true;
++
++        MinecraftServer server = MinecraftServer.getServer();
++
++        List<String> times = new ArrayList<>();
++        times.addAll(eval(server.tickTimes5s.getTimes()));
++        times.addAll(eval(server.tickTimes10s.getTimes()));
++        times.addAll(eval(server.tickTimes60s.getTimes()));
++
++        sender.sendMessage("§6Server tick NS times §e(§7avg§e/§7min§e/§7max§e)§6 from last 5s§7,§6 10s§7,§6 1m§e:");
++        sender.sendMessage(String.format("§6◴ %s§7/%s§7/%s§e, %s§7/%s§7/%s§e, %s§7/%s§7/%s", times.toArray()));
++        return true;
++    }
++
++    private static List<String> eval(long[] times) {
++        long min = Integer.MAX_VALUE;
++        long max = 0L;
++        long total = 0L;
++        for (long value : times) {
++            if (value > 0L && value < min) min = value;
++            if (value > max) max = value;
++            total += value;
++        }
++        double avgD = ((double) total / (double) times.length);
++        return Arrays.asList(getColor(avgD), getColor(min), getColor(max));
++    }
++
++    private static String getColor(double avg) {
++        return ChatColor.COLOR_CHAR + (avg >= 5E+7 ? "c" : avg >= (4E+7) ? "e" : "a") + avg;
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 43c6d26dcf2d8875bc5449478acc29a25a88f2b8..f2058af295169449372fbe59e26795291509fa69 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -6,11 +6,14 @@ import java.io.IOException;
+ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
+ import java.lang.reflect.Modifier;
++import java.util.HashMap;
+ import java.util.List;
++import java.util.Map;
+ import java.util.concurrent.TimeUnit;
+ import java.util.logging.Level;
+ import java.util.regex.Pattern;
+ import org.bukkit.Bukkit;
++import org.bukkit.command.Command;
+ import org.bukkit.configuration.InvalidConfigurationException;
+ import org.bukkit.configuration.file.YamlConfiguration;
+ 
+@@ -24,6 +27,7 @@ public class YatopiaConfig {
+     public static YamlConfiguration config;
+     public static int version; // since we're remapping sidestreams' configs we need this public
+     public static boolean verbose; // since we're remapping sidestreams' configs we need this public
++    private static Map<String, Command> commands;
+     /*========================================================================*/
+ 
+     public static void init(File configFile) {
+@@ -39,6 +43,8 @@ public class YatopiaConfig {
+         config.options().header(HEADER);
+         config.options().copyDefaults(true);
+         verbose = getBoolean("verbose", false);
++        commands = new HashMap<>();
++        commands.put("nspt", new NSPTCommand("nspt"));
+ 
+         version = getInt("config-version", 1);
+         set("config-version", 1);
+@@ -46,6 +52,12 @@ public class YatopiaConfig {
+         readConfig(YatopiaConfig.class, null);
+     }
+ 
++    public static void registerCommands() {
++        for (Map.Entry<String, Command> entry : commands.entrySet()) {
++            net.minecraft.server.MinecraftServer.getServer().server.getCommandMap().register(entry.getKey(), "Yatopia", entry.getValue());
++        }
++    }
++
+     private static void removeLeftovers() {
+         // this method is only to remove non-used values in the config
+ 
