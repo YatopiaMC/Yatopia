@@ -1,4 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.ShadowPlugin
+import com.github.jengelman.gradle.plugins.shadow.ShadowStats
+import com.github.jengelman.gradle.plugins.shadow.impl.RelocatorRemapper
+import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator
+import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 // import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
 import transformer.ModifiedLog4j2PluginsCacheFileTransformer
@@ -26,6 +30,7 @@ import org.yatopiamc.yatoclip.gradle.PropertiesUtils
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
 internal fun Project.configureSubprojects() {
@@ -77,7 +82,8 @@ private fun Project.configureYatoclipProject() {
         originalJar = rootProject.toothpick.paperDir.resolve("work").resolve("Minecraft")
             .resolve(rootProject.toothpick.minecraftVersion).resolve("${rootProject.toothpick.minecraftVersion}-m.jar")
         targetJar = rootProject.toothpick.serverProject.project.tasks.getByName("shadowJar").outputs.files.singleFile
-        setRelocations(rootProject.toothpick.serverProject.project.extensions.getByName("relocations") as HashSet<PatchesMetadata.Relocation>)
+        // not sure why idea mark this as invalid
+        setRemapper(rootProject.toothpick.serverProject.project.extensions.getByName("relocations") as RelocatorRemapper?)
         dependsOn(rootProject.toothpick.serverProject.project.tasks.getByName("shadowJar"))
         doLast {
             val prop = Properties()
@@ -174,13 +180,17 @@ private fun Project.configureServerProject() {
             into("META-INF/maven/io.papermc.paper/paper")
         }
 
-        val relocationSet = HashSet<PatchesMetadata.Relocation>()
+        val relocationSet = ArrayList<Relocator>()
 
         // Don't like to do this but sadly have to do this for compatibility reasons
-        relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.v${toothpick.nmsPackage}") {
-            exclude("org.bukkit.craftbukkit.Main*")
-        }
-        relocationSet.add(PatchesMetadata.Relocation("", "net.minecraft.server.v${toothpick.nmsPackage}", false))
+        val simpleRelocator = SimpleRelocator(
+            "org.bukkit.craftbukkit",
+            "org.bukkit.craftbukkit.v${toothpick.nmsPackage}",
+            listOf(),
+            listOf("org.bukkit.craftbukkit.Main*")
+        )
+        relocate(simpleRelocator)
+        relocationSet.add(simpleRelocator)
 
         // Make sure we relocate deps the same as Paper et al.
         val dom = project.parsePom() ?: return@getting
@@ -200,19 +210,18 @@ private fun Project.configureServerProject() {
                         val rawString = relocation.search("rawString").firstOrNull()?.textContent?.toBoolean() ?: false
                         if (pattern != "org.bukkit.craftbukkit") { // We handle cb ourselves
                             val excludes = if (rawString) listOf("net/minecraft/data/Main*") else emptyList()
-                            relocate(
-                            ToothpickRelocator(
+                            val toothpickRelocator = ToothpickRelocator(
                                 pattern,
                                 shadedPattern.replace("\${minecraft_version}", toothpick.nmsPackage),
                                 rawString,
                                 excludes = excludes
                             )
-                            )
-                            relocationSet.add(PatchesMetadata.Relocation(pattern, shadedPattern, true))
+                            relocate(toothpickRelocator)
+                            relocationSet.add(toothpickRelocator)
                         }
                     }
         }
-        project.extensions.add("relocations", relocationSet)
+        project.extensions.add("relocations", RelocatorRemapper(relocationSet, ShadowStats()))
     }
     tasks.getByName("build") {
         dependsOn(shadowJar)
