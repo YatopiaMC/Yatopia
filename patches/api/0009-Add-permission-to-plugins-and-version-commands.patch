@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: The Arcane Brony <myrainbowdash949@gmail.com>
+Date: Mon, 24 May 2021 06:09:40 +0200
+Subject: [PATCH] Add permission to plugins and version commands
+
+Permission: yatopia.plugins and yatopia.version respectively
+
+diff --git a/src/main/java/org/bukkit/command/defaults/PluginsCommand.java b/src/main/java/org/bukkit/command/defaults/PluginsCommand.java
+index 37cc5d7e9db89e4ef7ab16da1b159bd19134a4ff..07cc8bd81cfd139225b4c38dc8f68babe170a03e 100644
+--- a/src/main/java/org/bukkit/command/defaults/PluginsCommand.java
++++ b/src/main/java/org/bukkit/command/defaults/PluginsCommand.java
+@@ -34,9 +34,13 @@ public class PluginsCommand extends BukkitCommand {
+     @Override
+     public boolean execute(@NotNull CommandSender sender, @NotNull String currentAlias, @NotNull String[] args) {
+         if (!testPermission(sender)) return true;
+-
++        //Yatopia
++        if(!sender.hasPermission("yatopia.plugins")) {
++            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
++            return true;
++        }
+         // Spigot start
+-        if (sender instanceof Player && sender.hasPermission("bukkit.command.version")) {
++        if (sender instanceof Player && sender.hasPermission("bukkit.command.plugins")) {
+             sender.spigot().sendMessage(getPluginListSpigot());
+         } else {
+             sender.sendMessage("Plugins " + getPluginList());
+diff --git a/src/main/java/org/bukkit/command/defaults/VersionCommand.java b/src/main/java/org/bukkit/command/defaults/VersionCommand.java
+index 4c2ddc722a9dc4011906ad9530b13fa9be1d3ff9..463984f2a46c4b6ef0014e0919cd350733ff2869 100644
+--- a/src/main/java/org/bukkit/command/defaults/VersionCommand.java
++++ b/src/main/java/org/bukkit/command/defaults/VersionCommand.java
+@@ -49,7 +49,11 @@ public class VersionCommand extends BukkitCommand {
+     @Override
+     public boolean execute(@NotNull CommandSender sender, @NotNull String currentAlias, @NotNull String[] args) {
+         if (!testPermission(sender)) return true;
+-
++        //Yatopia
++        if(!sender.hasPermission("yatopia.version")) {
++            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
++            return true;
++        }
+         if (args.length == 0) {
+             //sender.sendMessage("This server is running " + Bukkit.getName() + " version " + Bukkit.getVersion() + " (Implementing API version " + Bukkit.getBukkitVersion() + ")"); // Paper - moved to setVersionMessage
+             sendVersion(sender);
