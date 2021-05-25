@@ -621,10 +621,10 @@ index 0000000000000000000000000000000000000000..4e765ab19ffb300b6c810333b2dc7976
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf8167408b 100644
+index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9be6e6a7ed 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -99,8 +99,11 @@ import org.bukkit.event.block.BlockPhysicsEvent;
+@@ -98,8 +98,11 @@ import org.bukkit.event.block.BlockPhysicsEvent;
  // CraftBukkit end
  
  import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
@@ -637,7 +637,7 @@ index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf
  
      protected static final Logger LOGGER = LogManager.getLogger();
      public static final Codec<ResourceKey<World>> f = MinecraftKey.a.xmap(ResourceKey.b(IRegistry.L), ResourceKey::a);
-@@ -109,9 +112,17 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -108,9 +111,17 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
      public static final ResourceKey<World> THE_END = ResourceKey.a(IRegistry.L, new MinecraftKey("the_end"));
      private static final EnumDirection[] a = EnumDirection.values();
      //public final List<TileEntity> tileEntityList = Lists.newArrayList(); // Paper - remove unused list
@@ -656,7 +656,7 @@ index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf
      public final Thread serverThread;
      private final boolean debugWorld;
      private int d;
-@@ -370,6 +381,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -378,6 +389,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
          this.keepSpawnInMemory = this.paperConfig.keepSpawnInMemory; // Paper
          this.entityLimiter = new org.spigotmc.TickLimiter(spigotConfig.entityMaxTickTime);
          this.tileLimiter = new org.spigotmc.TickLimiter(spigotConfig.tileMaxTickTime);
@@ -665,7 +665,7 @@ index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf
      }
  
      // Paper start
-@@ -1034,6 +1047,15 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1042,6 +1055,15 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
  
      }
  
@@ -681,7 +681,7 @@ index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf
      public void tickBlockEntities() {
          GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
  
-@@ -1056,11 +1078,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1064,11 +1086,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
  
          this.tickingTileEntities = true;
          // Spigot start
@@ -701,7 +701,7 @@ index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf
              // Spigot start
              if (tileentity == null) {
                  getServer().getLogger().severe("Spigot has detected a null entity and has removed it, preventing a crash");
-@@ -1098,8 +1128,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1106,8 +1136,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
                          throwable.printStackTrace();
                          getServer().getPluginManager().callEvent(new ServerExceptionEvent(new ServerInternalException(msg, throwable)));
                          // Paper end
@@ -711,7 +711,7 @@ index 49a75185121af4c965ccd1ae8abeed74efbd1797..bf460581da8a83f5d607ee5689b058bf
                          continue;
                          // Paper end
                          // Spigot start
-@@ -1112,8 +1141,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1120,8 +1149,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
  
              if (tileentity.isRemoved()) {
                  // Spigot start

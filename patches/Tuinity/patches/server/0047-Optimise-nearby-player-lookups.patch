@@ -97,7 +97,7 @@ index b1f2841bed5b913cbfb8c18d7ee1c05a64d3e252..42907d6a9f48818d758b5518c70440cd
      // Paper start - Chunk Prioritization
      public void queueHolderUpdate(PlayerChunk playerchunk) {
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 551eb37e15aaedd4ebf9552e9ba029e9d488ac31..daa452d61ff31383f9b40c4f8a40ac4f980e87a8 100644
+index f9d957c373eafa5f29beeea04e417a3d2d244dc9..24661b4d02aa09d51610a8733657de67220ad5be 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
 @@ -414,6 +414,107 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -224,7 +224,7 @@ index 551eb37e15aaedd4ebf9552e9ba029e9d488ac31..daa452d61ff31383f9b40c4f8a40ac4f
          this.ticking = true;
          gameprofilerfiller.enter("world border");
 diff --git a/src/main/java/net/minecraft/world/entity/EntityInsentient.java b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
-index a246edd09854dabf095da75c9d200f5cf26e7138..aae13c2e6c2a30b69c33417932c6a4d0aefeb7f5 100644
+index 837bf1b02a66602892c2f572b38b17de6ba6d266..bd66ee1b93fc776f77218b87717e0915668e7c04 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 @@ -779,7 +779,13 @@ public abstract class EntityInsentient extends EntityLiving {
@@ -308,12 +308,12 @@ index 24771c3522ea74ac12058591137eafc21adf3762..b3c73c6b4cffa20813355c5f2132fe3e
          } else if (worldserver.getSpawn().a((IPosition) (new Vec3D((double) blockposition_mutableblockposition.getX() + 0.5D, (double) blockposition_mutableblockposition.getY(), (double) blockposition_mutableblockposition.getZ() + 0.5D)), 24.0D)) {
              return false;
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index 23db2bad910795b1335e247521d383c2dd87a23b..a802c45538943b570ca0daa3a40607dc80e696eb 100644
+index cd15f9b17f7fb01428196dba5c50259217b5ad2c..dedcdba593d15b1e2f880ae9eaa00eb6edcd03cf 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -183,6 +183,65 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
-         return typeKey;
+@@ -192,6 +192,65 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      }
+     // Paper end - fix and optimise world upgrading
  
 +    // Tuinity start - optimise checkDespawn
 +    public final List<EntityPlayer> getNearbyPlayers(@Nullable Entity source, double sourceX, double sourceY, double sourceZ, double maxRange, @Nullable Predicate<Entity> predicate) {

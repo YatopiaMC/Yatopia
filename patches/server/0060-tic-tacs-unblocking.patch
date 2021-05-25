@@ -55,7 +55,7 @@ index 313517288e6ab7888310462a69fb8771f6d9b17e..3949cbce1f18f033260906cc145e5273
              if (valid && !this.isSpectator() || this.world.isLoaded(this.getChunkCoordinates())) { // Paper - don't tick dead players that are not in the world currently (pending respawn)
                  super.tick();
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index e83d75613e1334977954c8e4667cd2afe807274d..96e2c616f8d2f3435c17020adcb81212ae0bbf7e 100644
+index aacf99c418b692fa9e29c00ad449b0c8c8c9ef71..537c05601492306e7b37b11594f193c7c668e11b 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
 @@ -176,8 +176,9 @@ import org.bukkit.event.weather.LightningStrikeEvent;
@@ -70,7 +70,7 @@ index e83d75613e1334977954c8e4667cd2afe807274d..96e2c616f8d2f3435c17020adcb81212
      public static final BlockPosition a = new BlockPosition(100, 50, 0);
      private static final Logger LOGGER = LogManager.getLogger();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 29dacab6795f20aa0dabe7cbb383062a8b5792f9..6fbdb630783670e4e2c3dc3bdf95552c77ce3fe8 100644
+index 314c9aadc70a10556e60ee921112f67cd1929968..d7a046c793c90ba6bb73ed5f6359ed1ca79cfe13 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -141,9 +141,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
@@ -85,7 +85,7 @@ index 29dacab6795f20aa0dabe7cbb383062a8b5792f9..6fbdb630783670e4e2c3dc3bdf95552c
 +    private boolean chunkPosUpdateRequested; // Yatopia
      // CraftBukkit start
      private static final int CURRENT_LEVEL = 2;
-     boolean preserveMotion = true; // Paper - keep initial motion on first setPositionRotation
+     public boolean preserveMotion = true; // Paper - keep initial motion on first setPositionRotation
 @@ -802,6 +805,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
      // Tuinity end - detailed watchdog information
@@ -244,7 +244,7 @@ index 29dacab6795f20aa0dabe7cbb383062a8b5792f9..6fbdb630783670e4e2c3dc3bdf95552c
                          if (fluid.a(tag)) {
                              double d2 = (double) ((float) i2 + fluid.getHeight(this.world, blockposition_mutableblockposition));
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 8171b25d0ead78fd415e1a43957ed5d5de80cf62..afb47a7a979bbc1f9d12648a4feac99971c2dc55 100644
+index 56a5dce9d5a511e300232620e97c514e49399499..0a6e6830a2cdaa5979d920c5c61a5d1eae8e6cc2 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -140,6 +140,7 @@ import org.bukkit.event.entity.EntityTeleportEvent;
@@ -342,7 +342,7 @@ index 8171b25d0ead78fd415e1a43957ed5d5de80cf62..afb47a7a979bbc1f9d12648a4feac999
  
                  f = this.onGround ? f5 * 0.91F : 0.91F;
                  Vec3D vec3d6 = this.a(vec3d, f5);
-@@ -3575,7 +3578,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3581,7 +3584,7 @@ public abstract class EntityLiving extends Entity {
  
              while (!flag2 && blockposition.getY() > 0) {
                  BlockPosition blockposition1 = blockposition.down();
@@ -351,7 +351,7 @@ index 8171b25d0ead78fd415e1a43957ed5d5de80cf62..afb47a7a979bbc1f9d12648a4feac999
  
                  if (iblockdata.getMaterial().isSolid()) {
                      flag2 = true;
-@@ -3670,7 +3673,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3693,7 +3696,7 @@ public abstract class EntityLiving extends Entity {
              this.stopRiding();
          }
  
@@ -360,7 +360,7 @@ index 8171b25d0ead78fd415e1a43957ed5d5de80cf62..afb47a7a979bbc1f9d12648a4feac999
  
          if (iblockdata.getBlock() instanceof BlockBed) {
              this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, true), 3);
-@@ -3689,7 +3692,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3712,7 +3715,7 @@ public abstract class EntityLiving extends Entity {
  
      private boolean x() {
          return (Boolean) this.getBedPosition().map((blockposition) -> {
@@ -369,7 +369,7 @@ index 8171b25d0ead78fd415e1a43957ed5d5de80cf62..afb47a7a979bbc1f9d12648a4feac999
          }).orElse(false);
      }
  
-@@ -3699,7 +3702,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3722,7 +3725,7 @@ public abstract class EntityLiving extends Entity {
  
          this.world.getClass();
          optional.filter(world::isLoaded).ifPresent((blockposition) -> {
@@ -379,10 +379,10 @@ index 8171b25d0ead78fd415e1a43957ed5d5de80cf62..afb47a7a979bbc1f9d12648a4feac999
              if (iblockdata.getBlock() instanceof BlockBed) {
                  this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, false), 3);
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index b62462250bd0dedc0051855c8d5c2d9cb7332440..49a75185121af4c965ccd1ae8abeed74efbd1797 100644
+index eb6c4e3a98783a0a2f0d4e988efd6e326defc29b..b058c1fa8637b947e8e4a5009258cbee75f536c3 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -98,7 +98,9 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
+@@ -97,7 +97,9 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
  import org.bukkit.event.block.BlockPhysicsEvent;
  // CraftBukkit end
  

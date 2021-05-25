@@ -99,6 +99,7 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Be aware of entity teleports when chunk checking entities      | Spottedleaf |  |
+| server |  Better checking for useless move packets      | Paul Sauve |  |
 | server |  Brand changes      | Spottedleaf |  |
 | server |  Brandings      | YatopiaMC |  |
 | server |  Break individual slabs when sneaking      | BillyGalbreath |  |
@@ -225,7 +226,6 @@ This is an overview over all patches that are currently used.
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix incorrect isRealPlayer init      | Spottedleaf |  |
-| server |  Fix incorrect status dataconverter for pre 1.13 chunks      | Spottedleaf |  |
 | api |  Fix javadoc warnings (missing @param and @return)      | BillyGalbreath |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
 | server |  Fix rotating UP/DOWN CW and CCW      | BillyGalbreath |  |
