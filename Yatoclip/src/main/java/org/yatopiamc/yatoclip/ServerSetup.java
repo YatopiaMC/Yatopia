@@ -70,14 +70,14 @@ public class ServerSetup {
 			SpecialSourceLauncher.setSpecialSourceJar(buildData.resolve("bin").resolve("SpecialSource-2.jar").toFile());
 			System.err.println("Applying class mapping...");
 			SpecialSourceLauncher.runProcess(
-					"map", "--only", ".", "--only", "net/minecraft", "--auto-lvt", "BASIC", "--auto-member", "SYNTHETIC",
+					"map", "--only", ".", "--only", "net/minecraft", "--only", "com/mojang/math", "--auto-lvt", "BASIC", "--auto-member", "SYNTHETIC",
 					"-i", vanillaJar.toAbsolutePath().toString(),
 					"-m", buildData.resolve("mappings").resolve(buildDataInfo.classMappings).toAbsolutePath().toString(),
 					"-o", classMappedJar.toAbsolutePath().toString()
 			);
 			System.err.println("Applying member mapping...");
 			SpecialSourceLauncher.runProcess(
-					"map", "--only", ".", "--only", "net/minecraft", "--auto-member", "LOGGER", "--auto-member", "TOKENS",
+					"map", "--only", ".", "--only", "net/minecraft", "--only", "com/mojang/math", "--auto-member", "LOGGER", "--auto-member", "TOKENS",
 					"-i", classMappedJar.toAbsolutePath().toString(),
 					"-m", buildData.resolve("mappings").resolve(buildDataInfo.memberMappings).toAbsolutePath().toString(),
 					"-o", memberMappedJar.toAbsolutePath().toString()

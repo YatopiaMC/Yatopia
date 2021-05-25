@@ -66,4 +66,7 @@ subprojects {
         targetCompatibility = JavaVersion.current()
         withSourcesJar()
     }
+    tasks.withType<JavaCompile>().configureEach {
+        options.isIncremental = true
+    }
 }

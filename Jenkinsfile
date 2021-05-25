@@ -18,7 +18,7 @@ pipeline {
                 sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server'
 
                 // sh 'mv ./Paper/work/Minecraft ./ || true' 
-                sh 'rm -fr ./Paper/work/*'
+                // sh 'rm -fr ./Paper/work/*'
                 // sh 'mv ./Minecraft ./Paper/work/ || true'
 
 
@@ -70,20 +70,13 @@ pipeline {
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
                         sh '''
-                        ./gradlew build publish
+                        ./gradlew build publish yatoclip
                         mkdir -p "./target"
                         basedir=$(pwd)
                         paperworkdir="$basedir/Paper/work"
                         mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
-                        
-                        patchedJarPath="$basedir/Yatopia-Server/build/libs/yatopia-server-$mcver-R0.1-SNAPSHOT.jar"
-                        vanillaJarPath="$paperworkdir/Minecraft/$mcver/$mcver.jar"
 
-                        cd "$paperworkdir/Paperclip"
-                        mvn -T 2C clean package -Dmcver="$mcver" -Dpaperjar="$patchedJarPath" -Dvanillajar="$vanillaJarPath" -Dstyle.color=never
-                        cd "$basedir"
-
-                        cp -v "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
+                        cp -v "./yatopia-$mcver-yatoclip.jar" "./target/yatopia-$mcver-yatoclip-b$BUILD_NUMBER.jar"
                         '''
                     }
                 }
