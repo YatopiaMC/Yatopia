@@ -290,7 +290,6 @@ This is an overview over all patches that are currently used.
 | server |  Modify POM      | YatopiaMC |  |
 | api |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
-| server |  Momiji best awoo      | The Arcane Brony |  |
 | server |  More debug for plugins not shutting down tasks      | Paul Sauve |  |
 | server |  Movement options for armor stands      | Mariell Hoversholm |  |
 | server |  Multi-Threaded Server Ticking Vanilla      | Spottedleaf |  |
