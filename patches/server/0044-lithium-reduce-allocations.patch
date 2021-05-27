@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sat, 24 Oct 2020 19:36:50 -0500
+Subject: [PATCH] lithium reduce allocations
+
+This patch reduces object allocations in several places.
+
+Parts of this patch were created for the Lithium project <https://github.com/CaffeineMC/lithium-fabric> by JellySquid <jellysquid+atwork@protonmail.com> and 2No2Name <https://github.com/2No2Name> under the GNU LGPLv3 license.
+Portions of this patch that were sourced from Lithium were remapped from Yarn mappings by Mykyta Komarnytskyy <nkomarn@hotmail.com>.
+
+Co-authored-by: Mykyta Komarnytskyy <nkomarn@hotmail.com>
+
+diff --git a/src/main/java/net/minecraft/world/level/block/BlockComposter.java b/src/main/java/net/minecraft/world/level/block/BlockComposter.java
+index c0b235d5edf3cd14021696d1b4f76ce3de41f5d5..0b58efe27878f1a07579f2e02d3939edefb47933 100644
+--- a/src/main/java/net/minecraft/world/level/block/BlockComposter.java
++++ b/src/main/java/net/minecraft/world/level/block/BlockComposter.java
+@@ -356,7 +356,7 @@ public class BlockComposter extends Block implements IInventoryHolder {
+ 
+         @Override
+         public int[] getSlotsForFace(EnumDirection enumdirection) {
+-            return enumdirection == EnumDirection.UP ? new int[]{0} : new int[0];
++            return enumdirection == EnumDirection.UP ? org.yatopiamc.yatopia.server.util.Constants.ZERO_ARRAY : org.yatopiamc.yatopia.server.util.Constants.EMPTY_ARRAY; // Yatopia - avoid array allocation
+         }
+ 
+         @Override
+@@ -406,7 +406,7 @@ public class BlockComposter extends Block implements IInventoryHolder {
+ 
+         @Override
+         public int[] getSlotsForFace(EnumDirection enumdirection) {
+-            return enumdirection == EnumDirection.DOWN ? new int[]{0} : new int[0];
++            return enumdirection == EnumDirection.DOWN ? org.yatopiamc.yatopia.server.util.Constants.ZERO_ARRAY : org.yatopiamc.yatopia.server.util.Constants.EMPTY_ARRAY; // Yatopia - avoid array allocation
+         }
+ 
+         @Override
+@@ -442,7 +442,7 @@ public class BlockComposter extends Block implements IInventoryHolder {
+ 
+         @Override
+         public int[] getSlotsForFace(EnumDirection enumdirection) {
+-            return new int[0];
++            return org.yatopiamc.yatopia.server.util.Constants.EMPTY_ARRAY; // Yatopia - avoid array allocation
+         }
+ 
+         @Override

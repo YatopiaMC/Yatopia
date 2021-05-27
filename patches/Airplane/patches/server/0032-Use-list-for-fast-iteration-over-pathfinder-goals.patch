@@ -1,0 +1,101 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sun, 9 May 2021 19:32:29 -0500
+Subject: [PATCH] Use list for fast iteration over pathfinder goals
+
+
+diff --git a/src/main/java/gg/airplane/structs/LinkedHashSetArrayList.java b/src/main/java/gg/airplane/structs/LinkedHashSetArrayList.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..36eea0acd815e08e0be10bf55541ea0bb605b8f5
+--- /dev/null
++++ b/src/main/java/gg/airplane/structs/LinkedHashSetArrayList.java
+@@ -0,0 +1,35 @@
++package gg.airplane.structs;
++
++import java.util.AbstractSet;
++import java.util.ArrayList;
++import java.util.Iterator;
++import java.util.List;
++
++/*
++ * Used when you want fast iteration more than fast contain/remove
++ */
++public class LinkedHashSetArrayList<E> extends AbstractSet<E> {
++    private final List<E> internal = new ArrayList<>();
++
++    @Override
++    public boolean add(E e) {
++        if (this.internal.contains(e)) {
++            return false;
++        }
++        return this.internal.add(e);
++    }
++
++    @Override
++    public Iterator<E> iterator() {
++        return this.internal.iterator();
++    }
++
++    public E get(int index) {
++        return this.internal.get(index);
++    }
++
++    @Override
++    public int size() {
++        return this.internal.size();
++    }
++}
+diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
+index 02e8288473138dcea008d6157318758e8d7ee3be..697e666a027d5e2ace7d0758909be5a658c480d2 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
++++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
+@@ -28,7 +28,7 @@ public class PathfinderGoalSelector {
+         }
+     };
+     private final Map<PathfinderGoal.Type, PathfinderGoalWrapped> c = new EnumMap(PathfinderGoal.Type.class);
+-    private final Set<PathfinderGoalWrapped> d = Sets.newLinkedHashSet(); public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public
++    private final gg.airplane.structs.LinkedHashSetArrayList<PathfinderGoalWrapped> d = new gg.airplane.structs.LinkedHashSetArrayList<>(); public final Set<PathfinderGoalWrapped> getTasks() { return d; }// Paper - OBFHELPER // Paper - private -> public // Airplane - it's a set, but it's an arraylist
+     private final Supplier<GameProfilerFiller> e;
+     private final EnumSet<PathfinderGoal.Type> f = EnumSet.noneOf(PathfinderGoal.Type.class); // Paper unused, but dummy to prevent plugins from crashing as hard. Theyll need to support paper in a special case if this is super important, but really doesn't seem like it would be.
+     private final OptimizedSmallEnumSet<PathfinderGoal.Type> goalTypes = new OptimizedSmallEnumSet<>(PathfinderGoal.Type.class); // Paper - remove streams from pathfindergoalselector
+@@ -85,8 +85,11 @@ public class PathfinderGoalSelector {
+ 
+         gameprofilerfiller.enter("goalCleanup");
+         // Paper start - remove streams from pathfindergoalselector
+-        for (Iterator<PathfinderGoalWrapped> iterator = this.d.iterator(); iterator.hasNext();) {
+-            PathfinderGoalWrapped wrappedGoal = iterator.next();
++        // Airplane start - remove iterators from pathfindergoalselector
++        //for (Iterator<PathfinderGoalWrapped> iterator = this.d.iterator(); iterator.hasNext();) {
++        //    PathfinderGoalWrapped wrappedGoal = iterator.next();
++        for (int goalIndex = 0; goalIndex < this.d.size(); goalIndex++) {
++            PathfinderGoalWrapped wrappedGoal = this.d.get(goalIndex);
+             if (!wrappedGoal.g()) {
+                 continue;
+             }
+@@ -105,8 +108,10 @@ public class PathfinderGoalSelector {
+         gameprofilerfiller.exit();
+         gameprofilerfiller.enter("goalUpdate");
+         // Paper start - remove streams from pathfindergoalselector
+-        goal_update_loop: for (Iterator<PathfinderGoalWrapped> iterator = this.d.iterator(); iterator.hasNext();) {
+-            PathfinderGoalWrapped wrappedGoal = iterator.next();
++        // Airplane start - remove iterators from pathfindergoalselector
++        goal_update_loop: for (int goalIndex = 0; goalIndex < this.d.size(); goalIndex++) { //for (Iterator<PathfinderGoalWrapped> iterator = this.d.iterator(); iterator.hasNext();) {
++            PathfinderGoalWrapped wrappedGoal = this.d.get(goalIndex);
++            // Airplane end
+             if (wrappedGoal.g()) {
+                 continue;
+             }
+@@ -149,8 +154,11 @@ public class PathfinderGoalSelector {
+         gameprofilerfiller.exit();
+         gameprofilerfiller.enter("goalTick");
+         // Paper start - remove streams from pathfindergoalselector
+-        for (Iterator<PathfinderGoalWrapped> iterator = this.d.iterator(); iterator.hasNext();) {
+-            PathfinderGoalWrapped wrappedGoal = iterator.next();
++        // Airplane start - remove iterators from pathfindergoalselector
++        //for (Iterator<PathfinderGoalWrapped> iterator = this.d.iterator(); iterator.hasNext();) {
++        //    PathfinderGoalWrapped wrappedGoal = iterator.next();
++        for (int goalIndex = 0; goalIndex < this.d.size(); goalIndex++) { PathfinderGoalWrapped wrappedGoal = this.d.get(goalIndex);
++        // Airplane end
+             if (wrappedGoal.g()) {
+                 wrappedGoal.e();
+             }

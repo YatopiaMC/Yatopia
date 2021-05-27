@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Thu, 20 May 2021 12:05:47 -0500
+Subject: [PATCH] Better checking for useless move packets
+
+
+diff --git a/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
+index 67ca28463f5add7c18f7f16b918c3f36f8feeeda..6aad662d823e0a64b8e18156b5f084399bc4f228 100644
+--- a/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/level/EntityTrackerEntry.java
+@@ -186,6 +186,7 @@ public class EntityTrackerEntry {
+                     boolean flag4 = k < -32768L || k > 32767L || l < -32768L || l > 32767L || i1 < -32768L || i1 > 32767L;
+ 
+                     if (!flag4 && this.o <= 400 && !this.q && this.r == this.tracker.isOnGround() && !(com.tuinity.tuinity.config.TuinityConfig.sendFullPosForHardCollidingEntities && this.tracker.hardCollides())) { // Tuinity - send full pos for hard colliding entities to prevent collision problems due to desync
++                        if (flag2 || flag3 || this.tracker instanceof EntityArrow) { // Airplane
+                         if ((!flag2 || !flag3) && !(this.tracker instanceof EntityArrow)) {
+                             if (flag2) {
+                                 packet1 = new PacketPlayOutEntity.PacketPlayOutRelEntityMove(this.tracker.getId(), (short) ((int) k), (short) ((int) l), (short) ((int) i1), this.tracker.isOnGround());
+@@ -195,6 +196,7 @@ public class EntityTrackerEntry {
+                         } else {
+                             packet1 = new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(this.tracker.getId(), (short) ((int) k), (short) ((int) l), (short) ((int) i1), (byte) i, (byte) j, this.tracker.isOnGround());
+                         }
++                        } // Airplane
+                     } else {
+                         this.r = this.tracker.isOnGround();
+                         this.o = 0;

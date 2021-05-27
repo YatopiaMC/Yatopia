@@ -1,0 +1,653 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Thu, 22 Apr 2021 17:56:12 -0400
+Subject: [PATCH] C2ME Port
+
+Port of https://github.com/YatopiaMC/C2ME-fabric
+
+Co-authored-by: Simon Gardling <titaniumtown@gmail.com>
+
+diff --git a/pom.xml b/pom.xml
+index 3cfc312c3f4f5d30421e15977ef2dfeac0c3c841..e8884c5f79f0550dd479074f1b69e8b9f7b68784 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -230,6 +230,12 @@
+             <artifactId>commons-rng-core</artifactId>
+             <version>1.3</version>
+         </dependency>
++        <!-- https://mvnrepository.com/artifact/com.ibm.async/asyncutil -->
++        <dependency>
++            <groupId>com.ibm.async</groupId>
++            <artifactId>asyncutil</artifactId>
++            <version>0.1.0</version>
++        </dependency>
+     </dependencies>
+ 
+     <repositories>
+diff --git a/src/main/java/net/minecraft/server/level/PlayerChunk.java b/src/main/java/net/minecraft/server/level/PlayerChunk.java
+index 06157bb07cce3ba24087ceaca7138b5609b37b5b..47f0604a891d46f688abd5daa6fb4de8b56305e3 100644
+--- a/src/main/java/net/minecraft/server/level/PlayerChunk.java
++++ b/src/main/java/net/minecraft/server/level/PlayerChunk.java
+@@ -374,6 +374,7 @@ public class PlayerChunk {
+         return either == null ? null : (Chunk) either.left().orElse(null); // CraftBukkit - decompile error
+     }
+ 
++    @Nullable public IChunkAccess getCurrentChunk() { return this.f(); } // Yatopia - OBFHELPER
+     @Nullable
+     public IChunkAccess f() {
+         for (int i = PlayerChunk.CHUNK_STATUSES.size() - 1; i >= 0; --i) {
+diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
+index 3c5e4abd104aa016e5cb8e248c4d6a5eff08a42e..9e0c082d276d1a13577bbf7183065cce3b837c66 100644
+--- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
+@@ -154,8 +154,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+     public final LongSet unloadQueue;
+     private boolean updatingChunksModified;
+     private final ChunkTaskQueueSorter p;
+-    private final Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailboxWorldGen;
++    // private final Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailboxWorldGen; // Yatopia
+     public final Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailboxMain; // Paper - private -> public
++    private final ThreadLocal<ChunkStatus> capturedRequiredStatus = new ThreadLocal<>(); // Yatopia
+     // Paper start
+     final Mailbox<ChunkTaskQueueSorter.a<Runnable>> mailboxLight;
+     public void addLightTask(PlayerChunk playerchunk, Runnable run) {
+@@ -461,7 +462,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         // Paper end
+ 
+         this.p = new ChunkTaskQueueSorter(ImmutableList.of(threadedmailbox, mailbox, threadedmailbox1), executor, Integer.MAX_VALUE);
+-        this.mailboxWorldGen = this.p.a(threadedmailbox, false);
++        // this.mailboxWorldGen = this.p.a(threadedmailbox, false); // Yatopia
+         this.mailboxMain = this.p.a(mailbox, false);
+         this.mailboxLight = this.p.a(lightthreaded, false);// Paper
+         this.lightEngine = new LightEngineThreaded(ilightaccess, this, this.world.getDimensionManager().hasSkyLight(), threadedmailbox1, this.p.a(threadedmailbox1, false));
+@@ -1334,7 +1335,8 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         return this.z.put(chunkcoordintpair.pair(), (byte) (chunkstatus_type == ChunkStatus.Type.PROTOCHUNK ? -1 : 1));
+     }
+ 
+-    private CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> b(PlayerChunk playerchunk, ChunkStatus chunkstatus) {
++    private CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> b(PlayerChunk playerchunk, ChunkStatus chunkstatus) { // Yarn: upgradeChunk
++        this.capturedRequiredStatus.set(chunkstatus); // Yatopia - C2ME port
+         ChunkCoordIntPair chunkcoordintpair = playerchunk.i();
+         CompletableFuture<Either<List<IChunkAccess>, PlayerChunk.Failure>> completablefuture = this.a(chunkcoordintpair, chunkstatus.f(), (i) -> {
+             return this.a(chunkstatus, i);
+@@ -1372,7 +1374,11 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+                 return;
+             }
+             // Paper end
+-            this.mailboxWorldGen.a(ChunkTaskQueueSorter.a(playerchunk, runnable));
++
++            // Yatopia start - C2ME port
++            org.yatopiamc.c2me.common.threading.GlobalExecutors.scheduler.execute(runnable);
++            // this.mailboxWorldGen.a(ChunkTaskQueueSorter.a(playerchunk, runnable)); // Yatopia
++            // Yatopia end
+         }).thenComposeAsync((either) -> { // Tuinity start - force competion on the main thread
+             return CompletableFuture.completedFuture(either);
+         }, this.mainInvokingExecutor);
+diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
+index 537c05601492306e7b37b11594f193c7c668e11b..46355a0956be3eb3fd5cf312caf079fbf5464d79 100644
+--- a/src/main/java/net/minecraft/server/level/WorldServer.java
++++ b/src/main/java/net/minecraft/server/level/WorldServer.java
+@@ -178,7 +178,17 @@ import org.bukkit.event.world.TimeSkipEvent;
+ import it.unimi.dsi.fastutil.ints.IntArrayList; // Tuinity
+ import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
+ 
+-public class WorldServer extends World implements GeneratorAccessSeed, NonBlockingWorldAccess { // Yatopia
++// Yatopia start
++import org.yatopiamc.c2me.common.threading.worldgen.IWorldGenLockable;
++import com.ibm.asyncutil.locks.AsyncLock;
++import com.ibm.asyncutil.locks.AsyncNamedLock;
++// Yatopia end
++
++public class WorldServer extends World implements GeneratorAccessSeed, NonBlockingWorldAccess, IWorldGenLockable { // Yatopia // Yatopia - port C2ME
++
++    private volatile AsyncLock worldGenSingleThreadedLock = null; // Yatopia - port C2ME
++    private volatile AsyncNamedLock<ChunkCoordIntPair> worldGenChunkLock = null;
++    // Yatopia - port C2ME
+ 
+     public static final BlockPosition a = new BlockPosition(100, 50, 0);
+     private static final Logger LOGGER = LogManager.getLogger();
+@@ -608,7 +618,23 @@ public class WorldServer extends World implements GeneratorAccessSeed, NonBlocki
+ 
+         this.asyncChunkTaskManager = new com.destroystokyo.paper.io.chunk.ChunkTaskManager(this); // Paper
+         this.fakeTime = this.worldDataServer.getDayTime(); // Purpur
++        // Yatopia start - port C2ME
++        this.worldGenSingleThreadedLock = AsyncLock.createFair();
++        this.worldGenChunkLock = AsyncNamedLock.createFair();
++        // Yatopia end - port C2ME
++    }
++
++    // Yatopia start - port C2ME
++    @Override
++    public AsyncLock getWorldGenSingleThreadedLock() {
++        return this.worldGenSingleThreadedLock;
++    }
++
++    @Override
++    public AsyncNamedLock<ChunkCoordIntPair> getWorldGenChunkLock() {
++        return this.worldGenChunkLock;
+     }
++    // Yatopia end - port C2ME
+ 
+     // Tuinity start - optimise collision
+     public boolean collidesWithAnyBlockOrWorldBorder(@Nullable Entity entity, AxisAlignedBB axisalignedbb, boolean loadChunks,
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java b/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java
+index e2b5d6155bebdbf99b0850de7f9e1f5d342f9e2f..30db0ba3674a85c8dd866fab94c5374ba203c5cd 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/WeightedList.java
+@@ -14,7 +14,7 @@ import java.util.stream.Stream;
+ 
+ public class WeightedList<U> {
+ 
+-    protected final List<WeightedList.a<U>> list; public final List<WeightedList.a<U>> getList() { return this.list; } // Paper - decompile conflict // Tuinity - OBFHELPER
++    public final List<WeightedList.a<U>> list; public final List<WeightedList.a<U>> getList() { return this.list; } // Paper - decompile conflict // Tuinity - OBFHELPER // Yatopia - protected -> public
+     private final Random b;
+     private final boolean isUnsafe; // Paper
+ 
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java b/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
+index f4a4d63a2e21b08580023cf0dcd15a68d192cf14..1802498d48493d3e63c999a067c71e65ea29a890 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
+@@ -22,6 +22,9 @@ import net.minecraft.world.level.levelgen.HeightMap;
+ import net.minecraft.world.level.levelgen.WorldGenStage;
+ import net.minecraft.world.level.levelgen.structure.templatesystem.DefinedStructureManager;
+ import net.minecraft.world.level.lighting.LightEngine;
++import org.yatopiamc.c2me.common.threading.worldgen.ChunkStatusUtils; // Yatopia
++import org.yatopiamc.c2me.common.threading.worldgen.IWorldGenLockable; // Yatopia
++import java.util.function.Supplier; // Yatopia
+ 
+ public class ChunkStatus {
+ 
+@@ -162,6 +165,7 @@ public class ChunkStatus {
+         return ichunkaccess.getChunkStatus().b(chunkstatus) && ichunkaccess.r();
+     }
+ 
++    public static ChunkStatus byDistanceFromFull(int level) { return a(level); } // Yatopia - OBFHELPER
+     public static ChunkStatus a(int i) {
+         return i >= ChunkStatus.q.size() ? ChunkStatus.EMPTY : (i < 0 ? ChunkStatus.FULL : (ChunkStatus) ChunkStatus.q.get(i));
+     }
+@@ -186,6 +190,14 @@ public class ChunkStatus {
+         this.t = chunkstatus == null ? 0 : chunkstatus.c() + 1;
+     }
+ 
++    static {
++        // Yatopia start - C2ME port
++        for (ChunkStatus chunkStatus : IRegistry.CHUNK_STATUS) {
++            chunkStatus.calculateReducedTaskRadius();
++        }
++        // Yatopia end
++    }
++
+     public final int getStatusIndex() { return c(); } // Paper - OBFHELPER
+     public int c() {
+         return this.t;
+@@ -200,8 +212,44 @@ public class ChunkStatus {
+         return this.u;
+     }
+ 
++    // Yatopia start - C2ME port
++    private int reducedTaskRadius = -1;
++
++    public void calculateReducedTaskRadius() {
++        if (this.getNeighborRadius() == 0) {
++            this.reducedTaskRadius = 0;
++        } else {
++            for (int i = 0; i <= this.getNeighborRadius(); i++) {
++                final ChunkStatus status = ChunkStatus.byDistanceFromFull(ChunkStatus.getTicketLevelOffset(this) + i); // TODO [VanillaCopy] from TACS getRequiredStatusForGeneration
++                if (status == ChunkStatus.STRUCTURE_STARTS) {
++                    this.reducedTaskRadius = Math.min(this.getNeighborRadius(), i);
++                    break;
++                }
++            }
++        }
++        //noinspection ConstantConditions
++        if ((Object) this == ChunkStatus.LIGHT) {
++            this.reducedTaskRadius = 1;
++        }
++        System.out.println(String.format("%s task radius: %d -> %d", this, this.getNeighborRadius(), this.reducedTaskRadius));
++    }
++    // Yatopia end
++
+     public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(WorldServer worldserver, ChunkGenerator chunkgenerator, DefinedStructureManager definedstructuremanager, LightEngineThreaded lightenginethreaded, Function<IChunkAccess, CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> function, List<IChunkAccess> list) {
+-        return this.v.doWork(this, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, (IChunkAccess) list.get(list.size() / 2));
++        // Yatopia start - port C2ME
++        final IChunkAccess targetChunk = (IChunkAccess) list.get(list.size() / 2);
++        final Supplier<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> generationTask = () ->
++            this.v.doWork(this, worldserver, chunkgenerator, definedstructuremanager, lightenginethreaded, function, list, targetChunk);
++
++        if (targetChunk.getChunkStatus().isAtLeastStatus((ChunkStatus) (Object) this)) {
++            return generationTask.get();
++        } else {
++            int lockRadius = org.yatopiamc.yatopia.server.YatopiaConfig.reduceLockRadius && this.reducedTaskRadius != -1 ? this.reducedTaskRadius : this.getNeighborRadius();
++            //noinspection ConstantConditions
++            return ChunkStatusUtils.runChunkGenWithLock(targetChunk.getPos(), lockRadius, ((IWorldGenLockable) worldserver).getWorldGenChunkLock(), () ->
++                    ChunkStatusUtils.getThreadingType((ChunkStatus) (Object) this).runTask(((IWorldGenLockable) worldserver).getWorldGenSingleThreadedLock(), generationTask));
++        }
++        // Yatopia end
+     }
+ 
+     public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(WorldServer worldserver, DefinedStructureManager definedstructuremanager, LightEngineThreaded lightenginethreaded, Function<IChunkAccess, CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> function, IChunkAccess ichunkaccess) {
+diff --git a/src/main/java/net/minecraft/world/level/levelgen/structure/templatesystem/DefinedStructure.java b/src/main/java/net/minecraft/world/level/levelgen/structure/templatesystem/DefinedStructure.java
+index 13983f3271d33ab6e4c7030de5865edbd7b0cd8a..7460f5c85800f0d3c6076bc944b10b5931ba22bf 100644
+--- a/src/main/java/net/minecraft/world/level/levelgen/structure/templatesystem/DefinedStructure.java
++++ b/src/main/java/net/minecraft/world/level/levelgen/structure/templatesystem/DefinedStructure.java
+@@ -843,7 +843,7 @@ public class DefinedStructure {
+         private final Map<Block, List<DefinedStructure.BlockInfo>> b;
+ 
+         private a(List<DefinedStructure.BlockInfo> list) {
+-            this.b = Maps.newHashMap();
++            this.b = new java.util.concurrent.ConcurrentHashMap<>(); // Yatopia - port C2ME
+             this.a = list;
+         }
+ 
+diff --git a/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayers.java b/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayers.java
+index 5bbd71f2cf6db34dd01e8e209809a4661505aaf1..76995e812492d3fd0f9180525727174bf3d8c409 100644
+--- a/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayers.java
++++ b/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayers.java
+@@ -13,7 +13,7 @@ import net.minecraft.world.level.newbiome.layer.traits.AreaTransformer2;
+ 
+ public class GenLayers {
+ 
+-    private static final Int2IntMap a = (Int2IntMap) SystemUtils.a((Object) (new Int2IntOpenHashMap()), (int2intopenhashmap) -> {
++    private static final Int2IntMap a = (Int2IntMap) SystemUtils.a((new Int2IntOpenHashMap()), (int2intopenhashmap) -> { // Yatopia - decompile fixes
+         a(int2intopenhashmap, GenLayers.Type.BEACH, 16);
+         a(int2intopenhashmap, GenLayers.Type.BEACH, 26);
+         a(int2intopenhashmap, GenLayers.Type.DESERT, 2);
+@@ -154,9 +154,9 @@ public class GenLayers {
+ 
+     public static GenLayer a(long i, boolean flag, int j, int k) {
+         boolean flag1 = true;
+-        AreaFactory<AreaLazy> areafactory = a(flag, j, k, (l) -> {
++        AreaFactory<AreaLazy> areafactory = () -> a(flag, j, k, (l) -> { // Yatopia
+             return new WorldGenContextArea(25, i, l);
+-        });
++        }).make(); // Yatopia
+ 
+         return new GenLayer(areafactory);
+     }
+diff --git a/src/main/java/org/yatopiamc/c2me/common/threading/GlobalExecutors.java b/src/main/java/org/yatopiamc/c2me/common/threading/GlobalExecutors.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..dcf55bc98818f98c1a7b6869306a40c11b842cdf
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/threading/GlobalExecutors.java
+@@ -0,0 +1,25 @@
++package org.yatopiamc.c2me.common.threading;
++
++import com.google.common.util.concurrent.ThreadFactoryBuilder;
++
++import java.util.concurrent.ScheduledThreadPoolExecutor;
++import java.util.concurrent.atomic.AtomicReference;
++
++public class GlobalExecutors {
++
++    public static final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(
++            1,
++            new ThreadFactoryBuilder().setNameFormat("C2ME scheduler").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).setThreadFactory(r -> {
++                final Thread thread = new Thread(r);
++                GlobalExecutors.schedulerThread.set(thread);
++                return thread;
++            }).build()
++    );
++    private static final AtomicReference<Thread> schedulerThread = new AtomicReference<>();
++
++    public static void ensureSchedulerThread() {
++        if (Thread.currentThread() != schedulerThread.get())
++            throw new IllegalStateException("Not on scheduler thread");
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/ChunkStatusThreadingType.java b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/ChunkStatusThreadingType.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..5af95799cb4cd380f25a31f50f67a2bcb9c1bec5
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/ChunkStatusThreadingType.java
+@@ -0,0 +1,45 @@
++
++package org.yatopiamc.c2me.common.threading.worldgen;
++
++import com.google.common.base.Preconditions;
++import com.ibm.asyncutil.locks.AsyncLock;
++import com.mojang.datafixers.util.Either;
++
++import net.minecraft.world.level.chunk.IChunkAccess;
++import net.minecraft.server.level.PlayerChunk;
++
++import java.util.concurrent.CompletableFuture;
++import java.util.function.Function;
++import java.util.function.Supplier;
++
++public enum ChunkStatusThreadingType {
++
++    PARALLELIZED() {
++        @Override
++        public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> runTask(AsyncLock lock, Supplier<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> completableFuture) {
++            return CompletableFuture.supplyAsync(completableFuture, WorldGenThreadingExecutorUtils.mainExecutor).thenCompose(Function.identity());
++        }
++    },
++    SINGLE_THREADED() {
++        @Override
++        public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> runTask(AsyncLock lock, Supplier<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> completableFuture) {
++            Preconditions.checkNotNull(lock);
++            return lock.acquireLock().toCompletableFuture().thenComposeAsync(lockToken -> {
++                try {
++                    return completableFuture.get();
++                } finally {
++                    lockToken.releaseLock();
++                }
++            }, WorldGenThreadingExecutorUtils.mainExecutor);
++        }
++    },
++    AS_IS() {
++        @Override
++        public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> runTask(AsyncLock lock, Supplier<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> completableFuture) {
++            return completableFuture.get();
++        }
++    };
++
++    public abstract CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> runTask(AsyncLock lock, Supplier<CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>>> completableFuture);
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/ChunkStatusUtils.java b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/ChunkStatusUtils.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..0c28024cf9a50f35e1a867188b2a3f8fbbccb3ce
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/ChunkStatusUtils.java
+@@ -0,0 +1,59 @@
++package org.yatopiamc.c2me.common.threading.worldgen;
++
++import com.ibm.asyncutil.locks.AsyncLock;
++import com.ibm.asyncutil.locks.AsyncNamedLock;
++import org.yatopiamc.c2me.common.threading.GlobalExecutors;
++import org.yatopiamc.c2me.common.util.AsyncCombinedLock;
++import org.yatopiamc.c2me.common.util.AsyncNamedLockDelegateAsyncLock;
++
++import net.minecraft.world.level.chunk.ChunkStatus;
++import net.minecraft.world.level.ChunkCoordIntPair;
++
++import java.util.ArrayList;
++import java.util.HashSet;
++import java.util.List;
++import java.util.concurrent.CompletableFuture;
++import java.util.function.Function;
++import java.util.function.Supplier;
++
++import static org.yatopiamc.c2me.common.threading.worldgen.ChunkStatusThreadingType.AS_IS;
++import static org.yatopiamc.c2me.common.threading.worldgen.ChunkStatusThreadingType.PARALLELIZED;
++import static org.yatopiamc.c2me.common.threading.worldgen.ChunkStatusThreadingType.SINGLE_THREADED;
++import org.yatopiamc.yatopia.server.YatopiaConfig;
++
++public class ChunkStatusUtils {
++
++    public static ChunkStatusThreadingType getThreadingType(final ChunkStatus status) {
++        if (status.equals(ChunkStatus.STRUCTURE_STARTS)
++                || status.equals(ChunkStatus.STRUCTURE_REFERENCES)
++                || status.equals(ChunkStatus.BIOMES)
++                || status.equals(ChunkStatus.NOISE)
++                || status.equals(ChunkStatus.SURFACE)
++                || status.equals(ChunkStatus.CARVERS)
++                || status.equals(ChunkStatus.LIQUID_CARVERS)
++                || status.equals(ChunkStatus.HEIGHTMAPS)) {
++            return PARALLELIZED;
++        } else if (status.equals(ChunkStatus.SPAWN)) {
++            return SINGLE_THREADED;
++        } else if (status.equals(ChunkStatus.FEATURES)) {
++            return YatopiaConfig.allowThreadedFeatures ? PARALLELIZED : SINGLE_THREADED;
++        }
++        return AS_IS;
++    }
++
++    public static <T> CompletableFuture<T> runChunkGenWithLock(ChunkCoordIntPair target, int radius, AsyncNamedLock<ChunkCoordIntPair> chunkLock, Supplier<CompletableFuture<T>> action) {
++        return CompletableFuture.supplyAsync(() -> {
++            ArrayList<ChunkCoordIntPair> fetchedLocks = new ArrayList<>((2 * radius + 1) * (2 * radius + 1));
++            for (int x = target.x - radius; x <= target.x + radius; x++)
++                for (int z = target.z - radius; z <= target.z + radius; z++)
++                    fetchedLocks.add(new ChunkCoordIntPair(x, z));
++
++            return new AsyncCombinedLock(chunkLock, new HashSet<>(fetchedLocks)).getFuture().thenComposeAsync(lockToken -> {
++                final CompletableFuture<T> future = action.get();
++                future.thenRun(lockToken::releaseLock);
++                return future;
++            }, GlobalExecutors.scheduler);
++        }, AsyncCombinedLock.lockWorker).thenCompose(Function.identity());
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/IWorldGenLockable.java b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/IWorldGenLockable.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b80923bcda9045968e0fad39f2e40b99dba135dc
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/IWorldGenLockable.java
+@@ -0,0 +1,13 @@
++package org.yatopiamc.c2me.common.threading.worldgen;
++
++import com.ibm.asyncutil.locks.AsyncLock;
++import com.ibm.asyncutil.locks.AsyncNamedLock;
++import net.minecraft.world.level.ChunkCoordIntPair;
++
++public interface IWorldGenLockable {
++
++    AsyncLock getWorldGenSingleThreadedLock();
++
++    AsyncNamedLock<ChunkCoordIntPair> getWorldGenChunkLock();
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/WorldGenThreadingExecutorUtils.java b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/WorldGenThreadingExecutorUtils.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..215010825a18881f84d94ead66314b946d46d75b
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/threading/worldgen/WorldGenThreadingExecutorUtils.java
+@@ -0,0 +1,17 @@
++package org.yatopiamc.c2me.common.threading.worldgen;
++
++import org.yatopiamc.c2me.common.util.C2MEForkJoinWorkerThreadFactory;
++
++import java.util.concurrent.ForkJoinPool;
++import org.yatopiamc.yatopia.server.YatopiaConfig;
++
++public class WorldGenThreadingExecutorUtils {
++
++    public static final ForkJoinPool mainExecutor = new ForkJoinPool(
++            YatopiaConfig.c2meThreads,
++            new C2MEForkJoinWorkerThreadFactory("C2ME worldgen worker #%d", Thread.NORM_PRIORITY - 1),
++            null,
++            true
++    );
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java b/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..9e34b74d9abecae4b386d49514ceb0d1f333e271
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java
+@@ -0,0 +1,88 @@
++package org.yatopiamc.c2me.common.util;
++
++import com.google.common.collect.Sets;
++import com.ibm.asyncutil.locks.AsyncLock;
++import com.ibm.asyncutil.locks.AsyncNamedLock;
++import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
++import net.minecraft.world.level.ChunkCoordIntPair;
++
++import java.util.Optional;
++import java.util.Set;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.ForkJoinPool;
++import java.util.function.Function;
++import java.util.stream.Collectors;
++
++public class AsyncCombinedLock {
++
++    public static final ForkJoinPool lockWorker = new ForkJoinPool(
++            2,
++            new C2MEForkJoinWorkerThreadFactory("C2ME lock worker #%d", Thread.NORM_PRIORITY - 1),
++            null,
++            true
++    );
++
++    private final AsyncNamedLock<ChunkCoordIntPair> lock;
++    private final ChunkCoordIntPair[] names;
++    private final CompletableFuture<AsyncLock.LockToken> future = new CompletableFuture<>();
++
++    public AsyncCombinedLock(AsyncNamedLock<ChunkCoordIntPair> lock, Set<ChunkCoordIntPair> names) {
++        this.lock = lock;
++        this.names = names.toArray(ChunkCoordIntPair[]::new);
++        lockWorker.execute(this::tryAcquire);
++    }
++
++    private synchronized void tryAcquire() { // TODO optimize logic further
++        final LockEntry[] tryLocks = new LockEntry[names.length];
++        boolean allAcquired = true;
++        for (int i = 0, namesLength = names.length; i < namesLength; i++) {
++            ChunkCoordIntPair name = names[i];
++            final LockEntry entry = new LockEntry(name, this.lock.tryLock(name));
++            tryLocks[i] = entry;
++            if (entry.lockToken.isEmpty()) {
++                allAcquired = false;
++                break;
++            }
++        }
++        if (allAcquired) {
++            future.complete(() -> {
++                for (LockEntry entry : tryLocks) {
++                    //noinspection OptionalGetWithoutIsPresent
++                    entry.lockToken.get().releaseLock(); // if it isn't present then something is really wrong
++                }
++            });
++        } else {
++            boolean triedRelock = false;
++            for (LockEntry entry : tryLocks) {
++                if (entry == null) continue;
++                entry.lockToken.ifPresent(AsyncLock.LockToken::releaseLock);
++                if (!triedRelock && entry.lockToken.isEmpty()) {
++                    this.lock.acquireLock(entry.name).thenCompose(lockToken -> {
++                        lockToken.releaseLock();
++                        return CompletableFuture.runAsync(this::tryAcquire, lockWorker);
++                    });
++                    triedRelock = true;
++                }
++            }
++            if (!triedRelock) {
++                // shouldn't happen at all...
++                lockWorker.execute(this::tryAcquire);
++            }
++        }
++    }
++
++    public CompletableFuture<AsyncLock.LockToken> getFuture() {
++        return future.thenApply(Function.identity());
++    }
++
++    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
++    private static class LockEntry {
++        public final ChunkCoordIntPair name;
++        public final Optional<AsyncLock.LockToken> lockToken;
++
++        private LockEntry(ChunkCoordIntPair name, Optional<AsyncLock.LockToken> lockToken) {
++            this.name = name;
++            this.lockToken = lockToken;
++        }
++    }
++}
+diff --git a/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java b/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..119421953de58fbc928e14bf618b340ee6b2fe94
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java
+@@ -0,0 +1,29 @@
++package org.yatopiamc.c2me.common.util;
++
++import com.ibm.asyncutil.locks.AsyncLock;
++import com.ibm.asyncutil.locks.AsyncNamedLock;
++
++import java.util.Objects;
++import java.util.Optional;
++import java.util.concurrent.CompletionStage;
++
++public class AsyncNamedLockDelegateAsyncLock<T> implements AsyncLock {
++
++    private final AsyncNamedLock<T> delegate;
++    private final T name;
++
++    public AsyncNamedLockDelegateAsyncLock(AsyncNamedLock<T> delegate, T name) {
++        this.delegate = Objects.requireNonNull(delegate);
++        this.name = name;
++    }
++
++    @Override
++    public CompletionStage<LockToken> acquireLock() {
++        return delegate.acquireLock(name);
++    }
++
++    @Override
++    public Optional<LockToken> tryLock() {
++        return delegate.tryLock(name);
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/util/C2MEForkJoinWorkerThreadFactory.java b/src/main/java/org/yatopiamc/c2me/common/util/C2MEForkJoinWorkerThreadFactory.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..ab5b9be9dcf67bdd9237fb7d21574155c2d52306
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/util/C2MEForkJoinWorkerThreadFactory.java
+@@ -0,0 +1,39 @@
++package org.yatopiamc.c2me.common.util;
++
++import java.util.concurrent.ForkJoinPool;
++import java.util.concurrent.ForkJoinWorkerThread;
++import java.util.concurrent.atomic.AtomicLong;
++
++public class C2MEForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
++    private final AtomicLong serial = new AtomicLong(0);
++    private final String namePattern;
++    private final int priority;
++
++    public C2MEForkJoinWorkerThreadFactory(String namePattern, int priority) {
++        this.namePattern = namePattern;
++        this.priority = priority;
++    }
++
++    @Override
++    public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
++        final C2MEForkJoinWorkerThread C2MEForkJoinWorkerThread = new C2MEForkJoinWorkerThread(pool);
++        C2MEForkJoinWorkerThread.setName(String.format(namePattern, serial.incrementAndGet()));
++        C2MEForkJoinWorkerThread.setPriority(priority);
++        C2MEForkJoinWorkerThread.setDaemon(true);
++        return C2MEForkJoinWorkerThread;
++    }
++
++    private static class C2MEForkJoinWorkerThread extends ForkJoinWorkerThread {
++
++        /**
++         * Creates a ForkJoinWorkerThread operating in the given pool.
++         *
++         * @param pool the pool this thread works in
++         * @throws NullPointerException if pool is null
++         */
++        protected C2MEForkJoinWorkerThread(ForkJoinPool pool) {
++            super(pool);
++        }
++
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index fce7ce0efca340cf5820cdcbe010c9fdeae7cafc..1d1717d72ceb56594bc29f8a14437b61f911f817 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -271,4 +271,12 @@ public class YatopiaConfig {
+         fixProtocolLib = getBoolean("settings.fix-protocollib", fixProtocolLib);
+     }
+ 
++    public static boolean allowThreadedFeatures = false;
++    public static int c2meThreads = Math.min(6, Runtime.getRuntime().availableProcessors());
++    public static boolean reduceLockRadius = false;
++    private static void c2me() {
++        allowThreadedFeatures = getBoolean("settings.c2me.allow-threaded-features", allowThreadedFeatures);
++        c2meThreads = getInt("settings.c2me.parallelism", c2meThreads);
++        reduceLockRadius = getBoolean("settings.c2me.reduce-lock-radius", reduceLockRadius);
++    }
+ }

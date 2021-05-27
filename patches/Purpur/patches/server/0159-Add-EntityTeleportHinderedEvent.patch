@@ -17,13 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/world/level/block/BlockEnderPortal.java b/src/main/java/net/minecraft/world/level/block/BlockEnderPortal.java
-index fc89b3bf5075497596885548d80e4ed0b800ea89..4900c90597358f7b701b8becd2ac58de11aacc71 100644
+index ed916f69747b44b75eb06db4cf27adaf5e47fd1e..80aad27c2475535f22077a1674114eebfadbd711 100644
 --- a/src/main/java/net/minecraft/world/level/block/BlockEnderPortal.java
 +++ b/src/main/java/net/minecraft/world/level/block/BlockEnderPortal.java
-@@ -43,7 +43,15 @@ public class BlockEnderPortal extends BlockTileEntity {
- 
+@@ -44,7 +44,15 @@ public class BlockEnderPortal extends BlockTileEntity {
      @Override
      public void a(IBlockData iblockdata, World world, BlockPosition blockposition, Entity entity) {
+         if (!new io.papermc.paper.event.entity.EntityInsideBlockEvent(entity.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(world, blockposition)).callEvent()) { return; } // Paper
 -        if (world instanceof WorldServer && !entity.isPassenger() && !entity.isVehicle() && entity.canPortal() && VoxelShapes.c(VoxelShapes.a(entity.getBoundingBox().d((double) (-blockposition.getX()), (double) (-blockposition.getY()), (double) (-blockposition.getZ()))), iblockdata.getShape(world, blockposition), OperatorBoolean.AND)) {
 +        // Purpur start
 +        if (world instanceof WorldServer && /*!entity.isPassenger() && !entity.isVehicle() &&*/ entity.canPortal() && VoxelShapes.c(VoxelShapes.a(entity.getBoundingBox().d((double) (-blockposition.getX()), (double) (-blockposition.getY()), (double) (-blockposition.getZ()))), iblockdata.getShape(world, blockposition), OperatorBoolean.AND)) {
@@ -38,13 +38,13 @@ index fc89b3bf5075497596885548d80e4ed0b800ea89..4900c90597358f7b701b8becd2ac58de
              WorldServer worldserver = ((WorldServer) world).getMinecraftServer().getWorldServer(resourcekey);
  
 diff --git a/src/main/java/net/minecraft/world/level/block/BlockPortal.java b/src/main/java/net/minecraft/world/level/block/BlockPortal.java
-index 5f797260eff317409a5039b88b01ad79ee2fdd91..ac5ce96ab62ec210816e7af85a4269073b7a9270 100644
+index f030aa3ddd001e018539ae93c238f2afb26e0fc2..41733979141ed62523e9058a3f4c4ea753bfbc64 100644
 --- a/src/main/java/net/minecraft/world/level/block/BlockPortal.java
 +++ b/src/main/java/net/minecraft/world/level/block/BlockPortal.java
-@@ -82,7 +82,15 @@ public class BlockPortal extends Block {
- 
+@@ -83,7 +83,15 @@ public class BlockPortal extends Block {
      @Override
      public void a(IBlockData iblockdata, World world, BlockPosition blockposition, Entity entity) {
+         if (!new io.papermc.paper.event.entity.EntityInsideBlockEvent(entity.getBukkitEntity(), org.bukkit.craftbukkit.block.CraftBlock.at(world, blockposition)).callEvent()) { return; } // Paper
 -        if (!entity.isPassenger() && !entity.isVehicle() && entity.canPortal()) {
 +        // Purpur start
 +        if (/*!entity.isPassenger() && !entity.isVehicle() &&*/ entity.canPortal()) {
@@ -82,7 +82,7 @@ index d918194e45953764fa3fd286b715714330a60941..70496562faa89e92da34a4f7b891f845
              if (this.exitPortal == null && this.world.getTypeKey() == DimensionManager.THE_END) { // CraftBukkit - work in alternate worlds
                  this.a((WorldServer) this.world);
 diff --git a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
-index 0ea0a1fc5f4d879d48bbdf24731dabec10dbccd1..370378b3b153720bf79a3d61d30d3f3d614a5d10 100644
+index df595dc52858807479584ce8da49390a25695990..0990eb8b2e2d8a5f7c1a2640727d86c37a50298e 100644
 --- a/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
 +++ b/src/main/java/net/minecraft/world/level/block/state/BlockBase.java
 @@ -303,6 +303,7 @@ public abstract class BlockBase {
@@ -108,10 +108,10 @@ index a0df754d98e4be46720ba0962bdf7bf62f3425bb..c8b510a49ba5c299ec38ea1a56f5245e
 +    }
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
-index c524a0994f1c9ef1d0534403efa4e4481955b2f3..a80f664d2cf713fd751421be3735e2f4779f0056 100644
+index dcdc82b42689b4962323938a62cf7ded49afd6f4..4a70d657fd83627e8d66b52cb5f87381b43ad76a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftEntity.java
-@@ -554,6 +554,10 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
+@@ -550,6 +550,10 @@ public abstract class CraftEntity implements org.bukkit.entity.Entity {
          location.checkFinite();
  
          if (entity.isVehicle() || entity.dead) {
@@ -123,7 +123,7 @@ index c524a0994f1c9ef1d0534403efa4e4481955b2f3..a80f664d2cf713fd751421be3735e2f4
          }
  
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index e204374c8f17ca5514e9bcfd24d411069285de29..7e0b3aa37af39db2bc2f630e479008dd9a443776 100644
+index e557157c5128ea89d728de2ab92b5e1a7b3437ef..dbac5843088e221cd7d654a0c872ef4451b53075 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 @@ -126,6 +126,7 @@ import org.bukkit.entity.EntityType;
@@ -134,7 +134,7 @@ index e204374c8f17ca5514e9bcfd24d411069285de29..7e0b3aa37af39db2bc2f630e479008dd
  import org.bukkit.event.player.PlayerUnregisterChannelEvent;
  import org.bukkit.inventory.InventoryView.Property;
  import org.bukkit.inventory.ItemStack;
-@@ -883,6 +884,10 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -881,6 +882,10 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
          }
  
          if (entity.isVehicle()) {

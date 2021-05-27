@@ -55,7 +55,7 @@ index cc566784c7dd21cc2c44e0f351347f657e57ddcf..e9e7fcf2b63febe2a7d055826fabb86b
          return d0 == 0.0D ? 0 : (d0 > 0.0D ? 1 : -1);
      }
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 96cc46a26eef701b0579f3407e67af9176e1743b..5c7ce20609a1c18687696581a76f21a1b182ea7c 100644
+index 33f689b1c9f4c00969fbdd8ddb21901637afb81c..785c210414ca11584bc51087616845f0d5badc91 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -111,6 +111,7 @@ import net.minecraft.world.phys.AxisAlignedBB;
@@ -76,7 +76,7 @@ index 96cc46a26eef701b0579f3407e67af9176e1743b..5c7ce20609a1c18687696581a76f21a1
  
      @Override
 diff --git a/src/main/java/net/minecraft/world/level/IBlockAccess.java b/src/main/java/net/minecraft/world/level/IBlockAccess.java
-index e612e1d30f76e217b1aa23488ab025adce048f57..c9198d242b9053fad6fa5b53c1894679002d50a7 100644
+index e612e1d30f76e217b1aa23488ab025adce048f57..6109d59c02d0c7877e213213c6aec6f8513ccc47 100644
 --- a/src/main/java/net/minecraft/world/level/IBlockAccess.java
 +++ b/src/main/java/net/minecraft/world/level/IBlockAccess.java
 @@ -14,9 +14,11 @@ import net.minecraft.world.level.block.state.IBlockData;
@@ -91,12 +91,13 @@ index e612e1d30f76e217b1aa23488ab025adce048f57..c9198d242b9053fad6fa5b53c1894679
  
  public interface IBlockAccess {
  
-@@ -56,6 +58,15 @@ public interface IBlockAccess {
+@@ -56,6 +58,16 @@ public interface IBlockAccess {
          return BlockPosition.a(axisalignedbb).map(this::getType);
      }
  
 +    // Airplane start - broken down variant of below rayTraceBlock, used by World#rayTraceDirect
 +    default MovingObjectPosition.EnumMovingObjectType rayTraceBlockDirect(Vec3D vec3d, Vec3D vec3d1, BlockPosition blockposition, IBlockData iblockdata, VoxelShapeCollision voxelshapecoll) {
++        if (iblockdata.isAir()) return null; // Tuinity - optimise air cases
 +        VoxelShape voxelshape = RayTrace.BlockCollisionOption.COLLIDER.get(iblockdata, this, blockposition, voxelshapecoll);
 +        MovingObjectPositionBlock movingobjectpositionblock = this.rayTrace(vec3d, vec3d1, blockposition, voxelshape, iblockdata);
 +
@@ -108,7 +109,7 @@ index e612e1d30f76e217b1aa23488ab025adce048f57..c9198d242b9053fad6fa5b53c1894679
      default MovingObjectPositionBlock rayTraceBlock(RayTrace raytrace1, BlockPosition blockposition) {
              // Paper start - Prevent raytrace from loading chunks
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index af01f5d635eada7175b9d7fdb47a65530686a539..3e08e56f67516333e7d880fdc595447a3ae4dc83 100644
+index 276b1f0c9c9af7db31fba9be0593ae9def540caf..6ab528223682d57bec1cdbd383acd8ab06904e4a 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
 @@ -69,6 +69,8 @@ import net.minecraft.world.level.saveddata.maps.WorldMap;
@@ -120,7 +121,7 @@ index af01f5d635eada7175b9d7fdb47a65530686a539..3e08e56f67516333e7d880fdc595447a
  import net.minecraft.world.phys.shapes.OperatorBoolean;
  import net.minecraft.world.phys.shapes.VoxelShape;
  import net.minecraft.world.phys.shapes.VoxelShapeCollision;
-@@ -378,6 +380,91 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -387,6 +389,91 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          return null;
      }
  

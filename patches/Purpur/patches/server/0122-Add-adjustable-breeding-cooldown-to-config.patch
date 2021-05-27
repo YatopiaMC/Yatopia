@@ -5,7 +5,7 @@ Subject: [PATCH] Add adjustable breeding cooldown to config
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/animal/EntityAnimal.java b/src/main/java/net/minecraft/world/entity/animal/EntityAnimal.java
-index 28dd42921961c6a47f2d85a5f93b8298f2c228d3..6ae5fafd379863bf23df3580d3dbc7a5ba63b545 100644
+index 4de0a733819d408e8b9a55b604f455281d7732c5..94b5874c1eb90c02a557179a2a1170b1da85deb4 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/EntityAnimal.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/EntityAnimal.java
 @@ -145,7 +145,7 @@ public abstract class EntityAnimal extends EntityAgeable {
@@ -30,13 +30,13 @@ index 28dd42921961c6a47f2d85a5f93b8298f2c228d3..6ae5fafd379863bf23df3580d3dbc7a5
 +            }
 +            // Purpur end
              // CraftBukkit start - call EntityBreedEvent
-             int experience = this.getRandom().nextInt(7) + 1;
-             org.bukkit.event.entity.EntityBreedEvent entityBreedEvent = org.bukkit.craftbukkit.event.CraftEventFactory.callEntityBreedEvent(entityageable, this, entityanimal, entityplayer, this.breedItem, experience);
+             entityageable.setBaby(true);
+             entityageable.setPositionRotation(this.locX(), this.locY(), this.locZ(), 0.0F, 0.0F);
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index ef1ba94bc03d6ee752c69119f615be8d14bf2ffc..ad9ccd07cc9f49c9d5b106b9078a4ed2ae8d3413 100644
+index 0b59e2410bffacd43169d4f3b575a15257d9c8f2..e71f76df887681f48702456378be4e9da86fb658 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -41,6 +41,7 @@ import net.minecraft.world.DifficultyDamageScaler;
+@@ -42,6 +42,7 @@ import net.minecraft.world.DifficultyDamageScaler;
  import net.minecraft.world.damagesource.DamageSource;
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.EntityTypes;
@@ -44,7 +44,7 @@ index ef1ba94bc03d6ee752c69119f615be8d14bf2ffc..ad9ccd07cc9f49c9d5b106b9078a4ed2
  import net.minecraft.world.entity.decoration.EntityArmorStand;
  import net.minecraft.world.entity.player.EntityHuman;
  import net.minecraft.world.item.ItemStack;
-@@ -166,6 +167,48 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -167,6 +168,48 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      private int tileTickPosition;
      public final Map<Explosion.CacheKey, Float> explosionDensityCache = new HashMap<>(); // Paper - Optimize explosions
      public java.util.ArrayDeque<BlockRedstoneTorch.RedstoneUpdateInfo> redstoneUpdateInfos; // Paper - Move from Map in BlockRedstoneTorch to here
@@ -93,7 +93,7 @@ index ef1ba94bc03d6ee752c69119f615be8d14bf2ffc..ad9ccd07cc9f49c9d5b106b9078a4ed2
  
      public CraftWorld getWorld() {
          return this.world;
-@@ -251,6 +294,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -261,6 +304,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((net.minecraft.world.level.storage.WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
          this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((net.minecraft.world.level.storage.WorldDataServer)worlddatamutable).getName()), env); // Purpur

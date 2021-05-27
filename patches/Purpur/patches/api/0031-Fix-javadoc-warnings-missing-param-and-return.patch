@@ -419,37 +419,6 @@ index 5bb677ce585b856b3d3e589e29786a29619c56a7..613f00fa387dcc5af3191e550dea9d4d
  public class CachedSizeConcurrentLinkedQueue<E> extends ConcurrentLinkedQueue<E> {
      private final LongAdder cachedSize = new LongAdder();
  
-diff --git a/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java b/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
-index a0f748957f4472103dd27fc95a711a42de7fae89..c66b49f05be7a9cc26ba595829d7751d38aebeb1 100644
---- a/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
-+++ b/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
-@@ -19,6 +19,11 @@ public final class AsyncChatEvent extends AbstractChatEvent {
-     }
- 
-     /**
-+     * @param async Async
-+     * @param player Player
-+     * @param recipients Recipients
-+     * @param formatter Formatter
-+     * @param message Message
-      * @deprecated use {@link #AsyncChatEvent(boolean, Player, Set, ChatComposer, Component)}
-      */
-     @Deprecated
-diff --git a/src/main/java/io/papermc/paper/event/player/ChatEvent.java b/src/main/java/io/papermc/paper/event/player/ChatEvent.java
-index 13c5df5fb8ce1d0203d99e88dd691019146a8f52..558d6531e9c06e25369074932fd9f0ab00e9e2c8 100644
---- a/src/main/java/io/papermc/paper/event/player/ChatEvent.java
-+++ b/src/main/java/io/papermc/paper/event/player/ChatEvent.java
-@@ -24,6 +24,10 @@ public final class ChatEvent extends AbstractChatEvent {
-     }
- 
-     /**
-+     * @param player Player
-+     * @param recipients Recipients
-+     * @param formatter Formatter
-+     * @param message Message
-      * @deprecated use {@link #ChatEvent(Player, Set, ChatComposer, Component)}
-      */
-     @Deprecated
 diff --git a/src/main/java/io/papermc/paper/inventory/ItemRarity.java b/src/main/java/io/papermc/paper/inventory/ItemRarity.java
 index 74ef8395cc040ce488c2acaa416db20272cc2734..b974627a415cd6897b245275e953cc907a5929d8 100644
 --- a/src/main/java/io/papermc/paper/inventory/ItemRarity.java
@@ -520,7 +489,7 @@ index 3afd5f5c0208a4ee93b5dbfc2aab2b9d2e8a7544..7838731e0e16bdccfb79e74ceb64148f
  
      /**
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index 28a1fe3af1546daa779df46468e0ff8ad823f9ca..7a3be414ef9d54d7a852ba92d704011fa7f125ac 100644
+index f546e3422539d91f1fcb98c94a722c4b17ef0170..a126581c74da8fae4c86fde2f28a850150c408cd 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
 @@ -1568,6 +1568,9 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
@@ -534,7 +503,7 @@ index 28a1fe3af1546daa779df46468e0ff8ad823f9ca..7a3be414ef9d54d7a852ba92d704011f
  
          @NotNull
 diff --git a/src/main/java/org/bukkit/UnsafeValues.java b/src/main/java/org/bukkit/UnsafeValues.java
-index 3bf6e58b2351cee935e23abec1cea289e31943dc..5f2d5e12f11b471662943680b2012c99a8466306 100644
+index 379acee1b5f2d06e6a96f3444783f4a29ca24095..ef3011d74ce9acf02d0ee857033816854134ec0e 100644
 --- a/src/main/java/org/bukkit/UnsafeValues.java
 +++ b/src/main/java/org/bukkit/UnsafeValues.java
 @@ -87,6 +87,8 @@ public interface UnsafeValues {
@@ -549,7 +518,7 @@ index 3bf6e58b2351cee935e23abec1cea289e31943dc..5f2d5e12f11b471662943680b2012c99
 @@ -105,6 +107,8 @@ public interface UnsafeValues {
      /**
       * Return the translation key for the Material, so the client can translate it into the active
-      * locale when using a TranslatableComponent.
+      * locale when using a {@link net.kyori.adventure.text.TranslatableComponent}.
 +     *
 +     * @param mat Material to check
       * @return the translation key
@@ -558,7 +527,7 @@ index 3bf6e58b2351cee935e23abec1cea289e31943dc..5f2d5e12f11b471662943680b2012c99
 @@ -112,6 +116,8 @@ public interface UnsafeValues {
      /**
       * Return the translation key for the Block, so the client can translate it into the active
-      * locale when using a TranslatableComponent.
+      * locale when using a {@link net.kyori.adventure.text.TranslatableComponent}.
 +     *
 +     * @param block Block to check
       * @return the translation key
@@ -566,14 +535,14 @@ index 3bf6e58b2351cee935e23abec1cea289e31943dc..5f2d5e12f11b471662943680b2012c99
      String getTranslationKey(org.bukkit.block.Block block);
 @@ -120,6 +126,8 @@ public interface UnsafeValues {
       * Return the translation key for the EntityType, so the client can translate it into the active
-      * locale when using a TranslatableComponent.<br>
+      * locale when using a {@link net.kyori.adventure.text.TranslatableComponent}.<br>
       * This is <code>null</code>, when the EntityType isn't known to NMS (custom entities)
 +     *
 +     * @param type EntityType to check
       * @return the translation key
       */
      String getTranslationKey(org.bukkit.entity.EntityType type);
-@@ -128,6 +136,8 @@ public interface UnsafeValues {
+@@ -135,6 +143,8 @@ public interface UnsafeValues {
       * Creates and returns the next EntityId available.
       * <p>
       * Use this when sending custom packets, so that there are no collisions on the client or server.
@@ -1073,7 +1042,7 @@ index 4623e0d767b343cbdc6fcf20b3b2ff7ff14863cf..ca3f98a8272bab3c9f57f59b077b206c
  
      /**
 diff --git a/src/main/java/org/bukkit/entity/Skeleton.java b/src/main/java/org/bukkit/entity/Skeleton.java
-index 1c367f78eadf24850061a84ce63b950b79d3c435..9021865244a7eacf0477b0db790e0ff41fc8ddfd 100644
+index 684477b894e52ff33f9fce2edf76e58c292dd75e..581abc69290ca14b8e64f50fdf5a49c14be13940 100644
 --- a/src/main/java/org/bukkit/entity/Skeleton.java
 +++ b/src/main/java/org/bukkit/entity/Skeleton.java
 @@ -27,7 +27,9 @@ public interface Skeleton extends Monster, RangedEntity { // Paper
@@ -1416,7 +1385,7 @@ index c7b17eabf07b829a02afe7c1f27a5127b6bfea70..d4e2bcf8ce8fc2af851b471490147f00
  
      /**
 diff --git a/src/main/java/org/bukkit/inventory/ItemFactory.java b/src/main/java/org/bukkit/inventory/ItemFactory.java
-index 0c5e488fca4370a18fede705f58bff25f3a7b4cb..551bed4f91fe23d36f3299b1b1576546722eb799 100644
+index 39323b3151c733392333858a2dbf1f3f8637341e..b2af5217a74266917365c3bf216a780b95c833bd 100644
 --- a/src/main/java/org/bukkit/inventory/ItemFactory.java
 +++ b/src/main/java/org/bukkit/inventory/ItemFactory.java
 @@ -148,6 +148,7 @@ public interface ItemFactory {
@@ -1427,7 +1396,7 @@ index 0c5e488fca4370a18fede705f58bff25f3a7b4cb..551bed4f91fe23d36f3299b1b1576546
       * @return A hover event
       */
      @NotNull
-@@ -179,7 +180,7 @@ public interface ItemFactory {
+@@ -188,7 +189,7 @@ public interface ItemFactory {
      /**
       * Creates a {@link net.md_5.bungee.api.chat.hover.content.Content} of that ItemStack for displaying.
       *
