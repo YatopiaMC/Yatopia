@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Cleanup') {
             tools {
-                jdk "OpenJDK 11"
+                jdk "OpenJDK 16"
             }
             steps {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
@@ -29,7 +29,7 @@ pipeline {
         }
         stage('Init project & submodules') {
             tools {
-                jdk "OpenJDK 11"
+                jdk "OpenJDK 16"
             }
             steps {
                 withMaven(
@@ -43,7 +43,7 @@ pipeline {
         }
         stage('Decompile & apply patches') {
             tools {
-                jdk "OpenJDK 11"
+                jdk "OpenJDK 16"
             }
             steps {
                 withMaven(
@@ -60,7 +60,7 @@ pipeline {
         }
         stage('Build') {
             tools {
-                jdk "OpenJDK 11"
+                jdk "OpenJDK 16"
             }
             steps {
                 withMaven(
