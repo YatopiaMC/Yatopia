@@ -23,10 +23,10 @@ index c9e00334655ccd273ba108a541ed1cb0633f69b7..65adf3ceda012c8cfdea675c40e2bb27
 +
  }
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 7b4b9f54510b3a05aad3f7e50e32ee0bf977244a..2bb00a42492b08036e984d3e1d9a564d4b4226c2 100644
+index 3fc494965ff56a2195af437093e5f227ab8b5554..06d0592bebaefc16c1995781a9e8a3554f4a3205 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -2196,7 +2196,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -2199,7 +2199,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          }
      }
  
@@ -36,5 +36,25 @@ index 7b4b9f54510b3a05aad3f7e50e32ee0bf977244a..2bb00a42492b08036e984d3e1d9a564d
 +        if (gg.airplane.AirplaneConfig.disableMethodProfiler) return disabledProfiler;
 +        // Airplane end
          return this.methodProfiler;
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
+index 3abea117b29e57013fb556855ef9def023069bf9..f8d11a1f0337acf60f2d9f94bd4bbbf6eb77c6de 100644
+--- a/src/main/java/net/minecraft/world/level/World.java
++++ b/src/main/java/net/minecraft/world/level/World.java
+@@ -18,6 +18,7 @@ import java.util.function.Consumer;
+ import java.util.function.Predicate;
+ import java.util.function.Supplier;
+ import javax.annotation.Nullable;
++
+ import net.minecraft.CrashReport;
+ import net.minecraft.CrashReportSystemDetails;
+ import net.minecraft.ReportedException;
+@@ -1815,6 +1816,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+     }
+ 
+     public GameProfilerFiller getMethodProfiler() {
++        if (gg.airplane.AirplaneConfig.disableMethodProfiler) return net.minecraft.util.profiling.GameProfilerDisabled.a; // Airplane
+         return (GameProfilerFiller) this.methodProfiler.get();
      }
  

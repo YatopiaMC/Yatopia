@@ -1,0 +1,180 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mykyta Komarn <nkomarn@hotmail.com>
+Date: Thu, 1 Oct 2020 06:57:43 -0700
+Subject: [PATCH] Heavily optimize recipe lookups in CraftingManager
+
+Recipe lookups are now cached in CraftingManager, which prevent unnecessary ArrayLists being created for every lookup. Additionally, an EMPTY_MAP variable was added to prevent bottlenecks during map creation, since that map is only ever iterated.
+
+These changes knock off an extra ~10ms of tick duration with a sample of ~7,700 running furnaces on a server.
+
+Co-authored-by: Ivan Pekov <ivan@mrivanplays.com>
+Co-authored-by: ishland <ishlandmc@yeah.net>
+
+diff --git a/src/main/java/net/minecraft/world/item/ItemStack.java b/src/main/java/net/minecraft/world/item/ItemStack.java
+index 677f866dfaab653b05c693663adaeb2465117a55..51b9288856f7415cb854ca3fe32905d0c2886266 100644
+--- a/src/main/java/net/minecraft/world/item/ItemStack.java
++++ b/src/main/java/net/minecraft/world/item/ItemStack.java
+@@ -640,6 +640,7 @@ public final class ItemStack {
+         return !this.e() ? this.doMaterialsMatch(itemstack) : !itemstack.isEmpty() && this.getItem() == itemstack.getItem();
+     }
+ 
++    public final String getTranslationKey() { return j(); } // Yatopia - OBFHELPER
+     public String j() {
+         return this.getItem().f(this);
+     }
+diff --git a/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java b/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
+index 5ba58bf1a47c696235e6e7a4a6815104bc23de80..f1180c57a76883c007393bc187de680618f60de3 100644
+--- a/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
++++ b/src/main/java/net/minecraft/world/item/crafting/CraftingManager.java
+@@ -35,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap; // CraftBukkit
++import it.unimi.dsi.fastutil.objects.ObjectArrayList; // Yatopia
+ 
+ public class CraftingManager extends ResourceDataJson {
+ 
+@@ -42,6 +43,10 @@ public class CraftingManager extends ResourceDataJson {
+     private static final Logger LOGGER = LogManager.getLogger();
+     public Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> recipes = ImmutableMap.of(); // CraftBukkit
+     private boolean d;
++    // Yatopia start
++    private final List<IRecipe<?>> ALL_RECIPES_CACHE = new ObjectArrayList<>();
++    private final Map<Recipes<?>, List<IRecipe<?>>> TYPES_CACHE = new Object2ObjectLinkedOpenHashMap<>();
++    // Yatopia end
+ 
+     public CraftingManager() {
+         super(CraftingManager.a, "recipes");
+@@ -49,6 +54,7 @@ public class CraftingManager extends ResourceDataJson {
+ 
+     protected void a(Map<MinecraftKey, JsonElement> map, IResourceManager iresourcemanager, GameProfilerFiller gameprofilerfiller) {
+         this.d = false;
++        clearRecipes(); // Yatopia
+         // CraftBukkit start - SPIGOT-5667 make sure all types are populated and mutable
+         Map<Recipes<?>, Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>>> map1 = Maps.newHashMap();
+         for (Recipes<?> recipeType : IRegistry.RECIPE_TYPE) {
+@@ -74,9 +80,17 @@ public class CraftingManager extends ResourceDataJson {
+             }
+         }
+ 
++        // Yatopia start - nuke stream & cache all recipes for constant access in b()
++        /*
+         this.recipes = (Map) map1.entrySet().stream().collect(ImmutableMap.toImmutableMap(Entry::getKey, (entry1) -> {
+             return entry1.getValue(); // CraftBukkit // Paper - decompile fix - *shrugs internally*
+         }));
++         */
++        this.recipes = ImmutableMap.copyOf(map1);
++        for (Object2ObjectLinkedOpenHashMap<MinecraftKey, IRecipe<?>> recipesMap : map1.values()) {
++            ALL_RECIPES_CACHE.addAll(recipesMap.values());
++        }
++        // Yatopia end
+         CraftingManager.LOGGER.info("Loaded {} recipes", map1.size());
+     }
+ 
+@@ -90,33 +104,65 @@ public class CraftingManager extends ResourceDataJson {
+         } else {
+             map.putAndMoveToFirst(irecipe.getKey(), irecipe); // CraftBukkit - SPIGOT-4638: last recipe gets priority
+         }
++        ALL_RECIPES_CACHE.add(irecipe); // Yatopia
+     }
+     // CraftBukkit end
+ 
+     public <C extends IInventory, T extends IRecipe<C>> Optional<T> craft(Recipes<T> recipes, C c0, World world) {
+         // CraftBukkit start
++        // Yatopia start - replace stream
++        /*
+         Optional<T> recipe = this.b(recipes).values().stream().flatMap((irecipe) -> {
+             return SystemUtils.a(recipes.a(irecipe, world, c0));
+         }).findFirst();
++         */
++        // Yatopia start - replace stream
++        Collection<IRecipe<C>> allTypes = this.b(recipes).values();
++        Optional<T> recipe = Optional.empty();
++
++        for (IRecipe<C> possible : allTypes) {
++            Optional<T> possibleRecipe = recipes.a(possible, world, c0);
++            if (possibleRecipe.isPresent()) {
++                recipe = possibleRecipe;
++                break;
++            }
++        }
++        // Yatopia end
+         c0.setCurrentRecipe(recipe.orElse(null)); // CraftBukkit - Clear recipe when no recipe is found
+         // CraftBukkit end
+         return recipe;
+     }
+ 
+     public <C extends IInventory, T extends IRecipe<C>> List<T> a(Recipes<T> recipes) {
++        // Yatopia start - replaced logic
++        /*
+         return (List) this.b(recipes).values().stream().map((irecipe) -> {
+             return irecipe;
+         }).collect(Collectors.toList());
++         */
++        return (List) TYPES_CACHE.computeIfAbsent(recipes, recipes1 -> new me.jellysquid.mods.lithium.common.util.collections.HashedList<>(new ObjectArrayList<>(getRecipesMap(recipes).values())));
++        // Yatopia end
+     }
+ 
+     public <C extends IInventory, T extends IRecipe<C>> List<T> b(Recipes<T> recipes, C c0, World world) {
++        // Yatopia start - replace stream
++        /*
+         return (List) this.b(recipes).values().stream().flatMap((irecipe) -> {
+             return SystemUtils.a(recipes.a(irecipe, world, c0));
+         }).sorted(Comparator.comparing((irecipe) -> {
+             return irecipe.getResult().j();
+         })).collect(Collectors.toList());
++         */
++        List<T> ret = new ObjectArrayList<>();
++        for (IRecipe<C> recipe : this.b(recipes).values()) {
++            recipes.a(recipe, world, c0).ifPresent(ret::add);
++        }
++        ret.sort(Comparator.comparing(recipe -> recipe.getResult().getTranslationKey()));
++        return ret;
++        // Yatopia end
+     }
+ 
++    private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> getRecipesMap(Recipes<T> recipes) { return b(recipes); } // Yatopia - OBFHELPER
+     private <C extends IInventory, T extends IRecipe<C>> Map<MinecraftKey, IRecipe<C>> b(Recipes<T> recipes) {
+         return (Map) this.recipes.getOrDefault(recipes, new Object2ObjectLinkedOpenHashMap<>()); // CraftBukkit
+     }
+@@ -138,15 +184,26 @@ public class CraftingManager extends ResourceDataJson {
+     }
+ 
+     public Optional<? extends IRecipe<?>> getRecipe(MinecraftKey minecraftkey) {
++        // Yatopia start - replace stream
++        /*
+         return this.recipes.values().stream().map((map) -> {
+             return map.get(minecraftkey); // CraftBukkit - decompile error
+         }).filter(Objects::nonNull).findFirst();
++         */
++        for (Map<MinecraftKey, IRecipe<?>> map : recipes.values()) {
++            IRecipe<?> recipe = map.get(minecraftkey);
++            if (recipe != null) {
++                return Optional.of(recipe);
++            }
++        }
++        return Optional.empty();
++        // Yatopia end
+     }
+ 
+     public Collection<IRecipe<?>> b() {
+-        return (Collection) this.recipes.values().stream().flatMap((map) -> {
+-            return map.values().stream();
+-        }).collect(Collectors.toSet());
++        // Yatopia start - O(1) constant complexity
++        return ALL_RECIPES_CACHE;
++        // Yatopia end
+     }
+ 
+     public Stream<MinecraftKey> d() {
+@@ -166,6 +223,10 @@ public class CraftingManager extends ResourceDataJson {
+     // CraftBukkit start
+     public void clearRecipes() {
+         this.recipes = Maps.newHashMap();
++        // Yatopia start - also clear cache
++        ALL_RECIPES_CACHE.clear();
++        TYPES_CACHE.clear();
++        // Yatopia end
+ 
+         for (Recipes<?> recipeType : IRegistry.RECIPE_TYPE) {
+             this.recipes.put(recipeType, new Object2ObjectLinkedOpenHashMap<>());

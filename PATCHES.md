@@ -14,7 +14,6 @@ This is an overview over all patches that are currently used.
 | server |  Actually unload POI data      | Spottedleaf |  |
 | server |  Add /ping command      | William Blake Galbreath |  |
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
-| api |  Add ChatColor.getById      | Aikar |  |
 | api |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | server |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
@@ -30,6 +29,7 @@ This is an overview over all patches that are currently used.
 | server |  Add allow water in end world option      | William Blake Galbreath |  |
 | server |  Add boat fall damage config      | BillyGalbreath |  |
 | server |  Add canSaveToDisk to Entity      | William Blake Galbreath |  |
+| server |  Add config change multiplier critical damage value      | DoctaEnkoda |  |
 | server |  Add config for allowing Endermen to despawn even while      | jmp |  |
 | server |  Add config for snow on blue ice      | BillyGalbreath |  |
 | server |  Add config for villager trading      | Ben Kerllenevich |  |
@@ -99,10 +99,12 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Be aware of entity teleports when chunk checking entities      | Spottedleaf |  |
+| server |  Better checking for useless move packets      | Paul Sauve |  |
 | server |  Brand changes      | Spottedleaf |  |
 | server |  Brandings      | YatopiaMC |  |
 | server |  Break individual slabs when sneaking      | BillyGalbreath |  |
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
+| server |  Breedable parrots      | BillyGalbreath |  |
 | api |  Bring back server name      | William Blake Galbreath |  |
 | server |  Bring back server name      | William Blake Galbreath |  |
 | server |  Cache climbing check for activation      | Paul Sauve |  |
@@ -117,8 +119,10 @@ This is an overview over all patches that are currently used.
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
 | server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
 | server |  Config for changing the blocks that turn into paths      | 12emin34 |  |
+| server |  Config for health to impact Creeper explosion radius      | Encode42 |  |
 | server |  Config for powered rail activation distance      | Encode42 |  |
 | server |  Config for skipping night      | Ben Kerllenevich |  |
+| server |  Config for unverified username message      | Ben Kerllenevich |  |
 | server |  Config for wither explosion radius      | Ben Kerllenevich |  |
 | server |  Config migration: climbing should not bypass cramming      | jmp |  |
 | server |  Config migration: disable saving projectiles to disk -&gt;      | jmp |  |
@@ -151,6 +155,7 @@ This is an overview over all patches that are currently used.
 | server |  Configurable jockey options      | William Blake Galbreath |  |
 | server |  Configurable movement checks      | l_MrBoom_l |  |
 | api |  Configurable permission message upgrades      | William Blake Galbreath |  |
+| server |  Configurable powered rail boost modifier      | Callum Seabrook |  |
 | server |  Configurable ravager griefable blocks list      | BillyGalbreath |  |
 | server |  Configurable server mod name      | William Blake Galbreath |  |
 | server |  Configurable sponge absorption      | Encode42 |  |
@@ -236,10 +241,11 @@ This is an overview over all patches that are currently used.
 | server |  Global Eula file      | tr7zw |  |
 | server |  Heavily optimize furnance fuel and recipe lookups      | tr7zw | Mykyta Komarn |
 | server |  Heavily optimize recipe lookups in CraftingManager      | Mykyta Komarn | Ivan Pekov, ishland |
+| server |  Hide hidden players from entity selector      | BillyGalbreath |  |
 | server |  Highly optimise single and multi-AABB VoxelShapes and      | Spottedleaf |  |
 | server |  Highly optimize VillagePlace filtering      | Ivan Pekov |  |
-| server |  Hopper Optimizations      | Phoenix616 |  |
 | server |  Illusioners AI settings      | William Blake Galbreath |  |
+| server |  Implement Mob Blindness      | Encode42 |  |
 | server |  Implement TPSBar      | BillyGalbreath |  |
 | server |  Implement bed explosion options      | William Blake Galbreath |  |
 | server |  Implement configurable search radius for villagers to spawn      | William Blake Galbreath |  |
@@ -248,11 +254,13 @@ This is an overview over all patches that are currently used.
 | server |  Implement respawn anchor explosion options      | William Blake Galbreath |  |
 | server |  Improve abnormal server shutdown process      | Spottedleaf |  |
 | server |  Improve async tp to not load chunks when crossing worlds      | Spottedleaf |  |
+| server |  Improve container checking with a bitset      | Paul Sauve |  |
 | server |  Improve fluid direction caching      | Paul Sauve |  |
 | server |  Improve paper prevent moving into unloaded chunk check      | Spottedleaf |  |
-| server |  Improved oversized chunk data packet handling      | Spottedleaf |  |
 | server |  Infinite fuel furnace      | William Blake Galbreath |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
+| api |  Iron golem poppy calms anger      | BillyGalbreath |  |
+| server |  Iron golem poppy calms anger      | BillyGalbreath |  |
 | api |  Item entity immunities      | William Blake Galbreath |  |
 | server |  Item entity immunities      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
@@ -279,6 +287,7 @@ This is an overview over all patches that are currently used.
 | server |  MC-Dev fixes      | Spottedleaf |  |
 | server |  Make CallbackExecutor strict again      | Spottedleaf |  |
 | server |  Make Iron Golems Swim      | William Blake Galbreath |  |
+| server |  Make VoxelShapeCollisionEntity lazier      | Paul Sauve |  |
 | server |  Make entity breeding times configurable      | jmp |  |
 | server |  Make entity tracker use highest range of passengers      | Spottedleaf |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
@@ -314,6 +323,7 @@ This is an overview over all patches that are currently used.
 | server |  Optimize TileEntity load/unload      | tr7zw |  |
 | server |  Optimize Villagers      | Ivan Pekov |  |
 | server |  Optimize advancement loading      | Ivan Pekov |  |
+| server |  Optimize collisions      | DoctaEnkoda |  |
 | server |  Optimize inventory API item handling      | Phoenix616 |  |
 | server |  Optimize random calls in chunk ticking      | Paul Sauve |  |
 | server |  Optimize redundant calls      | Paul Sauve |  |
@@ -322,6 +332,7 @@ This is an overview over all patches that are currently used.
 | server |  Option for Villager Clerics to farm Nether Wart      | jmp |  |
 | server |  Option for chests to open even with a solid block on top      | jmp |  |
 | server |  Option for simpler Villagers      | tr7zw |  |
+| server |  Option to disable dragon egg teleporting      | BillyGalbreath |  |
 | server |  Option to make doors require redstone      | BillyGalbreath |  |
 | server |  Option to toggle milk curing bad omen      | William Blake Galbreath |  |
 | server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
@@ -424,9 +435,12 @@ This is an overview over all patches that are currently used.
 | api |  Tuinity config      | Spottedleaf |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
 | server |  Update version fetcher repo      | JRoy |  |
+| server |  Use array for gamerule storage      | Paul Sauve |  |
 | server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
 | server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
 | server |  Use hash table for maintaing changed block set      | Spottedleaf |  |
+| server |  Use list for fast iteration over pathfinder goals      | Paul Sauve |  |
+| server |  Use raw iterator where possible      | Paul Sauve |  |
 | server |  Use unmodifiableMap instead of making copy      | Paul Sauve |  |
 | server |  Util patch      | Spottedleaf |  |
 | server |  Utilities      | YatopiaMC | Mykyta Komarnytskyy, Ivan Pekov |
@@ -443,7 +457,6 @@ This is an overview over all patches that are currently used.
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
 | server |  lithium MixinDirection      | JellySquid |  |
-| server |  lithium MixinGoalSelector      | JellySquid |  |
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
