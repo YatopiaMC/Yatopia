@@ -104,7 +104,7 @@ private fun Project.configureYatoclipProject() {
                 "Main-Class" to "org.yatopiamc.yatoclip.Yatoclip",
                 "Launcher-Agent-Class" to "org.yatopiamc.yatoclip.YatoclipLaunch",
                 "Premain-Class" to "org.yatopiamc.yatoclip.YatoclipLaunch",
-                "Multi-Release" to "true"
+                "Multi-Release" to true
             )
         }
         into("META-INF/versions/9") {
@@ -166,7 +166,8 @@ private fun Project.configureServerProject() {
                     "Implementation-Vendor" to SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(Date()),
                     "Specification-Title" to "Bukkit",
                     "Specification-Version" to "${project.rootProject.toothpick.minecraftVersion}-${project.rootProject.toothpick.nmsRevision}",
-                    "Specification-Vendor" to "Bukkit Team"
+                    "Specification-Vendor" to "Bukkit Team",
+                    "Multi-Release" to true
             )
         }
         from(project.buildDir.resolve("tmp/pom.xml")) {
