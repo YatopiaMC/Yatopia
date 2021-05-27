@@ -8,22 +8,22 @@ This is an overview over all patches that are currently used.
 
 | Side | Patch        | Author           | CoAuthors  |
 | ----- | ------------- |:-------------:| -----:|
-| server |  AFK API      | William Blake Galbreath |  |
 | api |  AFK API      | William Blake Galbreath |  |
+| server |  AFK API      | William Blake Galbreath |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
 | server |  Actually unload POI data      | Spottedleaf |  |
 | server |  Add /ping command      | William Blake Galbreath |  |
 | server |  Add 5 second tps average in /tps      | William Blake Galbreath |  |
-| server |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | api |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
-| server |  Add GameProfileLookupEvent      | tr7zw |  |
+| server |  Add EntityTeleportHinderedEvent      | Mariell Hoversholm |  |
 | api |  Add GameProfileLookupEvent      | tr7zw |  |
+| server |  Add GameProfileLookupEvent      | tr7zw |  |
 | server |  Add IntelliJ IDEA runnable      | Zoe |  |
 | server |  Add MC-4 fix back      | BillyGalbreath |  |
-| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add NBT API as a first-class lib      | tr7zw |  |
-| server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
+| server |  Add NBT API as a first-class lib      | tr7zw |  |
 | api |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
+| server |  Add StructureGenerateEvent      | Nahuel | Mariell Hoversholm |
 | server |  Add Velocity natives for encryption and compression      | Andrew Steinborn |  |
 | server |  Add adjustable breeding cooldown to config      | montlikadani |  |
 | server |  Add allow water in end world option      | William Blake Galbreath |  |
@@ -35,14 +35,14 @@ This is an overview over all patches that are currently used.
 | server |  Add config for villager trading      | Ben Kerllenevich |  |
 | server |  Add configurable snowball damage      | BillyGalbreath |  |
 | server |  Add credits command      | Encode42 |  |
-| server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | api |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
+| server |  Add critical hit check to EntityDamagedByEntityEvent      | BillyGalbreath |  |
 | server |  Add demo command      | BillyGalbreath |  |
 | api |  Add enchantment target for bows and crossbows      | BillyGalbreath |  |
 | server |  Add enderman and creeper griefing controls      | William Blake Galbreath |  |
 | server |  Add ghast allow-griefing option      | BillyGalbreath |  |
-| server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | api |  Add last tick time API      | Ivan Pekov | tr7zw |
+| server |  Add last tick time API      | Ivan Pekov | tr7zw |
 | server |  Add mobGriefing bypass to everything affected      | Encode42 |  |
 | server |  Add no-random-tick block list      | William Blake Galbreath |  |
 | server |  Add nspt command      | Ivan Pekov |  |
@@ -52,27 +52,27 @@ This is an overview over all patches that are currently used.
 | server |  Add option to disable dolphin treasure searching      | William Blake Galbreath |  |
 | server |  Add option to disable mushroom and note block updates      | William Blake Galbreath |  |
 | server |  Add option to disable observer clocks      | Phoenix616 |  |
-| server |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
 | api |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
+| server |  Add option to disable zombie aggressiveness towards villagers      | nitricspace |  |
 | server |  Add option to set armorstand step height      | William Blake Galbreath |  |
 | server |  Add option to teleport to spawn if outside world border      | William Blake Galbreath |  |
 | server |  Add packet limiter config      | Spottedleaf |  |
 | server |  Add permission for F3+N debug      | William Blake Galbreath |  |
 | server |  Add phantom spawning options      | William Blake Galbreath |  |
 | server |  Add player death exp control options      | William Blake Galbreath |  |
-| server |  Add predicate to recipe&#39;s ExactChoice ingredient      | William Blake Galbreath |  |
 | api |  Add predicate to recipe&#39;s ExactChoice ingredient      | William Blake Galbreath |  |
+| server |  Add predicate to recipe&#39;s ExactChoice ingredient      | William Blake Galbreath |  |
 | server |  Add soft async catcher      | Spottedleaf |  |
 | server |  Add tablist suffix option for afk      | montlikadani |  |
 | server |  Add timings for Behavior      | Phoenix616 |  |
 | server |  Add timings for Pathfinder      | MrIvanPlays |  |
 | server |  Add twisting and weeping vines growth rates      | BillyGalbreath |  |
-| server |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
 | api |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
+| server |  Add unsafe Entity serialization API      | Mariell Hoversholm |  |
 | server |  Add vindicator johnny spawn chance      | William Blake Galbreath |  |
 | server |  Add wither skeleton takes wither damage option      | William Blake Galbreath |  |
-| server |  Advancement API      | William Blake Galbreath |  |
 | api |  Advancement API      | William Blake Galbreath |  |
+| server |  Advancement API      | William Blake Galbreath |  |
 | server |  Airplane Branding Changes      | Paul Sauve |  |
 | server |  Airplane Configuration      | Paul Sauve |  |
 | server |  Airplane MC Dev Fixes      | Paul Sauve |  |
@@ -91,8 +91,8 @@ This is an overview over all patches that are currently used.
 | server |  Allows you to change the thrust limit of a piston by World      | DoctaEnkoda |  |
 | api |  Alphabetize in-game /plugins list      | BillyGalbreath |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
-| server |  Anvil API      | William Blake Galbreath |  |
 | api |  Anvil API      | William Blake Galbreath |  |
+| server |  Anvil API      | William Blake Galbreath |  |
 | server |  Apply display names from item forms of entities to entities      | jmp |  |
 | server |  Arrows should not reset despawn counter      | William Blake Galbreath |  |
 | server |  Attempt to recalculate regionfile header if it is corrupt      | Spottedleaf |  |
@@ -105,8 +105,8 @@ This is an overview over all patches that are currently used.
 | server |  Break individual slabs when sneaking      | BillyGalbreath |  |
 | server |  Breedable Polar Bears      | William Blake Galbreath |  |
 | server |  Breedable parrots      | BillyGalbreath |  |
-| server |  Bring back server name      | William Blake Galbreath |  |
 | api |  Bring back server name      | William Blake Galbreath |  |
+| server |  Bring back server name      | William Blake Galbreath |  |
 | server |  Cache climbing check for activation      | Paul Sauve |  |
 | server |  Cache coordinate key for micro opt      | Paul Sauve |  |
 | server |  Cache entityhuman display name      | Paul Sauve |  |
@@ -201,8 +201,8 @@ This is an overview over all patches that are currently used.
 | server |  Drowning Settings      | Ben Kerllenevich |  |
 | server |  Dynamic activation range      | Paul Sauve |  |
 | server |  EMC - Configurable disable give dropping      | Aikar |  |
-| server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | api |  EMC - MonsterEggSpawnEvent      | Aikar |  |
+| server |  EMC - MonsterEggSpawnEvent      | Aikar |  |
 | server |  Early return optimization for target finding      | Paul Sauve |  |
 | server |  End crystal explosion options      | Ben Kerllenevich |  |
 | server |  End gateway should check if entity can use portal      | William Blake Galbreath |  |
@@ -234,8 +234,8 @@ This is an overview over all patches that are currently used.
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Flying squids! Oh my!      | William Blake Galbreath |  |
-| server |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | api |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
+| server |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | server |  Gamemode extra permissions      | BillyGalbreath |  |
 | server |  Giants AI settings      | William Blake Galbreath |  |
 | server |  Global Eula file      | tr7zw |  |
@@ -257,30 +257,29 @@ This is an overview over all patches that are currently used.
 | server |  Improve container checking with a bitset      | Paul Sauve |  |
 | server |  Improve fluid direction caching      | Paul Sauve |  |
 | server |  Improve paper prevent moving into unloaded chunk check      | Spottedleaf |  |
-| server |  Improved oversized chunk data packet handling      | Spottedleaf |  |
 | server |  Infinite fuel furnace      | William Blake Galbreath |  |
 | server |  Infinity bow settings      | William Blake Galbreath |  |
-| server |  Iron golem poppy calms anger      | BillyGalbreath |  |
 | api |  Iron golem poppy calms anger      | BillyGalbreath |  |
-| server |  Item entity immunities      | William Blake Galbreath |  |
+| server |  Iron golem poppy calms anger      | BillyGalbreath |  |
 | api |  Item entity immunities      | William Blake Galbreath |  |
+| server |  Item entity immunities      | William Blake Galbreath |  |
 | server |  Item stuck sleep config      | tr7zw |  |
-| server |  ItemFactory#getMonsterEgg      | William Blake Galbreath |  |
 | api |  ItemFactory#getMonsterEgg      | William Blake Galbreath |  |
+| server |  ItemFactory#getMonsterEgg      | William Blake Galbreath |  |
 | api |  ItemStack convenience methods      | William Blake Galbreath |  |
 | server |  Kelp weeping and twisting vines configurable max growth age      | BillyGalbreath |  |
 | server |  Lag compensate block breaking      | Spottedleaf |  |
-| server |  Lagging threshold      | William Blake Galbreath |  |
 | api |  Lagging threshold      | William Blake Galbreath |  |
-| server |  Left handed API      | BillyGalbreath |  |
+| server |  Lagging threshold      | William Blake Galbreath |  |
 | api |  Left handed API      | BillyGalbreath |  |
+| server |  Left handed API      | BillyGalbreath |  |
 | server |  Lithium: CompactSineLUT      | JellySquid |  |
-| server |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | api |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
-| server |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
+| server |  LivingEntity safeFallDistance      | William Blake Galbreath |  |
 | api |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
-| server |  Llama API      | William Blake Galbreath |  |
+| server |  LivingEntity#broadcastItemBreak      | William Blake Galbreath |  |
 | api |  Llama API      | William Blake Galbreath |  |
+| server |  Llama API      | William Blake Galbreath |  |
 | server |  Lobotomize stuck villagers      | BillyGalbreath |  |
 | server |  Logger settings (suppressing pointless logs)      | William Blake Galbreath |  |
 | server |  MC-147659 - Fix non black cats spawning in swamp huts      | William Blake Galbreath |  |
@@ -296,8 +295,8 @@ This is an overview over all patches that are currently used.
 | server |  Manually inline methods in BlockPosition      | Spottedleaf |  |
 | server |  Mending mends most damages equipment first      | William Blake Galbreath |  |
 | server |  Minecart settings and WASD controls      | William Blake Galbreath |  |
-| server |  Modify POM      | YatopiaMC |  |
 | api |  Modify POM      | YatopiaMC |  |
+| server |  Modify POM      | YatopiaMC |  |
 | server |  Modify default configs      | tr7zw |  |
 | server |  More debug for plugins not shutting down tasks      | Paul Sauve |  |
 | server |  Movement options for armor stands      | Mariell Hoversholm |  |
@@ -344,19 +343,19 @@ This is an overview over all patches that are currently used.
 | api |  Per player viewdistances      | Spottedleaf |  |
 | server |  Persistent TileEntity Lore and DisplayName      | jmp |  |
 | server |  Phantom flames on swoop      | BillyGalbreath |  |
-| server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | api |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
+| server |  Phantoms attracted to crystals and crystals shoot phantoms      | William Blake Galbreath |  |
 | server |  Phantoms burn in light      | draycia |  |
 | server |  Piglin portal spawn modifier      | BillyGalbreath |  |
 | server |  Pigs give saddle back      | William Blake Galbreath |  |
-| server |  Player invulnerabilities      | William Blake Galbreath |  |
 | api |  Player invulnerabilities      | William Blake Galbreath |  |
-| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
+| server |  Player invulnerabilities      | William Blake Galbreath |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| server |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
+| server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | api |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
-| server |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
+| server |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
 | api |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
+| server |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  Players should not cram to death      | William Blake Galbreath |  |
 | server |  Populator seed controls      | Spottedleaf |  |
 | server |  Port Cadmium      | Lucy-t |  |
@@ -364,8 +363,8 @@ This is an overview over all patches that are currently used.
 | server |  Prevent long map entry creation in light engine      | Spottedleaf |  |
 | server |  Prevent unload() calls removing tickets for sync loads      | Spottedleaf |  |
 | server |  Projectile offset config      | YouHaveTrouble |  |
-| server |  Purpur config files      | William Blake Galbreath |  |
 | api |  Purpur config files      | William Blake Galbreath |  |
+| server |  Purpur config files      | William Blake Galbreath |  |
 | server |  Rabbit naturally spawn toast and killer      | William Blake Galbreath |  |
 | api |  Rabid Wolf API      | Encode42 |  |
 | server |  Raid cooldown setting      | jmp |  |
@@ -391,8 +390,8 @@ This is an overview over all patches that are currently used.
 | server |  Revert getChunkAt(Async) retaining chunks for long periods of      | Spottedleaf |  |
 | server |  Rework PlayerChunk main thread checks      | Spottedleaf |  |
 | server |  Rewrite the light engine      | Spottedleaf |  |
-| server |  Ridables      | William Blake Galbreath |  |
 | api |  Ridables      | William Blake Galbreath |  |
+| server |  Ridables      | William Blake Galbreath |  |
 | server |  Send full pos packets for hard colliding entities      | Spottedleaf |  |
 | server |  Separate lookup locking from state access in UserCache      | Spottedleaf |  |
 | server |  Set name visible when using a Name Tag on an Armor Stand      | jmp |  |
@@ -420,8 +419,8 @@ This is an overview over all patches that are currently used.
 | server |  Stop wasting resources on JsonList#get      | Ivan Pekov |  |
 | server |  Striders give saddle back      | Ben Kerllenevich |  |
 | server |  Strip raytracing for EntityLiving#hasLineOfSight      | Paul Sauve |  |
-| server |  Suspected plugins report      | ishland |  |
 | api |  Suspected plugins report      | ishland |  |
+| server |  Suspected plugins report      | ishland |  |
 | server |  Swap priority of checks in chunk ticking      | Paul Sauve |  |
 | server |  Swaps the predicate order of collision      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Tick fluids config      | BillyGalbreath |  |
@@ -430,8 +429,8 @@ This is an overview over all patches that are currently used.
 | server |  Toggle for Zombified Piglin death always counting as player      | jmp |  |
 | server |  Toggle for water sensitive mob damage      | YouHaveTrouble |  |
 | server |  Totems work in inventory      | draycia |  |
-| server |  Tuinity POM Changes      | Spottedleaf |  |
 | api |  Tuinity POM Changes      | Spottedleaf |  |
+| server |  Tuinity POM Changes      | Spottedleaf |  |
 | server |  Tuinity Server Config      | Spottedleaf |  |
 | api |  Tuinity config      | Spottedleaf |  |
 | server |  Tulips change fox type      | William Blake Galbreath |  |
