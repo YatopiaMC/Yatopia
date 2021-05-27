@@ -288,6 +288,7 @@ This is an overview over all patches that are currently used.
 | server |  Make CallbackExecutor strict again      | Spottedleaf |  |
 | server |  Make Iron Golems Swim      | William Blake Galbreath |  |
 | server |  Make VoxelShapeCollisionEntity lazier      | Paul Sauve |  |
+| server |  Make anvil cumulative cost configurable      | 12emin34 |  |
 | server |  Make entity breeding times configurable      | jmp |  |
 | server |  Make entity tracker use highest range of passengers      | Spottedleaf |  |
 | server |  Make lava flow speed configurable      | William Blake Galbreath |  |
@@ -352,8 +353,6 @@ This is an overview over all patches that are currently used.
 | server |  Player invulnerabilities      | William Blake Galbreath |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
 | server |  PlayerAttackEntityEvent      | Ivan Pekov |  |
-| api |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
-| server |  PlayerBookTooLargeEvent      | BillyGalbreath |  |
 | api |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  PlayerSetSpawnerTypeWithEggEvent      | William Blake Galbreath |  |
 | server |  Players should not cram to death      | William Blake Galbreath |  |
@@ -396,6 +395,7 @@ This is an overview over all patches that are currently used.
 | server |  Separate lookup locking from state access in UserCache      | Spottedleaf |  |
 | server |  Set name visible when using a Name Tag on an Armor Stand      | jmp |  |
 | server |  Short enderman height      | William Blake Galbreath |  |
+| server |  ShulkerBox allow oversized stacks      | BillyGalbreath |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
 | server |  Signs allow color codes      | William Blake Galbreath |  |
 | server |  Signs editable on right click      | William Blake Galbreath |  |
