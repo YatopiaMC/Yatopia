@@ -5,10 +5,10 @@ Subject: [PATCH] AFK API
 
 
 diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-index fb61b6ac167b34486282a24e598020fb96081f28..c42a2813b40152079786dde33231d945f3144580 100644
+index 32e400632ec1e61374f772c6262580f84a5b2288..aee1946f96ec6007caef63b2183c5218ffe71836 100644
 --- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-@@ -2071,8 +2071,54 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -2102,8 +2102,54 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
  
      public void resetIdleTimer() {
          this.ca = SystemUtils.getMonotonicMillis();
@@ -64,10 +64,10 @@ index fb61b6ac167b34486282a24e598020fb96081f28..c42a2813b40152079786dde33231d945
          return this.serverStatisticManager;
      }
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index b2343d4e5c4dd6ec44503c275c374739bba28536..2affa0ba416957c4c8767708c9e88fc1944bfc71 100644
+index b11af463045bbd3bab8d269fde34071ca5f026af..6433ce5a5b951334efb3d8d7199f784f23392e0e 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
-@@ -1002,7 +1002,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1018,7 +1018,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          // CraftBukkit end
  
          if (this.everyoneSleeping && this.players.stream().noneMatch((entityplayer) -> {
@@ -76,7 +76,7 @@ index b2343d4e5c4dd6ec44503c275c374739bba28536..2affa0ba416957c4c8767708c9e88fc1
          })) {
              // CraftBukkit start
              long l = this.worldData.getDayTime() + 24000L;
-@@ -1347,7 +1347,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1363,7 +1363,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
              while (iterator.hasNext()) {
                  EntityPlayer entityplayer = (EntityPlayer) iterator.next();
  
@@ -86,7 +86,7 @@ index b2343d4e5c4dd6ec44503c275c374739bba28536..2affa0ba416957c4c8767708c9e88fc1
                  } else if (entityplayer.isSleeping()) {
                      ++j;
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index e0c606bb6ecf23f2118a65775c05b437a09826d3..85964e7fe2cc96ad3b967dadd9ee5d095ee60e2a 100644
+index 64fe0acfccd50465c5fe8c49346a6db2b830155e..8c9a6130fae64509c6e4a79e785bac5f60ba1cd1 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
 @@ -399,6 +399,12 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -263,10 +263,10 @@ index 361f7857e461578e90cb71e15027dadaf794cb69..2578a4677d1ee060f687be531e696b7c
 +    }
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-index 51d68fc13fcb8c30c10e21063f4d658f403df8ce..9e07a1e59bf756101a0aaff9891361cc7486854d 100644
+index f82fb89e30e30681b2052d1c6a2f24428d6fbfc7..05bd48bb026a71dd420b4d73c58da781828d58e4 100644
 --- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
-@@ -2496,4 +2496,21 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+@@ -2494,4 +2494,21 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
          return spigot;
      }
      // Spigot end
