@@ -5,7 +5,7 @@ Subject: [PATCH] Ridables
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index cbc6d074a7366f6456c6af2a3fedf0f7bd40cb5b..8ba25be0ea59483e824be9afc63d47cb75b5b334 100644
+index 6fee6b5ea9e2a946bf170a8ad94ae785502419b0..8ba25be0ea59483e824be9afc63d47cb75b5b334 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1543,6 +1543,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -116,18 +116,18 @@ index 375ac2a1c126a27a0a47ab7a369a821785aeada9..ac41fc5b23ec81a57c3ec8f1fa0cff0b
          return new Throwable(entity + " Added to world at " + new java.util.Date());
      }
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index e6d73912a333edd43c4e489c50f4e441c3b2cc29..e35a23544112aa11506951f2a609a5df54cf83a3 100644
+index 10c5af3949af4a3bee4999753e7545f0ac745e63..e35a23544112aa11506951f2a609a5df54cf83a3 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-@@ -2473,6 +2473,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2481,6 +2481,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
                      }
                      this.server.getPluginManager().callEvent(event);
  
 +                    player.processClick(enumhand); // Purpur
 +
-                     // Fish bucket - SPIGOT-4048
-                     if ((entity instanceof EntityFish && origItem != null && origItem.getItem() == Items.WATER_BUCKET) && (event.isCancelled() || this.player.inventory.getItemInHand() == null || this.player.inventory.getItemInHand().getItem() != origItem)) {
-                         this.sendPacket(new PacketPlayOutSpawnEntityLiving((EntityFish) entity));
+                    // Fish bucket - SPIGOT-4048
+                    if ((entity instanceof EntityFish && origItem != null && origItem.getItem() == Items.WATER_BUCKET) && (event.isCancelled() || this.player.inventory.getItemInHand() == null || this.player.inventory.getItemInHand().getItem() != origItem)) {
+                        this.sendPacket(new PacketPlayOutSpawnEntityLiving((EntityFish) entity));
 diff --git a/src/main/java/net/minecraft/world/damagesource/DamageSource.java b/src/main/java/net/minecraft/world/damagesource/DamageSource.java
 index 6ba14f603b8ec69597c70677cc317f802d6afae9..24fd920394774bf38d2818a4cd013670f7b20ba9 100644
 --- a/src/main/java/net/minecraft/world/damagesource/DamageSource.java
@@ -5326,10 +5326,10 @@ index 9aa4850e021076fde306eea7eec104c31086c57f..c2e32121f693a6207e6239c26a1fd6e6
          this.world.getMethodProfiler().exit();
          HoglinAI.a(this);
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-index 48acef830eb1d919499e9b79dc6a9af4bdf8a17b..2311d82824314a9feede9c3c106b0e1b24ac1b7a 100644
+index 99cdcc9a9a7e6227a165c4ef779f8e76a99ec56a..2311d82824314a9feede9c3c106b0e1b24ac1b7a 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-@@ -70,6 +70,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+@@ -86,6 +86,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
          this.f = 5;
      }
  
@@ -5348,12 +5348,12 @@ index 48acef830eb1d919499e9b79dc6a9af4bdf8a17b..2311d82824314a9feede9c3c106b0e1b
      @Override
      public void saveData(NBTTagCompound nbttagcompound) {
          super.saveData(nbttagcompound);
-@@ -250,6 +262,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+@@ -278,6 +278,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
          // Airplane - dynamic tick
          if (!gg.airplane.AirplaneConfig.dynamicPiglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
          this.world.getMethodProfiler().enter("piglinBrain");
 +        if (getPurpurRider() == null) // Purpur - only use brain if no rider
-         this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // Airplane - compile error
+         this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // CraftBukkit - decompile error
          this.world.getMethodProfiler().exit();
          PiglinAI.b(this);
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglinBrute.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglinBrute.java
@@ -5399,7 +5399,7 @@ index 3d85501791fce621335f34bf508becb74b80210d..1370d2d8568a4ed62f2ec3d54abc7d2b
          PiglinBruteAI.b(this);
          PiglinBruteAI.c(this);
 diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
-index e2779521977716aa58bb713de67cb2d9fa8cbe5f..bd56b7a009a8bcbdd353d7bdcb2a2a7310ab45cc 100644
+index 9c187b015c9acd11a372ec4844bc6d5ead4ca73d..bd56b7a009a8bcbdd353d7bdcb2a2a7310ab45cc 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 @@ -32,6 +32,7 @@ import net.minecraft.network.syncher.DataWatcherObject;
@@ -5590,7 +5590,7 @@ index 96efd974f1eb9c1e7c70e576e51ed69e15aacb99..fc86ef53c48503139667f7703019a07c
  
      default int getHeight() {
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index 45eb26b7414f39f3d4f5ca5994cd3f271f7d112f..beff905e396476b8f916f0646a2e8c9496dddc39 100644
+index 24b1a01417f3e2e565876c658bd601801a0194bc..beff905e396476b8f916f0646a2e8c9496dddc39 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
 @@ -1844,5 +1844,10 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
@@ -5633,7 +5633,7 @@ index a19a26a88f247d359354902efeece9923f3e0e0b..1119f60890784d953c2cd4e0078af4d0
          return new Vec3D(this.x * d0, this.y * d1, this.z * d2);
      }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index 3b20793e3eb4349f8a4ce724f8fc0d6366bb28c2..9789d0f9f73540a486befcdd4901014efeed8403 100644
+index 3023df34803e93e4ce43fda6c0bee8de86fff5bc..9789d0f9f73540a486befcdd4901014efeed8403 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
 @@ -137,11 +137,13 @@ public class PurpurConfig {

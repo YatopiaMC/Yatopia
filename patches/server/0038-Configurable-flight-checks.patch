@@ -5,7 +5,7 @@ Subject: [PATCH] Configurable flight checks
 
 
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index fda4e5b5c15e9d1fab48006991ec8139907abc74..dfd0f6a6820ed0166afd7be2dfda55c912c6cd27 100644
+index d1b708da030326cf22b678df8151536fc13afe00..dfd0f6a6820ed0166afd7be2dfda55c912c6cd27 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
 @@ -328,7 +328,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
@@ -15,7 +15,7 @@ index fda4e5b5c15e9d1fab48006991ec8139907abc74..dfd0f6a6820ed0166afd7be2dfda55c9
 -            if (++this.C > 80) {
 +            if (org.yatopiamc.yatopia.server.YatopiaConfig.checkFlying && ++this.C > 80) { // Yatopia
                  PlayerConnection.LOGGER.warn("{} was kicked for floating too long!", this.player.getDisplayName().getString());
-                 this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage); // Paper - use configurable kick message
+                 this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_PLAYER); // Paper - use configurable kick message & kick event cause
                  return;
 @@ -347,7 +347,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
              this.w = this.r.locY();
@@ -24,7 +24,7 @@ index fda4e5b5c15e9d1fab48006991ec8139907abc74..dfd0f6a6820ed0166afd7be2dfda55c9
 -                if (++this.E > 80) {
 +                if (org.yatopiamc.yatopia.server.YatopiaConfig.checkVehicleFlying && ++this.E > 80) { // Yatopia
                      PlayerConnection.LOGGER.warn("{} was kicked for floating a vehicle too long!", this.player.getDisplayName().getString());
-                     this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickVehicleMessage); // Paper - use configurable kick message
+                     this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickVehicleMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_VEHICLE); // Paper - use configurable kick message & kick event cause
                      return;
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 index 98b78bd015218a39b7512c67e0db9ba0451e3d6d..90760a81f2d66082d4603df430f931403e5989b4 100644

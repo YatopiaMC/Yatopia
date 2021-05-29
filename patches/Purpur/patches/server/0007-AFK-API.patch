@@ -86,21 +86,23 @@ index b11af463045bbd3bab8d269fde34071ca5f026af..6433ce5a5b951334efb3d8d7199f784f
                  } else if (entityplayer.isSleeping()) {
                      ++j;
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index 64fe0acfccd50465c5fe8c49346a6db2b830155e..8c9a6130fae64509c6e4a79e785bac5f60ba1cd1 100644
+index d7a425b67ad0f675b547d9bf2ae9aa6ad7796877..8c9a6130fae64509c6e4a79e785bac5f60ba1cd1 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
 @@ -399,6 +399,12 @@ public class PlayerConnection implements PacketListenerPlayIn {
          }
  
          if (this.player.F() > 0L && this.minecraftServer.getIdleTimeout() > 0 && SystemUtils.getMonotonicMillis() - this.player.F() > (long) (this.minecraftServer.getIdleTimeout() * 1000 * 60)) {
+-            this.player.resetIdleTimer(); // CraftBukkit - SPIGOT-854
+-            this.disconnect(new ChatMessage("multiplayer.disconnect.idling"), org.bukkit.event.player.PlayerKickEvent.Cause.IDLING); // Paper - kick event cause
 +            // Purpur start
 +            this.player.setAfk(true);
 +            if (!this.player.world.purpurConfig.idleTimeoutKick) {
 +                return;
 +            }
 +            // Purpur end
-             this.player.resetIdleTimer(); // CraftBukkit - SPIGOT-854
-             this.disconnect(new ChatMessage("multiplayer.disconnect.idling"));
++            this.player.resetIdleTimer(); // CraftBukkit - SPIGOT-854
++            this.disconnect(new ChatMessage("multiplayer.disconnect.idling"), org.bukkit.event.player.PlayerKickEvent.Cause.IDLING); // Paper - kick event cause
          }
 @@ -674,6 +680,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
                      this.lastYaw = to.getYaw();
