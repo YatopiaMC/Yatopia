@@ -10,6 +10,8 @@ This is an overview over all patches that are currently used.
 | ----- | ------------- |:-------------:| -----:|
 | api |  AFK API      | William Blake Galbreath |  |
 | server |  AFK API      | William Blake Galbreath |  |
+| api |  API for any mob to burn daylight      | Ben Kerllenevich |  |
+| server |  API for any mob to burn daylight      | Ben Kerllenevich |  |
 | server |  Ability to re-add farmland mechanics from Alpha      | Yive |  |
 | server |  Actually unload POI data      | Spottedleaf |  |
 | server |  Add /ping command      | William Blake Galbreath |  |
@@ -87,7 +89,7 @@ This is an overview over all patches that are currently used.
 | server |  Allow leashing villagers      | William Blake Galbreath |  |
 | server |  Allow soil to moisten from water directly under it      | William Blake Galbreath |  |
 | server |  Allow toggling special MobSpawners per world      | jmp |  |
-| server |  Allows to display progress messages by player instead to      | DoctaEnkoda |  |
+| server |  Allows change broadcast message by player      | DoctaEnkoda |  |
 | server |  Allows you to change the thrust limit of a piston by World      | DoctaEnkoda |  |
 | api |  Alphabetize in-game /plugins list      | BillyGalbreath |  |
 | server |  Alternative Keepalive Handling      | William Blake Galbreath |  |
@@ -99,6 +101,7 @@ This is an overview over all patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Be aware of entity teleports when chunk checking entities      | Spottedleaf |  |
+| server |  Bee can work when raining or at night      | DoctaEnkoda |  |
 | server |  Better checking for useless move packets      | Paul Sauve |  |
 | server |  Brand changes      | Spottedleaf |  |
 | server |  Brandings      | YatopiaMC |  |
@@ -216,12 +219,12 @@ This is an overview over all patches that are currently used.
 | api |  Expose findClass for profiler      | Paul Sauve |  |
 | server |  Farmland trampling changes      | Mariell Hoversholm |  |
 | server |  Fix &#39;outdated server&#39; showing in ping before server fully      | William Blake Galbreath |  |
-| server |  Fix Bukkit.createInventory() with type LECTERN      | willies952002 |  |
 | server |  Fix IndexOutOfBoundsException when sending too many changes      | Ivan Pekov |  |
 | server |  Fix LightEngineThreaded memory leak      | Ivan Pekov |  |
 | server |  Fix Log4j Warning      | snoopdoooggyttv |  |
 | server |  Fix NPE in pickup logic for arrow      | Spottedleaf |  |
 | server |  Fix SPIGOT-6278      | BillyGalbreath |  |
+| server |  Fix advancement triggers on entity death      | BillyGalbreath |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
 | server |  Fix cow rotation when shearing mooshroom      | William Blake Galbreath |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
@@ -437,7 +440,6 @@ This is an overview over all patches that are currently used.
 | server |  Update version fetcher repo      | JRoy |  |
 | server |  Use array for gamerule storage      | Paul Sauve |  |
 | server |  Use configured height for nether surface builders      | William Blake Galbreath |  |
-| server |  Use entity ticking chunk map for entity tracker      | Spottedleaf |  |
 | server |  Use hash table for maintaing changed block set      | Spottedleaf |  |
 | server |  Use list for fast iteration over pathfinder goals      | Paul Sauve |  |
 | server |  Use raw iterator where possible      | Paul Sauve |  |

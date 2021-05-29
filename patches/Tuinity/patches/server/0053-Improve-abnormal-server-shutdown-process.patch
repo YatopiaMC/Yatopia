@@ -11,10 +11,10 @@ gui. It looks like during sigint shutdown there can be some
 deadlock between the server thread and awt shutdown thread here.
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 591fe88810e7b5925b92d10c7674f2892a035868..1de40d14b90b0bc4a75c4dd4052b4600101c04a5 100644
+index 746be904a8408c2fa718d6e8352e50315f7bf362..264ed751002b3f52294d00d3135503dabc639a13 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -881,10 +881,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -882,10 +882,11 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          org.spigotmc.WatchdogThread.doStop(); // Paper
          if (!isMainThread()) {
              MinecraftServer.LOGGER.info("Stopping main thread (Ignore any thread death message you see! - DO NOT REPORT THREAD DEATH TO PAPER)");
@@ -28,7 +28,7 @@ index 591fe88810e7b5925b92d10c7674f2892a035868..1de40d14b90b0bc4a75c4dd4052b4600
              }
              // We've just obliterated the main thread, this will prevent stop from dying when removing players
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index d648ec232a3a201c3c59e8bf38946bdc16e4d216..392a707d7d71f2009134741529fb9539bd025619 100644
+index baed727fc32ae0ad6a6f9482e76f9f4fb1ffa0f5..3713a110a64fa686e785b9789c33dd09cacc2f48 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 @@ -417,7 +417,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
