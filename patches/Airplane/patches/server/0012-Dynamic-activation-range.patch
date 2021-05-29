@@ -155,10 +155,10 @@ index ab692de8a5b1411e37251fb545e6f579a9929f91..9aa4850e021076fde306eea7eec104c3
              ++this.conversionTicks;
              if (this.conversionTicks > 300) {
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-index d100b39c420e2326e869aa4059fc800d4c2fc0e4..48acef830eb1d919499e9b79dc6a9af4bdf8a17b 100644
+index 9a7bebd77302dbfd07ac802acbe2b9cb80eec26f..4ee979a2771b1c97379a77af34b9e7b6de34d67b 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-@@ -244,12 +244,17 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+@@ -272,12 +272,16 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
          return !this.cannotHunt;
      }
  
@@ -168,16 +168,15 @@ index d100b39c420e2326e869aa4059fc800d4c2fc0e4..48acef830eb1d919499e9b79dc6a9af4
 +        // Airplane - dynamic tick
 +        if (!gg.airplane.AirplaneConfig.dynamicPiglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
          this.world.getMethodProfiler().enter("piglinBrain");
-         this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // Airplane - compile error
+         this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // CraftBukkit - decompile error
          this.world.getMethodProfiler().exit();
          PiglinAI.b(this);
-+        }
-+        // Airplane end
++        } // Airplane end
          super.mobTick();
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
-index 3f081177814dc874047e35e294ed18609f082d76..d74ba20808d42acd10c3861b5314afd45fddb438 100644
+index 9278b8546a57f21051a65d59c2c01d39afaa68cc..61eaa3e8f961a30e2dc9ae8701ba3b875176e7e0 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 @@ -231,11 +231,17 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
