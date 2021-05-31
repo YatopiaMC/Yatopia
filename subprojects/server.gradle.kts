@@ -1,3 +1,11 @@
+import org.yatopiamc.toothpick.loadDependencies
+import org.yatopiamc.toothpick.loadRepositories
+
+plugins {
+  `java-library`
+  `maven-publish`
+}
+
 repositories {
     loadRepositories(project)
 }
