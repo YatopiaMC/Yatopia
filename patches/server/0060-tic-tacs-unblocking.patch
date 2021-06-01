@@ -70,7 +70,7 @@ index aacf99c418b692fa9e29c00ad449b0c8c8c9ef71..537c05601492306e7b37b11594f193c7
      public static final BlockPosition a = new BlockPosition(100, 50, 0);
      private static final Logger LOGGER = LogManager.getLogger();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b56d4d11fe 100644
+index afcc80b71f95eeee4e2c7f46ae145619581cc8ff..75c9d10e05a88d56c1d7800cd4da081cd5c86ff1 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -141,9 +141,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
@@ -86,7 +86,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
      // CraftBukkit start
      private static final int CURRENT_LEVEL = 2;
      public boolean preserveMotion = true; // Paper - keep initial motion on first setPositionRotation
-@@ -802,6 +805,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -834,6 +837,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
      // Tuinity end - detailed watchdog information
      public void move(EnumMoveType enummovetype, Vec3D vec3d) {
@@ -99,7 +99,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
          // Tuinity start - detailed watchdog information
          com.tuinity.tuinity.util.TickThread.ensureTickThread("Cannot move an entity off-main");
          synchronized (this.posLock) {
-@@ -852,7 +861,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -884,7 +893,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
              this.v = vec3d.y != vec3d1.y;
              this.onGround = this.v && vec3d.y < 0.0D;
              BlockPosition blockposition = this.ap();
@@ -108,7 +108,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
  
              this.a(vec3d1.y, this.onGround, iblockdata, blockposition);
              Vec3D vec3d2 = this.getMot();
-@@ -966,9 +975,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -998,9 +1007,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          int k = MathHelper.floor(this.loc.z);
          BlockPosition blockposition = new BlockPosition(i, j, k);
  
@@ -120,7 +120,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
              Block block = iblockdata.getBlock();
  
              if (block.a((Tag) TagsBlock.FENCES) || block.a((Tag) TagsBlock.WALLS) || block instanceof BlockFenceGate) {
-@@ -980,17 +989,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1012,17 +1021,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      protected float getBlockJumpFactor() {
@@ -146,7 +146,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
      }
  
      protected BlockPosition as() {
-@@ -1335,7 +1348,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1367,7 +1380,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                      for (int i = blockposition.getX(); i <= blockposition1.getX(); ++i) {
                          // Tuinity end - reorder iteration to more cache aware
                          blockposition_mutableblockposition.d(i, j, k);
@@ -155,7 +155,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
  
                          // Tuinity start - move fire checking in here - reuse getType from this method
                          if (checkFire) {
-@@ -1371,7 +1384,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1403,7 +1416,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      protected void b(BlockPosition blockposition, IBlockData iblockdata) {
          if (!iblockdata.getMaterial().isLiquid()) {
@@ -164,7 +164,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
              SoundEffectType soundeffecttype = iblockdata1.a(Blocks.SNOW) ? iblockdata1.getStepSound() : iblockdata.getStepSound();
  
              this.playSound(soundeffecttype.getStepSound(), soundeffecttype.getVolume() * 0.15F, soundeffecttype.getPitch());
-@@ -1462,7 +1475,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1494,7 +1507,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      public final boolean isInBubbleColumn() { return k(); } // Paper - OBFHELPER
      private boolean k() {
@@ -173,7 +173,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
      }
  
      public boolean isInWaterOrRain() {
-@@ -1533,7 +1546,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1565,7 +1578,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          }
  
          BlockPosition blockposition = new BlockPosition(this.locX(), d0, this.locZ());
@@ -182,7 +182,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
          Iterator iterator = TagsFluid.b().iterator();
  
          Tag tag;
-@@ -1591,7 +1604,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1623,7 +1636,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      protected IBlockData aN() {
@@ -191,7 +191,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
      }
  
      public boolean aO() {
-@@ -1603,7 +1616,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1635,7 +1648,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          int j = MathHelper.floor(this.locY() - 0.20000000298023224D);
          int k = MathHelper.floor(this.locZ());
          BlockPosition blockposition = new BlockPosition(i, j, k);
@@ -200,7 +200,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
  
          if (iblockdata.h() != EnumRenderType.INVISIBLE) {
              Vec3D vec3d = this.getMot();
-@@ -2857,7 +2870,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2890,7 +2903,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
              EnumDirection enumdirection1 = aenumdirection[j];
  
              blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection1);
@@ -209,7 +209,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
                  double d4 = vec3d.a(enumdirection1.n());
                  double d5 = enumdirection1.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0D - d4 : d4;
  
-@@ -3073,14 +3086,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3106,14 +3119,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
                  return (ShapeDetectorShape) this.findOrCreatePortal(worldserver, blockposition, flag2, event.getSearchRadius(), event.getCanCreatePortal(), event.getCreationRadius()).map((blockutil_rectangle) -> {
                      // CraftBukkit end
@@ -226,7 +226,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
                          });
  
                          vec3d = this.a(enumdirection_enumaxis, blockutil_rectangle1);
-@@ -3447,6 +3460,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3480,6 +3493,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      public boolean cl() {
@@ -234,7 +234,7 @@ index 286e14bb39509328844e1f57d8faa04b20014f83..2ed54208faf35ea5b4ea8540e95886b5
          boolean flag = this.au;
  
          this.au = false;
-@@ -3650,7 +3664,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3683,7 +3697,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                  for (int i2 = k; i2 < l; ++i2) {
                      for (int j2 = i1; j2 < j1; ++j2) {
                          blockposition_mutableblockposition.d(l1, i2, j2);

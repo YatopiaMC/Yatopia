@@ -5,7 +5,7 @@ Subject: [PATCH] Ridables
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 6fee6b5ea9e2a946bf170a8ad94ae785502419b0..6c0729b0b2a956607067885768cbe848d7406ad6 100644
+index 502675b7bef3322b88efff650b239bfedebc0785..45722de76788886efa664b1b4124903bf6870e7c 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -1544,6 +1544,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
@@ -149,7 +149,7 @@ index 6ba14f603b8ec69597c70677cc317f802d6afae9..24fd920394774bf38d2818a4cd013670
          this.B = true;
          return this;
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d965521783 100644
+index 0c98115022d5af56b41429b090048dd52243ca3f..7856e81266c9b63eebeb7b302e64c1c697841aae 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -22,6 +22,7 @@ import net.minecraft.BlockUtil;
@@ -195,7 +195,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
      private float headHeight;
      // CraftBukkit start
      public boolean persist = true;
-@@ -1621,6 +1621,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1653,6 +1653,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          return !this.justCreated && this.M.getDouble(TagsFluid.LAVA) > 0.0D;
      }
  
@@ -203,7 +203,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
      public void a(float f, Vec3D vec3d) {
          Vec3D vec3d1 = a(vec3d, f, this.yaw);
  
-@@ -2377,6 +2378,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2409,6 +2410,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          return this.a(entity, false);
      }
  
@@ -211,7 +211,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
      public boolean a(Entity entity, boolean flag) {
          for (Entity entity1 = entity; entity1.vehicle != null; entity1 = entity1.vehicle) {
              if (entity1.vehicle == this) {
-@@ -2472,6 +2474,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2504,6 +2506,13 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                  this.passengers.add(entity);
              }
  
@@ -225,7 +225,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
          }
          return true; // CraftBukkit
      }
-@@ -2512,6 +2521,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2544,6 +2553,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                  return false;
              }
              // Spigot end
@@ -238,7 +238,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
              this.passengers.remove(entity);
              entity.j = 60;
          }
-@@ -2677,6 +2692,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2710,6 +2725,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          this.setFlag(4, flag);
      }
  
@@ -246,7 +246,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
      public boolean bE() {
          return this.glowing || this.world.isClientSide && this.getFlag(6);
      }
-@@ -2899,6 +2915,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2932,6 +2948,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      public void setHeadRotation(float f) {}
  
@@ -254,7 +254,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
      public void n(float f) {}
  
      public boolean bL() {
-@@ -3340,6 +3357,18 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3373,6 +3390,18 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          return false;
      }
  
@@ -273,7 +273,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
      @Override
      public void sendMessage(IChatBaseComponent ichatbasecomponent, UUID uuid) {}
  
-@@ -3792,4 +3821,47 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3825,4 +3854,47 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          return ((ChunkProviderServer) world.getChunkProvider()).isInEntityTickingChunk(this);
      }
      // Paper end
@@ -322,7 +322,7 @@ index 4e75650f95af5b1a0cb1f5052688d4f3eb0dce70..668f613a901523e87780f33ffff565d9
 +    // Purpur end
  }
 diff --git a/src/main/java/net/minecraft/world/entity/EntityInsentient.java b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
-index 698997425a7f5a7a5d46fa5d825ec26f61e6c7c4..dd1f4c4202e30a837b48b591327b018a35a0edff 100644
+index 7fa6c3e71b01166e563bf33c1c8606b116930ebe..30d76626bd13cfa99df99f2c1346aaac2df339a0 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 @@ -46,8 +46,6 @@ import net.minecraft.world.entity.ai.sensing.EntitySenses;
@@ -3147,7 +3147,7 @@ index 3fff101637708a1a12f9a457bd3512ae94a8f884..b2d1a0144353a1da61221b59a0acc028
                          this.bF.b(this);
                      }
 diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
-index 930fc752ec0a988b17bc556cd428161638a14f27..73875b925cbf527f91a7c0ec09d350a7a2ec1260 100644
+index c056c4c09297602c1fb3c1040ac2ab0ec4c0139b..69e88d83dda260a95380369d546253982de4a2fd 100644
 --- a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
 +++ b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
 @@ -12,6 +12,7 @@ import net.minecraft.network.chat.IChatBaseComponent;
@@ -4119,7 +4119,7 @@ index d53e2a9d27f9976d1fd8ea30b88a0da089aec7b6..66ae664add95f4441724b49a470a2fef
                  Vec3D vec3d = new Vec3D(this.b - this.i.locX(), this.c - this.i.locY(), this.d - this.i.locZ());
                  double d0 = vec3d.f();
 diff --git a/src/main/java/net/minecraft/world/entity/monster/EntityGuardianElder.java b/src/main/java/net/minecraft/world/entity/monster/EntityGuardianElder.java
-index 9bd6f5d988c1e50e1bb729c407178b9cbcc62115..16b8606be2835dccdfa75f29827be4b88aaa1810 100644
+index 300efeb98bb68b24faa68a4af9d703bf2b8c405c..ef48184f79920f053d62d34cc7b56a98e8aa4274 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/EntityGuardianElder.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/EntityGuardianElder.java
 @@ -30,6 +30,18 @@ public class EntityGuardianElder extends EntityGuardian {
@@ -5326,7 +5326,7 @@ index 9aa4850e021076fde306eea7eec104c31086c57f..c2e32121f693a6207e6239c26a1fd6e6
          this.world.getMethodProfiler().exit();
          HoglinAI.a(this);
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-index 4ee979a2771b1c97379a77af34b9e7b6de34d67b..4021174b3c0bcbe582354fc72697e1123d3a9627 100644
+index 99cdcc9a9a7e6227a165c4ef779f8e76a99ec56a..a2e90d890dfe62666c79969b9de9d9cd78ee2cf3 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
 @@ -86,6 +86,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
@@ -5399,7 +5399,7 @@ index 3d85501791fce621335f34bf508becb74b80210d..1370d2d8568a4ed62f2ec3d54abc7d2b
          PiglinBruteAI.b(this);
          PiglinBruteAI.c(this);
 diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
-index 9c187b015c9acd11a372ec4844bc6d5ead4ca73d..daad6520c5d20646f34895225fbf669ecb18e72b 100644
+index fd25524e36317f69091150a85b5068fb6bcf189a..a9a2caadca0f93438a4ad8e21d2e5ff5a98aa3fd 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 @@ -32,6 +32,7 @@ import net.minecraft.network.syncher.DataWatcherObject;
