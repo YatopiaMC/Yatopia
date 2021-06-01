@@ -108,6 +108,7 @@ This is an overview over all patches that are currently used.
 | api |  Bring back server name      | William Blake Galbreath |  |
 | server |  Bring back server name      | William Blake Galbreath |  |
 | server |  C2ME Port      | ishland | Simon Gardling |
+| server |  C2ME update      | Simon Gardling |  |
 | server |  Cache climbing check for activation      | Paul Sauve |  |
 | server |  Cache coordinate key for micro opt      | Paul Sauve |  |
 | server |  Cache entityhuman display name      | Paul Sauve |  |

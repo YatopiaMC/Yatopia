@@ -1,0 +1,425 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Thu, 27 May 2021 14:11:39 -0400
+Subject: [PATCH] C2ME update
+
+
+diff --git a/pom.xml b/pom.xml
+index 620bd31a4356cb170720b4be3512791c93069131..a57144d43adbf4a9b97d168fea3bc09fa41a96d8 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -236,6 +236,11 @@
+             <artifactId>asyncutil</artifactId>
+             <version>0.1.0</version>
+         </dependency>
++        <dependency>
++            <groupId>org.threadly</groupId>
++            <artifactId>threadly</artifactId>
++            <version>6.6</version>
++        </dependency>
+     </dependencies>
+ 
+     <repositories>
+diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
+index 9e0c082d276d1a13577bbf7183065cce3b837c66..7c275b81fb66a56e18385d9a0585d3d5fe703736 100644
+--- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
+@@ -110,6 +110,9 @@ import org.apache.logging.log4j.Logger;
+ 
+ import org.bukkit.entity.Player; // CraftBukkit
+ import org.spigotmc.AsyncCatcher;
++import net.minecraft.world.level.biome.WorldChunkManagerOverworld; // Yatopia
++import net.minecraft.world.level.chunk.BiomeStorage;
++import org.yatopiamc.c2me.common.optimization.worldgen.global_biome_cache.BiomeCache; // Yatopia
+ 
+ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+ 
+@@ -1208,11 +1211,22 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         }
+     }
+ 
+-    public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(PlayerChunk playerchunk, ChunkStatus chunkstatus) {
++    public CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> a(PlayerChunk playerchunk, ChunkStatus chunkstatus) { // yarn: getChunk
+         ChunkCoordIntPair chunkcoordintpair = playerchunk.i();
+ 
+         if (chunkstatus == ChunkStatus.EMPTY) {
+-            return this.f(chunkcoordintpair);
++            // Yatopia start - port C2ME
++            // return this.f(chunkcoordintpair);
++            return this.loadChunk(chunkcoordintpair).thenApplyAsync(either -> {
++                if (chunkGenerator.getWorldChunkManager() instanceof WorldChunkManagerOverworld source) {
++                    either.left().ifPresent(chunk -> {
++                        final BiomeStorage biomeArray = source.preloadBiomes(chunkcoordintpair, chunk.getBiomeIndex());
++                        if (chunk instanceof ProtoChunk protoChunk) protoChunk.setBiomes(biomeArray);
++                    });
++                }
++                return either;
++            }, BiomeCache.EXECUTOR);
++            // Yatopia end
+         } else {
+             CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> completablefuture = playerchunk.a(chunkstatus.e(), this);
+ 
+@@ -1249,6 +1263,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         }
+     }
+ 
++    private CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> loadChunk(ChunkCoordIntPair chunkcoordintpair) { return this.f(chunkcoordintpair); } // Yatopia - OBFHELPER
+     private CompletableFuture<Either<IChunkAccess, PlayerChunk.Failure>> f(ChunkCoordIntPair chunkcoordintpair) {
+         // Paper start - Async chunk io
+         final java.util.function.BiFunction<ChunkRegionLoader.InProgressChunkHolder, Throwable, Either<IChunkAccess, PlayerChunk.Failure>> syncLoadComplete = (chunkHolder, ioThrowable) -> {
+diff --git a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java
+index 28b2c69ef1ad7938b09dd39e34008956f4922483..eb41c9524332d89d09df7e0fc91dd0310ad16067 100644
+--- a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java
++++ b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerOverworld.java
+@@ -10,9 +10,14 @@ import net.minecraft.resources.RegistryLookupCodec;
+ import net.minecraft.resources.ResourceKey;
+ import net.minecraft.world.level.newbiome.layer.GenLayer;
+ import net.minecraft.world.level.newbiome.layer.GenLayers;
++import org.yatopiamc.c2me.common.optimization.worldgen.global_biome_cache.BiomeCache; // Yatopia
++import net.minecraft.world.level.ChunkCoordIntPair; // Yatopia
++import net.minecraft.world.level.chunk.BiomeStorage; // Yatopia
+ 
+ public class WorldChunkManagerOverworld extends WorldChunkManager {
+ 
++    private BiomeCache cacheImpl = null; // Yatopia - port C2ME
++
+     public static final Codec<WorldChunkManagerOverworld> e = RecordCodecBuilder.create((instance) -> {
+         return instance.group(Codec.LONG.fieldOf("seed").stable().forGetter((worldchunkmanageroverworld) -> {
+             return worldchunkmanageroverworld.h;
+@@ -24,12 +29,18 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
+             return worldchunkmanageroverworld.k;
+         })).apply(instance, instance.stable(WorldChunkManagerOverworld::new));
+     });
+-    private final GenLayer f;
++    public static final Codec<WorldChunkManagerOverworld> getCodec() { return e; } // Yatopia - OBFHELPER
++    private final GenLayer f; // yarn: biomeSampler
++    private final GenLayer getBiomeSampler() { return this.f; } // Yatopia - OBFHELPER
+     private static final List<ResourceKey<BiomeBase>> g = ImmutableList.of(Biomes.OCEAN, Biomes.PLAINS, Biomes.DESERT, Biomes.MOUNTAINS, Biomes.FOREST, Biomes.TAIGA, Biomes.SWAMP, Biomes.RIVER, Biomes.FROZEN_OCEAN, Biomes.FROZEN_RIVER, Biomes.SNOWY_TUNDRA, Biomes.SNOWY_MOUNTAINS, new ResourceKey[]{Biomes.MUSHROOM_FIELDS, Biomes.MUSHROOM_FIELD_SHORE, Biomes.BEACH, Biomes.DESERT_HILLS, Biomes.WOODED_HILLS, Biomes.TAIGA_HILLS, Biomes.MOUNTAIN_EDGE, Biomes.JUNGLE, Biomes.JUNGLE_HILLS, Biomes.JUNGLE_EDGE, Biomes.DEEP_OCEAN, Biomes.STONE_SHORE, Biomes.SNOWY_BEACH, Biomes.BIRCH_FOREST, Biomes.BIRCH_FOREST_HILLS, Biomes.DARK_FOREST, Biomes.SNOWY_TAIGA, Biomes.SNOWY_TAIGA_HILLS, Biomes.GIANT_TREE_TAIGA, Biomes.GIANT_TREE_TAIGA_HILLS, Biomes.WOODED_MOUNTAINS, Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU, Biomes.BADLANDS, Biomes.WOODED_BADLANDS_PLATEAU, Biomes.BADLANDS_PLATEAU, Biomes.WARM_OCEAN, Biomes.LUKEWARM_OCEAN, Biomes.COLD_OCEAN, Biomes.DEEP_WARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN, Biomes.DEEP_COLD_OCEAN, Biomes.DEEP_FROZEN_OCEAN, Biomes.SUNFLOWER_PLAINS, Biomes.DESERT_LAKES, Biomes.GRAVELLY_MOUNTAINS, Biomes.FLOWER_FOREST, Biomes.TAIGA_MOUNTAINS, Biomes.SWAMP_HILLS, Biomes.ICE_SPIKES, Biomes.MODIFIED_JUNGLE, Biomes.MODIFIED_JUNGLE_EDGE, Biomes.TALL_BIRCH_FOREST, Biomes.TALL_BIRCH_HILLS, Biomes.DARK_FOREST_HILLS, Biomes.SNOWY_TAIGA_MOUNTAINS, Biomes.GIANT_SPRUCE_TAIGA, Biomes.GIANT_SPRUCE_TAIGA_HILLS, Biomes.MODIFIED_GRAVELLY_MOUNTAINS, Biomes.SHATTERED_SAVANNA, Biomes.SHATTERED_SAVANNA_PLATEAU, Biomes.ERODED_BADLANDS, Biomes.MODIFIED_WOODED_BADLANDS_PLATEAU, Biomes.MODIFIED_BADLANDS_PLATEAU});
++    private static final List<BiomeBase> getBiomes() { return biomes; } // Yatopia - OBHELPER
+     private final long h;
+     private final boolean i;
+     private final boolean j;
+-    private final IRegistry<BiomeBase> k;
++    private final IRegistry<BiomeBase> k; // yarn: biomeRegistry
++    private final IRegistry<BiomeBase> getBiomeRegistry() { return this.k; } // Yatopia - OBFHELPER
++
++    private static List<BiomeBase> biomes = null; // Yatopia
+ 
+     public WorldChunkManagerOverworld(long i, boolean flag, boolean flag1, IRegistry<BiomeBase> iregistry) {
+         super(WorldChunkManagerOverworld.g.stream().map((resourcekey) -> {
+@@ -42,7 +53,17 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
+         this.j = flag1;
+         this.k = iregistry;
+         this.f = GenLayers.a(i, flag, flag1 ? 6 : 4, 4);
+-    }
++        // Yatopia start - port C2ME
++        if (this.biomes == null) {
++            List<BiomeBase> biomes = new java.util.ArrayList<>();
++            for (ResourceKey<BiomeBase> resourceKey : g) {
++                biomes.add((BiomeBase) iregistry.d(resourceKey));
++            }
++            this.biomes = biomes;
++        }
++        this.cacheImpl = new BiomeCache(this.getBiomeSampler(), this.getBiomeRegistry(), getBiomes());
++        // Yatopia end
++   }
+ 
+     @Override
+     protected Codec<? extends WorldChunkManager> a() {
+@@ -51,6 +72,16 @@ public class WorldChunkManagerOverworld extends WorldChunkManager {
+ 
+     @Override
+     public BiomeBase getBiome(int i, int j, int k) {
+-        return this.f.a(this.k, i, k);
++        return this.cacheImpl.getBiomeForNoiseGen(i, j, k); // Yatopia - port C2ME
++    }
++
++    // Yatopia start - port C2ME
++    public BiomeStorage preloadBiomes(ChunkCoordIntPair pos, BiomeStorage def) {
++        return cacheImpl.preloadBiomes(pos, def);
++    }
++
++    public BiomeStorage getBiomes(ChunkCoordIntPair pos) {
++        return cacheImpl.preloadBiomes(pos, null);
+     }
++    // Yatopia end
+ }
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ChunkGenerator.java b/src/main/java/net/minecraft/world/level/chunk/ChunkGenerator.java
+index ff98335155c86803b98d8c67f0b40b8d65214890..11654e1fa2d68026280b6805621a0597e2899038 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ChunkGenerator.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ChunkGenerator.java
+@@ -47,12 +47,13 @@ import net.minecraft.world.level.levelgen.feature.configurations.StructureSettin
+ import net.minecraft.world.level.levelgen.feature.configurations.StructureSettingsStronghold;
+ import net.minecraft.world.level.levelgen.structure.StructureStart;
+ import net.minecraft.world.level.levelgen.structure.templatesystem.DefinedStructureManager;
++import net.minecraft.world.level.biome.WorldChunkManagerOverworld; // Yatopia
+ 
+ public abstract class ChunkGenerator {
+ 
+     public static final Codec<ChunkGenerator> a;
+     protected final WorldChunkManager b;
+-    protected final WorldChunkManager c;
++    protected final WorldChunkManager c; // Yarn: biomeSource
+     private final StructureSettings structureSettings;
+     private final long e;
+     private final List<ChunkCoordIntPair> f;
+@@ -126,8 +127,14 @@ public abstract class ChunkGenerator {
+ 
+     public void createBiomes(IRegistry<BiomeBase> iregistry, IChunkAccess ichunkaccess) {
+         ChunkCoordIntPair chunkcoordintpair = ichunkaccess.getPos();
++        // Yatopia start - port C2ME
++        if (this.getWorldChunkManager() instanceof WorldChunkManagerOverworld) {
++            ((ProtoChunk) ichunkaccess).setBiomes(((WorldChunkManagerOverworld) this.getWorldChunkManager()).preloadBiomes(chunkcoordintpair, ichunkaccess.getBiomeIndex()));
++            return;
++        }
+ 
+         ((ProtoChunk) ichunkaccess).a(new BiomeStorage(iregistry, chunkcoordintpair, this.c));
++        // Yatopia end
+     }
+ 
+     public void doCarving(long i, BiomeManager biomemanager, IChunkAccess ichunkaccess, WorldGenStage.Features worldgenstage_features) {
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java b/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
+index 1802498d48493d3e63c999a067c71e65ea29a890..2ba95a5a2649d2b8d3d3a64e5094ca52d63c7482 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ChunkStatus.java
+@@ -231,7 +231,7 @@ public class ChunkStatus {
+         if ((Object) this == ChunkStatus.LIGHT) {
+             this.reducedTaskRadius = 1;
+         }
+-        System.out.println(String.format("%s task radius: %d -> %d", this, this.getNeighborRadius(), this.reducedTaskRadius));
++        System.out.printf("%s task radius: %d -> %d%n", this, this.getNeighborRadius(), this.reducedTaskRadius);
+     }
+     // Yatopia end
+ 
+diff --git a/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java b/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java
+index 1658f0bb379653c205d08c771a7c23242d50f66d..e1bd44b4c9d0cb32a904dd6dc8bee1a9da7c0a99 100644
+--- a/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java
++++ b/src/main/java/net/minecraft/world/level/chunk/ProtoChunk.java
+@@ -327,6 +327,7 @@ public class ProtoChunk implements IChunkAccess {
+         return this.k;
+     }
+ 
++    public void setBiomes(BiomeStorage biomestorage) { a(biomestorage); } // Yatopia - OBFHELPER
+     public void a(BiomeStorage biomestorage) {
+         this.d = biomestorage;
+     }
+diff --git a/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java b/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java
+index 8b61bce3d7587832ddb2c0e29e76f9c68ddf5d8b..a8fd0589cdd3e68f95740f429eec8c2535b6b3a9 100644
+--- a/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java
++++ b/src/main/java/net/minecraft/world/level/newbiome/layer/GenLayer.java
+@@ -20,6 +20,7 @@ public class GenLayer {
+         this.b = (AreaLazy) areafactory.make();
+     }
+ 
++    public BiomeBase sample(IRegistry<BiomeBase> iregistry, int i, int j) { return this.a(iregistry, i, j); } // Yatopia - OBFHELPER
+     public BiomeBase a(IRegistry<BiomeBase> iregistry, int i, int j) {
+         int k = this.b.a(i, j);
+         ResourceKey<BiomeBase> resourcekey = BiomeRegistry.a(k);
+diff --git a/src/main/java/org/yatopiamc/c2me/common/optimization/package-info.java b/src/main/java/org/yatopiamc/c2me/common/optimization/package-info.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..037fea071962d35ddc70e7ef95a82b58329eca03
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/optimization/package-info.java
+@@ -0,0 +1 @@
++package org.yatopiamc.c2me.common.optimization;
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/optimization/worldgen/global_biome_cache/BiomeCache.java b/src/main/java/org/yatopiamc/c2me/common/optimization/worldgen/global_biome_cache/BiomeCache.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4dfc76ca456b5db1ec1c512f02df04ae3e7a6bea
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/optimization/worldgen/global_biome_cache/BiomeCache.java
+@@ -0,0 +1,60 @@
++package org.yatopiamc.c2me.common.optimization.worldgen.global_biome_cache;
++
++import com.google.common.cache.CacheBuilder;
++import com.google.common.cache.CacheLoader;
++import com.google.common.cache.LoadingCache;
++import com.google.common.util.concurrent.ThreadFactoryBuilder;
++
++import org.threadly.concurrent.UnfairExecutor;
++
++import java.util.List;
++import java.util.WeakHashMap;
++
++import net.minecraft.world.level.chunk.BiomeStorage;
++import net.minecraft.world.level.ChunkCoordIntPair;
++import net.minecraft.core.IRegistry;
++import net.minecraft.world.level.biome.BiomeBase;
++import net.minecraft.world.level.newbiome.layer.GenLayer;
++
++public class BiomeCache {
++
++    public static final UnfairExecutor EXECUTOR = new UnfairExecutor(2, new ThreadFactoryBuilder().setNameFormat("C2ME biomes #%d").setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).build());
++
++    private final IRegistry<BiomeBase> registry;
++
++    private final UncachedBiomeSource uncachedBiomeSource;
++
++    public BiomeCache(GenLayer sampler, IRegistry<BiomeBase> registry, List<BiomeBase> biomes) {
++        this.registry = registry;
++        this.uncachedBiomeSource = new UncachedBiomeSource(biomes, sampler, registry);
++    }
++
++    private final LoadingCache<ChunkCoordIntPair, BiomeStorage> biomeCache = CacheBuilder.newBuilder()
++            .softValues()
++            .maximumSize(8192)
++            .build(new CacheLoader<>() {
++                @Override
++                public BiomeStorage load(ChunkCoordIntPair key) {
++                    return new BiomeStorage(registry, key, uncachedBiomeSource);
++                }
++            });
++
++    private final ThreadLocal<WeakHashMap<ChunkCoordIntPair, BiomeStorage>> threadLocalCache = ThreadLocal.withInitial(WeakHashMap::new);
++
++    public BiomeBase getBiomeForNoiseGen(int biomeX, int biomeY, int biomeZ) {
++        final ChunkCoordIntPair chunkcoordinitpair = new ChunkCoordIntPair(biomeX >> 2, biomeZ >> 2);
++        final int startX = chunkcoordinitpair.getBlockX() >> 2;
++        final int startZ = chunkcoordinitpair.getBlockZ() >> 2;
++        return threadLocalCache.get().computeIfAbsent(chunkcoordinitpair, biomeCache).getBiome(biomeX - startX, biomeY, biomeZ - startZ);
++    }
++
++    public BiomeStorage preloadBiomes(ChunkCoordIntPair pos, BiomeStorage def) {
++        if (def != null) {
++            biomeCache.put(pos, def);
++            return def;
++        } else {
++            return biomeCache.getUnchecked(pos);
++        }
++    }
++
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/optimization/worldgen/global_biome_cache/UncachedBiomeSource.java b/src/main/java/org/yatopiamc/c2me/common/optimization/worldgen/global_biome_cache/UncachedBiomeSource.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..ea2bf5dc62d2dceb94593152e3d9060ae51eb32f
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/c2me/common/optimization/worldgen/global_biome_cache/UncachedBiomeSource.java
+@@ -0,0 +1,39 @@
++package org.yatopiamc.c2me.common.optimization.worldgen.global_biome_cache;
++
++import com.mojang.serialization.Codec;
++import java.util.List;
++
++import net.minecraft.world.level.biome.WorldChunkManager;
++import net.minecraft.world.level.newbiome.layer.GenLayer;
++import net.minecraft.core.IRegistry;
++import net.minecraft.world.level.biome.BiomeBase;
++
++import net.minecraft.world.level.biome.WorldChunkManagerOverworld;
++
++public class UncachedBiomeSource extends WorldChunkManager {
++    private final GenLayer sampler;
++    private final IRegistry<BiomeBase> registry;
++
++    public UncachedBiomeSource(List<BiomeBase> biomes, GenLayer sampler, IRegistry<BiomeBase> registry) {
++        super(biomes);
++        this.sampler = sampler;
++        this.registry = registry;
++    }
++
++    protected Codec<? extends WorldChunkManager> getCodec() { return this.a(); }
++
++    @Override
++    protected Codec<? extends WorldChunkManager> a() { // getCodec
++        return WorldChunkManagerOverworld.getCodec();
++    }
++
++    // @Override
++    // public WorldChunkManager withSeed(long seed) {
++    //     throw new UnsupportedOperationException();
++    // }
++
++    @Override
++    public BiomeBase getBiome(int biomeX, int biomeY, int biomeZ) {
++        return sampler.sample(this.registry, biomeX, biomeZ);
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java b/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java
+index 9e34b74d9abecae4b386d49514ceb0d1f333e271..bd19b5f16ca339ae634dbc0aba5d226b0daa2256 100644
+--- a/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java
++++ b/src/main/java/org/yatopiamc/c2me/common/util/AsyncCombinedLock.java
+@@ -1,10 +1,11 @@
+ package org.yatopiamc.c2me.common.util;
+ 
+-import com.google.common.collect.Sets;
++import com.google.common.util.concurrent.ThreadFactoryBuilder;
+ import com.ibm.asyncutil.locks.AsyncLock;
+ import com.ibm.asyncutil.locks.AsyncNamedLock;
+-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+ import net.minecraft.world.level.ChunkCoordIntPair;
++import org.threadly.concurrent.UnfairExecutor;
++import org.yatopiamc.yatopia.server.YatopiaConfig;
+ 
+ import java.util.Optional;
+ import java.util.Set;
+@@ -15,11 +16,9 @@ import java.util.stream.Collectors;
+ 
+ public class AsyncCombinedLock {
+ 
+-    public static final ForkJoinPool lockWorker = new ForkJoinPool(
+-            2,
+-            new C2MEForkJoinWorkerThreadFactory("C2ME lock worker #%d", Thread.NORM_PRIORITY - 1),
+-            null,
+-            true
++    public static final UnfairExecutor lockWorker = new UnfairExecutor(
++            YatopiaConfig.c2meThreads,
++            new ThreadFactoryBuilder().setDaemon(true).setPriority(Thread.NORM_PRIORITY - 1).setNameFormat("C2ME lock worker #%d").build()
+     );
+ 
+     private final AsyncNamedLock<ChunkCoordIntPair> lock;
+@@ -75,14 +74,7 @@ public class AsyncCombinedLock {
+         return future.thenApply(Function.identity());
+     }
+ 
+-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+-    private static class LockEntry {
+-        public final ChunkCoordIntPair name;
+-        public final Optional<AsyncLock.LockToken> lockToken;
+-
+-        private LockEntry(ChunkCoordIntPair name, Optional<AsyncLock.LockToken> lockToken) {
+-            this.name = name;
+-            this.lockToken = lockToken;
+-        }
++    private record LockEntry(ChunkCoordIntPair name,
++                             Optional<AsyncLock.LockToken> lockToken) {
+     }
+ }
+diff --git a/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java b/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java
+index 119421953de58fbc928e14bf618b340ee6b2fe94..6610f6990f68cac34a31e4a79be00b8d8d0d6b1d 100644
+--- a/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java
++++ b/src/main/java/org/yatopiamc/c2me/common/util/AsyncNamedLockDelegateAsyncLock.java
+@@ -1,5 +1,6 @@
+ package org.yatopiamc.c2me.common.util;
+ 
++import com.google.common.base.Preconditions;
+ import com.ibm.asyncutil.locks.AsyncLock;
+ import com.ibm.asyncutil.locks.AsyncNamedLock;
+ 
+@@ -7,14 +8,11 @@ import java.util.Objects;
+ import java.util.Optional;
+ import java.util.concurrent.CompletionStage;
+ 
+-public class AsyncNamedLockDelegateAsyncLock<T> implements AsyncLock {
++public record AsyncNamedLockDelegateAsyncLock<T>(AsyncNamedLock<T> delegate,
++                                                 T name) implements AsyncLock {
+ 
+-    private final AsyncNamedLock<T> delegate;
+-    private final T name;
+-
+-    public AsyncNamedLockDelegateAsyncLock(AsyncNamedLock<T> delegate, T name) {
+-        this.delegate = Objects.requireNonNull(delegate);
+-        this.name = name;
++    public AsyncNamedLockDelegateAsyncLock {
++        Preconditions.checkNotNull(this.delegate());
+     }
+ 
+     @Override
+@@ -26,4 +24,4 @@ public class AsyncNamedLockDelegateAsyncLock<T> implements AsyncLock {
+     public Optional<LockToken> tryLock() {
+         return delegate.tryLock(name);
+     }
+-}
+\ No newline at end of file
++}
