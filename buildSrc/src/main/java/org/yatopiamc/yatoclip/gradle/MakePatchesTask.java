@@ -1,7 +1,10 @@
 package org.yatopiamc.yatoclip.gradle;
 
+import com.github.jengelman.gradle.plugins.shadow.impl.RelocatorRemapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
@@ -13,10 +16,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
 import org.gradle.workers.WorkerExecutor;
 
@@ -32,8 +37,10 @@ import java.io.Writer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,6 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+@DisableCachingByDefault
 public class MakePatchesTask extends DefaultTask {
 
     @OutputDirectory
@@ -54,16 +62,16 @@ public class MakePatchesTask extends DefaultTask {
     @Incremental
     public File targetJar = null;
 
-    public Set<PatchesMetadata.Relocation> getRelocations() {
-        return relocations;
+    @Internal
+    public RelocatorRemapper remapper = null;
+
+    public RelocatorRemapper getRemapper() {
+        return remapper;
     }
 
-    public void setRelocations(Set<PatchesMetadata.Relocation> relocations) {
-        this.relocations = relocations;
+    public void setRemapper(RelocatorRemapper remapper) {
+        this.remapper = remapper;
     }
-
-    @Input
-    public Set<PatchesMetadata.Relocation> relocations;
 
     public File getOriginalJar() {
         return originalJar;
@@ -159,11 +167,23 @@ public class MakePatchesTask extends DefaultTask {
                         }
                     }
                 })).build());
+        BiMap<String, String> relocationMap = HashBiMap.create();
+        genPatches.progress("Calculating relocations");
+        ((Iterator<ZipEntry>) originalZip.get().entries()).forEachRemaining(zipEntry -> {
+            if (zipEntry.isDirectory()) return;
+            relocationMap.put(zipEntry.getName(), remapper.map(zipEntry.getName()));
+        });
         AtomicInteger current = new AtomicInteger(0);
         final int size = targetZip.get().size();
+        HashSet<String> processedEntries = new HashSet<>(size * 2, 0.5f);
         ((Iterator<ZipEntry>) targetZip.get().entries()).forEachRemaining(zipEntryT -> {
             genPatches.progress("Submitting tasks (" + current.incrementAndGet() + "/" + size + ")");
             if (zipEntryT.isDirectory()) return;
+            if (processedEntries.contains(zipEntryT.getName())) {
+                getLogger().warn("Duplicate entry: " + zipEntryT.getName());
+                return;
+            }
+            processedEntries.add(zipEntryT.getName());
             executorService.execute(() -> {
                 ZipEntry zipEntry = targetZip.get().getEntry(zipEntryT.getName());
                 final String child = zipEntry.getName();
@@ -172,7 +192,7 @@ public class MakePatchesTask extends DefaultTask {
                 outputFile.getParentFile().mkdirs();
                 final byte[] originalBytes;
                 final byte[] targetBytes;
-                final ZipEntry oEntry = originalZip.get().getEntry(applyRelocationsReverse(child));
+                final ZipEntry oEntry = originalZip.get().getEntry(relocationMap.inverse().getOrDefault(child, child));
                 try (
                         final InputStream oin = oEntry != null ? originalZip.get().getInputStream(oEntry) : null;
                         final InputStream tin = targetZip.get().getInputStream(zipEntry);
@@ -189,7 +209,7 @@ public class MakePatchesTask extends DefaultTask {
                 try (final OutputStream out = new FileOutputStream(outputFile)) {
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                     Diff.diff(originalBytes, targetBytes, byteArrayOutputStream);
-                    patchMetadata.add(new PatchesMetadata.PatchMetadata(child, toHex(digestThreadLocal.get().digest(originalBytes)), toHex(digestThreadLocal.get().digest(targetBytes)), toHex(digestThreadLocal.get().digest(byteArrayOutputStream.toByteArray()))));
+                    patchMetadata.add(new PatchesMetadata.PatchMetadata(relocationMap.inverse().getOrDefault(child, child), child, toHex(digestThreadLocal.get().digest(originalBytes)), toHex(digestThreadLocal.get().digest(targetBytes)), toHex(digestThreadLocal.get().digest(byteArrayOutputStream.toByteArray()))));
                     out.write(byteArrayOutputStream.toByteArray());
                 } catch (Throwable t) {
                     Throwables.throwIfUnchecked(t);
@@ -202,7 +222,7 @@ public class MakePatchesTask extends DefaultTask {
         genPatches.progress("Calculating exclusions");
         Set<String> copyExcludes = new HashSet<>();
         ((Iterator<ZipEntry>) originalZip.get().entries()).forEachRemaining(zipEntry -> {
-            if(targetZip.get().getEntry(applyRelocations(zipEntry.getName())) == null)
+            if(targetZip.get().getEntry(relocationMap.getOrDefault(zipEntry.getName(), zipEntry.getName())) == null)
                 copyExcludes.add(zipEntry.getName());
         });
         originalZip.get().close();
@@ -216,7 +236,7 @@ public class MakePatchesTask extends DefaultTask {
         genPatches.progress("Writing patches metadata");
         try (final OutputStream out = new FileOutputStream(new File(outputDir, "metadata.json"));
              final Writer writer = new OutputStreamWriter(out)) {
-            new Gson().toJson(new PatchesMetadata(patchMetadata, relocations, copyExcludes), writer);
+            new Gson().toJson(new PatchesMetadata(patchMetadata, copyExcludes, new HashMap<>(relocationMap), new HashMap<>(relocationMap.inverse())), writer);
         }
 
         /*
@@ -232,30 +252,6 @@ public class MakePatchesTask extends DefaultTask {
 
         genPatches.completed();
 
-    }
-
-    private String applyRelocations(String name) {
-        if(!name.endsWith(".class")) return name;
-        if (name.indexOf('/') == -1)
-            name = "/" + name;
-        for (PatchesMetadata.Relocation relocation : relocations) {
-            if (name.startsWith(relocation.from) && (relocation.includeSubPackages || name.split("/").length == name.split("/").length - 1)) {
-                return relocation.to + name.substring(relocation.from.length());
-            }
-        }
-        return name;
-    }
-
-    private String applyRelocationsReverse(String name) {
-        if(!name.endsWith(".class")) return name;
-        if (name.indexOf('/') == -1)
-            name = "/" + name;
-        for (PatchesMetadata.Relocation relocation : relocations) {
-            if (name.startsWith(relocation.to) && (relocation.includeSubPackages || name.split("/").length == name.split("/").length - 1)) {
-                return relocation.from + name.substring(relocation.to.length());
-            }
-        }
-        return name;
     }
 
     public static String toHex(final byte[] hash) {

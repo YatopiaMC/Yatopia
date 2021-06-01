@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '8', '11', '15', '16' ]
+        java: [ '16' ]
       fail-fast: false
     steps:
     - uses: actions/checkout@v2
@@ -65,8 +65,7 @@ jobs:
         
     - name: Apply Patches
       run: |
-        ./gradlew setupUpstream
-        ./gradlew applyPatches
+        ./gradlew setupUpstream applyPatches
                  
     - name: Pull Maven Cache
       uses: actions/cache@v2
@@ -77,11 +76,11 @@ jobs:
 
     - name: Build Yatopia
       run: |
-        ./gradlew clean build paperclip
+        ./gradlew clean build yatoclip
         
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Yatopia-${{ matrix.java }}
-        path: yatopia-${{ steps.mcver.outputs.mcver }}-paperclip.jar
+        path: yatopia-${{ steps.mcver.outputs.mcver }}-yatoclip.jar
       

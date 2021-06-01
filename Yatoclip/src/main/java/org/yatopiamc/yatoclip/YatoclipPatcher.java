@@ -57,7 +57,7 @@ public class YatoclipPatcher {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			try (ZipFile patchedZip = new ZipFile(patchedJar.toFile())) {
 				for (PatchesMetadata.PatchMetadata patchMetadata : patchesMetadata.patches) {
-					ZipEntry zipEntry = patchedZip.getEntry(patchMetadata.name);
+					ZipEntry zipEntry = patchedZip.getEntry(patchMetadata.targetName);
 					if (zipEntry == null || !patchMetadata.targetHash.equals(ServerSetup.toHex(digest.digest(IOUtils.toByteArray(patchedZip.getInputStream(zipEntry))))))
 						return false;
 				}
@@ -72,10 +72,10 @@ public class YatoclipPatcher {
 	static void patchJar(Path memberMappedJar, Path patchedJar) {
 		requireNonNull(memberMappedJar);
 		requireNonNull(patchedJar);
-		if(!memberMappedJar.toFile().isFile()) throw new IllegalArgumentException(new FileNotFoundException());
+		if(!memberMappedJar.toFile().isFile()) throw new IllegalArgumentException(new FileNotFoundException(memberMappedJar.toString()));
 		try {
 			patchedJar.toFile().getParentFile().mkdirs();
-			final ThreadLocal<ZipFile> classMappedZip = ThreadLocal.withInitial(() -> {
+			final ThreadLocal<ZipFile> memberMappedZip = ThreadLocal.withInitial(() -> {
 				try {
 					return new ZipFile(memberMappedJar.toFile());
 				} catch (IOException e) {
@@ -99,7 +99,7 @@ public class YatoclipPatcher {
 							r.run();
 						} finally {
 							try {
-								classMappedZip.get().close();
+								memberMappedZip.get().close();
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
@@ -113,7 +113,7 @@ public class YatoclipPatcher {
 			try {
 				final Set<PatchData> patchDataSet = patchesMetadata.patches.stream().map((PatchesMetadata.PatchMetadata metadata) -> new PatchData(CompletableFuture.supplyAsync(() -> {
 					try {
-						return getPatchedBytes(classMappedZip.get(), digest.get(), metadata);
+						return getPatchedBytes(memberMappedZip.get(), digest.get(), metadata);
 					} catch (IOException | CompressorException | InvalidHeaderException e) {
 						throw new RuntimeException(e);
 					}
@@ -123,19 +123,19 @@ public class YatoclipPatcher {
 					patchedZip.setLevel(Deflater.BEST_SPEED);
 					Set<String> processed = new HashSet<>();
 					for (PatchData patchData : patchDataSet) {
-						putNextEntrySafe(patchedZip, patchData.metadata.name);
+						putNextEntrySafe(patchedZip, patchData.metadata.targetName);
 						final byte[] patchedBytes = patchData.patchedBytesFuture.join();
 						patchedZip.write(patchedBytes);
 						patchedZip.closeEntry();
-						processed.add(patchData.metadata.name);
+						processed.add(patchData.metadata.targetName);
 					}
 
-					((Iterator<ZipEntry>) classMappedZip.get().entries()).forEachRemaining(zipEntry -> {
-						if (zipEntry.isDirectory() || processed.contains(applyRelocations(zipEntry.getName())) || patchesMetadata.copyExcludes.contains(zipEntry.getName()))
+					((Iterator<ZipEntry>) memberMappedZip.get().entries()).forEachRemaining(zipEntry -> {
+						if (zipEntry.isDirectory() || processed.contains(patchesMetadata.relocationMapping.getOrDefault(zipEntry.getName(), zipEntry.getName())) || patchesMetadata.copyExcludes.contains(zipEntry.getName()))
 							return;
 						try {
-							InputStream in = classMappedZip.get().getInputStream(zipEntry);
-							putNextEntrySafe(patchedZip, zipEntry.getName());
+							InputStream in = memberMappedZip.get().getInputStream(zipEntry);
+							putNextEntrySafe(patchedZip, patchesMetadata.relocationMapping.getOrDefault(zipEntry.getName(), zipEntry.getName()));
 							patchedZip.write(IOUtils.toByteArray(in));
 							patchedZip.closeEntry();
 						} catch (Throwable t) {
@@ -152,28 +152,31 @@ public class YatoclipPatcher {
 		}
 	}
 
-	private static byte[] getPatchedBytes(ZipFile classMappedZip, MessageDigest digest, PatchesMetadata.PatchMetadata patchMetadata) throws IOException, CompressorException, InvalidHeaderException {
+	private static byte[] getPatchedBytes(ZipFile memberMappedZip, MessageDigest digest, PatchesMetadata.PatchMetadata patchMetadata) throws IOException, CompressorException, InvalidHeaderException {
 		final byte[] originalBytes;
-		final ZipEntry originalEntry = classMappedZip.getEntry(applyRelocationsReverse(patchMetadata.name));
+		final ZipEntry originalEntry = memberMappedZip.getEntry(patchMetadata.originalName);
 		if (originalEntry != null)
-			try (final InputStream in = classMappedZip.getInputStream(originalEntry)) {
+			try (final InputStream in = memberMappedZip.getInputStream(originalEntry)) {
 				originalBytes = IOUtils.toByteArray(in);
 			}
 		else originalBytes = new byte[0];
 		final byte[] patchBytes;
-		try (final InputStream in = YatoclipPatcher.class.getClassLoader().getResourceAsStream("patches/" + patchMetadata.name + ".patch")) {
+		try (final InputStream in = YatoclipPatcher.class.getClassLoader().getResourceAsStream("patches/" + patchMetadata.targetName + ".patch")) {
 			if (in == null)
-				throw new FileNotFoundException();
+				throw new FileNotFoundException("patches/" + patchMetadata.targetName + ".patch");
 			patchBytes = IOUtils.toByteArray(in);
 		}
-		if (!patchMetadata.originalHash.equals(ServerSetup.toHex(digest.digest(originalBytes))) || !patchMetadata.patchHash.equals(ServerSetup.toHex(digest.digest(patchBytes))))
-			throw new FileNotFoundException("Hash do not match");
+		if (!patchMetadata.originalHash.equals(ServerSetup.toHex(digest.digest(originalBytes))))
+			throw new FileNotFoundException(String.format("Hash do not match: original file: %s: expected %s but got %s", patchMetadata.originalName, patchMetadata.originalHash, ServerSetup.toHex(digest.digest(originalBytes))));
+
+		if (!patchMetadata.patchHash.equals(ServerSetup.toHex(digest.digest(patchBytes))))
+			throw new FileNotFoundException(String.format("Hash do not match: patch file: %s: expected %s but got %s", patchMetadata.targetName + ".patch", patchMetadata.patchHash, ServerSetup.toHex(digest.digest(patchBytes))));
 
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		Patch.patch(originalBytes, patchBytes, byteOut);
 		final byte[] patchedBytes = byteOut.toByteArray();
 		if (!patchMetadata.targetHash.equals(ServerSetup.toHex(digest.digest(patchedBytes))))
-			throw new FileNotFoundException("Hash do not match");
+			throw new FileNotFoundException(String.format("Hash do not match: target file: %s: expected %s but got %s", patchMetadata.targetName, patchMetadata.targetHash, ServerSetup.toHex(digest.digest(patchedBytes))));
 		return patchedBytes;
 	}
 
@@ -193,30 +196,6 @@ public class YatoclipPatcher {
 		}
 		final ZipEntry entry = new ZipEntry(name);
 		patchedZip.putNextEntry(entry);
-	}
-
-	private static String applyRelocations(String name) {
-		if (!name.endsWith(".class")) return name;
-		if (name.indexOf('/') == -1)
-			name = "/" + name;
-		for (PatchesMetadata.Relocation relocation : patchesMetadata.relocations) {
-			if (name.startsWith(relocation.from) && (relocation.includeSubPackages || name.split("/").length == name.split("/").length - 1)) {
-				return relocation.to + name.substring(relocation.from.length());
-			}
-		}
-		return name;
-	}
-
-	private static String applyRelocationsReverse(String name) {
-		if (!name.endsWith(".class")) return name;
-		if (name.indexOf('/') == -1)
-			name = "/" + name;
-		for (PatchesMetadata.Relocation relocation : patchesMetadata.relocations) {
-			if (name.startsWith(relocation.to) && (relocation.includeSubPackages || name.split("/").length == name.split("/").length - 1)) {
-				return relocation.from + name.substring(relocation.to.length());
-			}
-		}
-		return name;
 	}
 
 	private static class PatchData {

@@ -1,0 +1,195 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: ishland <ishlandmc@yeah.net>
+Date: Wed, 3 Feb 2021 23:00:18 +0800
+Subject: [PATCH] lithium MultiNoiseBiomeSourceMixin
+
+
+diff --git a/src/main/java/net/minecraft/world/level/biome/BiomeBase.java b/src/main/java/net/minecraft/world/level/biome/BiomeBase.java
+index c4fb051739c1c186c1574185e0653f513755987d..e9993fa0f3af9e3ecd01f91ef5c14e528bdb33b5 100644
+--- a/src/main/java/net/minecraft/world/level/biome/BiomeBase.java
++++ b/src/main/java/net/minecraft/world/level/biome/BiomeBase.java
+@@ -52,6 +52,13 @@ import org.apache.logging.log4j.Logger;
+ public final class BiomeBase {
+ 
+     public static final Logger LOGGER = LogManager.getLogger();
++    // Yatopia start
++    static class cProxy extends BiomeBase.c {
++        public cProxy(float f, float f1, float f2, float f3, float f4) {
++            super(f, f1, f2, f3, f4);
++        }
++    }
++    // Yatopia end
+     // Paper start
+     private static class dProxy extends BiomeBase.d {
+         private dProxy(Precipitation biomebase_precipitation, float f, TemperatureModifier biomebase_temperaturemodifier, float f1) {
+diff --git a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java
+index 5287aec4c384c6cea76334ae1d8dc99070e8f43e..23637d9be9f9973266c1bba699c40cdc6c5d9e6d 100644
+--- a/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java
++++ b/src/main/java/net/minecraft/world/level/biome/WorldChunkManagerMultiNoise.java
+@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
+ import com.google.common.collect.Maps;
+ import com.mojang.datafixers.util.Either;
+ import com.mojang.datafixers.util.Function3;
++import com.mojang.datafixers.util.Function6; // Yatopia - decompile fix
+ import com.mojang.datafixers.util.Pair;
+ import com.mojang.serialization.Codec;
+ import com.mojang.serialization.DataResult;
+@@ -27,26 +28,43 @@ import net.minecraft.world.level.levelgen.synth.NoiseGeneratorNormal;
+ 
+ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+ 
++    // Yatopia start - decompile fix
++    private static class aProxy extends WorldChunkManagerMultiNoise.a {
++        public aProxy(int i, List<Double> list) {
++            super(i, list);
++        }
++    }
++    private static class bProxy extends WorldChunkManagerMultiNoise.b {
++        public bProxy(MinecraftKey minecraftkey, Function3<WorldChunkManagerMultiNoise.b, IRegistry<BiomeBase>, Long, WorldChunkManagerMultiNoise> function3) {
++            super(minecraftkey, function3);
++        }
++    }
++    private static class cProxy extends WorldChunkManagerMultiNoise.c {
++        private cProxy(WorldChunkManagerMultiNoise.b worldchunkmanagermultinoise_b, IRegistry<BiomeBase> iregistry, long i) {
++            super(worldchunkmanagermultinoise_b, iregistry, i);
++        }
++    }
++    // Yatopia end
+     private static final WorldChunkManagerMultiNoise.a g = new WorldChunkManagerMultiNoise.a(-7, ImmutableList.of(1.0D, 1.0D));
+     public static final MapCodec<WorldChunkManagerMultiNoise> e = RecordCodecBuilder.mapCodec((instance) -> {
+         return instance.group(Codec.LONG.fieldOf("seed").forGetter((worldchunkmanagermultinoise) -> {
+             return worldchunkmanagermultinoise.r;
+         }), RecordCodecBuilder.create((instance1) -> {
+-            return instance1.group(BiomeBase.c.a.fieldOf("parameters").forGetter(Pair::getFirst), BiomeBase.d.fieldOf("biome").forGetter(Pair::getSecond)).apply(instance1, Pair::of);
+-        }).listOf().fieldOf("biomes").forGetter((worldchunkmanagermultinoise) -> {
+-            return worldchunkmanagermultinoise.p;
+-        }), WorldChunkManagerMultiNoise.a.a.fieldOf("temperature_noise").forGetter((worldchunkmanagermultinoise) -> {
++            return instance1.group(BiomeBase.cProxy.a.fieldOf("parameters").forGetter((java.util.function.Function) t -> ((Pair) t).getFirst()), BiomeBase.d.fieldOf("biome").forGetter(t1 -> (Supplier<BiomeBase>) ((Pair) t1).getSecond())).apply(instance1, Pair::of); // Yatopia - decompile fix
++        }).listOf().fieldOf("biomes").forGetter((Function) worldchunkmanagermultinoise -> { // Yatopia - decompile fix
++            return ((WorldChunkManagerMultiNoise) worldchunkmanagermultinoise).p; // Yatopia - decompile fix
++        }), WorldChunkManagerMultiNoise.aProxy.a.fieldOf("temperature_noise").forGetter((worldchunkmanagermultinoise) -> { // Yatopia - decompile fix
+             return worldchunkmanagermultinoise.h;
+-        }), WorldChunkManagerMultiNoise.a.a.fieldOf("humidity_noise").forGetter((worldchunkmanagermultinoise) -> {
++        }), WorldChunkManagerMultiNoise.aProxy.a.fieldOf("humidity_noise").forGetter((worldchunkmanagermultinoise) -> { // Yatopia - decompile fix
+             return worldchunkmanagermultinoise.i;
+-        }), WorldChunkManagerMultiNoise.a.a.fieldOf("altitude_noise").forGetter((worldchunkmanagermultinoise) -> {
++        }), WorldChunkManagerMultiNoise.aProxy.a.fieldOf("altitude_noise").forGetter((worldchunkmanagermultinoise) -> { // Yatopia - decompile fix
+             return worldchunkmanagermultinoise.j;
+-        }), WorldChunkManagerMultiNoise.a.a.fieldOf("weirdness_noise").forGetter((worldchunkmanagermultinoise) -> {
++        }), WorldChunkManagerMultiNoise.aProxy.a.fieldOf("weirdness_noise").forGetter((worldchunkmanagermultinoise) -> { // Yatopia - decompile fix
+             return worldchunkmanagermultinoise.k;
+-        })).apply(instance, WorldChunkManagerMultiNoise::new);
++        })).apply(instance, (Function6<Long, List<Pair<BiomeBase.c, Supplier<BiomeBase>>>, WorldChunkManagerMultiNoise.a, WorldChunkManagerMultiNoise.a, WorldChunkManagerMultiNoise.a, WorldChunkManagerMultiNoise.a, WorldChunkManagerMultiNoise>) WorldChunkManagerMultiNoise::new); // Yatopia - decompile fix
+     });
+-    public static final Codec<WorldChunkManagerMultiNoise> f = Codec.mapEither(WorldChunkManagerMultiNoise.c.a, WorldChunkManagerMultiNoise.e).xmap((either) -> {
+-        return (WorldChunkManagerMultiNoise) either.map(WorldChunkManagerMultiNoise.c::d, Function.identity());
++    public static final Codec<WorldChunkManagerMultiNoise> f = Codec.mapEither(WorldChunkManagerMultiNoise.cProxy.a, WorldChunkManagerMultiNoise.e).xmap((either) -> { // Yatopia - decompile fix
++        return (WorldChunkManagerMultiNoise) either.map(c -> c.d(), Function.identity()); // Yatopia - decompile fix
+     }, (worldchunkmanagermultinoise) -> {
+         return (Either) worldchunkmanagermultinoise.d().map(Either::left).orElseGet(() -> {
+             return Either.right(worldchunkmanagermultinoise);
+@@ -100,8 +118,44 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+         });
+     }
+ 
++    //Yatopia - Faster Method
++    /**
++     * @reason Remove stream based code in favor of regular collections.
++     * @author SuperCoder79
++     */
+     @Override
+     public BiomeBase getBiome(int i, int j, int k) {
++        // [VanillaCopy] MultiNoiseBiomeSource#getBiomeForNoiseGen
++
++        // Get the y value for perlin noise sampling. This field is always set to false in vanilla code.
++        int l = this.q ? j : 0;
++
++        // Calculate the noise point based using 4 perlin noise samplers.
++        BiomeBase.c biomebase_c = new BiomeBase.c(
++                (float) this.l.a(i, l, k),
++                (float) this.m.a(i, l, k),
++                (float) this.n.a(i, l, k),
++                (float) this.o.a(i, l, k),
++                0.0F);
++
++        int idx = -1;
++        float min = Float.POSITIVE_INFINITY;
++
++        // Iterate through the biome points and calculate the distance to the current noise point.
++        for (int itterator = 0; itterator < this.p.size(); itterator++) {
++            float distance =  this.p.get(itterator).getFirst().a(biomebase_c);
++
++            // If the distance is less than the recorded minimum, update the minimum and set the current index.
++            if (min > distance) {
++                idx = itterator;
++                min = distance;
++            }
++        }
++
++        // Return the biome with the noise point closest to the evaluated one.
++        return this.p.get(idx).getSecond().get() == null ? BiomeRegistry.b :  this.p.get(idx).getSecond().get();
++    }
++    /* //Yatopia - Replace Method
+         int l = this.q ? j : 0;
+         BiomeBase.c biomebase_c = new BiomeBase.c((float) this.l.a((double) i, (double) l, (double) k), (float) this.m.a((double) i, (double) l, (double) k), (float) this.n.a((double) i, (double) l, (double) k), (float) this.o.a((double) i, (double) l, (double) k), 0.0F);
+ 
+@@ -109,15 +163,17 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+             return ((BiomeBase.c) pair.getFirst()).a(biomebase_c);
+         })).map(Pair::getSecond).map(Supplier::get).orElse(BiomeRegistry.b);
+     }
++    */ //Yatopia End
++
+ 
+     public boolean b(long i) {
+-        return this.r == i && this.s.isPresent() && Objects.equals(((Pair) this.s.get()).getSecond(), WorldChunkManagerMultiNoise.b.a);
++        return this.r == i && this.s.isPresent() && Objects.equals(((Pair) this.s.get()).getSecond(), WorldChunkManagerMultiNoise.bProxy.a); // Yatopia - decompile fix
+     }
+ 
+     public static class b {
+ 
+-        private static final Map<MinecraftKey, WorldChunkManagerMultiNoise.b> b = Maps.newHashMap();
+-        public static final WorldChunkManagerMultiNoise.b a = new WorldChunkManagerMultiNoise.b(new MinecraftKey("nether"), (worldchunkmanagermultinoise_b, iregistry, olong) -> {
++        protected static final Map<MinecraftKey, WorldChunkManagerMultiNoise.b> b = Maps.newHashMap(); // Yatopia - decompile fix
++        public static final WorldChunkManagerMultiNoise.b a = new WorldChunkManagerMultiNoise.b(new MinecraftKey("nether"), (worldchunkmanagermultinoise_b, iregistry, olong) -> { // Yatopia - decompile fix
+             return new WorldChunkManagerMultiNoise(olong, ImmutableList.of(Pair.of(new BiomeBase.c(0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
+                 return (BiomeBase) iregistry.d(Biomes.NETHER_WASTES);
+             }), Pair.of(new BiomeBase.c(0.0F, -0.5F, 0.0F, 0.0F, 0.0F), () -> {
+@@ -136,7 +192,7 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+         public b(MinecraftKey minecraftkey, Function3<WorldChunkManagerMultiNoise.b, IRegistry<BiomeBase>, Long, WorldChunkManagerMultiNoise> function3) {
+             this.c = minecraftkey;
+             this.d = function3;
+-            WorldChunkManagerMultiNoise.b.b.put(minecraftkey, this);
++            WorldChunkManagerMultiNoise.bProxy.b.put(minecraftkey, this); // Yatopia - decompile fix
+         }
+ 
+         public WorldChunkManagerMultiNoise a(IRegistry<BiomeBase> iregistry, long i) {
+@@ -144,16 +200,16 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+         }
+     }
+ 
+-    static final class c {
++    static class c { // Yatopia - decompile fix
+ 
+         public static final MapCodec<WorldChunkManagerMultiNoise.c> a = RecordCodecBuilder.mapCodec((instance) -> {
+             return instance.group(MinecraftKey.a.flatXmap((minecraftkey) -> {
+-                return (DataResult) Optional.ofNullable(WorldChunkManagerMultiNoise.b.b.get(minecraftkey)).map(DataResult::success).orElseGet(() -> {
++                return (DataResult) Optional.ofNullable(bProxy.b.get(minecraftkey)).map(DataResult::success).orElseGet(() -> { // Yatopia - decompile fix
+                     return DataResult.error("Unknown preset: " + minecraftkey);
+                 });
+             }, (worldchunkmanagermultinoise_b) -> {
+-                return DataResult.success(worldchunkmanagermultinoise_b.c);
+-            }).fieldOf("preset").stable().forGetter(WorldChunkManagerMultiNoise.c::a), RegistryLookupCodec.a(IRegistry.ay).forGetter(WorldChunkManagerMultiNoise.c::b), Codec.LONG.fieldOf("seed").stable().forGetter(WorldChunkManagerMultiNoise.c::c)).apply(instance, instance.stable(WorldChunkManagerMultiNoise.c::new));
++                return DataResult.success(((WorldChunkManagerMultiNoise.b) worldchunkmanagermultinoise_b).c); // Yatopia - decompile fix
++            }).fieldOf("preset").stable().forGetter(o -> ((WorldChunkManagerMultiNoise.c) o).a()), (RecordCodecBuilder) RegistryLookupCodec.a(IRegistry.ay).forGetter((Function<WorldChunkManagerMultiNoise.c, IRegistry<BiomeBase>>) c -> c.b()), (RecordCodecBuilder) Codec.LONG.fieldOf("seed").stable().forGetter((Function<WorldChunkManagerMultiNoise.c, Long>) c -> c.c())).apply(instance, instance.stable((Function3<WorldChunkManagerMultiNoise.b, IRegistry<BiomeBase>, Long, WorldChunkManagerMultiNoise.c>) WorldChunkManagerMultiNoise.c::new)); // Yatopia - decompile fix
+         });
+         private final WorldChunkManagerMultiNoise.b b;
+         private final IRegistry<BiomeBase> c;
+@@ -187,7 +243,7 @@ public class WorldChunkManagerMultiNoise extends WorldChunkManager {
+         private final int b;
+         private final DoubleList c;
+         public static final Codec<WorldChunkManagerMultiNoise.a> a = RecordCodecBuilder.create((instance) -> {
+-            return instance.group(Codec.INT.fieldOf("firstOctave").forGetter(WorldChunkManagerMultiNoise.a::a), Codec.DOUBLE.listOf().fieldOf("amplitudes").forGetter(WorldChunkManagerMultiNoise.a::b)).apply(instance, WorldChunkManagerMultiNoise.a::new);
++            return instance.group(Codec.INT.fieldOf("firstOctave").forGetter((Function<WorldChunkManagerMultiNoise.a, Integer>) a -> a.a()), Codec.DOUBLE.listOf().fieldOf("amplitudes").forGetter(a -> a.b())).apply(instance, WorldChunkManagerMultiNoise.a::new); // Yatopia - decompile fix
+         });
+ 
+         public a(int i, List<Double> list) {

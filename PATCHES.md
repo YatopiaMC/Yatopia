@@ -110,6 +110,8 @@ This is an overview of all the patches that are currently used.
 | server |  Breedable parrots      | BillyGalbreath |  |
 | api |  Bring back server name      | William Blake Galbreath |  |
 | server |  Bring back server name      | William Blake Galbreath |  |
+| server |  C2ME Port      | ishland | Simon Gardling |
+| server |  C2ME update      | Simon Gardling |  |
 | server |  Cache climbing check for activation      | Paul Sauve |  |
 | server |  Cache coordinate key for micro opt      | Paul Sauve |  |
 | server |  Cache entityhuman display name      | Paul Sauve |  |
@@ -237,6 +239,7 @@ This is an overview of all the patches that are currently used.
 | server |  Fix the dead lagging the server      | William Blake Galbreath |  |
 | server |  Fix vanilla command permission handler      | William Blake Galbreath |  |
 | server |  Flying squids! Oh my!      | William Blake Galbreath |  |
+| server |  Force world save      | ishland |  |
 | api |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | server |  Full netherite armor grants fire resistance      | BillyGalbreath |  |
 | server |  Gamemode extra permissions      | BillyGalbreath |  |
@@ -306,6 +309,7 @@ This is an overview of all the patches that are currently used.
 | server |  Movement options for armor stands      | Mariell Hoversholm |  |
 | server |  Multi-Threaded Server Ticking Vanilla      | Spottedleaf |  |
 | server |  Multi-Threaded ticking CraftBukkit      | Spottedleaf |  |
+| server |  Multi-threaded World Upgrade      | ishland |  |
 | server |  Name craft scheduler threads according to the plugin using      | Spottedleaf |  |
 | server |  New nbt cache      | Hugo Planque | ishland |
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
@@ -455,10 +459,13 @@ This is an overview of all the patches that are currently used.
 | server |  Zombie horse naturally spawn      | William Blake Galbreath |  |
 | server |  add config for logging login location      | Simon Gardling |  |
 | server |  dont load chunks for physics      | Aikar |  |
+| api |  java 16      | Simon Gardling |  |
+| server |  java 16      | Simon Gardling |  |
 | server |  lithium DataTrackerMixin      | JellySquid | tr7zw |
 | server |  lithium HashedList      | JellySquid |  |
 | server |  lithium MixinBox      | JellySquid |  |
 | server |  lithium MixinDirection      | JellySquid |  |
+| server |  lithium MultiNoiseBiomeSourceMixin      | ishland |  |
 | server |  lithium NoiseChunkGeneratorMixin      | JellySquid |  |
 | server |  lithium PerlinNoiseSamplerMixin      | JellySquid | Bud Gidiere |
 | server |  lithium VoronoiBiomeAccessTypeMixin      | JellySquid |  |
