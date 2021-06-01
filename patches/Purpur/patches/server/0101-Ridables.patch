@@ -5,10 +5,10 @@ Subject: [PATCH] Ridables
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index cbc6d074a7366f6456c6af2a3fedf0f7bd40cb5b..8ba25be0ea59483e824be9afc63d47cb75b5b334 100644
+index 6fee6b5ea9e2a946bf170a8ad94ae785502419b0..6c0729b0b2a956607067885768cbe848d7406ad6 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1543,6 +1543,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1544,6 +1544,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
              WorldServer worldserver = (WorldServer) iterator.next();
              worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
              worldserver.hasEntityMoveEvent =  EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
@@ -116,10 +116,10 @@ index 375ac2a1c126a27a0a47ab7a369a821785aeada9..ac41fc5b23ec81a57c3ec8f1fa0cff0b
          return new Throwable(entity + " Added to world at " + new java.util.Date());
      }
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index e6d73912a333edd43c4e489c50f4e441c3b2cc29..e35a23544112aa11506951f2a609a5df54cf83a3 100644
+index 10c5af3949af4a3bee4999753e7545f0ac745e63..764ec67150a37f3a18eb1efde9d0c8810a92da6d 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-@@ -2473,6 +2473,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -2481,6 +2481,8 @@ public class PlayerConnection implements PacketListenerPlayIn {
                      }
                      this.server.getPluginManager().callEvent(event);
  
@@ -2043,7 +2043,7 @@ index f25f5ced218555af0d62844a78842cfc7599d608..b46315700b8857318b03b83097fcf829
  
      @Override
 diff --git a/src/main/java/net/minecraft/world/entity/animal/EntityPufferFish.java b/src/main/java/net/minecraft/world/entity/animal/EntityPufferFish.java
-index e9f20d387ccdacfbb1a48dc31e2a6cd4843a0d7b..38fe79872b4b7f4ad4a030fbdf505efbc0352fc0 100644
+index 4e4327b3cb84367534c6f5855cf8b89763b1419d..b94aa69e2c5f41161e8c21d68078a522d063e03d 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/EntityPufferFish.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/EntityPufferFish.java
 @@ -39,6 +39,18 @@ public class EntityPufferFish extends EntityFish {
@@ -5326,10 +5326,10 @@ index 9aa4850e021076fde306eea7eec104c31086c57f..c2e32121f693a6207e6239c26a1fd6e6
          this.world.getMethodProfiler().exit();
          HoglinAI.a(this);
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-index 48acef830eb1d919499e9b79dc6a9af4bdf8a17b..2311d82824314a9feede9c3c106b0e1b24ac1b7a 100644
+index 4ee979a2771b1c97379a77af34b9e7b6de34d67b..4021174b3c0bcbe582354fc72697e1123d3a9627 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-@@ -70,6 +70,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+@@ -86,6 +86,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
          this.f = 5;
      }
  
@@ -5348,12 +5348,12 @@ index 48acef830eb1d919499e9b79dc6a9af4bdf8a17b..2311d82824314a9feede9c3c106b0e1b
      @Override
      public void saveData(NBTTagCompound nbttagcompound) {
          super.saveData(nbttagcompound);
-@@ -250,6 +262,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+@@ -278,6 +290,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
          // Airplane - dynamic tick
          if (!gg.airplane.AirplaneConfig.dynamicPiglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
          this.world.getMethodProfiler().enter("piglinBrain");
 +        if (getPurpurRider() == null) // Purpur - only use brain if no rider
-         this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // Airplane - compile error
+         this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // CraftBukkit - decompile error
          this.world.getMethodProfiler().exit();
          PiglinAI.b(this);
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglinBrute.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglinBrute.java
@@ -5399,7 +5399,7 @@ index 3d85501791fce621335f34bf508becb74b80210d..1370d2d8568a4ed62f2ec3d54abc7d2b
          PiglinBruteAI.b(this);
          PiglinBruteAI.c(this);
 diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
-index e2779521977716aa58bb713de67cb2d9fa8cbe5f..bd56b7a009a8bcbdd353d7bdcb2a2a7310ab45cc 100644
+index 9c187b015c9acd11a372ec4844bc6d5ead4ca73d..daad6520c5d20646f34895225fbf669ecb18e72b 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 @@ -32,6 +32,7 @@ import net.minecraft.network.syncher.DataWatcherObject;
@@ -5633,7 +5633,7 @@ index a19a26a88f247d359354902efeece9923f3e0e0b..1119f60890784d953c2cd4e0078af4d0
          return new Vec3D(this.x * d0, this.y * d1, this.z * d2);
      }
 diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index 3b20793e3eb4349f8a4ce724f8fc0d6366bb28c2..9789d0f9f73540a486befcdd4901014efeed8403 100644
+index 3023df34803e93e4ce43fda6c0bee8de86fff5bc..d242fc9828d36476c43bd2e5484de38047b35ae5 100644
 --- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
 +++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
 @@ -137,11 +137,13 @@ public class PurpurConfig {
@@ -6995,10 +6995,10 @@ index dee4d12a49468d38f077784b219199f0070786f2..dcdc82b42689b4962323938a62cf7ded
 +    // Purpur end
  }
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index b14cec316b16e46d54d389650372c5c9ce1e5a4d..81ea6ffb6be8a7aed281c6538f0535bbaf00b068 100644
+index a678277416cd71e01cd6980bcfaf9a9803e7ea17..c4218281721cf4a5b8f2cad5e12089e3aee89737 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -545,6 +545,18 @@ public class CraftEventFactory {
+@@ -548,6 +548,18 @@ public class CraftEventFactory {
          }
          craftServer.getPluginManager().callEvent(event);
  
@@ -7017,7 +7017,7 @@ index b14cec316b16e46d54d389650372c5c9ce1e5a4d..81ea6ffb6be8a7aed281c6538f0535bb
          return event;
      }
  
-@@ -948,6 +960,7 @@ public class CraftEventFactory {
+@@ -951,6 +963,7 @@ public class CraftEventFactory {
                      damageCause = DamageCause.ENTITY_EXPLOSION;
                  }
                  event = new EntityDamageByEntityEvent(damager.getBukkitEntity(), entity.getBukkitEntity(), damageCause, modifiers, modifierFunctions);
@@ -7025,7 +7025,7 @@ index b14cec316b16e46d54d389650372c5c9ce1e5a4d..81ea6ffb6be8a7aed281c6538f0535bb
              }
              event.setCancelled(cancelled);
  
-@@ -1032,6 +1045,7 @@ public class CraftEventFactory {
+@@ -1035,6 +1048,7 @@ public class CraftEventFactory {
              if (!event.isCancelled()) {
                  event.getEntity().setLastDamageCause(event);
              }
@@ -7033,7 +7033,7 @@ index b14cec316b16e46d54d389650372c5c9ce1e5a4d..81ea6ffb6be8a7aed281c6538f0535bb
              return event;
          }
  
-@@ -1081,6 +1095,7 @@ public class CraftEventFactory {
+@@ -1084,6 +1098,7 @@ public class CraftEventFactory {
          EntityDamageEvent event;
          if (damager != null) {
              event = new EntityDamageByEntityEvent(damager.getBukkitEntity(), damagee.getBukkitEntity(), cause, modifiers, modifierFunctions);

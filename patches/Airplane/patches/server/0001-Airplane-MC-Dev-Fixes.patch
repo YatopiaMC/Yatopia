@@ -57,37 +57,6 @@ index 375409f4b72edc7990da90460b30486fb2980fb6..ab692de8a5b1411e37251fb545e6f579
      }
  
      @Override
-diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-index f2f65dc0612cc232009ea7ff12f5c1ba4e6b15ea..d100b39c420e2326e869aa4059fc800d4c2fc0e4 100644
---- a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-+++ b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-@@ -188,7 +188,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
- 
-     @Override
-     public BehaviorController<EntityPiglin> getBehaviorController() {
--        return super.getBehaviorController();
-+        return (BehaviorController<EntityPiglin>) super.getBehaviorController(); // Airplane - compile error
-     }
- 
-     @Override
-@@ -247,7 +247,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
-     @Override
-     protected void mobTick() {
-         this.world.getMethodProfiler().enter("piglinBrain");
--        this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
-+        this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // Airplane - compile error
-         this.world.getMethodProfiler().exit();
-         PiglinAI.b(this);
-         super.mobTick();
-@@ -386,7 +386,7 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
- 
-     @Override
-     protected SoundEffect getSoundAmbient() {
--        return this.world.isClientSide ? null : (SoundEffect) PiglinAI.d(this).orElse((Object) null);
-+        return this.world.isClientSide ? null : (SoundEffect) PiglinAI.d(this).orElse(null); // Airplane - compile error
-     }
- 
-     @Override
 diff --git a/src/main/java/net/minecraft/world/level/storage/loot/LootTableInfo.java b/src/main/java/net/minecraft/world/level/storage/loot/LootTableInfo.java
 index 95d0c9f22d79194ca83ca6f6a8e6d91180a3c8da..5c712af849abf1e5f58a7760b19c543474559f77 100644
 --- a/src/main/java/net/minecraft/world/level/storage/loot/LootTableInfo.java

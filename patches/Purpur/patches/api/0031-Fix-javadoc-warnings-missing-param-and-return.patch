@@ -419,6 +419,37 @@ index 5bb677ce585b856b3d3e589e29786a29619c56a7..613f00fa387dcc5af3191e550dea9d4d
  public class CachedSizeConcurrentLinkedQueue<E> extends ConcurrentLinkedQueue<E> {
      private final LongAdder cachedSize = new LongAdder();
  
+diff --git a/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java b/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
+index d85006591808b61518545c9f5b0b5915c19e0a9d..363dc1e3157fb94671e07fbdc0f0f7357e308589 100644
+--- a/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
++++ b/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
+@@ -37,6 +37,11 @@ public final class AsyncChatEvent extends AbstractChatEvent {
+     }
+ 
+     /**
++     * @param async Async
++     * @param player Player
++     * @param recipients Recipients
++     * @param formatter Formatter
++     * @param message Message
+      * @deprecated for removal with 1.17, use {@link #AsyncChatEvent(boolean, Player, Set, ChatRenderer, Component)}
+      */
+     @Deprecated
+diff --git a/src/main/java/io/papermc/paper/event/player/ChatEvent.java b/src/main/java/io/papermc/paper/event/player/ChatEvent.java
+index 6219aabaf40ab89f8e08c256d1255bf5522db4d3..b94e9ff470203f46b27f461db6ca741a933e3411 100644
+--- a/src/main/java/io/papermc/paper/event/player/ChatEvent.java
++++ b/src/main/java/io/papermc/paper/event/player/ChatEvent.java
+@@ -41,6 +41,10 @@ public final class ChatEvent extends AbstractChatEvent {
+     }
+ 
+     /**
++     * @param player Player
++     * @param recipients Recipients
++     * @param formatter Formatter
++     * @param message Message
+      * @deprecated for removal with 1.17, use {@link #ChatEvent(Player, Set, ChatRenderer, Component)}
+      */
+     @Deprecated
 diff --git a/src/main/java/io/papermc/paper/inventory/ItemRarity.java b/src/main/java/io/papermc/paper/inventory/ItemRarity.java
 index 74ef8395cc040ce488c2acaa416db20272cc2734..b974627a415cd6897b245275e953cc907a5929d8 100644
 --- a/src/main/java/io/papermc/paper/inventory/ItemRarity.java
@@ -644,7 +675,7 @@ index 08e6f1741685f54506c8a4ff29bbd30f62cf8e45..8efd2669bd5e3dfa47ff8fcb85833321
       */
      public static long getBlockKey(int x, int y, int z) {
 diff --git a/src/main/java/org/bukkit/block/Lidded.java b/src/main/java/org/bukkit/block/Lidded.java
-index 9da2566e02e63be1a0188deaa27b841fa61688ea..882980b3ada3d6048019a90159fa37639b773d5e 100644
+index 30c7df0021df44a411e50636d906d4a1d30fd927..73930312accf6d8c5d71777caa8190a15c2f036d 100644
 --- a/src/main/java/org/bukkit/block/Lidded.java
 +++ b/src/main/java/org/bukkit/block/Lidded.java
 @@ -1,5 +1,8 @@
@@ -963,10 +994,10 @@ index a6a7429ed2e1eefb2b12b7480ed74fcc3963a864..e8027e1d505dda6effbb1698550016e8
  
          NORMAL(false),
 diff --git a/src/main/java/org/bukkit/entity/Player.java b/src/main/java/org/bukkit/entity/Player.java
-index 24408c9bac75182d3cb6146aa25c51a45b53a3af..24059b686cca36f594b2efb18666c646f391cea7 100644
+index d6b6508fd7ab245f657be262c54ae6dfa20415e7..25252bad38ca35b81b225b57c4b6ce77ad6de166 100644
 --- a/src/main/java/org/bukkit/entity/Player.java
 +++ b/src/main/java/org/bukkit/entity/Player.java
-@@ -1953,6 +1953,8 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
+@@ -1961,6 +1961,8 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      void resetCooldown();
  
      /**
@@ -975,7 +1006,7 @@ index 24408c9bac75182d3cb6146aa25c51a45b53a3af..24059b686cca36f594b2efb18666c646
       * @return the client option value of the player
       */
      @NotNull
-@@ -1992,6 +1994,9 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
+@@ -2000,6 +2002,9 @@ public interface Player extends HumanEntity, Conversable, OfflinePlayer, PluginM
      // Paper end
  
      // Spigot start
