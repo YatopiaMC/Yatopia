@@ -3,7 +3,7 @@ import org.yatopiamc.toothpick.*
 plugins {
     `java-library`
     `maven-publish`
-    id("org.yatopiamc.toothpick") version "1.0.0-SNAPSHOT"
+    id("org.yatopiamc.toothpick") version "1.0.1-SNAPSHOT"
 }
 
 toothpick {
