@@ -6,7 +6,7 @@ Subject: [PATCH] Improve container checking with a bitset
 
 diff --git a/src/main/java/gg/airplane/structs/ItemListWithBitset.java b/src/main/java/gg/airplane/structs/ItemListWithBitset.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be2ff1fdf7
+index 0000000000000000000000000000000000000000..7103aa120d3a27d5579d54bd6f4018dc20cca95c
 --- /dev/null
 +++ b/src/main/java/gg/airplane/structs/ItemListWithBitset.java
 @@ -0,0 +1,105 @@
@@ -35,8 +35,8 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +
 +    private final ItemStack[] items;
 +
-+    private int bitSet = 0;
-+    private final int allBits;
++    private long bitSet = 0;
++    private final long allBits;
 +
 +    private ItemListWithBitset(NonNullList<ItemStack> list) {
 +        this(list.size());
@@ -49,10 +49,10 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +    public ItemListWithBitset(int size) {
 +        super(null, ItemStack.NULL_ITEM);
 +
-+        Validate.isTrue(size < Integer.BYTES * 8, "size is too large");
++        Validate.isTrue(size < Long.BYTES * 8, "size is too large");
 +
 +        this.items = createArray(size);
-+        this.allBits = ((1 << size) - 1);
++        this.allBits = ((1L << size) - 1);
 +    }
 +
 +    public boolean isCompletelyEmpty() {
@@ -70,9 +70,9 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +        this.items[index] = itemStack;
 +
 +        if (itemStack == ItemStack.NULL_ITEM) {
-+            this.bitSet &= ~(1 << index);
++            this.bitSet &= ~(1L << index);
 +        } else {
-+            this.bitSet |= 1 << index;
++            this.bitSet |= 1L << index;
 +        }
 +
 +        return existing;

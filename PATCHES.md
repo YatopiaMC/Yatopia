@@ -101,6 +101,7 @@ This is an overview of all the patches that are currently used.
 | server |  Avoid double I/O operation on load player file      | ㄗㄠˋ ㄑㄧˊ |  |
 | server |  Barrels and enderchests 6 rows      | William Blake Galbreath |  |
 | server |  Be aware of entity teleports when chunk checking entities      | Spottedleaf |  |
+| server |  Beacon Activation Range Configurable      | DoctaEnkoda |  |
 | server |  Bee can work when raining or at night      | DoctaEnkoda |  |
 | server |  Better checking for useless move packets      | Paul Sauve |  |
 | server |  Brand changes      | Spottedleaf |  |
@@ -120,6 +121,7 @@ This is an overview of all the patches that are currently used.
 | server |  Charged creeper naturally spawn      | William Blake Galbreath |  |
 | api |  ChatColor conveniences      | William Blake Galbreath |  |
 | server |  Chickens can retaliate      | William Blake Galbreath |  |
+| server |  Config MobEffect by world      | DoctaEnkoda |  |
 | server |  Config for Enderman to aggro spawned Endermites      | Encode42 |  |
 | server |  Config for changing the blocks that turn into paths      | 12emin34 |  |
 | server |  Config for health to impact Creeper explosion radius      | Encode42 |  |
@@ -343,6 +345,7 @@ This is an overview of all the patches that are currently used.
 | server |  Origami - Fix ProtocolLib issues on Java 15      | Phoenix616 |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  PaperPR - Config option for Piglins guarding chests      | jmp |  |
+| server |  Patch Paper to use fast item merge raytracing      | Paul Sauve |  |
 | server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | api |  Per player viewdistances      | Spottedleaf |  |
