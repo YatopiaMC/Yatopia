@@ -5,10 +5,10 @@ Subject: [PATCH] Add nspt command
 
 
 diff --git a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-index 2662202e60d80af9af33b3dc4af535cf3dd8b366..117a289bf02a4269c6bcceec30885c17f2201cbb 100644
+index 70d07a7e1881d02f6d92ea65bcf9bd5a157fb2cf..75a690b149e7275eba0278033b98bdc2fff3afba 100644
 --- a/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
 +++ b/src/main/java/net/minecraft/server/dedicated/DedicatedServer.java
-@@ -235,6 +235,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
+@@ -226,6 +226,7 @@ public class DedicatedServer extends MinecraftServer implements IMinecraftServer
              DedicatedServer.LOGGER.error("Unable to load server configuration", e);
              return false;
          }
@@ -17,17 +17,17 @@ index 2662202e60d80af9af33b3dc4af535cf3dd8b366..117a289bf02a4269c6bcceec30885c17
          de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
          this.setPVP(dedicatedserverproperties.pvp);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 4b646599dedbd909fa8bfaae674be250f80fd09e..1bf2cbf26aba7ce7d0ec219bcd4832ddeba32801 100644
+index dd877145feec763a64fb7539f21b18b8c0f9a833..ea4bd11604d0b7dc9e6641a5f7db70bbde286b71 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -940,6 +940,7 @@ public final class CraftServer implements Server {
-         org.spigotmc.SpigotConfig.registerCommands(); // Spigot
-         com.destroystokyo.paper.PaperConfig.registerCommands(); // Paper
-         net.pl3x.purpur.PurpurConfig.registerCommands(); // Purpur
+@@ -336,6 +336,7 @@ public final class CraftServer implements Server {
+         }
+ 
+         saveCommandsConfig();
 +        org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands(); // Yatopia
          overrideAllCommandBlockCommands = commandsConfiguration.getStringList("command-block-overrides").contains("*");
          ignoreVanillaPermissions = commandsConfiguration.getBoolean("ignore-vanilla-permissions");
- 
+         pluginManager.useTimings(configuration.getBoolean("settings.plugin-profiling"));
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java b/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..e6eaa07c57e04bbfba9e4aa8e0e939f85169d0c8

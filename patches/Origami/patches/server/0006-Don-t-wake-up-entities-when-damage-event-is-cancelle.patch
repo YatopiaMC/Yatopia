@@ -5,10 +5,10 @@ Subject: [PATCH] Don't wake up entities when damage event is cancelled
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 2f7352d7ae99ecdefe0f7b56cebf008906607d4d..330ff6ff03c6be4d35d4f594e3202209ff584341 100644
+index a49dbcffecc971f797651984cb72c455d40f9331..42f4aaeeceb628007ded00353fd26aa461f39ea9 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-@@ -1235,9 +1235,12 @@ public abstract class EntityLiving extends Entity {
+@@ -1208,9 +1208,12 @@ public abstract class EntityLiving extends Entity {
          } else if (damagesource.isFire() && this.hasEffect(MobEffects.FIRE_RESISTANCE)) {
              return false;
          } else {
@@ -24,7 +24,7 @@ index 2f7352d7ae99ecdefe0f7b56cebf008906607d4d..330ff6ff03c6be4d35d4f594e3202209
  
              this.ticksFarFromPlayer = 0;
              float f1 = f;
-@@ -2006,6 +2009,11 @@ public abstract class EntityLiving extends Entity {
+@@ -1961,6 +1964,11 @@ public abstract class EntityLiving extends Entity {
              if (event.isCancelled()) {
                  return false;
              }

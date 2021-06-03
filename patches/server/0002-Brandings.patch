@@ -5,71 +5,60 @@ Subject: [PATCH] Brandings
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/Metrics.java b/src/main/java/com/destroystokyo/paper/Metrics.java
-index 4d8740678049aa749b42618470e9cc838555528d..159f72efe20f8fee940bd00ae7af00f026f51b1a 100644
+index 52c0ab1ce46e1f3233ef746d9bc699356fa9fae4..1c7dd62287614f98d26ef23459c17560339ffd0a 100644
 --- a/src/main/java/com/destroystokyo/paper/Metrics.java
 +++ b/src/main/java/com/destroystokyo/paper/Metrics.java
 @@ -593,7 +593,7 @@ public class Metrics {
              boolean logFailedRequests = config.getBoolean("logFailedRequests", false);
              // Only start Metrics, if it's enabled in the config
              if (config.getBoolean("enabled", true)) {
--                Metrics metrics = new Metrics("Purpur", serverUUID, logFailedRequests, Bukkit.getLogger()); // Purpur
-+                Metrics metrics = new Metrics("Yatopia", serverUUID, logFailedRequests, Bukkit.getLogger()); // Purpur // Yatopia
+-                Metrics metrics = new Metrics("Tuinity", serverUUID, logFailedRequests, Bukkit.getLogger()); // Tuinity - we have our own bstats page
++                Metrics metrics = new Metrics("Yatopia", serverUUID, logFailedRequests, Bukkit.getLogger()); // Tuinity - we have our own bstats page // Yatopia
  
                  metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
                      String minecraftVersion = Bukkit.getVersion();
-@@ -603,7 +603,7 @@ public class Metrics {
+@@ -602,8 +602,8 @@ public class Metrics {
+                 }));
  
                  metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> Bukkit.getOnlinePlayers().size()));
-                 metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() ? "online" : (PaperConfig.isProxyOnlineMode() ? "bungee" : "offline"))); // Purpur
--                metrics.addCustomChart(new Metrics.SimplePie("purpur_version", () -> (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown")); // Purpur
-+                metrics.addCustomChart(new Metrics.SimplePie("yatopia_version", () -> (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown")); // Purpur // Yatopia
+-                metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() || PaperConfig.isProxyOnlineMode() ? "online" : "offline"));
+-                metrics.addCustomChart(new Metrics.SimplePie("tuinity_version", () -> (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown")); // Tuinity - we have our own bstats page
++                metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() ? "online" : (PaperConfig.isProxyOnlineMode() ? "bungee" : "offline"))); // Yatopia
++                metrics.addCustomChart(new Metrics.SimplePie("yatopia_version", () -> (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown"));// Yatopia
  
                  metrics.addCustomChart(new Metrics.DrilldownPie("java_version", () -> {
                      Map<String, Map<String, Integer>> map = new HashMap<>();
 diff --git a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
-index e56ebeaaa12494817d31099eed54ef2c50b98b9e..eb0509386feb156ae9c8ca0eb25c0120c9332b19 100644
+index ad87b575a0261200b280884e054a59e3ce59c41c..eb0509386feb156ae9c8ca0eb25c0120c9332b19 100644
 --- a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
 +++ b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
 @@ -19,7 +19,7 @@ public final class PaperConsole extends SimpleTerminalConsole {
      @Override
      protected LineReader buildReader(LineReaderBuilder builder) {
          builder
--                .appName("Purpur") // Purpur
+-                .appName("Paper")
 +                .appName("Yatopia") // Yatopia
                  .variable(LineReader.HISTORY_FILE, java.nio.file.Paths.get(".console_history"))
                  .completer(new ConsoleCommandCompleter(this.server))
                  .option(LineReader.Option.COMPLETE_IN_WORD, true);
-diff --git a/src/main/java/net/pl3x/purpur/PurpurConfig.java b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-index a580b021c7d9727b82a67dedfc509c286feb8c7e..046b6a2f80b3a71437b088cada9dd23ccb231234 100644
---- a/src/main/java/net/pl3x/purpur/PurpurConfig.java
-+++ b/src/main/java/net/pl3x/purpur/PurpurConfig.java
-@@ -187,7 +187,7 @@ public class PurpurConfig {
-         if (!TimingsManager.hiddenConfigs.contains("settings.seed.end-spike")) TimingsManager.hiddenConfigs.add("settings.seed.end-spike");
-     }
- 
--    public static String serverModName = "Purpur";
-+    public static String serverModName = "Yatopia";
-     private static void serverModName() {
-         serverModName = getString("settings.server-mod-name", serverModName);
-     }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 28a7d8d3911bbc176c9aa0c4bd5e0f8ee3cea1a3..413d32ba0383eeb28d94bcab77bc2c5e63435225 100644
+index ca2c46bb22d4aca818f2aad107da42ebe09f2d2f..e6439b95959af5e8761ea818a66344eee6048e90 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -230,7 +230,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {
--    private final String serverName = "Purpur"; // Paper // Tuinity // Airplane // Purpur
-+    private final String serverName = "Yatopia"; // Paper // Tuinity // Airplane // Purpur // Yatopia
+-    private final String serverName = "Tuinity"; // Paper // Tuinity
++    private final String serverName = "Yatopia"; // Paper // Tuinity // Yatopia
      private final String serverVersion;
      private final String bukkitVersion = Versioning.getBukkitVersion();
      private final Logger logger = Logger.getLogger("Minecraft");
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 8b344d69b9076e1bf2a5ba310ecf3f8ddd375fdc..05f6fe3db3fd6637e21066b174baef462557804a 100644
+index 5d98678c0d1eedef3cba4b962eef1270a27436db..065aa458b3ecd2287d57079c5ff8bf4358b83180 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -288,7 +288,7 @@ public class Main {
+@@ -280,7 +280,7 @@ public class Main {
                      if (buildDate.before(deadline.getTime())) {
                          // Paper start - This is some stupid bullshit
                          System.err.println("*** Warning, you've not updated in a while! ***");
@@ -79,28 +68,28 @@ index 8b344d69b9076e1bf2a5ba310ecf3f8ddd375fdc..05f6fe3db3fd6637e21066b174baef46
                          //Thread.sleep(TimeUnit.SECONDS.toMillis(20));
                          // Paper End
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
-index bfe4f7ed53620510b52d4f01c5ea2a3f726942d8..5e4f0a216919dc9e622ff2c4b9dd829cd2c71e46 100644
+index 6cb8608f8238c4a8c346b92ba672c8cc1c0cbcc4..27b3f4272e287920791e3e846d108e0aed63b065 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 @@ -397,7 +397,7 @@ public final class CraftMagicNumbers implements UnsafeValues {
  
      @Override
      public com.destroystokyo.paper.util.VersionFetcher getVersionFetcher() {
--        return new net.pl3x.purpur.PurpurVersionFetcher();
+-        return new com.destroystokyo.paper.PaperVersionFetcher();
 +        return new org.yatopiamc.yatopia.server.YatopiaVersionFetcher(); // Yatopia
      }
  
      @Override
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
-index 191f5331f0c7871f80f0da9cc38345ce33353577..4776d0f496fb2ed492545ffb53ecf05e79ae2afb 100644
+index 001b1e5197eaa51bfff9031aa6c69876c9a47960..aa83884a8d615731db9d3aa080e6aa3e7face1e6 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/Versioning.java
 @@ -11,7 +11,7 @@ public final class Versioning {
      public static String getBukkitVersion() {
          String result = "Unknown-Version";
  
--        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/net.pl3x.purpur/purpur-api/pom.properties"); // Tuinity // Airplane // Purpur
-+        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/org.yatopiamc/yatopia-api/pom.properties"); // Tuinity // Airplane // Purpur // Yatopia
+-        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/com.tuinity/tuinity-api/pom.properties"); // Tuinity
++        InputStream stream = Bukkit.class.getClassLoader().getResourceAsStream("META-INF/maven/org.yatopiamc/yatopia-api/pom.properties"); // Tuinity // Yatopia
          Properties properties = new Properties();
  
          if (stream != null) {
@@ -159,34 +148,31 @@ index b650f9b6901f15b7fec7a426cd77660039eecd66..b15db666281227d1dc486e4e57dae183
                  }
  
  
-diff --git a/src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-similarity index 72%
-rename from src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java
-rename to src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-index cabfcebf9f944f7a2a2a1cffc7401435803a8741..68212b9bdb9c7faf43f3783a84071da5303d78a9 100644
---- a/src/main/java/net/pl3x/purpur/PurpurVersionFetcher.java
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..68212b9bdb9c7faf43f3783a84071da5303d78a9
+--- /dev/null
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaVersionFetcher.java
-@@ -1,7 +1,6 @@
--package net.pl3x.purpur;
+@@ -0,0 +1,131 @@
 +package org.yatopiamc.yatopia.server;
- 
- import com.destroystokyo.paper.VersionHistoryManager;
--import com.destroystokyo.paper.util.VersionFetcher;
- import com.google.common.base.Charsets;
- import com.google.common.io.Resources;
- import com.google.gson.Gson;
-@@ -12,41 +11,51 @@ import net.kyori.adventure.text.TextComponent;
- import net.kyori.adventure.text.format.NamedTextColor;
- import net.kyori.adventure.text.format.TextDecoration;
- 
--import javax.annotation.Nonnull;
--import javax.annotation.Nullable;
- import java.io.BufferedReader;
- import java.io.IOException;
++
++import com.destroystokyo.paper.VersionHistoryManager;
++import com.google.common.base.Charsets;
++import com.google.common.io.Resources;
++import com.google.gson.Gson;
++import com.google.gson.JsonObject;
++import com.google.gson.JsonSyntaxException;
++import net.kyori.adventure.text.Component;
++import net.kyori.adventure.text.TextComponent;
++import net.kyori.adventure.text.format.NamedTextColor;
++import net.kyori.adventure.text.format.TextDecoration;
++
++import java.io.BufferedReader;
++import java.io.IOException;
 +import java.io.InputStream;
- import java.io.InputStreamReader;
- import java.net.HttpURLConnection;
- import java.net.URL;
++import java.io.InputStreamReader;
++import java.net.HttpURLConnection;
++import java.net.URL;
 +import java.net.URLEncoder;
 +import java.util.Arrays;
 +import java.util.Objects;
@@ -199,74 +185,103 @@ index cabfcebf9f944f7a2a2a1cffc7401435803a8741..68212b9bdb9c7faf43f3783a84071da5
 +import net.kyori.adventure.text.format.NamedTextColor;
 +import net.kyori.adventure.text.TextComponent;
 +import net.kyori.adventure.text.format.TextDecoration;
- 
--public class PurpurVersionFetcher implements VersionFetcher {
--    private static final String JENKINS_URL = "https://ci.pl3x.net/job/Purpur/lastSuccessfulBuild/buildNumber";
--    private static final String GITHUB_BRANCH_NAME = "master";
++
 +public class YatopiaVersionFetcher implements VersionFetcher {
- 
-     @Override
-     public long getCacheTime() {
--        return 720000;
++
++    @Override
++    public long getCacheTime() {
 +        return 3600000;
-     }
- 
-     @Nonnull
-     @Override
-     public Component getVersionMessage(@Nonnull String serverVersion) {
--        String[] parts = serverVersion.substring("git-Purpur-".length()).split("[-\\s]");
--        final Component updateMessage = getUpdateStatusMessage("pl3xgaming/Purpur", GITHUB_BRANCH_NAME, parts[0]);
++    }
++
++    @Nonnull
++    @Override
++    public Component getVersionMessage(@Nonnull String serverVersion) {
 +        if (serverVersion.equals("null")) return Component.text("Custom build");
 +        String[] parts = serverVersion.substring("git-Yatopia-".length()).split("[-\\s]");
 +        String branch = String.join("-", Arrays.copyOfRange(parts, 0, parts.length - 3));
 +        String version = parts[parts.length - 3];
 +        final Component updateMessage = getUpdateStatusMessage("YatopiaMC/Yatopia", branch, version);
-         final Component history = getHistory();
--
--        return history != null ? TextComponent.ofChildren(updateMessage, Component.newline(), history) : updateMessage;
++        final Component history = getHistory();
 +        return history != null ?  TextComponent.ofChildren(history, Component.newline(), updateMessage) : updateMessage;
-     }
- 
--    private static Component getUpdateStatusMessage(@Nonnull String repo, @Nonnull String branch, @Nonnull String versionInfo) {
++    }
++
 +    private Component getUpdateStatusMessage(String repo, String branch, String versionInfo) {
-         int distance;
-         try {
-             int jenkinsBuild = Integer.parseInt(versionInfo);
--            distance = fetchDistanceFromJenkins(jenkinsBuild);
++        int distance;
++        try {
++            int jenkinsBuild = Integer.parseInt(versionInfo);
 +            distance = fetchDistanceFromJenkins(branch, jenkinsBuild);
-         } catch (NumberFormatException ignored) {
--            versionInfo = versionInfo.replace("\"", "");
--            distance = fetchDistanceFromGitHub(repo, branch, versionInfo);
++        } catch (NumberFormatException ignored) {
 +            distance = fetchDistanceFromGitHub(repo, branch, versionInfo.replace("\"", ""));
-         }
- 
-         switch (distance) {
-@@ -61,9 +70,10 @@ public class PurpurVersionFetcher implements VersionFetcher {
-         }
-     }
- 
--    private static int fetchDistanceFromJenkins(int jenkinsBuild) {
++        }
++
++        switch (distance) {
++            case -1:
++                return Component.text("Error obtaining version information", NamedTextColor.YELLOW);
++            case 0:
++                return Component.text("You are running the latest version", NamedTextColor.GREEN);
++            case -2:
++                return Component.text("Unknown version", NamedTextColor.YELLOW);
++            default:
++                return Component.text("You are " + distance + " version(s) behind", NamedTextColor.YELLOW);
++        }
++    }
++
 +    // modified from PurpurVersionFetcher
 +    private static int fetchDistanceFromJenkins(String branch, int jenkinsBuild) {
-         try {
--            try (BufferedReader reader = Resources.asCharSource(new URL(JENKINS_URL), Charsets.UTF_8).openBufferedStream()) {
++        try {
 +            try (BufferedReader reader = Resources.asCharSource(new URL("https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/" + URLEncoder.encode(branch, Charsets.UTF_8.name()) + "/lastStableBuild/buildNumber"), Charsets.UTF_8).openBufferedStream()) {
-                 return Integer.decode(reader.readLine()) - jenkinsBuild;
-             } catch (NumberFormatException ex) {
-                 ex.printStackTrace();
-@@ -76,6 +86,7 @@ public class PurpurVersionFetcher implements VersionFetcher {
-     }
- 
-     // Contributed by Techcable <Techcable@outlook.com> in GH-65
++                return Integer.decode(reader.readLine()) - jenkinsBuild;
++            } catch (NumberFormatException ex) {
++                ex.printStackTrace();
++                return -2;
++            }
++        } catch (IOException e) {
++            e.printStackTrace();
++            return -1;
++        }
++    }
++
++    // Contributed by Techcable <Techcable@outlook.com> in GH-65
 +    // from PaperVersionFetcher
-     private static int fetchDistanceFromGitHub(@Nonnull String repo, @Nonnull String branch, @Nonnull String hash) {
-         try {
-             HttpURLConnection connection = (HttpURLConnection) new URL("https://api.github.com/repos/" + repo + "/compare/" + branch + "..." + hash).openConnection();
-@@ -102,6 +113,7 @@ public class PurpurVersionFetcher implements VersionFetcher {
-         }
-     }
- 
++    private static int fetchDistanceFromGitHub(@Nonnull String repo, @Nonnull String branch, @Nonnull String hash) {
++        try {
++            HttpURLConnection connection = (HttpURLConnection) new URL("https://api.github.com/repos/" + repo + "/compare/" + branch + "..." + hash).openConnection();
++            connection.connect();
++            if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) return -2; // Unknown commit
++            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), Charsets.UTF_8))) {
++                JsonObject obj = new Gson().fromJson(reader, JsonObject.class);
++                String status = obj.get("status").getAsString();
++                switch (status) {
++                    case "identical":
++                        return 0;
++                    case "behind":
++                        return obj.get("behind_by").getAsInt();
++                    default:
++                        return -1;
++                }
++            } catch (JsonSyntaxException | NumberFormatException e) {
++                e.printStackTrace();
++                return -1;
++            }
++        } catch (IOException e) {
++            e.printStackTrace();
++            return -1;
++        }
++    }
++
 +    // from PaperVersionFetcher
-     @Nullable
-     private Component getHistory() {
-         final VersionHistoryManager.VersionData data = VersionHistoryManager.INSTANCE.getVersionData();
++    @Nullable
++    private Component getHistory() {
++        final VersionHistoryManager.VersionData data = VersionHistoryManager.INSTANCE.getVersionData();
++        if (data == null) {
++            return null;
++        }
++
++        final String oldVersion = data.getOldVersion();
++        if (oldVersion == null) {
++            return null;
++        }
++
++        return Component.text("Previous version: " + oldVersion, NamedTextColor.GRAY, TextDecoration.ITALIC);
++    }
++}

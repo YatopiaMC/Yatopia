@@ -8,18 +8,18 @@ Paper does alleviate this quite well by only firing if plugins are listening, bu
 This patch implements a hard toggle for the event.
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 92dcb243c7b9ed4c2243038d46482bac72fae931..8697608a076eab1c0e92587110c8465d636e6be9 100644
+index e026ec3920936223864538974151ae53a393e86f..88bb4e47b5def2ba1543cd73411fbcffd570e11d 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1550,7 +1550,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1536,7 +1536,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
  
          while (iterator.hasNext()) {
              WorldServer worldserver = (WorldServer) iterator.next();
 -            worldserver.hasPhysicsEvent =  org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
 +            worldserver.hasPhysicsEvent = org.yatopiamc.yatopia.server.YatopiaConfig.fireBlockPhysicsEvent && org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper // Yatopia
              worldserver.hasEntityMoveEvent =  EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper
-             worldserver.hasRidableMoveEvent = net.pl3x.purpur.event.entity.RidableMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Purpur
              TileEntityHopper.skipHopperEvents = worldserver.paperConfig.disableHopperMoveEvents || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper
+ 
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 index 8e87389f2323576e292bcca1730c2c49bf0eadba..aea5f614fca3fcbd132d562052178fb23340754b 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java

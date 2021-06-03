@@ -16,7 +16,6 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [EMC](https://github.com/starlis/empirecraft)
 * [Lithium](https://github.com/jellysquid3/lithium-fabric)
 * [Origami](https://github.com/Minebench/Origami)
-* [Purpur](https://github.com/pl3xgaming/Purpur)
 * [Airplane](https://github.com/Technove/Airplane)
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
 * [Tic-Tacs](https://github.com/Gegy/tic-tacs)

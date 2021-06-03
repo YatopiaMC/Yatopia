@@ -621,10 +621,10 @@ index 0000000000000000000000000000000000000000..4e765ab19ffb300b6c810333b2dc7976
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9be6e6a7ed 100644
+index a5dd3b71f9b96047826d01002dbad718c463500c..324342f57249be6a37d7ad10a326a71edcd2fa82 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -98,8 +98,11 @@ import org.bukkit.event.block.BlockPhysicsEvent;
+@@ -97,8 +97,11 @@ import org.bukkit.event.block.BlockPhysicsEvent;
  // CraftBukkit end
  
  import net.gegy1000.tictacs.NonBlockingWorldAccess; // Yatopia
@@ -637,7 +637,7 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
  
      protected static final Logger LOGGER = LogManager.getLogger();
      public static final Codec<ResourceKey<World>> f = MinecraftKey.a.xmap(ResourceKey.b(IRegistry.L), ResourceKey::a);
-@@ -108,9 +111,17 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -107,9 +110,17 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
      public static final ResourceKey<World> THE_END = ResourceKey.a(IRegistry.L, new MinecraftKey("the_end"));
      private static final EnumDirection[] a = EnumDirection.values();
      //public final List<TileEntity> tileEntityList = Lists.newArrayList(); // Paper - remove unused list
@@ -656,7 +656,7 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
      public final Thread serverThread;
      private final boolean debugWorld;
      private int d;
-@@ -378,6 +389,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -332,6 +343,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
          this.keepSpawnInMemory = this.paperConfig.keepSpawnInMemory; // Paper
          this.entityLimiter = new org.spigotmc.TickLimiter(spigotConfig.entityMaxTickTime);
          this.tileLimiter = new org.spigotmc.TickLimiter(spigotConfig.tileMaxTickTime);
@@ -665,7 +665,7 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
      }
  
      // Paper start
-@@ -1042,6 +1055,15 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -996,6 +1009,15 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
  
      }
  
@@ -681,7 +681,7 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
      public void tickBlockEntities() {
          GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
  
-@@ -1064,11 +1086,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1018,11 +1040,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
  
          this.tickingTileEntities = true;
          // Spigot start
@@ -701,7 +701,7 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
              // Spigot start
              if (tileentity == null) {
                  getServer().getLogger().severe("Spigot has detected a null entity and has removed it, preventing a crash");
-@@ -1106,8 +1136,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1060,8 +1090,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
                          throwable.printStackTrace();
                          getServer().getPluginManager().callEvent(new ServerExceptionEvent(new ServerInternalException(msg, throwable)));
                          // Paper end
@@ -711,7 +711,7 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
                          continue;
                          // Paper end
                          // Spigot start
-@@ -1120,8 +1149,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
+@@ -1074,8 +1103,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable, NonBlocki
  
              if (tileentity.isRemoved()) {
                  // Spigot start
@@ -722,10 +722,10 @@ index b058c1fa8637b947e8e4a5009258cbee75f536c3..6dce1577a42585a415ea137336c7aa9b
                  //this.tileEntityList.remove(tileentity); // Paper - remove unused list
                  // Paper - prevent double chunk lookups
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntity.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntity.java
-index 35c4d5414db66b977a354ac50d35a6aa0fcd4cf8..35aef3647c025eaa763e2b9a5a4e266d556725f5 100644
+index 93d02ccb87c17404c55884f52ae40c7b7ddfb103..cc9e6b9e5f550f9e633ea124f3dd8cbcf0e43e12 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TileEntity.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntity.java
-@@ -28,8 +28,9 @@ import org.bukkit.inventory.InventoryHolder;
+@@ -26,8 +26,9 @@ import org.bukkit.inventory.InventoryHolder;
  import org.spigotmc.CustomTimingsHandler; // Spigot
  import co.aikar.timings.MinecraftTimings; // Paper
  import co.aikar.timings.Timing; // Paper
@@ -737,7 +737,7 @@ index 35c4d5414db66b977a354ac50d35a6aa0fcd4cf8..35aef3647c025eaa763e2b9a5a4e266d
      public Timing tickTimer = MinecraftTimings.getTileEntityTimings(this); // Paper
      // CraftBukkit start - data containers
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
-index 95479df9fb009c5ca1872f8ee89b13e9c66d0bb6..52243bce89b28572efae9af54348502f599fb896 100644
+index cacef4349a8dba02c2faee77e30f7c938f3d31af..a1651a7155f7fe2f01882a1eee4fbb5a067e1b38 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityBeehive.java
 @@ -23,6 +23,9 @@ import net.minecraft.world.level.block.BlockBeehive;
@@ -753,7 +753,7 @@ index 95479df9fb009c5ca1872f8ee89b13e9c66d0bb6..52243bce89b28572efae9af54348502f
 @@ -30,11 +33,24 @@ public class TileEntityBeehive extends TileEntity implements ITickable {
      @Nullable
      public BlockPosition flowerPos = null;
-     public int maxBees = net.pl3x.purpur.PurpurConfig.beeInsideBeeHive; // CraftBukkit - allow setting max amount of bees a hive can hold // Purpur - Change max bees inside beehive and bee_nest
+     public int maxBees = 3; // CraftBukkit - allow setting max amount of bees a hive can hold
 +    public boolean doInit = true; // Yatopia
 +    public boolean isTicking = true; // Yatopia
  
@@ -1105,10 +1105,10 @@ index 4b1cb089355b455c6210f2df1af797cc363997cf..0049a675557cbc05e361c12e9fb84a38
          this.l = this.k;
          EntityHuman entityhuman = this.world.a((double) this.position.getX() + 0.5D, (double) this.position.getY() + 0.5D, (double) this.position.getZ() + 0.5D, 3.0D, false);
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java
-index 8ec9ed518a3b5f70c5a5d74605a1f17d0f47b300..d8ef6d464ed32fe61dd9d1d5ff7c70994998f934 100644
+index 20193ba36c62fdd40ae905d1cea4bfd6d6aebcd7..b0f1c4f1660f3485303f0148bbc06dce4181e6b2 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityFurnace.java
-@@ -53,9 +53,11 @@ import org.bukkit.event.inventory.FurnaceBurnEvent;
+@@ -51,9 +51,11 @@ import org.bukkit.event.inventory.FurnaceBurnEvent;
  import org.bukkit.event.inventory.FurnaceExtractEvent;
  import org.bukkit.event.inventory.FurnaceSmeltEvent;
  // CraftBukkit end
@@ -1120,7 +1120,7 @@ index 8ec9ed518a3b5f70c5a5d74605a1f17d0f47b300..d8ef6d464ed32fe61dd9d1d5ff7c7099
      private static final int[] g = new int[]{0};
      private static final int[] h = new int[]{2, 1};
      private static final int[] i = new int[]{1};
-@@ -197,6 +199,17 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -195,6 +197,17 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
      private int maxStack = MAX_STACK;
      public List<HumanEntity> transaction = new java.util.ArrayList<HumanEntity>();
  
@@ -1138,7 +1138,7 @@ index 8ec9ed518a3b5f70c5a5d74605a1f17d0f47b300..d8ef6d464ed32fe61dd9d1d5ff7c7099
      public List<ItemStack> getContents() {
          return this.items;
      }
-@@ -259,6 +272,12 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -257,6 +270,12 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
      @Override
      public void load(IBlockData iblockdata, NBTTagCompound nbttagcompound) {
          super.load(iblockdata, nbttagcompound);
@@ -1151,7 +1151,7 @@ index 8ec9ed518a3b5f70c5a5d74605a1f17d0f47b300..d8ef6d464ed32fe61dd9d1d5ff7c7099
          this.items = NonNullList.a(this.getSize(), ItemStack.b);
          ContainerUtil.b(nbttagcompound, this.items);
          this.burnTime = nbttagcompound.getShort("BurnTime");
-@@ -389,7 +408,12 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
+@@ -369,7 +388,12 @@ public abstract class TileEntityFurnace extends TileEntityContainer implements I
          if (flag1) {
              this.update();
          }

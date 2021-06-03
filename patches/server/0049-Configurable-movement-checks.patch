@@ -5,10 +5,10 @@ Subject: [PATCH] Configurable movement checks
 
 
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index 3b4bebc25b550904cbf9f53f40f9bb9418defde0..74178c4f613980b4e481e225bc3a5d3aeb12d282 100644
+index 660f7006690d2eb7e16239faffabfd88a841f426..8d592d79bf994b01c331e8090012c60098266f8c 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-@@ -614,7 +614,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -592,7 +592,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                  }
                  // Paper end
  
@@ -17,7 +17,7 @@ index 3b4bebc25b550904cbf9f53f40f9bb9418defde0..74178c4f613980b4e481e225bc3a5d3a
                  // CraftBukkit end
                      PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved too quickly! {},{},{}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), d6, d7, d8);
                      this.networkManager.sendPacket(new PacketPlayOutVehicleMove(entity));
-@@ -641,7 +641,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -619,7 +619,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                  d10 = d6 * d6 + d7 * d7 + d8 * d8;
                  boolean flag1 = false;
  
@@ -26,7 +26,7 @@ index 3b4bebc25b550904cbf9f53f40f9bb9418defde0..74178c4f613980b4e481e225bc3a5d3a
                      flag1 = true; // Tuinity - diff on change, this should be moved wrongly
                      PlayerConnection.LOGGER.warn("{} (vehicle of {}) moved wrongly! {}", entity.getDisplayName().getString(), this.player.getDisplayName().getString(), Math.sqrt(d10));
                  }
-@@ -1397,7 +1397,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1361,7 +1361,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              if (!this.player.H() && (!this.player.getWorldServer().getGameRules().getBoolean(GameRules.DISABLE_ELYTRA_MOVEMENT_CHECK) || !this.player.isGliding())) {
                                  float f2 = this.player.isGliding() ? 300.0F : 100.0F;
  
@@ -35,14 +35,14 @@ index 3b4bebc25b550904cbf9f53f40f9bb9418defde0..74178c4f613980b4e481e225bc3a5d3a
                                  // CraftBukkit end
                                      PlayerConnection.LOGGER.warn("{} moved too quickly! {},{},{}", this.player.getDisplayName().getString(), d7, d8, d9);
                                      this.a(this.player.locX(), this.player.locY(), this.player.locZ(), this.player.yaw, this.player.pitch);
-@@ -1463,7 +1463,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -1427,7 +1427,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
                              d11 = d7 * d7 + d8 * d8 + d9 * d9;
                              boolean flag1 = false;
  
 -                            if (!this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot
 +                            if (org.yatopiamc.yatopia.server.YatopiaConfig.checkMovedWrongly && !this.player.H() && d11 > org.spigotmc.SpigotConfig.movedWronglyThreshold && !this.player.isSleeping() && !this.player.playerInteractManager.isCreative() && this.player.playerInteractManager.getGameMode() != EnumGamemode.SPECTATOR) { // Spigot // Yatopia - Configurable movement checks
                                  flag1 = true; // Tuinity - diff on change, this should be moved wrongly
-                                 PlayerConnection.LOGGER.warn("{} moved wrongly! ({})", this.player.getDisplayName().getString(), d11); // Purpur
+                                 PlayerConnection.LOGGER.warn("{} moved wrongly!", this.player.getDisplayName().getString());
                              }
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 index aea5f614fca3fcbd132d562052178fb23340754b..688df989493888edb7eff917158fc65a24a9b20e 100644
