@@ -420,36 +420,35 @@ index 5bb677ce585b856b3d3e589e29786a29619c56a7..613f00fa387dcc5af3191e550dea9d4d
      private final LongAdder cachedSize = new LongAdder();
  
 diff --git a/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java b/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
-index d85006591808b61518545c9f5b0b5915c19e0a9d..363dc1e3157fb94671e07fbdc0f0f7357e308589 100644
+index ee7ec316a2f814ec759e0a3e5dfe5efbee782b22..79c9d211bc539e119390e4c7b16703ea9beba179 100644
 --- a/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
 +++ b/src/main/java/io/papermc/paper/event/player/AsyncChatEvent.java
-@@ -37,6 +37,11 @@ public final class AsyncChatEvent extends AbstractChatEvent {
+@@ -53,7 +53,7 @@ public final class AsyncChatEvent extends AbstractChatEvent {
      }
  
      /**
-+     * @param async Async
-+     * @param player Player
-+     * @param recipients Recipients
-+     * @param formatter Formatter
-+     * @param message Message
-      * @deprecated for removal with 1.17, use {@link #AsyncChatEvent(boolean, Player, Set, ChatRenderer, Component)}
+-     * @deprecated for removal with 1.17, use {@link #AsyncChatEvent(boolean, Player, Set, ChatRenderer, Component, Component)}
++     * @deprecated for removal with 1.17, use {@link #AsyncChatEvent(boolean, Player, Set, ChatRenderer, Component)}
       */
      @Deprecated
+     public AsyncChatEvent(final boolean async, final @NotNull Player player, final @NotNull Set<Player> recipients, final @NotNull ChatFormatter formatter, final @NotNull Component message) {
 diff --git a/src/main/java/io/papermc/paper/event/player/ChatEvent.java b/src/main/java/io/papermc/paper/event/player/ChatEvent.java
-index 6219aabaf40ab89f8e08c256d1255bf5522db4d3..b94e9ff470203f46b27f461db6ca741a933e3411 100644
+index c6bcf0dc3f77c631aa7eeb9b1e88b5bbfe445fc6..acc3b2f5798ab49e91095524b744b85e0a76b46c 100644
 --- a/src/main/java/io/papermc/paper/event/player/ChatEvent.java
 +++ b/src/main/java/io/papermc/paper/event/player/ChatEvent.java
-@@ -41,6 +41,10 @@ public final class ChatEvent extends AbstractChatEvent {
+@@ -50,7 +50,11 @@ public final class ChatEvent extends AbstractChatEvent {
      }
  
      /**
+-     * @deprecated for removal with 1.17, use {@link #ChatEvent(Player, Set, ChatRenderer, Component, Component)}
 +     * @param player Player
 +     * @param recipients Recipients
 +     * @param formatter Formatter
 +     * @param message Message
-      * @deprecated for removal with 1.17, use {@link #ChatEvent(Player, Set, ChatRenderer, Component)}
++     * @deprecated for removal with 1.17, use {@link #ChatEvent(Player, Set, ChatRenderer, Component)}
       */
      @Deprecated
+     public ChatEvent(final @NotNull Player player, final @NotNull Set<Player> recipients, final @NotNull ChatFormatter formatter, final @NotNull Component message) {
 diff --git a/src/main/java/io/papermc/paper/inventory/ItemRarity.java b/src/main/java/io/papermc/paper/inventory/ItemRarity.java
 index 74ef8395cc040ce488c2acaa416db20272cc2734..b974627a415cd6897b245275e953cc907a5929d8 100644
 --- a/src/main/java/io/papermc/paper/inventory/ItemRarity.java
