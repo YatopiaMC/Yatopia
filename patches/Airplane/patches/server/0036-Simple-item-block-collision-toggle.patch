@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Sun, 6 Jun 2021 17:13:03 -0500
+Subject: [PATCH] Simple item block collision toggle
+
+
+diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
+index 6fc23a85ddd66a69b83684cdb602b6a312e9d72b..e234e2944f9f764f8110c473997d438a9dc66146 100644
+--- a/src/main/java/gg/airplane/AirplaneConfig.java
++++ b/src/main/java/gg/airplane/AirplaneConfig.java
+@@ -113,11 +113,16 @@ public class AirplaneConfig {
+ 
+ 
+     public static boolean disableMethodProfiler;
++    public static boolean simplerItemCollision;
+ 
+     private static void miscSettings() {
+         config.setComment("misc", "Settings for things that don't belong elsewhere");
+ 
+         disableMethodProfiler = config.getBoolean("misc.disable-method-profiler", true);
++        simplerItemCollision = config.getBoolean("misc.simpler-item-collision", false,
++          "When an item is inside a block, it gets pushed up.",
++          "This option when true makes the check simpler,",
++          "ignoring entities and complex collisions like pistons.");
+     }
+ 
+ 
+diff --git a/src/main/java/net/minecraft/world/entity/item/EntityItem.java b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
+index e1581f0616748da885f457c7fa0f1515490c53f4..cb5c4379bfd16a74debaf23f840dbf1e5535ad7f 100644
+--- a/src/main/java/net/minecraft/world/entity/item/EntityItem.java
++++ b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
+@@ -110,6 +110,12 @@ public class EntityItem extends Entity {
+             if (this.world.isClientSide) {
+                 this.noclip = false;
+             } else {
++                // Airplane start - simpler solid block check
++                if (gg.airplane.AirplaneConfig.simplerItemCollision) {
++                    net.minecraft.world.level.block.state.IBlockData block = this.world.getTypeIfLoaded(this.getChunkCoordinates());
++                    this.noclip = block != null && block.isOpaque();
++                } else
++                    // Airplane end
+                 this.noclip = !this.world.getCubes(this);
+                 if (this.noclip) {
+                     this.l(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());

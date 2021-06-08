@@ -70,7 +70,7 @@ index 861c834e9bfa653e78bc884d5a9712b990a7b632..49b8048de109625f82988ad3baad7708
      public static final BlockPosition a = new BlockPosition(100, 50, 0);
      private static final Logger LOGGER = LogManager.getLogger();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 30168844c52d57ab20abd6a1592aabfa658f714a..3475e74ad2a3d9cf6088e51e55c50bcac28e00b5 100644
+index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8d33daf5b 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -141,9 +141,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
@@ -200,7 +200,7 @@ index 30168844c52d57ab20abd6a1592aabfa658f714a..3475e74ad2a3d9cf6088e51e55c50bca
  
          if (iblockdata.h() != EnumRenderType.INVISIBLE) {
              Vec3D vec3d = this.getMot();
-@@ -2862,7 +2875,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2867,7 +2880,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
              EnumDirection enumdirection1 = aenumdirection[j];
  
              blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection1);
@@ -209,7 +209,7 @@ index 30168844c52d57ab20abd6a1592aabfa658f714a..3475e74ad2a3d9cf6088e51e55c50bca
                  double d4 = vec3d.a(enumdirection1.n());
                  double d5 = enumdirection1.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0D - d4 : d4;
  
-@@ -3076,14 +3089,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3081,14 +3094,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
                  return (ShapeDetectorShape) this.findOrCreatePortal(worldserver, blockposition, flag2, event.getSearchRadius(), event.getCanCreatePortal(), event.getCreationRadius()).map((blockutil_rectangle) -> {
                      // CraftBukkit end
@@ -226,7 +226,7 @@ index 30168844c52d57ab20abd6a1592aabfa658f714a..3475e74ad2a3d9cf6088e51e55c50bca
                          });
  
                          vec3d = this.a(enumdirection_enumaxis, blockutil_rectangle1);
-@@ -3438,6 +3451,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3443,6 +3456,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      public boolean cl() {
@@ -234,7 +234,7 @@ index 30168844c52d57ab20abd6a1592aabfa658f714a..3475e74ad2a3d9cf6088e51e55c50bca
          boolean flag = this.au;
  
          this.au = false;
-@@ -3636,7 +3650,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3641,7 +3655,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                  for (int i2 = k; i2 < l; ++i2) {
                      for (int j2 = i1; j2 < j1; ++j2) {
                          blockposition_mutableblockposition.d(l1, i2, j2);
@@ -244,7 +244,7 @@ index 30168844c52d57ab20abd6a1592aabfa658f714a..3475e74ad2a3d9cf6088e51e55c50bca
                          if (fluid.a(tag)) {
                              double d2 = (double) ((float) i2 + fluid.getHeight(this.world, blockposition_mutableblockposition));
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 92447667f53b86c3a7b0f5f462ba37ffd3007dc8..4de845117c06915943d517bdab7fcc3651589dcf 100644
+index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b4ce1334b 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -139,6 +139,7 @@ import org.bukkit.event.entity.EntityTeleportEvent;
@@ -342,7 +342,7 @@ index 92447667f53b86c3a7b0f5f462ba37ffd3007dc8..4de845117c06915943d517bdab7fcc36
  
                  f = this.onGround ? f5 * 0.91F : 0.91F;
                  Vec3D vec3d6 = this.a(vec3d, f5);
-@@ -3502,7 +3505,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3505,7 +3508,7 @@ public abstract class EntityLiving extends Entity {
  
              while (!flag2 && blockposition.getY() > 0) {
                  BlockPosition blockposition1 = blockposition.down();
@@ -351,7 +351,7 @@ index 92447667f53b86c3a7b0f5f462ba37ffd3007dc8..4de845117c06915943d517bdab7fcc36
  
                  if (iblockdata.getMaterial().isSolid()) {
                      flag2 = true;
-@@ -3614,7 +3617,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3617,7 +3620,7 @@ public abstract class EntityLiving extends Entity {
              this.stopRiding();
          }
  
@@ -360,7 +360,7 @@ index 92447667f53b86c3a7b0f5f462ba37ffd3007dc8..4de845117c06915943d517bdab7fcc36
  
          if (iblockdata.getBlock() instanceof BlockBed) {
              this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, true), 3);
-@@ -3633,7 +3636,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3636,7 +3639,7 @@ public abstract class EntityLiving extends Entity {
  
      private boolean x() {
          return (Boolean) this.getBedPosition().map((blockposition) -> {
@@ -369,7 +369,7 @@ index 92447667f53b86c3a7b0f5f462ba37ffd3007dc8..4de845117c06915943d517bdab7fcc36
          }).orElse(false);
      }
  
-@@ -3643,7 +3646,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3646,7 +3649,7 @@ public abstract class EntityLiving extends Entity {
  
          this.world.getClass();
          optional.filter(world::isLoaded).ifPresent((blockposition) -> {

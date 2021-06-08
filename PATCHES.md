@@ -136,7 +136,6 @@ This is an overview of all the patches that are currently used.
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  Patch Paper to use fast item merge raytracing      | Paul Sauve |  |
-| server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | api |  Per player viewdistances      | Spottedleaf |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
@@ -168,6 +167,7 @@ This is an overview of all the patches that are currently used.
 | server |  Send full pos packets for hard colliding entities      | Spottedleaf |  |
 | server |  Separate lookup locking from state access in UserCache      | Spottedleaf |  |
 | server |  Shutdown Bootstrap thread pool      | foss-mc |  |
+| server |  Simple item block collision toggle      | Paul Sauve |  |
 | server |  Simpler ShapelessRecipes comparison for Vanilla      | Paul Sauve |  |
 | server |  Skip POI finding if stuck in vehicle      | Paul Sauve |  |
 | server |  Skip copying unloading tile entities      | Paul Sauve |  |
