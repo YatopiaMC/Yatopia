@@ -27,14 +27,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/gg/airplane/AirplaneConfig.java b/src/main/java/gg/airplane/AirplaneConfig.java
-index ab019b577002677a4ce788106f8e5a1d7757a2ae..0e452ea9c5d098326d22a20aa67e423f85843db7 100644
+index ab019b577002677a4ce788106f8e5a1d7757a2ae..5077e70e4f408814b1072ceb45c52a322a7662d2 100644
 --- a/src/main/java/gg/airplane/AirplaneConfig.java
 +++ b/src/main/java/gg/airplane/AirplaneConfig.java
-@@ -47,4 +47,36 @@ public class AirplaneConfig {
+@@ -47,4 +47,37 @@ public class AirplaneConfig {
          }
      }
  
-+
++    public static boolean dearEnabled;
 +    public static int startDistance;
 +    public static int startDistanceSquared;
 +    public static int maximumActivationPrio;
@@ -46,6 +46,7 @@ index ab019b577002677a4ce788106f8e5a1d7757a2ae..0e452ea9c5d098326d22a20aa67e423f
 +    private static void dynamicActivationRange() {
 +        config.setComment("activation-range", "Optimizes how entities act when", "they're far away from the player");
 +
++        dearEnabled = config.getBoolean("activation-range.enabled", true);
 +        startDistance = config.getInt("activation-range.start-distance", 12,
 +          "This value determines how far away an entity has to be",
 +          "from the player to start being effected by DEAR.");
@@ -68,7 +69,7 @@ index ab019b577002677a4ce788106f8e5a1d7757a2ae..0e452ea9c5d098326d22a20aa67e423f
 +
  }
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index c3d4eda866016c4ac08d4c5d771e39dcac5a3a60..21f8e6b6dd123675d59cca20935d7048f6c98b23 100644
+index dc562eecac56c6e71c7ad0293507879ca6b04586..e921602fd4f7a86b38c4d09d9cedf5074f1a8508 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -289,6 +289,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
@@ -82,7 +83,7 @@ index c3d4eda866016c4ac08d4c5d771e39dcac5a3a60..21f8e6b6dd123675d59cca20935d7048
      public float getBukkitYaw() {
          return this.yaw;
 diff --git a/src/main/java/net/minecraft/world/entity/EntityInsentient.java b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
-index 7ba59ff9a7ed39bf69c46973a85f874c43134dc1..7582b91a24253473b2770d4e1bf053446238643c 100644
+index 7ba59ff9a7ed39bf69c46973a85f874c43134dc1..c67138e6a4dcbe823e894f6bb948742bfb8f9943 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 @@ -201,10 +201,10 @@ public abstract class EntityInsentient extends EntityLiving {
@@ -90,11 +91,11 @@ index 7ba59ff9a7ed39bf69c46973a85f874c43134dc1..7582b91a24253473b2770d4e1bf05344
      public void inactiveTick() {
          super.inactiveTick();
 -        if (this.goalSelector.inactiveTick()) {
-+        if (this.goalSelector.inactiveTick(this.activatedPriority)) { // Airplane - pass activated priroity
++        if (this.goalSelector.inactiveTick(this.activatedPriority, true)) { // Airplane - pass activated priroity
              this.goalSelector.doTick();
          }
 -        if (this.targetSelector.inactiveTick()) {
-+        if (this.targetSelector.inactiveTick(this.activatedPriority)) { // Airplane - pass activated priority
++        if (this.targetSelector.inactiveTick(this.activatedPriority, true)) { // Airplane - pass activated priority
              this.targetSelector.doTick();
          }
      }
@@ -102,26 +103,27 @@ index 7ba59ff9a7ed39bf69c46973a85f874c43134dc1..7582b91a24253473b2770d4e1bf05344
          this.bo.a();
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("targetSelector");
-+        if (this.targetSelector.inactiveTick(this.activatedPriority)) // Airplane - use this to alternate ticking
++        if (this.targetSelector.inactiveTick(this.activatedPriority, false)) // Airplane - use this to alternate ticking
          this.targetSelector.doTick();
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("goalSelector");
-+        if (this.goalSelector.inactiveTick(this.activatedPriority)) // Airplane - use this to alternate ticking
++        if (this.goalSelector.inactiveTick(this.activatedPriority, false)) // Airplane - use this to alternate ticking
          this.goalSelector.doTick();
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("navigation");
 diff --git a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
-index 637928664f8c7b1c694a234e507c20724294e450..02e8288473138dcea008d6157318758e8d7ee3be 100644
+index 637928664f8c7b1c694a234e507c20724294e450..502f710e1b04d186c539a04b43379bdcd494b0e5 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/goal/PathfinderGoalSelector.java
-@@ -44,9 +44,14 @@ public class PathfinderGoalSelector {
+@@ -44,9 +44,15 @@ public class PathfinderGoalSelector {
      }
  
      // Paper start
 -    public boolean inactiveTick() {
 -        incRate();
 -        return getCurRate() % getTickRate() == 0;
-+    public boolean inactiveTick(int tickRate) { // Airplane - take tick rate
++    public boolean inactiveTick(int tickRate, boolean inactive) { // Airplane - take tick rate
++        if (inactive && !gg.airplane.AirplaneConfig.dearEnabled) tickRate = 4; // reset to Paper's
 +        tickRate = Math.min(tickRate, getTickRate()); // Airplane
 +        if (this.curRate++ % tickRate != 0) { // Airplane - use tick rate / increment curRate every tick
 +            //incRate();
@@ -200,7 +202,7 @@ index 85374ac8f5460790de03b47d7c3ce19ed5596afe..ccb568a5e8501ac5e8901ef3a270cc87
          if (this.bF) {
              this.bF = false;
 diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
-index 5c2eaca0bc63c7880ee928aba6a24761737aa649..8b36ca5062f8e0e8bd58aa506e91704a747de81b 100644
+index 5c2eaca0bc63c7880ee928aba6a24761737aa649..0c86a93a34fdbb65365e81915ac9f54df4dde88b 100644
 --- a/src/main/java/org/spigotmc/ActivationRange.java
 +++ b/src/main/java/org/spigotmc/ActivationRange.java
 @@ -47,6 +47,9 @@ import net.minecraft.world.entity.schedule.Activity;
@@ -231,17 +233,21 @@ index 5c2eaca0bc63c7880ee928aba6a24761737aa649..8b36ca5062f8e0e8bd58aa506e91704a
      {
          // Paper start
          Entity[] rawData = chunk.entities.getRawData();
-@@ -249,6 +252,15 @@ public class ActivationRange
+@@ -249,6 +252,19 @@ public class ActivationRange
              //for ( Entity entity : (Collection<Entity>) slice )
              // Paper end
              {
 +                // Airplane start
-+                Vec3D entityVec = entity.getPositionVector();
-+                double diffX = playerVec.x - entityVec.x, diffY = playerVec.y - entityVec.y, diffZ = playerVec.z - entityVec.z;
-+                int squaredDistance = (int) (diffX * diffX + diffY * diffY + diffZ * diffZ);
-+                entity.activatedPriority = squaredDistance > gg.airplane.AirplaneConfig.startDistanceSquared ?
-+                  Math.max(1, Math.min(squaredDistance >> gg.airplane.AirplaneConfig.activationDistanceMod, gg.airplane.AirplaneConfig.maximumActivationPrio)) :
-+                  1;
++                if (gg.airplane.AirplaneConfig.dearEnabled) {
++                    Vec3D entityVec = entity.getPositionVector();
++                    double diffX = playerVec.x - entityVec.x, diffY = playerVec.y - entityVec.y, diffZ = playerVec.z - entityVec.z;
++                    int squaredDistance = (int) (diffX * diffX + diffY * diffY + diffZ * diffZ);
++                    entity.activatedPriority = squaredDistance > gg.airplane.AirplaneConfig.startDistanceSquared ?
++                      Math.max(1, Math.min(squaredDistance >> gg.airplane.AirplaneConfig.activationDistanceMod, gg.airplane.AirplaneConfig.maximumActivationPrio)) :
++                      1;
++                } else {
++                    entity.activatedPriority = 1;
++                }
 +                // Airplane end
 +
                  if (MinecraftServer.currentTick > entity.activatedTick) {

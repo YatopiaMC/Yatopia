@@ -55,7 +55,7 @@ index cc566784c7dd21cc2c44e0f351347f657e57ddcf..e9e7fcf2b63febe2a7d055826fabb86b
          return d0 == 0.0D ? 0 : (d0 > 0.0D ? 1 : -1);
      }
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 33f689b1c9f4c00969fbdd8ddb21901637afb81c..785c210414ca11584bc51087616845f0d5badc91 100644
+index 2ff3297fb8c0e4f8c969ba2727eecb7fe06525c4..cfd2b2607be0d30ece36d1dd51178fb667018dcc 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
 @@ -111,6 +111,7 @@ import net.minecraft.world.phys.AxisAlignedBB;
@@ -66,10 +66,10 @@ index 33f689b1c9f4c00969fbdd8ddb21901637afb81c..785c210414ca11584bc51087616845f0
  import net.minecraft.world.scores.ScoreboardTeam;
  import org.apache.logging.log4j.Logger;
  
-@@ -3101,7 +3102,7 @@ public abstract class EntityLiving extends Entity {
-         Vec3D vec3d = new Vec3D(this.locX(), this.getHeadY(), this.locZ());
+@@ -3102,7 +3103,7 @@ public abstract class EntityLiving extends Entity {
          Vec3D vec3d1 = new Vec3D(entity.locX(), entity.getHeadY(), entity.locZ());
  
+         // Paper - diff on change - used in CraftLivingEntity#hasLineOfSight(Location) and CraftWorld#lineOfSightExists
 -        return this.world.rayTrace(new RayTrace(vec3d, vec3d1, RayTrace.BlockCollisionOption.COLLIDER, RayTrace.FluidCollisionOption.NONE, this)).getType() == MovingObjectPosition.EnumMovingObjectType.MISS;
 +        return this.world.rayTraceDirect(vec3d, vec3d1, VoxelShapeCollision.a(this)) == MovingObjectPosition.EnumMovingObjectType.MISS; // Airplane - use direct method
      }
@@ -109,7 +109,7 @@ index e612e1d30f76e217b1aa23488ab025adce048f57..6109d59c02d0c7877e213213c6aec6f8
      default MovingObjectPositionBlock rayTraceBlock(RayTrace raytrace1, BlockPosition blockposition) {
              // Paper start - Prevent raytrace from loading chunks
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index 276b1f0c9c9af7db31fba9be0593ae9def540caf..6ab528223682d57bec1cdbd383acd8ab06904e4a 100644
+index cb8064df7e9f1b8b4d4292486e2193680d83663c..37da32675f0c00c793cd137c9a7305932cefb705 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
 @@ -69,6 +69,8 @@ import net.minecraft.world.level.saveddata.maps.WorldMap;
@@ -121,7 +121,7 @@ index 276b1f0c9c9af7db31fba9be0593ae9def540caf..6ab528223682d57bec1cdbd383acd8ab
  import net.minecraft.world.phys.shapes.OperatorBoolean;
  import net.minecraft.world.phys.shapes.VoxelShape;
  import net.minecraft.world.phys.shapes.VoxelShapeCollision;
-@@ -387,6 +389,91 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -385,6 +387,91 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
          return null;
      }
  

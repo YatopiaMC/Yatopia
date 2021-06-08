@@ -1203,7 +1203,7 @@ index c474ee61d98772a2852c44dec1c4a1037472ed2c..ad90735b5daa658cdd5467eadcb29183
      class b extends ChunkMap {
  
 diff --git a/src/main/java/net/minecraft/server/level/ChunkProviderServer.java b/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
-index 9e96376a1d710c0ba7a763868b23fc586253e1a8..fe040615ff03478a20cdf8376f89a6b7d100ba61 100644
+index 3d2e6771cf5887ffa62259239fabf7934781271f..1b86c032fde3409cb89b849b9ba094af82cd9269 100644
 --- a/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
 @@ -946,6 +946,7 @@ public class ChunkProviderServer extends IChunkProvider {
@@ -1214,7 +1214,7 @@ index 9e96376a1d710c0ba7a763868b23fc586253e1a8..fe040615ff03478a20cdf8376f89a6b7
          this.tickChunks();
          this.world.timings.chunks.stopTiming(); // Paper - timings
          this.world.timings.doChunkUnload.startTiming(); // Spigot
-@@ -1241,6 +1242,7 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -1243,6 +1244,7 @@ public class ChunkProviderServer extends IChunkProvider {
          @Override
          protected boolean executeNext() {
              com.tuinity.tuinity.util.TickThread.softEnsureTickThread("Cannot execute chunk tasks off-main thread");// Tuinity
@@ -1223,7 +1223,7 @@ index 9e96376a1d710c0ba7a763868b23fc586253e1a8..fe040615ff03478a20cdf8376f89a6b7
          try {
              boolean execChunkTask = com.destroystokyo.paper.io.chunk.ChunkTaskManager.pollChunkWaitQueue() || ChunkProviderServer.this.world.asyncChunkTaskManager.pollNextChunkTask(); // Paper
 diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-index 922e1c48580943d9322c72f5445da39c2bc6c173..32e400632ec1e61374f772c6262580f84a5b2288 100644
+index 5785397ffc9a041e3e09174cd718ed7f415bdc3f..c813077455a463dd558076d1d7474829f76b905a 100644
 --- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
 @@ -262,7 +262,7 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
@@ -1265,7 +1265,7 @@ index a8edac296cbdb053bca4b56a890c3e9e5544d3a6..d9b134302f739efd93f50e93c8730b47
              }
          }
 diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
-index 25992b13a0212e51012eb9e208f2b762b643bf57..7e24be3a16560c93863c2624a413e8dd7f98c5b4 100644
+index 4b53d12872a0e1665e62d0be85a1c47aefb3601a..c6c34babd618d201bab26eb9e9edaa6e68d510bf 100644
 --- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 @@ -236,20 +236,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -1289,7 +1289,7 @@ index 25992b13a0212e51012eb9e208f2b762b643bf57..7e24be3a16560c93863c2624a413e8dd
 +    public final com.tuinity.tuinity.chunk.PlayerChunkLoader playerChunkManager = new com.tuinity.tuinity.chunk.PlayerChunkLoader(this, this.pooledLinkedPlayerHashSets); // Tuinity - replace chunk loader
      // Paper end - no-tick view distance
      // Tuinity start - optimise checkDespawn
-     public static final int GENERAL_AREA_MAP_SQUARE_RADIUS = 38;
+     public static final int GENERAL_AREA_MAP_SQUARE_RADIUS = 40;
 @@ -268,24 +255,14 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
              com.destroystokyo.paper.util.misc.PlayerAreaMap trackMap = this.playerEntityTrackerTrackMaps[i];
              int trackRange = this.entityTrackerTrackRanges[i];
@@ -1616,7 +1616,7 @@ index c296fcf80c2f3f210fa020416973ec8d5db541ba..07160de8725787551df327c0790b2d6e
                      double deltaX = this.locX() - player.locX();
                      double deltaZ = this.locZ() - player.locZ();
 diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
-index 229eabe0510e6c3660236ed0fb3e80d41074642c..930fc752ec0a988b17bc556cd428161638a14f27 100644
+index 635b1493eeb6c13cc5ef489bd747ac557bc131d8..3cfe3173f710fc54ec77a47a9cbb8f5ff6a6f0b6 100644
 --- a/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
 +++ b/src/main/java/net/minecraft/world/entity/boss/wither/EntityWither.java
 @@ -264,9 +264,9 @@ public class EntityWither extends EntityMonster implements IRangedEntity {
@@ -1648,10 +1648,10 @@ index f74685a7cdb905af8e9712ca8597e7ed3dc8b120..feedbd8c97c1b1c56eaff359e6a94069
                          double deltaZ = soundPos.getZ() - player.locZ();
                          double distanceSquared = deltaX * deltaX + deltaZ * deltaZ;
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index dedcdba593d15b1e2f880ae9eaa00eb6edcd03cf..276b1f0c9c9af7db31fba9be0593ae9def540caf 100644
+index c77b00f30e8edbfcebdc48363de4d5a346abc690..cb8064df7e9f1b8b4d4292486e2193680d83663c 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -615,7 +615,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -613,7 +613,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
                  this.notify(blockposition, iblockdata1, iblockdata, i);
                  // Paper start - per player view distance - allow block updates for non-ticking chunks in player view distance
                  // if copied from above
@@ -1750,10 +1750,10 @@ index 3fe1508b091e1fd0325eae50138d02fa6445c9ff..a19a26a88f247d359354902efeece992
          return new Vec3D((double) baseblockposition.getX() + 0.5D, (double) baseblockposition.getY() + 0.5D, (double) baseblockposition.getZ() + 0.5D);
      }
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 12e17315040de205b51ec254cd919b51682c0442..3f9be0d2d6be83893b8835acfec93d2c1e28ed3d 100644
+index 8e259ccad6a494e6a1aaa455bc7a69739de537ab..bae07ab043040c1f242271d58fc2f611c403ed46 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -2701,14 +2701,14 @@ public class CraftWorld implements World {
+@@ -2712,14 +2712,14 @@ public class CraftWorld implements World {
              throw new IllegalArgumentException("View distance " + viewDistance + " is out of range of [2, 32]");
          }
          PlayerChunkMap chunkMap = getHandle().getChunkProvider().playerChunkMap;
@@ -1770,7 +1770,7 @@ index 12e17315040de205b51ec254cd919b51682c0442..3f9be0d2d6be83893b8835acfec93d2c
      }
  
      @Override
-@@ -2717,11 +2717,22 @@ public class CraftWorld implements World {
+@@ -2728,11 +2728,22 @@ public class CraftWorld implements World {
              throw new IllegalArgumentException("View distance " + viewDistance + " is out of range of [2, 32]");
          }
          PlayerChunkMap chunkMap = getHandle().getChunkProvider().playerChunkMap;

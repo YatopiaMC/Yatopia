@@ -79,7 +79,6 @@ This is an overview of all the patches that are currently used.
 | server |  Fix Log4j Warning      | snoopdoooggyttv |  |
 | server |  Fix NPE in pickup logic for arrow      | Spottedleaf |  |
 | server |  Fix chunks refusing to unload at low TPS      | Spottedleaf |  |
-| server |  Fix dangerous end portal logic      | Spottedleaf |  |
 | server |  Fix exp drop of zombie pigmen (MC-56653)      | Phoenix616 |  |
 | server |  Fix incorrect isRealPlayer init      | Spottedleaf |  |
 | server |  Fix lead fall dmg config      | tr7zw |  |
