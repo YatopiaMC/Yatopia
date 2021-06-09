@@ -151,6 +151,7 @@ This is an overview of all the patches that are currently used.
 | server |  Reduce chunk loading &amp; lookups      | Paul Sauve |  |
 | server |  Reduce frequency of checking for entity despawn      | Paul Sauve |  |
 | server |  Reduce iterator allocation from chunk gen      | Spottedleaf |  |
+| server |  Reduce memory allocations      | Paul Sauve |  |
 | server |  Reduce pathfinder branches      | Spottedleaf |  |
 | server |  Reduce projectile chunk loading      | Paul Sauve |  |
 | server |  Remove chunk lookup &amp; lambda allocation from counting mobs      | Spottedleaf |  |
