@@ -136,6 +136,7 @@ This is an overview of all the patches that are currently used.
 | server |  Option for simpler Villagers      | tr7zw |  |
 | server |  Origami Server Config      | Phoenix616 |  |
 | server |  Patch Paper to use fast item merge raytracing      | Paul Sauve |  |
+| server |  Per World Spawn Limits      | Chase Whipple |  |
 | server |  Per entity (type) collision settings      | MrIvanPlays | tr7zw |
 | api |  Per player viewdistances      | Spottedleaf |  |
 | api |  PlayerAttackEntityEvent      | Ivan Pekov |  |
