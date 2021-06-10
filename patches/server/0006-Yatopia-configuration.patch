@@ -80,17 +80,17 @@ index d8fb0edceba805b9359d02304751182cd0c5a79f..cfd2846c70db349aaf5377217ede4225
          if (this.isFireProof() || this.world.isClientSide) {
              this.extinguish();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 5022827a4fb08279fd0be346804fc36babea0cb8..dd877145feec763a64fb7539f21b18b8c0f9a833 100644
+index 5022827a4fb08279fd0be346804fc36babea0cb8..82d82e73cfab8689d9c87019d2992a3b770f150d 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -876,6 +876,7 @@ public final class CraftServer implements Server {
-             playerList.getProfileBans().load();
-         } catch (IOException ex) {
-             logger.log(Level.WARNING, "Failed to load banned-players.json, " + ex.getMessage());
+@@ -882,6 +882,7 @@ public final class CraftServer implements Server {
+         com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
+         com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
 +        org.yatopiamc.yatopia.server.YatopiaConfig.init((File) console.options.valueOf("yatopia-settings")); // Yatopia
-         }
- 
-         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
+         for (WorldServer world : console.getWorlds()) {
+             world.worldDataServer.setDifficulty(config.difficulty);
+             world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
 @@ -2396,6 +2397,13 @@ public final class CraftServer implements Server {
              org.spigotmc.RestartCommand.restart();
          }

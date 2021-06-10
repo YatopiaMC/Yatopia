@@ -17,17 +17,17 @@ index 70d07a7e1881d02f6d92ea65bcf9bd5a157fb2cf..75a690b149e7275eba0278033b98bdc2
          de.minebench.origami.OrigamiConfig.init((java.io.File) options.valueOf("origami-settings"));
          this.setPVP(dedicatedserverproperties.pvp);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index dd877145feec763a64fb7539f21b18b8c0f9a833..ea4bd11604d0b7dc9e6641a5f7db70bbde286b71 100644
+index 82d82e73cfab8689d9c87019d2992a3b770f150d..45953895cbf2c5059de8bd39e25e5a8d13bfdb60 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -336,6 +336,7 @@ public final class CraftServer implements Server {
-         }
- 
-         saveCommandsConfig();
+@@ -937,6 +937,7 @@ public final class CraftServer implements Server {
+         reloadData();
+         org.spigotmc.SpigotConfig.registerCommands(); // Spigot
+         com.destroystokyo.paper.PaperConfig.registerCommands(); // Paper
 +        org.yatopiamc.yatopia.server.YatopiaConfig.registerCommands(); // Yatopia
          overrideAllCommandBlockCommands = commandsConfiguration.getStringList("command-block-overrides").contains("*");
          ignoreVanillaPermissions = commandsConfiguration.getBoolean("ignore-vanilla-permissions");
-         pluginManager.useTimings(configuration.getBoolean("settings.plugin-profiling"));
+ 
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java b/src/main/java/org/yatopiamc/yatopia/server/NSPTCommand.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..e6eaa07c57e04bbfba9e4aa8e0e939f85169d0c8
@@ -94,7 +94,7 @@ index 0000000000000000000000000000000000000000..e6eaa07c57e04bbfba9e4aa8e0e939f8
 +    }
 +}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 50f232c956f68d3d9c3eaf645810e38d805f4531..98b78bd015218a39b7512c67e0db9ba0451e3d6d 100644
+index 50f232c956f68d3d9c3eaf645810e38d805f4531..bd6e45e256736bdf7b40b2a3fa3f371f601e3970 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -6,11 +6,14 @@ import java.io.IOException;
@@ -112,24 +112,22 @@ index 50f232c956f68d3d9c3eaf645810e38d805f4531..98b78bd015218a39b7512c67e0db9ba0
  import org.bukkit.configuration.InvalidConfigurationException;
  import org.bukkit.configuration.file.YamlConfiguration;
  
-@@ -24,6 +27,7 @@ public class YatopiaConfig {
+@@ -24,8 +27,14 @@ public class YatopiaConfig {
      public static YamlConfiguration config;
      public static int version; // since we're remapping sidestreams' configs we need this public
      public static boolean verbose; // since we're remapping sidestreams' configs we need this public
 +    private static Map<String, Command> commands;
      /*========================================================================*/
  
-     public static void init(File configFile) {
-@@ -39,6 +43,8 @@ public class YatopiaConfig {
-         config.options().header(HEADER);
-         config.options().copyDefaults(true);
-         verbose = getBoolean("verbose", false);
++    static {
 +        commands = new HashMap<>();
 +        commands.put("nspt", new NSPTCommand("nspt"));
- 
-         version = getInt("config-version", 1);
-         set("config-version", 1);
-@@ -46,6 +52,12 @@ public class YatopiaConfig {
++    }
++
+     public static void init(File configFile) {
+         CONFIG_FILE = configFile;
+         config = new YamlConfiguration();
+@@ -46,6 +55,12 @@ public class YatopiaConfig {
          readConfig(YatopiaConfig.class, null);
      }
  
