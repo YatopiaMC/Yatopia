@@ -113,6 +113,7 @@ This is an overview of all the patches that are currently used.
 | server |  Nuke streams off BlockPosition      | Ivan Pekov |  |
 | server |  Nuke streams off SectionPosition      | Ivan Pekov |  |
 | server |  Oprimise map impl for tracked players      | Spottedleaf |  |
+| server |  Optimise BlockSoil nearby water lookup      | Spottedleaf |  |
 | server |  Optimise WorldServer#notify      | Spottedleaf |  |
 | server |  Optimise chunk tick iteration      | Spottedleaf |  |
 | server |  Optimise closest entity lookup      | Spottedleaf |  |
