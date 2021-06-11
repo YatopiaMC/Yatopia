@@ -62,7 +62,11 @@ subprojects {
         if(JavaVersion.VERSION_16 > JavaVersion.current()){
             error("This build must be run with atleast Java 16 or newer")
         }
-        options.release.set(16)
+        sourceCompatibility = JavaVersion.VERSION_16
+        targetCompatibility = JavaVersion.VERSION_16
         withSourcesJar()
     }
+    
+        tasks.withType<JavaCompile>().configureEach {
+            options.release.set(16)
 }
