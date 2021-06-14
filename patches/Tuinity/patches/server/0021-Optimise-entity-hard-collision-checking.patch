@@ -11,12 +11,12 @@ Less crammed entities are likely to show significantly less benefit.
 Effectively, this patch optimises crammed entity situations.
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 2eddfed1768d0a8a882cbaaf5f17e555c513c71a..710b2aaa43de0d5079371d99c2ad86d3271e54ee 100644
+index 8867fd1fff9cadceb526fbeccf34cd2239f67a35..cb01757dc466452ac9d927009ca4b6190871328f 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -322,6 +322,41 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -353,6 +353,41 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
-     // Paper end - optimise entity tracking
+     // Paper end - make end portalling safe
  
 +    // Tuinity start
 +    /**
@@ -56,7 +56,7 @@ index 2eddfed1768d0a8a882cbaaf5f17e555c513c71a..710b2aaa43de0d5079371d99c2ad86d3
      public Entity(EntityTypes<?> entitytypes, World world) {
          this.id = Entity.entityCount.incrementAndGet();
          this.passengers = Lists.newArrayList();
-@@ -2094,11 +2129,11 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2130,11 +2165,11 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          return EnumInteractionResult.PASS;
      }
  

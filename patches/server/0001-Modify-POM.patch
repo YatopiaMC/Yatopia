@@ -5,7 +5,7 @@ Subject: [PATCH] Modify POM
 
 
 diff --git a/pom.xml b/pom.xml
-index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfcc1063236 100644
+index cb633e69891a57571b7e112eb8556ffaed34dcce..5922a339becc84d70fd9248af810e089dcf24c04 100644
 --- a/pom.xml
 +++ b/pom.xml
 @@ -1,11 +1,11 @@
@@ -47,18 +47,18 @@ index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfc
      <dependencyManagement>
          <dependencies>
              <dependency>
-@@ -40,8 +49,8 @@
+@@ -39,8 +48,8 @@
+ 
      <dependencies>
          <dependency>
-             <!-- Purpur start - our "upstream" is Paper (not Tuinity), so this is necessary for DependencyLoading.kt to work properly -->
--            <groupId>net.pl3x.purpur</groupId>
--            <artifactId>purpur-api</artifactId>
+-            <groupId>com.tuinity</groupId>
+-            <artifactId>tuinity-api</artifactId>
 +            <groupId>org.yatopiamc</groupId>
 +            <artifactId>yatopia-api</artifactId>
-             <!-- Purpur end -->
              <version>${project.version}</version>
              <scope>compile</scope>
-@@ -56,7 +65,7 @@
+         </dependency>
+@@ -54,7 +63,7 @@
          <dependency>
              <groupId>io.netty</groupId>
              <artifactId>netty-all</artifactId>
@@ -67,7 +67,7 @@ index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfc
          </dependency>
          <!-- Tuinity end - fix compile issue (cannot see new api) by moving netty include BEFORE server jar -->
          <dependency>
-@@ -73,7 +82,7 @@
+@@ -71,7 +80,7 @@
          <dependency>
              <groupId>org.jline</groupId>
              <artifactId>jline-terminal-jansi</artifactId>
@@ -76,7 +76,7 @@ index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfc
              <scope>runtime</scope>
          </dependency>
          <!--
-@@ -178,14 +187,14 @@
+@@ -176,14 +185,14 @@
          <dependency>
              <groupId>org.hamcrest</groupId>
              <artifactId>hamcrest-library</artifactId>
@@ -93,7 +93,7 @@ index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfc
              <scope>test</scope>
          </dependency>
          <!-- for optimized protocol handling -->
-@@ -209,6 +218,12 @@
+@@ -207,19 +216,41 @@
              <version>master-SNAPSHOT</version>
              <scope>compile</scope>
          </dependency>
@@ -105,11 +105,7 @@ index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfc
 +        </dependency>
      </dependencies>
  
-     <repositories>
-@@ -217,19 +232,32 @@
-             <id>purpur-snapshots</id>
-             <url>https://repo.pl3x.net/</url>
-         </repository>
++    <repositories>
 +        <repository>
 +            <id>destroystokyo-repo</id>
 +            <url>https://papermc.io/repo/repository/maven-public/</url>
@@ -123,8 +119,8 @@ index 5136762f8e95cb1ea2564b6801703fb6f019fbe1..d39821039daafb19f0efc7346011fdfc
 +            <id>velocity</id>
 +            <url>https://nexus.velocitypowered.com/repository/maven-public/</url>
 +        </repository>
-     </repositories>
- 
++     </repositories>
++
      <!-- This builds a completely 'ready to start' jar with all dependencies inside -->
      <build>
 -        <finalName>tuinity-${minecraft.version}</finalName>

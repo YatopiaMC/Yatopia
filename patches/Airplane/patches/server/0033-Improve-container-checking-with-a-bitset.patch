@@ -6,7 +6,7 @@ Subject: [PATCH] Improve container checking with a bitset
 
 diff --git a/src/main/java/gg/airplane/structs/ItemListWithBitset.java b/src/main/java/gg/airplane/structs/ItemListWithBitset.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be2ff1fdf7
+index 0000000000000000000000000000000000000000..7103aa120d3a27d5579d54bd6f4018dc20cca95c
 --- /dev/null
 +++ b/src/main/java/gg/airplane/structs/ItemListWithBitset.java
 @@ -0,0 +1,105 @@
@@ -35,8 +35,8 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +
 +    private final ItemStack[] items;
 +
-+    private int bitSet = 0;
-+    private final int allBits;
++    private long bitSet = 0;
++    private final long allBits;
 +
 +    private ItemListWithBitset(NonNullList<ItemStack> list) {
 +        this(list.size());
@@ -49,10 +49,10 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +    public ItemListWithBitset(int size) {
 +        super(null, ItemStack.NULL_ITEM);
 +
-+        Validate.isTrue(size < Integer.BYTES * 8, "size is too large");
++        Validate.isTrue(size < Long.BYTES * 8, "size is too large");
 +
 +        this.items = createArray(size);
-+        this.allBits = ((1 << size) - 1);
++        this.allBits = ((1L << size) - 1);
 +    }
 +
 +    public boolean isCompletelyEmpty() {
@@ -70,9 +70,9 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +        this.items[index] = itemStack;
 +
 +        if (itemStack == ItemStack.NULL_ITEM) {
-+            this.bitSet &= ~(1 << index);
++            this.bitSet &= ~(1L << index);
 +        } else {
-+            this.bitSet |= 1 << index;
++            this.bitSet |= 1L << index;
 +        }
 +
 +        return existing;
@@ -116,7 +116,7 @@ index 0000000000000000000000000000000000000000..bd3b58cb1a48da2f5259b0c64290b2be
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 39b978c6e61e675249743d082699bb9882fd39ff..b11af463045bbd3bab8d269fde34071ca5f026af 100644
+index b4d8fbbc421b3288ae66db2932825b3e2f9b8d98..1553be4263f08ae21447ccf2e19e8a30a2932208 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
 @@ -846,6 +846,22 @@ public class WorldServer extends World implements GeneratorAccessSeed {
@@ -269,7 +269,7 @@ index 92818df3689e35b921eb04678c84d2dd4b21ddbe..f6b723062a9cd0667efcc0171df71e9d
      public ItemStack splitStack(int i, int j) {
          return i >= this.left.getSize() ? this.right.splitStack(i - this.left.getSize(), j) : this.left.splitStack(i, j);
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java b/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java
-index 111f62d0e5b40e945793b8f504f2c035c0884a6a..cfabc9047cd3e972af84700725355d0fe149b221 100644
+index 111f62d0e5b40e945793b8f504f2c035c0884a6a..324b752c70e0bd7ea06caa98ec15cdd4e6ea40ae 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TileEntityChest.java
 @@ -36,7 +36,7 @@ import org.bukkit.entity.HumanEntity;
@@ -281,8 +281,12 @@ index 111f62d0e5b40e945793b8f504f2c035c0884a6a..cfabc9047cd3e972af84700725355d0f
      protected float a;
      protected float b;
      public int viewingCount;
-@@ -75,9 +75,31 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+@@ -73,10 +73,34 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+     }
+     // CraftBukkit end
  
++    private final boolean isNative = getClass().equals(TileEntityChest.class); // Airplane
++
      protected TileEntityChest(TileEntityTypes<?> tileentitytypes) {
          super(tileentitytypes);
 +        // Airplane start
@@ -291,29 +295,28 @@ index 111f62d0e5b40e945793b8f504f2c035c0884a6a..cfabc9047cd3e972af84700725355d0f
 +         */
 +        this.items = new gg.airplane.structs.ItemListWithBitset(27);
 +        // Airplane end
-     }
- 
++    }
++
 +    // Airplane start
 +    @Override
 +    public boolean hasEmptySlot(EnumDirection enumdirection) {
-+        return !this.items.hasFullStacks();
++        return isNative ? !this.items.hasFullStacks() : super.hasEmptySlot(enumdirection);
 +    }
 +
 +    @Override
 +    public boolean isCompletelyFull(EnumDirection enumdirection) {
-+        return this.items.hasFullStacks() && super.isCompletelyFull(enumdirection);
++        return isNative ? this.items.hasFullStacks() && super.isCompletelyFull(enumdirection) : super.isCompletelyFull(enumdirection);
 +    }
 +
 +    @Override
 +    public boolean isCompletelyEmpty(EnumDirection enumdirection) {
-+        return this.items.isCompletelyEmpty() || super.isCompletelyEmpty(enumdirection);
-+    }
++        return isNative && this.items.isCompletelyEmpty() || super.isCompletelyEmpty(enumdirection);
+     }
 +    // Airplane end
-+
+ 
      public TileEntityChest() {
          this(TileEntityTypes.CHEST);
-     }
-@@ -95,7 +117,7 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+@@ -95,7 +119,7 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
      @Override
      public void load(IBlockData iblockdata, NBTTagCompound nbttagcompound) {
          super.load(iblockdata, nbttagcompound);
@@ -322,7 +325,7 @@ index 111f62d0e5b40e945793b8f504f2c035c0884a6a..cfabc9047cd3e972af84700725355d0f
          if (!this.b(nbttagcompound)) {
              ContainerUtil.b(nbttagcompound, this.items);
          }
-@@ -295,7 +317,7 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
+@@ -295,7 +319,7 @@ public class TileEntityChest extends TileEntityLootable { // Paper - Remove ITic
  
      @Override
      protected void a(NonNullList<ItemStack> nonnulllist) {

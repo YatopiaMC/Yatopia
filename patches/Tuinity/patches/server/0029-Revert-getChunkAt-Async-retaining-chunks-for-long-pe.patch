@@ -6,10 +6,10 @@ Subject: [PATCH] Revert getChunkAt(Async) retaining chunks for long periods of
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index c15777178657d3db16de7237c7ed2127c331166a..e6ea687478a8f7282569a79e4fc29d967cbae7ef 100644
+index 8a81022634d11a050243d39e128c9f50b0d09a51..cbeb3daf2b0bec9687c1111557c7487595953624 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -423,14 +423,7 @@ public class CraftWorld implements World {
+@@ -440,14 +440,7 @@ public class CraftWorld implements World {
  
      @Override
      public Chunk getChunkAt(int x, int z) {
@@ -25,7 +25,7 @@ index c15777178657d3db16de7237c7ed2127c331166a..e6ea687478a8f7282569a79e4fc29d96
      }
  
      // Paper start
-@@ -2659,7 +2652,7 @@ public class CraftWorld implements World {
+@@ -2676,7 +2669,7 @@ public class CraftWorld implements World {
          }
          return this.world.getChunkProvider().getChunkAtAsynchronously(x, z, gen, urgent).thenComposeAsync((either) -> {
              net.minecraft.world.level.chunk.Chunk chunk = (net.minecraft.world.level.chunk.Chunk) either.left().orElse(null);

@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Paul Sauve <paul@technove.co>
+Date: Tue, 1 Jun 2021 18:06:29 -0500
+Subject: [PATCH] Patch Paper to use fast item merge raytracing
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/item/EntityItem.java b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
+index 077990f1d95ded2c8b89c38978ec25a56df3a984..e1581f0616748da885f457c7fa0f1515490c53f4 100644
+--- a/src/main/java/net/minecraft/world/entity/item/EntityItem.java
++++ b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
+@@ -230,10 +230,16 @@ public class EntityItem extends Entity {
+                 if (entityitem.z()) {
+                     // Paper Start - Fix items merging through walls
+                         if (this.world.paperConfig.fixItemsMergingThroughWalls) {
++                            // Airplane start - fast merging!
++                            /*
+                             net.minecraft.world.level.RayTrace rayTrace = new net.minecraft.world.level.RayTrace(this.getPositionVector(), entityitem.getPositionVector(),
+                                 net.minecraft.world.level.RayTrace.BlockCollisionOption.COLLIDER, net.minecraft.world.level.RayTrace.FluidCollisionOption.NONE, this);
+                             net.minecraft.world.phys.MovingObjectPositionBlock rayTraceResult = world.rayTrace(rayTrace);
+                             if (rayTraceResult.getType() == net.minecraft.world.phys.MovingObjectPosition.EnumMovingObjectType.BLOCK) continue;
++                             */
++                            if (world.rayTraceDirect(this.getPositionVector(), entityitem.getPositionVector(), net.minecraft.world.phys.shapes.VoxelShapeCollision.a(this)) ==
++                                net.minecraft.world.phys.MovingObjectPosition.EnumMovingObjectType.BLOCK) continue;
++                            // Airplane end
+                         }
+                     // Paper End
+                     this.a(entityitem);

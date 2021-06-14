@@ -5,10 +5,10 @@ Subject: [PATCH] Optimised hallowen checker
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 2572b5ab8c13f20a4f7efc168fdd8c7adafbcfcd..5392a9bc509008ecfcdad44189c903fd5b57285c 100644
+index 88bb4e47b5def2ba1543cd73411fbcffd570e11d..95d570bf29ca213808fd8382161a7437bcea4283 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1478,6 +1478,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1464,6 +1464,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
          // Paper end
  
          com.tuinity.tuinity.util.CachedLists.reset(); // Tuinity
@@ -17,10 +17,10 @@ index 2572b5ab8c13f20a4f7efc168fdd8c7adafbcfcd..5392a9bc509008ecfcdad44189c903fd
          // Paper start
          long endTime = System.nanoTime();
 diff --git a/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java b/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java
-index 5c9e4724d46b6864cdb85f7d3c8fb0fe37032444..b8ff1af80e87d0715d71d62256f78f1646d82e01 100644
+index 61ebb278cf4ef57ae7a86c6c6ef1fa14559f21e2..b3acd9518791488a2206f28182a6401c8e3db722 100644
 --- a/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java
 +++ b/src/main/java/net/minecraft/world/entity/ambient/EntityBat.java
-@@ -307,11 +307,16 @@ public class EntityBat extends EntityAmbient {
+@@ -248,11 +248,16 @@ public class EntityBat extends EntityAmbient {
      }
  
      private static boolean eJ() {
@@ -38,10 +38,10 @@ index 5c9e4724d46b6864cdb85f7d3c8fb0fe37032444..b8ff1af80e87d0715d71d62256f78f16
  
      @Override
 diff --git a/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java b/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java
-index 1676fbb80e5573c2591c1de7a6a858cf4824b48f..9b4ec2ae5df12fc605770ad6243970a7753dd8dc 100644
+index f8358e40c42f219232bf928f4e0073339a5e19d5..edbe255333421d3eb3235463cbd67e7d49296478 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/EntitySkeletonAbstract.java
-@@ -163,11 +163,15 @@ public abstract class EntitySkeletonAbstract extends EntityMonster implements IR
+@@ -157,11 +157,15 @@ public abstract class EntitySkeletonAbstract extends EntityMonster implements IR
          this.eL();
          this.setCanPickupLoot(this.world.paperConfig.skeletonsAlwaysCanPickUpLoot || this.random.nextFloat() < 0.55F * difficultydamagescaler.d()); // Paper
          if (this.getEquipment(EnumItemSlot.HEAD).isEmpty()) {
@@ -58,10 +58,10 @@ index 1676fbb80e5573c2591c1de7a6a858cf4824b48f..9b4ec2ae5df12fc605770ad6243970a7
                  this.dropChanceArmor[EnumItemSlot.HEAD.b()] = 0.0F;
              }
 diff --git a/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java b/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java
-index bce7b674ef4450c1f6e932cba1b06ae8730cedfe..446d967f87ce252f62e568c18af54c50d63cb586 100644
+index 634416c354184bc6a2348c27c55e9868009ccd28..ccddb1716b1fa231dc7569203895a1533b4af274 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/EntityZombie.java
-@@ -590,11 +590,15 @@ public class EntityZombie extends EntityMonster {
+@@ -536,11 +536,15 @@ public class EntityZombie extends EntityMonster {
          }
  
          if (this.getEquipment(EnumItemSlot.HEAD).isEmpty()) {

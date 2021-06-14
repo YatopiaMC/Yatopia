@@ -5,10 +5,10 @@ Subject: [PATCH] Configurable flight checks
 
 
 diff --git a/src/main/java/net/minecraft/server/network/PlayerConnection.java b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-index 0c47ea59ec05efdf1f9e25bf837e6039c79f6692..3b4bebc25b550904cbf9f53f40f9bb9418defde0 100644
+index 8513795943497ca80232e7d47066a6944c2f45ec..660f7006690d2eb7e16239faffabfd88a841f426 100644
 --- a/src/main/java/net/minecraft/server/network/PlayerConnection.java
 +++ b/src/main/java/net/minecraft/server/network/PlayerConnection.java
-@@ -328,7 +328,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -327,7 +327,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
          ++this.e;
          this.processedMovePackets = this.receivedMovePackets;
          if (this.B && !this.player.isSleeping()) {
@@ -17,7 +17,7 @@ index 0c47ea59ec05efdf1f9e25bf837e6039c79f6692..3b4bebc25b550904cbf9f53f40f9bb94
                  PlayerConnection.LOGGER.warn("{} was kicked for floating too long!", this.player.getDisplayName().getString());
                  this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_PLAYER); // Paper - use configurable kick message & kick event cause
                  return;
-@@ -347,7 +347,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
+@@ -346,7 +346,7 @@ public class PlayerConnection implements PacketListenerPlayIn {
              this.w = this.r.locY();
              this.x = this.r.locZ();
              if (this.D && this.player.getRootVehicle().getRidingPassenger() == this.player) {
@@ -27,10 +27,10 @@ index 0c47ea59ec05efdf1f9e25bf837e6039c79f6692..3b4bebc25b550904cbf9f53f40f9bb94
                      this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickVehicleMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_VEHICLE); // Paper - use configurable kick message & kick event cause
                      return;
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 98b78bd015218a39b7512c67e0db9ba0451e3d6d..90760a81f2d66082d4603df430f931403e5989b4 100644
+index bd6e45e256736bdf7b40b2a3fa3f371f601e3970..016d04054550360db0e49fc836209761a5912922 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -218,4 +218,11 @@ public class YatopiaConfig {
+@@ -221,4 +221,11 @@ public class YatopiaConfig {
      private static void fixFallDistance() {
          fixFallDistance = getBoolean("settings.fixFallDistance", false);
      }

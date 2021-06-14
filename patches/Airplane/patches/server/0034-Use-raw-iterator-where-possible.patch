@@ -5,12 +5,12 @@ Subject: [PATCH] Use raw iterator where possible
 
 
 diff --git a/src/main/java/net/minecraft/server/level/ChunkProviderServer.java b/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
-index 207a9c3928aad7c6e89a120b54d87e003ebd232c..06864951af539e22f6e459c0f0c097b7c2fb929b 100644
+index 0718b80ac82a1cf00519c30c6d2ef78fe3914c71..e31766151450ffa44937feb728f6368e61acd2cd 100644
 --- a/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
 +++ b/src/main/java/net/minecraft/server/level/ChunkProviderServer.java
-@@ -1033,10 +1033,12 @@ public class ChunkProviderServer extends IChunkProvider {
-             //Collections.shuffle(list); // Paper
+@@ -1034,10 +1034,12 @@ public class ChunkProviderServer extends IChunkProvider {
              // Paper - moved up
+             this.world.timings.chunkTicks.startTiming(); // Paper
              // Tuinity start - optimise chunk tick iteration
 -            com.tuinity.tuinity.util.maplist.IteratorSafeOrderedReferenceSet.Iterator<Chunk> iterator = this.entityTickingChunks.iterator();
 +            // Airplane start - use raw iterator
@@ -24,7 +24,7 @@ index 207a9c3928aad7c6e89a120b54d87e003ebd232c..06864951af539e22f6e459c0f0c097b7
                  PlayerChunk playerchunk = chunk.playerChunk;
                  if (playerchunk != null) { // make sure load event has been called along with the load logic we put there
                      // Tuinity end - optimise chunk tick iteration
-@@ -1064,10 +1066,12 @@ public class ChunkProviderServer extends IChunkProvider {
+@@ -1065,10 +1067,12 @@ public class ChunkProviderServer extends IChunkProvider {
                          }
                      }
                  }
@@ -36,5 +36,5 @@ index 207a9c3928aad7c6e89a120b54d87e003ebd232c..06864951af539e22f6e459c0f0c097b7
              }
 +            // Airplane end
              // Tuinity end - optimise chunk tick iteration
+             this.world.timings.chunkTicks.stopTiming(); // Paper
              this.world.getMethodProfiler().enter("customSpawners");
-             if (flag1) {

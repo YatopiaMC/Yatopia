@@ -5,18 +5,18 @@ Subject: [PATCH] Item stuck sleep config
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/item/EntityItem.java b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
-index dd4997e7ffac4773e01add88efec7c0dcd7b4df0..2cdb72093c9668d7e5ff4d6d0a91ffbf5889470d 100644
+index cb5c4379bfd16a74debaf23f840dbf1e5535ad7f..392f51e435021352cf14554361fc6425b70d06e6 100644
 --- a/src/main/java/net/minecraft/world/entity/item/EntityItem.java
 +++ b/src/main/java/net/minecraft/world/entity/item/EntityItem.java
-@@ -115,7 +115,7 @@ public class EntityItem extends Entity {
- 
-             if (this.world.isClientSide) {
-                 this.noclip = false;
--            } else {
-+            } else if (!this.onGround || this.noclip || this.ticksLived % org.yatopiamc.yatopia.server.YatopiaConfig.itemStuckSleepTicks == 0) { // Yatopia
+@@ -114,7 +114,7 @@ public class EntityItem extends Entity {
+                 if (gg.airplane.AirplaneConfig.simplerItemCollision) {
+                     net.minecraft.world.level.block.state.IBlockData block = this.world.getTypeIfLoaded(this.getChunkCoordinates());
+                     this.noclip = block != null && block.isOpaque();
+-                } else
++                } else if (!this.onGround || this.noclip || this.ticksLived % org.yatopiamc.yatopia.server.YatopiaConfig.itemStuckSleepTicks == 0)
+                     // Airplane end
                  this.noclip = !this.world.getCubes(this);
                  if (this.noclip) {
-                     this.l(this.locX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.locZ());
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 index f5a43e607f9c13e07a0f5e7e139eed93f159185b..4722a170519dfebc7b41ce886563a3b80c8e111b 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
