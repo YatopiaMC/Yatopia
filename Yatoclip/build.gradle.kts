@@ -1,3 +1,7 @@
+plugins {
+  `java-library`
+}
+
 repositories {
     mavenCentral()
     maven("https://jitpack.io/")
