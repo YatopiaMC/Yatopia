@@ -8,7 +8,7 @@ rootProject.name = forkNameLowercase
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://papermc.io/repo/repository/maven-public/")
+                maven("https://wav.jfrog.io/artifactory/repo/")
         maven("https://mvn.thearcanebrony.net/repository/maven-public/")
         maven("https://jitpack.io/")
         mavenCentral()
