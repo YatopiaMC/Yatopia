@@ -1,10 +1,30 @@
+import java.util.Locale
+
+val forkName = "Yatopia"
+val forkNameLowercase = forkName.toLowerCase(Locale.ENGLISH)
+
+rootProject.name = forkNameLowercase
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven("https://wav.jfrog.io/artifactory/repo/")
+        maven("https://mvn.thearcanebrony.net/repository/maven-public/")
+        maven("https://jitpack.io/")
+        mavenCentral()
     }
 }
 
-rootProject.name = "Yatopia"
+setupSubproject("$forkNameLowercase-api") {
+    projectDir = File("$forkName-API")
+    buildFileName = "../subprojects/api.gradle.kts"
+}
+setupSubproject("$forkNameLowercase-server") {
+    projectDir = File("$forkName-Server")
+    buildFileName = "../subprojects/server.gradle.kts"
+}
+setupSubproject("Yatoclip") { }
 
-include("Yatopia-API", "Yatopia-Server")
+inline fun setupSubproject(name: String, block: ProjectDescriptor.() -> Unit) {
+    include(name)
+    project(":$name").apply(block)
+}

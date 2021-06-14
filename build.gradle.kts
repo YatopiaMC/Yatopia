@@ -1,64 +1,80 @@
+import org.yatopiamc.toothpick.*
+
 plugins {
-    java
-    id("com.github.johnrengelman.shadow") version "7.0.0" apply false
-    id("io.papermc.paperweight.patcher") version "1.0.0-SNAPSHOT"
+    `java-library`
+    `maven-publish`
+    id("org.yatopiamc.toothpick") version "1.0.1-SNAPSHOT"
 }
 
-repositories {
-    mavenCentral()
-    maven("https://wav.jfrog.io/artifactory/repo/") {
-        content {
-            onlyForConfigurations("paperclip")
-        }
+toothpick {
+    forkName = "Yatopia"
+    groupId = "org.yatopiamc"
+    val versionTag = System.getenv("BUILD_NUMBER")
+        ?: "\"${gitCmd("rev-parse", "--short", "HEAD").output}\""
+    if(!System.getenv("BRANCH_NAME").isNullOrEmpty()) {
+        currentBranch = System.getenv("BRANCH_NAME")
+    } else if (!System.getenv("GITHUB_HEAD_REF").isNullOrEmpty()) {
+        currentBranch = System.getenv("GITHUB_HEAD_REF")
+    } else if (!System.getenv("GITHUB_REF").isNullOrEmpty()) {
+        currentBranch = System.getenv("GITHUB_REF").substring("refs/heads/".length)
+    } else {
+        currentBranch = gitCmd("rev-parse", "--abbrev-ref", "HEAD").output.toString().trim()
+        if(currentBranch == "HEAD") logger.warn("You are currently in \'detached HEAD\' state, branch information isn\'t available")
     }
-    maven("https://maven.quiltmc.org/repository/release/") {
-        content {
-            onlyForConfigurations("remapper")
-        }
-    }
-}
+    forkVersion = "git-$forkName-$currentBranch-$versionTag"
+    forkUrl = "https://github.com/YatopiaMC/Yatopia"
 
-dependencies {
-    remapper("org.quiltmc:tiny-remapper:0.4.1")
-    paperclip("io.papermc:paperclip:2.0.0-SNAPSHOT@jar")
+    minecraftVersion = "1.17"
+    nmsPackage = "1_17_R1"
+    nmsRevision = "R0.1-SNAPSHOT"
+
+    upstream = "Paper"
+    upstreamBranch = "origin/master"
+
+    paperclipName = "yatopia-$minecraftVersion-paperclip.jar"
+
+    patchCreditsOutput = "PATCHES.md"
+    patchCreditsTemplate = ".template.md"
+
+    server {
+        project = project(":$forkNameLowercase-server")
+        patchesDir = rootProject.projectDir.resolve("patches/server")
+    }
+    api {
+        project = project(":$forkNameLowercase-api")
+        patchesDir = rootProject.projectDir.resolve("patches/api")
+    }
+
+    logger.lifecycle("Configured version string: $calcVersionString")
 }
 
 subprojects {
-    apply(plugin = "java")
-
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(16))
-        }
-    }
-
-    tasks.withType<JavaCompile>().configureEach {
-        options.encoding = "UTF-8"
-        options.release.set(16)
-    }
-
     repositories {
         mavenCentral()
-        maven("https://oss.sonatype.org/content/groups/public/")
-        maven("https://papermc.io/repo/repository/maven-public/")
-        maven("https://ci.emc.gs/nexus/content/groups/aikar/")
-        maven("https://repo.aikar.co/content/groups/aikar")
-        maven("https://repo.md-5.net/content/repositories/releases/")
-        maven("https://hub.spigotmc.org/nexus/content/groups/public/")
+        maven("https://repo.aikar.co/content/groups/aikar/")
         maven("https://nexus.velocitypowered.com/repository/velocity-artifacts-snapshots/")
-        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://libraries.minecraft.net")
+        maven("https://repo.codemc.io/repository/maven-public/")
+        maven("https://jitpack.io")
+        maven("https://mvn.thearcanebrony.net/maven-public/")
+        mavenLocal()
+        maven("${rootProjectDir}/.repository")
     }
-}
-paperweight {
-    serverProject.set(project(":Yatopia-Server"))
 
-    usePaperUpstream(providers.gradleProperty("paperCommit")) {
-        withPaperPatcher {
-            apiPatchDir.set(layout.projectDirectory.dir("patches/api"))
-            apiOutputDir.set(layout.projectDirectory.dir("Yatopia-API"))
-
-            serverPatchDir.set(layout.projectDirectory.dir("patches/server"))
-            serverOutputDir.set(layout.projectDirectory.dir("Yatopia-Server"))
+    java {
+        if(JavaVersion.VERSION_16 > JavaVersion.current()){
+            error("This build must be run with Java 16 or newer")
         }
+        sourceCompatibility = JavaVersion.VERSION_16
+        targetCompatibility = JavaVersion.VERSION_16
+        withSourcesJar()
+    }
+
+tasks.withType<JavaCompile>().configureEach {
+    options.isIncremental = true
+    options.isFork = true
+    options.encoding = "UTF-8"
+    options.release.set(16)
     }
 }
+

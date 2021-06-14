@@ -5,10 +5,6 @@ on:
     paths-ignore:
       - '*.md'
       - 'Jenkinsfile'
-    branches:
-      - ver/1.17
-      - dev/*
-      - staging/1.17
   pull_request:
     paths-ignore:
       - '*.md'
@@ -44,21 +40,30 @@ jobs:
         path: ~/.gradle
         key: ${{ runner.os }}-mavenCache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}-openjdk-${{ matrix.java }}
             
-    - name: Configure git
+    - name: Setup Yatopia Project
       run: |
          git config --global user.email "ci@github.com"
          git config --global user.name "Github CI"
          git config --global gc.auto 0
          sudo chmod -R -f 777 ./gradlew
-        
-    - name: Apply Patches
-      run: |
-        ./gradlew applyPatches
-                 
+         ./gradlew initGitSubmodules
+         
     - name: Get MC Version
       run: echo "::set-output name=mcver::$(cat "Paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
       id: mcver
-
+      
+    - name: Pull Minecraft Decompile Cache
+      uses: actions/cache@v2
+      id: decompile-cache
+      with:
+        path: Paper/work/Minecraft/${{ steps.mcver.outputs.mcver }}
+        key: ${{ hashFiles('Paper/work/BuildData/mappings/bukkit-$STEPS_MCVER_OUTPUTS_MCVER-cl.csrg') }}-${{ steps.mcver.outputs.mcver }}-${{ runner.os }}-openjdk-${{ matrix.java }}-minecraft-decomp
+        
+    - name: Apply Patches
+      run: |
+        ./gradlew setupUpstream
+        ./gradlew applyPatches
+                 
     - name: Pull Maven Cache
       uses: actions/cache@v2
       id: maven-cache
@@ -68,7 +73,7 @@ jobs:
 
     - name: Build Yatopia
       run: |
-        ./gradlew generatePaperclipPatch --no-build-cache
+        ./gradlew clean build paperclip --no-build-cache
         
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
