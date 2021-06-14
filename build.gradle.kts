@@ -24,8 +24,8 @@ toothpick {
     forkVersion = "git-$forkName-$currentBranch-$versionTag"
     forkUrl = "https://github.com/YatopiaMC/Yatopia"
 
-    minecraftVersion = "1.16.5"
-    nmsPackage = "1_16_R3"
+    minecraftVersion = "1.17"
+    nmsPackage = "1_17_R1"
     nmsRevision = "R0.1-SNAPSHOT"
 
     upstream = "Paper"
@@ -62,11 +62,11 @@ subprojects {
     }
 
     java {
-        if(JavaVersion.VERSION_1_8 > JavaVersion.current()){
-            error("This build must be run with Java 8 or newer")
+        if(JavaVersion.VERSION_16 > JavaVersion.current()){
+            error("This build must be run with Java 16 or newer")
         }
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_16
+        targetCompatibility = JavaVersion.VERSION_16
         withSourcesJar()
     }
 
@@ -74,6 +74,7 @@ tasks.withType<JavaCompile>().configureEach {
     options.isIncremental = true
     options.isFork = true
     options.encoding = "UTF-8"
+    options.release.set(16)
     }
 }
 
