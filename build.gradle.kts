@@ -1,12 +1,12 @@
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "7.0.0" apply false
-    id("io.papermc.paperweight.patcher") version "1.0.0-SNAPSHOT"
+    id("io.papermc.paperweight.patcher") version "1.0.2"
 }
 
 repositories {
     mavenCentral()
-    maven("https://wav.jfrog.io/artifactory/repo/") {
+    maven("https://papermc.io/repo/repository/maven-public/") {
         content {
             onlyForConfigurations("paperclip")
         }
@@ -62,5 +62,15 @@ paperweight {
             serverPatchDir.set(layout.projectDirectory.dir("patches/server"))
             serverOutputDir.set(layout.projectDirectory.dir("Yatopia-Server"))
         }
-    }
+
+        patchTasks {
+            named("server") {
+                patchTask {
+                    sourceMcDevJar.set(layout.projectDirectory.file(".gradle/caches/paperweight/upstreams/paper/.gradle/caches/paperweight/taskCache/decompileJar.jar"))
+                    libraryImports.set(layout.projectDirectory.file("build-data/library-imports.txt"))
+                    mcdevImports.set(layout.projectDirectory.file("build-data/mcdev-imports.txt"))
+				}
+    			}
+		}	
+	}
 }
