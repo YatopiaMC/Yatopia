@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Toffikk <slodkitofik@gmail.com>
+Date: Thu, 17 Jun 2021 00:01:47 +0200
+Subject: [PATCH] lithium MixinDirection
+
+
+diff --git a/src/main/java/net/minecraft/core/Direction.java b/src/main/java/net/minecraft/core/Direction.java
+index 593d6251c75ec337175d08b85000239ba7da1af2..586be472a0482c7344c38fdcd155b3dc1f7a270e 100644
+--- a/src/main/java/net/minecraft/core/Direction.java
++++ b/src/main/java/net/minecraft/core/Direction.java
+@@ -171,8 +171,12 @@ public enum Direction implements StringRepresentable {
+         }
+     }
+ 
++    /**
++     * @reason Avoid the modulo/abs operations
++     * @author JellySquid
++     */
+     public Direction getOpposite() {
+-        return from3DDataValue(this.oppositeIndex);
++        return VALUES[this.oppositeIndex];
+     }
+ 
+     public Direction getClockWise(Direction.Axis axis) {
+@@ -386,8 +390,13 @@ public enum Direction implements StringRepresentable {
+         return (float)((this.data2d & 3) * 90);
+     }
+ 
++    /**
++     *
++     * @reason Do not allocate an excessive number of Direction arrays
++     * @author JellySquid
++     */
+     public static Direction getRandom(Random random) {
+-        return Util.getRandom(VALUES, random);
++        return VALUES[random.nextInt(VALUES.length)];
+     }
+ 
+     public static Direction getNearest(double x, double y, double z) {
