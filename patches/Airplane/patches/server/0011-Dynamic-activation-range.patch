@@ -69,7 +69,7 @@ index ab019b577002677a4ce788106f8e5a1d7757a2ae..5077e70e4f408814b1072ceb45c52a32
 +
  }
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 89852779fd9cfd19058afe40feb0cf14ca8d2896..5fb3f2968f20e78d76382bec52c9236add4fc060 100644
+index 18e5110047f13c213e70d3e094b94fecb4408d18..6c898bf36edbc50018f4795b8c51fc3fbbcc5641 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -289,6 +289,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
@@ -83,7 +83,7 @@ index 89852779fd9cfd19058afe40feb0cf14ca8d2896..5fb3f2968f20e78d76382bec52c9236a
      public float getBukkitYaw() {
          return this.yaw;
 diff --git a/src/main/java/net/minecraft/world/entity/EntityInsentient.java b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
-index 7ba59ff9a7ed39bf69c46973a85f874c43134dc1..c67138e6a4dcbe823e894f6bb948742bfb8f9943 100644
+index b4afd71340a0c7e1b6aa2e3f01a6a4fc998f3f16..35a6a786474fb95082a2d1ca41697c2b1febe55a 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityInsentient.java
 @@ -201,10 +201,10 @@ public abstract class EntityInsentient extends EntityLiving {
@@ -99,7 +99,7 @@ index 7ba59ff9a7ed39bf69c46973a85f874c43134dc1..c67138e6a4dcbe823e894f6bb948742b
              this.targetSelector.doTick();
          }
      }
-@@ -829,9 +829,11 @@ public abstract class EntityInsentient extends EntityLiving {
+@@ -865,9 +865,11 @@ public abstract class EntityInsentient extends EntityLiving {
          this.bo.a();
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("targetSelector");
@@ -135,20 +135,21 @@ index 637928664f8c7b1c694a234e507c20724294e450..502f710e1b04d186c539a04b43379bdc
      public boolean hasTasks() {
          for (PathfinderGoalWrapped task : getTasks()) {
 diff --git a/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java b/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java
-index ab692de8a5b1411e37251fb545e6f579a9929f91..9aa4850e021076fde306eea7eec104c31086c57f 100644
+index e9b466bb3172fcae1dee81e7e1b8c069b0a23944..6d43c4679a6a27b03d128f4dd2671b33b7d8c6cf 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java
-@@ -121,12 +121,17 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
-         return (BehaviorController<EntityHoglin>) super.getBehaviorController(); // Airplane - decompile error
+@@ -143,13 +143,18 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
+         return (BehaviorController<EntityHoglin>) super.getBehaviorController(); // Purpur decompile error
      }
  
 +    private int behaviorTick; // Airplane
      @Override
      protected void mobTick() {
+         this.world.getMethodProfiler().enter("hoglinBrain");
+         if (getPurpurRider() == null) // Purpur - only use brain if no rider
 +        // Airplane - dynamic tick
 +        if (!gg.airplane.AirplaneConfig.dynamicHoglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
-         this.world.getMethodProfiler().enter("hoglinBrain");
-         this.getBehaviorController().a((WorldServer) this.world, (EntityHoglin) this); // Airplane - decompile error
+         this.getBehaviorController().a((WorldServer) this.world, this); // Purpour - decompile error
          this.world.getMethodProfiler().exit();
          HoglinAI.a(this);
 +        }
@@ -157,19 +158,20 @@ index ab692de8a5b1411e37251fb545e6f579a9929f91..9aa4850e021076fde306eea7eec104c3
              ++this.conversionTicks;
              if (this.conversionTicks > 300) {
 diff --git a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-index 9a7bebd77302dbfd07ac802acbe2b9cb80eec26f..99cdcc9a9a7e6227a165c4ef779f8e76a99ec56a 100644
+index 77af7152a2e5ff99e98a0063947427c0d18aabcb..220933e776504599e7ed68520ec433e74c9dd882 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/piglin/EntityPiglin.java
-@@ -272,12 +272,17 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
+@@ -289,13 +289,18 @@ public class EntityPiglin extends EntityPiglinAbstract implements ICrossbow {
          return !this.cannotHunt;
      }
  
 +    private int behaviorTick; // Airplane
      @Override
      protected void mobTick() {
+         this.world.getMethodProfiler().enter("piglinBrain");
+         if (getPurpurRider() == null) // Purpur - only use brain if no rider
 +        // Airplane - dynamic tick
 +        if (!gg.airplane.AirplaneConfig.dynamicPiglinBehavior || this.behaviorTick++ % this.activatedPriority == 0) {
-         this.world.getMethodProfiler().enter("piglinBrain");
          this.getBehaviorController().a((WorldServer) this.world, (EntityPiglin) this); // CraftBukkit - decompile error
          this.world.getMethodProfiler().exit();
          PiglinAI.b(this);
@@ -179,33 +181,29 @@ index 9a7bebd77302dbfd07ac802acbe2b9cb80eec26f..99cdcc9a9a7e6227a165c4ef779f8e76
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
-index 85374ac8f5460790de03b47d7c3ce19ed5596afe..ccb568a5e8501ac5e8901ef3a270cc87471d9ea1 100644
+index 66863b31687a41f84f722c611064f7ad31e02488..df29b574db306fd722d8470db4a5321230c837d5 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/EntityVillager.java
-@@ -231,11 +231,17 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
-     }
-     // Spigot End
- 
-+    private int behaviorTick = 0;
-+
-     @Override
-     protected void mobTick() { mobTick(false); }
-     protected void mobTick(boolean inactive) {
-         this.world.getMethodProfiler().enter("villagerBrain");
+@@ -295,7 +295,13 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         boolean tick = (world.getTime() + brainTickOffset) % world.purpurConfig.villagerBrainTicks == 0;
+         if (((WorldServer) world).getMinecraftServer().lagging ? tick : world.purpurConfig.villagerUseBrainTicksOnlyWhenLagging || tick)
+         // Purpur end
 -        if (!inactive) this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
-+        if (!inactive) {
-+            if (!gg.airplane.AirplaneConfig.dynamicVillagerBehavior || behaviorTick++ % this.activatedPriority == 0) {
-+                this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
++            // Airplane start
++            if (!inactive) {
++                if (!gg.airplane.AirplaneConfig.dynamicVillagerBehavior || behaviorTick++ % this.activatedPriority == 0) {
++                    this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error // Paper
++                }
 +            }
-+        }
++        // Airplane end
+         else if (shouldRestock()) doRestock(); // Purpur
          this.world.getMethodProfiler().exit();
          if (this.bF) {
-             this.bF = false;
 diff --git a/src/main/java/org/spigotmc/ActivationRange.java b/src/main/java/org/spigotmc/ActivationRange.java
-index 5c2eaca0bc63c7880ee928aba6a24761737aa649..0c86a93a34fdbb65365e81915ac9f54df4dde88b 100644
+index 2fbc24a6907c06bbc12815a89b507d4479be6dc5..3a76d9d90531ed889a0fc92674bd1719aacdb159 100644
 --- a/src/main/java/org/spigotmc/ActivationRange.java
 +++ b/src/main/java/org/spigotmc/ActivationRange.java
-@@ -47,6 +47,9 @@ import net.minecraft.world.entity.schedule.Activity;
+@@ -48,6 +48,9 @@ import net.minecraft.world.entity.schedule.Activity;
  import net.minecraft.world.entity.item.EntityFallingBlock;
  import net.minecraft.world.entity.projectile.EntityEnderSignal;
  // Paper end
@@ -215,7 +213,7 @@ index 5c2eaca0bc63c7880ee928aba6a24761737aa649..0c86a93a34fdbb65365e81915ac9f54d
  
  public class ActivationRange
  {
-@@ -227,7 +230,7 @@ public class ActivationRange
+@@ -229,7 +232,7 @@ public class ActivationRange
                      Chunk chunk = chunkProvider.getChunkAtIfLoadedMainThreadNoCache( i1, j1 ); // Paper
                      if ( chunk != null )
                      {
@@ -224,7 +222,7 @@ index 5c2eaca0bc63c7880ee928aba6a24761737aa649..0c86a93a34fdbb65365e81915ac9f54d
                      }
                  }
              }
-@@ -240,7 +243,7 @@ public class ActivationRange
+@@ -242,7 +245,7 @@ public class ActivationRange
       *
       * @param chunk
       */
@@ -233,7 +231,7 @@ index 5c2eaca0bc63c7880ee928aba6a24761737aa649..0c86a93a34fdbb65365e81915ac9f54d
      {
          // Paper start
          Entity[] rawData = chunk.entities.getRawData();
-@@ -249,6 +252,19 @@ public class ActivationRange
+@@ -251,6 +254,19 @@ public class ActivationRange
              //for ( Entity entity : (Collection<Entity>) slice )
              // Paper end
              {

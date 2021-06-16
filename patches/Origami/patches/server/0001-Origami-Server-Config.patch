@@ -129,53 +129,53 @@ index 0000000000000000000000000000000000000000..fe7330fabe386966c2d203a190a00a78
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index 8ed6ff1c180fe6dd3b29c476799f6b83af0be007..1583c8608a34a84b84873dd10668d6a5f67ab416 100644
+index ebdc5731c574d683a0dffcabcbf8e16037e09648..8de35f1acf057218e8debcfa4fee66f8cc3ddc2a 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -159,6 +159,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
- 
+@@ -161,6 +161,8 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      public final com.tuinity.tuinity.config.TuinityConfig.WorldConfig tuinityConfig; // Tuinity - Server Config
+     public final net.pl3x.purpur.PurpurWorldConfig purpurConfig; // Purpur
  
 +    public final de.minebench.origami.OrigamiConfig.WorldConfig origamiConfig; // Origami - World Config
 +
      public final co.aikar.timings.WorldTimingsHandler timings; // Paper
      public static BlockPosition lastPhysicsProblem; // Spigot
      private org.spigotmc.TickLimiter entityLimiter;
-@@ -255,6 +257,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -299,6 +301,7 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
      protected World(WorldDataMutable worlddatamutable, ResourceKey<World> resourcekey, final DimensionManager dimensionmanager, Supplier<GameProfilerFiller> supplier, boolean flag, boolean flag1, long i, org.bukkit.generator.ChunkGenerator gen, org.bukkit.World.Environment env, java.util.concurrent.Executor executor) { // Paper
          this.spigotConfig = new org.spigotmc.SpigotWorldConfig(((net.minecraft.world.level.storage.WorldDataServer) worlddatamutable).getName()); // Spigot
          this.paperConfig = new com.destroystokyo.paper.PaperWorldConfig(((net.minecraft.world.level.storage.WorldDataServer) worlddatamutable).getName(), this.spigotConfig); // Paper
 +        this.origamiConfig = new de.minebench.origami.OrigamiConfig.WorldConfig(((net.minecraft.world.level.storage.WorldDataServer) worlddatamutable).getName()); // Origami - World Config
          this.chunkPacketBlockController = this.paperConfig.antiXray ? new ChunkPacketBlockControllerAntiXray(this, executor) : ChunkPacketBlockController.NO_OPERATION_INSTANCE; // Paper - Anti-Xray
          this.tuinityConfig = new com.tuinity.tuinity.config.TuinityConfig.WorldConfig(((net.minecraft.world.level.storage.WorldDataServer)worlddatamutable).getName()); // Tuinity - Server Config
-         this.generator = gen;
+         this.purpurConfig = new net.pl3x.purpur.PurpurWorldConfig((((net.minecraft.world.level.storage.WorldDataServer)worlddatamutable).getName()), env); // Purpur
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 13b1eb353c22f2935cff7adbb4df725438a46d8f..ca2c46bb22d4aca818f2aad107da42ebe09f2d2f 100644
+index b8727573d768cab51da07a370c606a798a022edb..188365768dcaf0df6805eca065501572f7f9f501 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -881,6 +881,7 @@ public final class CraftServer implements Server {
-         org.spigotmc.SpigotConfig.init((File) console.options.valueOf("spigot-settings")); // Spigot
+@@ -882,6 +882,7 @@ public final class CraftServer implements Server {
          com.destroystokyo.paper.PaperConfig.init((File) console.options.valueOf("paper-settings")); // Paper
          com.tuinity.tuinity.config.TuinityConfig.init((File) console.options.valueOf("tuinity-settings")); // Tuinity - Server Config
+         net.pl3x.purpur.PurpurConfig.init((File) console.options.valueOf("purpur-settings")); // Purpur
 +        de.minebench.origami.OrigamiConfig.init((File) console.options.valueOf("origami-settings")); // Origami - Server Config
          for (WorldServer world : console.getWorlds()) {
              world.worldDataServer.setDifficulty(config.difficulty);
              world.setSpawnFlags(config.spawnMonsters, config.spawnAnimals);
-@@ -916,6 +917,7 @@ public final class CraftServer implements Server {
-             world.spigotConfig.init(); // Spigot
+@@ -918,6 +919,7 @@ public final class CraftServer implements Server {
              world.paperConfig.init(); // Paper
              world.tuinityConfig.init(); // Tuinity - Server Config
+             world.purpurConfig.init(); // Purpur
 +            world.origamiConfig.init(); // Origami - World Config
          }
  
          Plugin[] pluginClone = pluginManager.getPlugins().clone(); // Paper
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index fbeca329f62325aa479f968e7f0f04cde341a009..1345ee267a61caf97e5b4f6ee641cadb10698fb6 100644
+index 73513638dd024cb1cdd49c705921f0bcf1935968..cbdcc06c03ea1a206e035a41c13242b00b5062a5 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -154,6 +154,14 @@ public class Main {
+@@ -162,6 +162,14 @@ public class Main {
                          .describedAs("Yml file");
-                 /* Conctete End - Server Config */
+                 // Purpur end
  
 +                // Origami Start - Server Config
 +                acceptsAll(asList("origami", "origami-settings"), "File for origami settings")
@@ -188,7 +188,7 @@ index fbeca329f62325aa479f968e7f0f04cde341a009..1345ee267a61caf97e5b4f6ee641cadb
                  // Paper start
                  acceptsAll(asList("server-name"), "Name of the server")
                          .withRequiredArg()
-@@ -292,6 +300,7 @@ public class Main {
+@@ -300,6 +308,7 @@ public class Main {
                  }
                  // Paper end
                  System.setProperty( "library.jansi.version", "Paper" ); // Paper - set meaningless jansi version to prevent git builds from crashing on Windows

@@ -67,10 +67,10 @@ index 0000000000000000000000000000000000000000..e647624f4c9afe8bc603792ad88c807e
 +    }
 +}
 diff --git a/src/main/java/net/minecraft/core/BlockPosition.java b/src/main/java/net/minecraft/core/BlockPosition.java
-index 2685a395a2eff9083cd8c654c4b7e2141b0ca99b..902cdf1b2ba56534d80ce270a84b8d3ab0b026dc 100644
+index c2706c752f6ff5c131b6db469ae85dd703d5d381..09978014fcb1a3cb46248fb6a035725c08d70a4a 100644
 --- a/src/main/java/net/minecraft/core/BlockPosition.java
 +++ b/src/main/java/net/minecraft/core/BlockPosition.java
-@@ -341,6 +341,16 @@ public class BlockPosition extends BaseBlockPosition {
+@@ -347,6 +347,16 @@ public class BlockPosition extends BaseBlockPosition {
          return a(MathHelper.floor(axisalignedbb.minX), MathHelper.floor(axisalignedbb.minY), MathHelper.floor(axisalignedbb.minZ), MathHelper.floor(axisalignedbb.maxX), MathHelper.floor(axisalignedbb.maxY), MathHelper.floor(axisalignedbb.maxZ));
      }
  
@@ -132,19 +132,19 @@ index 427413c668865e1660f1d81daf6a3385f08a0e38..a206a729b3afa01bf591fa4da1e5c149
          return StreamSupport.stream(new AbstractSpliterator<SectionPosition>((long) ((l - i + 1) * (i1 - j + 1) * (j1 - k + 1)), 64) {
              final CursorPosition a = new CursorPosition(i, j, k, l, i1, j1);
 diff --git a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
-index 13d94ecd703b3cd0412e138532d2dd74e5bf250d..2fa0a60857039fde85e648e7a190800a8a9c92e7 100644
+index 6082eed2d28f3be65daa7e7eb6f2c2a89bb28ff1..29cd71efe86eea2227f373c15c39dc530e9e8199 100644
 --- a/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
 +++ b/src/main/java/net/minecraft/world/entity/ai/village/poi/VillagePlace.java
-@@ -192,7 +192,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
-     }
+@@ -193,7 +193,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
  
+     public long count(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) { return a(predicate, blockposition, i, villageplace_occupancy); } // Purpur - OBFHELPER
      public long a(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
 -        return this.c(predicate, blockposition, i, villageplace_occupancy).count();
 +        return this.cList(predicate, blockposition, i, villageplace_occupancy).size(); // Yatopia
      }
  
      public boolean a(VillagePlaceType villageplacetype, BlockPosition blockposition) {
-@@ -213,6 +213,39 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -214,6 +214,39 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          });
      }
  
@@ -184,7 +184,7 @@ index 13d94ecd703b3cd0412e138532d2dd74e5bf250d..2fa0a60857039fde85e648e7a190800a
      public Stream<VillagePlaceRecord> c(Predicate<VillagePlaceType> predicate, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
          int j = i * i;
  
-@@ -229,10 +262,28 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -230,10 +263,28 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          });
      }
  
@@ -213,7 +213,7 @@ index 13d94ecd703b3cd0412e138532d2dd74e5bf250d..2fa0a60857039fde85e648e7a190800a
      public Stream<BlockPosition> b(Predicate<VillagePlaceType> predicate, Predicate<BlockPosition> predicate1, BlockPosition blockposition, int i, VillagePlace.Occupancy villageplace_occupancy) {
          return this.a(predicate, predicate1, blockposition, i, villageplace_occupancy).sorted(Comparator.comparingDouble((blockposition1) -> {
              return blockposition1.j(blockposition);
-@@ -380,7 +431,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -381,7 +432,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
      }
  
      private void a(ChunkSection chunksection, SectionPosition sectionposition, BiConsumer<BlockPosition, VillagePlaceType> biconsumer) {
@@ -222,7 +222,7 @@ index 13d94ecd703b3cd0412e138532d2dd74e5bf250d..2fa0a60857039fde85e648e7a190800a
              IBlockData iblockdata = chunksection.getType(SectionPosition.b(blockposition.getX()), SectionPosition.b(blockposition.getY()), SectionPosition.b(blockposition.getZ()));
  
              VillagePlaceType.b(iblockdata).ifPresent((villageplacetype) -> {
-@@ -390,6 +441,16 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -391,6 +442,16 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
      }
  
      public void a(IWorldReader iworldreader, BlockPosition blockposition, int i) {
@@ -239,7 +239,7 @@ index 13d94ecd703b3cd0412e138532d2dd74e5bf250d..2fa0a60857039fde85e648e7a190800a
          SectionPosition.b(new ChunkCoordIntPair(blockposition), Math.floorDiv(i, 16)).map((sectionposition) -> {
              return Pair.of(sectionposition, this.d(sectionposition.s()));
          }).filter((pair) -> {
-@@ -401,6 +462,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
+@@ -402,6 +463,7 @@ public class VillagePlace extends RegionFileSection<VillagePlaceSection> {
          }).forEach((chunkcoordintpair) -> {
              iworldreader.getChunkAt(chunkcoordintpair.x, chunkcoordintpair.z, ChunkStatus.EMPTY);
          });
@@ -297,10 +297,10 @@ index 41ffad7cbb6c77713736f37b3728b201d315f6d4..866e9a434423702d2edaf9b52fa0e621
          return true;
      }
 diff --git a/src/main/java/net/minecraft/world/entity/animal/EntityBee.java b/src/main/java/net/minecraft/world/entity/animal/EntityBee.java
-index 1d1f71a995a99b2101891a7a5bda7bec5d67f118..c778a735c7653be13af956f9829eb88d21518ce6 100644
+index 4da4fadbd4a036b316d554de20c0d30d35cc206b..4fb72f73ef4a1131ad91b3edea78a79169202720 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/EntityBee.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/EntityBee.java
-@@ -794,15 +794,19 @@ public class EntityBee extends EntityAnimal implements IEntityAngerable, EntityB
+@@ -856,15 +856,19 @@ public class EntityBee extends EntityAnimal implements IEntityAngerable, EntityB
          private List<BlockPosition> j() {
              BlockPosition blockposition = EntityBee.this.getChunkCoordinates();
              VillagePlace villageplace = ((WorldServer) EntityBee.this.world).y();
@@ -324,10 +324,10 @@ index 1d1f71a995a99b2101891a7a5bda7bec5d67f118..c778a735c7653be13af956f9829eb88d
      }
  
 diff --git a/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java b/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java
-index c939ca087af4588e14669a2d53d7c116dcb59f16..d5113b5c555157d00c845a3735258490d1471476 100644
+index 11271762dcf5783c3179de1afc6a882c5330b4dd..a0321663a1cb410505e2b57397c6d0020433e6e1 100644
 --- a/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java
 +++ b/src/main/java/net/minecraft/world/entity/raid/PersistentRaid.java
-@@ -86,7 +86,7 @@ public class PersistentRaid extends PersistentBase {
+@@ -98,7 +98,7 @@ public class PersistentRaid extends PersistentBase {
                  return null;
              } else {
                  BlockPosition blockposition = entityplayer.getChunkCoordinates();

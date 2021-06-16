@@ -46,10 +46,10 @@ index 1b86c032fde3409cb89b849b9ba094af82cd9269..0718b80ac82a1cf00519c30c6d2ef78f
              boolean flag2 = world.ticksPerAnimalSpawns != 0L && worlddata.getTime() % world.ticksPerAnimalSpawns == 0L; // CraftBukkit
  
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 239af30d85bff561d14a96de97e1215378018f85..39b978c6e61e675249743d082699bb9882fd39ff 100644
+index ce13d159e9519e352e348fb064d7f6ca3f69bacb..d7a19e6c03b440bc46385868e83a00110dfdc0b1 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
-@@ -1202,6 +1202,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1250,6 +1250,8 @@ public class WorldServer extends World implements GeneratorAccessSeed {
      private final BiomeBase[] biomeBaseCache = new BiomeBase[1];
      // Tuinity end - optimise chunk ice snow ticking
  
@@ -58,7 +58,7 @@ index 239af30d85bff561d14a96de97e1215378018f85..39b978c6e61e675249743d082699bb98
      public void a(Chunk chunk, int i) { final int randomTickSpeed = i; // Paper
          ChunkCoordIntPair chunkcoordintpair = chunk.getPos();
          boolean flag = this.isRaining();
-@@ -1212,7 +1214,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1260,7 +1262,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          gameprofilerfiller.enter("thunder");
          final BlockPosition.MutableBlockPosition blockposition = this.chunkTickMutablePosition; // Paper - use mutable to reduce allocation rate, final to force compile fail on change
  
@@ -67,7 +67,7 @@ index 239af30d85bff561d14a96de97e1215378018f85..39b978c6e61e675249743d082699bb98
              blockposition.setValues(this.a(this.a(j, 0, k, 15))); // Paper
              if (this.isRainingAt(blockposition)) {
                  DifficultyDamageScaler difficultydamagescaler = this.getDamageScaler(blockposition);
-@@ -1236,7 +1238,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1290,7 +1292,7 @@ public class WorldServer extends World implements GeneratorAccessSeed {
          }
  
          gameprofilerfiller.exitEnter("iceandsnow");

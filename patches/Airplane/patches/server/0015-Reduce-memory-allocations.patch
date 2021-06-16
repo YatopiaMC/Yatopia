@@ -20,10 +20,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 diff --git a/src/main/java/net/minecraft/core/BlockPosition.java b/src/main/java/net/minecraft/core/BlockPosition.java
-index 6a6381e85fef2ae2b9b5e6dff0b7917b92fa01e5..2685a395a2eff9083cd8c654c4b7e2141b0ca99b 100644
+index 17d63cd4ca152adc66ffe9ffd3227a0770738a29..c2706c752f6ff5c131b6db469ae85dd703d5d381 100644
 --- a/src/main/java/net/minecraft/core/BlockPosition.java
 +++ b/src/main/java/net/minecraft/core/BlockPosition.java
-@@ -438,12 +438,26 @@ public class BlockPosition extends BaseBlockPosition {
+@@ -444,12 +444,26 @@ public class BlockPosition extends BaseBlockPosition {
          public BlockPosition b(int i, int j, int k) {
              return super.b(i, j, k).immutableCopy();
          }
@@ -51,7 +51,7 @@ index 6a6381e85fef2ae2b9b5e6dff0b7917b92fa01e5..2685a395a2eff9083cd8c654c4b7e214
          public BlockPosition a(EnumDirection.EnumAxis enumdirection_enumaxis, int i) {
              return super.a(enumdirection_enumaxis, i).immutableCopy();
 diff --git a/src/main/java/net/minecraft/core/EnumDirection.java b/src/main/java/net/minecraft/core/EnumDirection.java
-index 7918d830a4aef09c9f517284e83a9376299116ad..0a40df2151bd388b6633a6f50b14f1f41ed4ce62 100644
+index 9f1ea11d0bc15b8b0069fcf46ea2f6751c5e3064..19bc37143140b4e3a06a87297205b702548b0fa3 100644
 --- a/src/main/java/net/minecraft/core/EnumDirection.java
 +++ b/src/main/java/net/minecraft/core/EnumDirection.java
 @@ -30,7 +30,7 @@ public enum EnumDirection implements INamable {
@@ -64,7 +64,7 @@ index 7918d830a4aef09c9f517284e83a9376299116ad..0a40df2151bd388b6633a6f50b14f1f4
          return enumdirection;
      }));
 diff --git a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
-index d827e18d8c3b9b5869dbb1e233f415ba0efb7c1b..fc687515fdfd47e90e11a2832de07d784edeef25 100644
+index d876c5037b4704a174606629c80ba1142c77a50c..92db19451317ed02fba526328f97dec1dbbf85bd 100644
 --- a/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 +++ b/src/main/java/net/minecraft/server/level/PlayerChunkMap.java
 @@ -705,7 +705,9 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
@@ -141,10 +141,10 @@ index d827e18d8c3b9b5869dbb1e233f415ba0efb7c1b..fc687515fdfd47e90e11a2832de07d78
              return this.a(i);
          }
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 39b978c6e61e675249743d082699bb9882fd39ff..b4d8fbbc421b3288ae66db2932825b3e2f9b8d98 100644
+index d7a19e6c03b440bc46385868e83a00110dfdc0b1..d80378780d1cb83b37124509d34344e323b828bb 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
-@@ -1107,7 +1107,28 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1135,7 +1135,28 @@ public class WorldServer extends World implements GeneratorAccessSeed {
  
                  gameprofilerfiller.enter("tick");
                  if (!entity.dead && !(entity instanceof EntityComplexPart)) {
@@ -173,7 +173,7 @@ index 39b978c6e61e675249743d082699bb9882fd39ff..b4d8fbbc421b3288ae66db2932825b3e
                  }
  
                  gameprofilerfiller.exit();
-@@ -1451,9 +1472,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
+@@ -1505,9 +1526,14 @@ public class WorldServer extends World implements GeneratorAccessSeed {
                  ++entity.ticksLived;
                  GameProfilerFiller gameprofilerfiller = this.getMethodProfiler();
  
@@ -189,12 +189,12 @@ index 39b978c6e61e675249743d082699bb9882fd39ff..b4d8fbbc421b3288ae66db2932825b3e
                  if (isActive) { // Paper - EAR 2
                      TimingHistory.activatedEntityTicks++; // Paper
 diff --git a/src/main/java/net/minecraft/world/entity/EntityTypes.java b/src/main/java/net/minecraft/world/entity/EntityTypes.java
-index 80c229c1852199fda85c03453d64cae33e413e89..7f70dda656ff9d802200f18139d2695e58c551c7 100644
+index c166e0a8e7eadb4f714078f764ef35f7afca543b..778c981d4458957533fc3ac44095051b279c74e3 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityTypes.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityTypes.java
-@@ -270,6 +270,8 @@ public class EntityTypes<T extends Entity> {
-     private MinecraftKey bq;
-     private final EntitySize br;
+@@ -271,6 +271,8 @@ public class EntityTypes<T extends Entity> {
+     public void setEntitySize(EntitySize entitySize) { this.br = entitySize; } // Purpur - OBFHELPER
+     private EntitySize br; // Purpur - remove final
  
 +    public java.util.function.Supplier<String> getEntityName = () -> IRegistry.ENTITY_TYPE.getKey(this).toString(); // Airplane - create lambda ones
 +
@@ -202,10 +202,10 @@ index 80c229c1852199fda85c03453d64cae33e413e89..7f70dda656ff9d802200f18139d2695e
          return (EntityTypes) IRegistry.a((IRegistry) IRegistry.ENTITY_TYPE, s, (Object) entitytypes_builder.a(s));
      }
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index 37da32675f0c00c793cd137c9a7305932cefb705..726d0aec2c40ac8e40dba3a12f17870abae6dca6 100644
+index 904dfb7c337b1d583df80533ba5c59478f560c85..d7ec4c6917433ef38b3460c6dae6b954d013890f 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -1110,19 +1110,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
+@@ -1156,19 +1156,19 @@ public abstract class World implements GeneratorAccess, AutoCloseable {
  
      public void a(Consumer<Entity> consumer, Entity entity) {
          try {

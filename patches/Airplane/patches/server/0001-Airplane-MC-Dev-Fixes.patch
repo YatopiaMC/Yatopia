@@ -19,44 +19,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-diff --git a/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java b/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java
-index 375409f4b72edc7990da90460b30486fb2980fb6..ab692de8a5b1411e37251fb545e6f579a9929f91 100644
---- a/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java
-+++ b/src/main/java/net/minecraft/world/entity/monster/hoglin/EntityHoglin.java
-@@ -54,7 +54,7 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
-     public int conversionTicks = 0;
-     public boolean cannotBeHunted = false;
-     protected static final ImmutableList<? extends SensorType<? extends Sensor<? super EntityHoglin>>> bo = ImmutableList.of(SensorType.c, SensorType.d, SensorType.n, SensorType.m);
--    protected static final ImmutableList<? extends MemoryModuleType<?>> bp = ImmutableList.of(MemoryModuleType.BREED_TARGET, MemoryModuleType.MOBS, MemoryModuleType.VISIBLE_MOBS, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, new MemoryModuleType[]{MemoryModuleType.AVOID_TARGET, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.NEAREST_VISIBLE_ADULY, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.PACIFIED});
-+    protected static final ImmutableList<MemoryModuleType<?>> bp = ImmutableList.of(MemoryModuleType.BREED_TARGET, MemoryModuleType.MOBS, MemoryModuleType.VISIBLE_MOBS, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_TARGETABLE_PLAYER, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_VISIBLE_ADULT_PIGLIN, new MemoryModuleType[]{MemoryModuleType.AVOID_TARGET, MemoryModuleType.VISIBLE_ADULT_PIGLIN_COUNT, MemoryModuleType.VISIBLE_ADULT_HOGLIN_COUNT, MemoryModuleType.NEAREST_VISIBLE_ADULT_HOGLINS, MemoryModuleType.NEAREST_VISIBLE_ADULY, MemoryModuleType.NEAREST_REPELLENT, MemoryModuleType.PACIFIED}); // Airplane - decompile error
- 
-     public EntityHoglin(EntityTypes<? extends EntityHoglin> entitytypes, World world) {
-         super(entitytypes, world);
-@@ -118,13 +118,13 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
- 
-     @Override
-     public BehaviorController<EntityHoglin> getBehaviorController() {
--        return super.getBehaviorController();
-+        return (BehaviorController<EntityHoglin>) super.getBehaviorController(); // Airplane - decompile error
-     }
- 
-     @Override
-     protected void mobTick() {
-         this.world.getMethodProfiler().enter("hoglinBrain");
--        this.getBehaviorController().a((WorldServer) this.world, (EntityLiving) this);
-+        this.getBehaviorController().a((WorldServer) this.world, (EntityHoglin) this); // Airplane - decompile error
-         this.world.getMethodProfiler().exit();
-         HoglinAI.a(this);
-         if (this.isConverting()) {
-@@ -300,7 +300,7 @@ public class EntityHoglin extends EntityAnimal implements IMonster, IOglin {
- 
-     @Override
-     protected SoundEffect getSoundAmbient() {
--        return this.world.isClientSide ? null : (SoundEffect) HoglinAI.b(this).orElse((Object) null);
-+        return this.world.isClientSide ? null : (SoundEffect) HoglinAI.b(this).orElse(null); // Airplane - decompile error
-     }
- 
-     @Override
 diff --git a/src/main/java/net/minecraft/world/level/storage/loot/LootTableInfo.java b/src/main/java/net/minecraft/world/level/storage/loot/LootTableInfo.java
 index 95d0c9f22d79194ca83ca6f6a8e6d91180a3c8da..5c712af849abf1e5f58a7760b19c543474559f77 100644
 --- a/src/main/java/net/minecraft/world/level/storage/loot/LootTableInfo.java

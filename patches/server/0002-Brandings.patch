@@ -5,29 +5,18 @@ Subject: [PATCH] Brandings
 
 
 diff --git a/src/main/java/com/destroystokyo/paper/Metrics.java b/src/main/java/com/destroystokyo/paper/Metrics.java
-index 52c0ab1ce46e1f3233ef746d9bc699356fa9fae4..1c7dd62287614f98d26ef23459c17560339ffd0a 100644
+index 4d8740678049aa749b42618470e9cc838555528d..8003c56b1fa3d37a00b93ab2fca9a2c825ae505e 100644
 --- a/src/main/java/com/destroystokyo/paper/Metrics.java
 +++ b/src/main/java/com/destroystokyo/paper/Metrics.java
 @@ -593,7 +593,7 @@ public class Metrics {
              boolean logFailedRequests = config.getBoolean("logFailedRequests", false);
              // Only start Metrics, if it's enabled in the config
              if (config.getBoolean("enabled", true)) {
--                Metrics metrics = new Metrics("Tuinity", serverUUID, logFailedRequests, Bukkit.getLogger()); // Tuinity - we have our own bstats page
-+                Metrics metrics = new Metrics("Yatopia", serverUUID, logFailedRequests, Bukkit.getLogger()); // Tuinity - we have our own bstats page // Yatopia
+-                Metrics metrics = new Metrics("Purpur", serverUUID, logFailedRequests, Bukkit.getLogger()); // Purpur
++                Metrics metrics = new Metrics("Yatopia", serverUUID, logFailedRequests, Bukkit.getLogger()); // Purpur // Yatopia
  
                  metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
                      String minecraftVersion = Bukkit.getVersion();
-@@ -602,8 +602,8 @@ public class Metrics {
-                 }));
- 
-                 metrics.addCustomChart(new Metrics.SingleLineChart("players", () -> Bukkit.getOnlinePlayers().size()));
--                metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() || PaperConfig.isProxyOnlineMode() ? "online" : "offline"));
--                metrics.addCustomChart(new Metrics.SimplePie("tuinity_version", () -> (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown")); // Tuinity - we have our own bstats page
-+                metrics.addCustomChart(new Metrics.SimplePie("online_mode", () -> Bukkit.getOnlineMode() ? "online" : (PaperConfig.isProxyOnlineMode() ? "bungee" : "offline"))); // Yatopia
-+                metrics.addCustomChart(new Metrics.SimplePie("yatopia_version", () -> (Metrics.class.getPackage().getImplementationVersion() != null) ? Metrics.class.getPackage().getImplementationVersion() : "unknown"));// Yatopia
- 
-                 metrics.addCustomChart(new Metrics.DrilldownPie("java_version", () -> {
-                     Map<String, Map<String, Integer>> map = new HashMap<>();
 diff --git a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java b/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
 index ad87b575a0261200b280884e054a59e3ce59c41c..eb0509386feb156ae9c8ca0eb25c0120c9332b19 100644
 --- a/src/main/java/com/destroystokyo/paper/console/PaperConsole.java
@@ -42,7 +31,7 @@ index ad87b575a0261200b280884e054a59e3ce59c41c..eb0509386feb156ae9c8ca0eb25c0120
                  .completer(new ConsoleCommandCompleter(this.server))
                  .option(LineReader.Option.COMPLETE_IN_WORD, true);
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index ca2c46bb22d4aca818f2aad107da42ebe09f2d2f..e6439b95959af5e8761ea818a66344eee6048e90 100644
+index 188365768dcaf0df6805eca065501572f7f9f501..bc0fb823ed6d4adf89c56ea29eefb600039ec0fe 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 @@ -230,7 +230,7 @@ import javax.annotation.Nullable; // Paper
@@ -55,10 +44,10 @@ index ca2c46bb22d4aca818f2aad107da42ebe09f2d2f..e6439b95959af5e8761ea818a66344ee
      private final String bukkitVersion = Versioning.getBukkitVersion();
      private final Logger logger = Logger.getLogger("Minecraft");
 diff --git a/src/main/java/org/bukkit/craftbukkit/Main.java b/src/main/java/org/bukkit/craftbukkit/Main.java
-index 1345ee267a61caf97e5b4f6ee641cadb10698fb6..dfc36958e5b1a1ac82113d2d0929a17d83e4da54 100644
+index cbdcc06c03ea1a206e035a41c13242b00b5062a5..aa70c3e32b006e53b6cf2ad3d3f33008cb480a4a 100644
 --- a/src/main/java/org/bukkit/craftbukkit/Main.java
 +++ b/src/main/java/org/bukkit/craftbukkit/Main.java
-@@ -280,7 +280,7 @@ public class Main {
+@@ -288,7 +288,7 @@ public class Main {
                      if (buildDate.before(deadline.getTime())) {
                          // Paper start - This is some stupid bullshit
                          System.err.println("*** Warning, you've not updated in a while! ***");
@@ -68,7 +57,7 @@ index 1345ee267a61caf97e5b4f6ee641cadb10698fb6..dfc36958e5b1a1ac82113d2d0929a17d
                          //Thread.sleep(TimeUnit.SECONDS.toMillis(20));
                          // Paper End
 diff --git a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
-index 6cb8608f8238c4a8c346b92ba672c8cc1c0cbcc4..27b3f4272e287920791e3e846d108e0aed63b065 100644
+index 4674a541374cbf0594a2e79560bbfcce95675dc2..5e4f0a216919dc9e622ff2c4b9dd829cd2c71e46 100644
 --- a/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 +++ b/src/main/java/org/bukkit/craftbukkit/util/CraftMagicNumbers.java
 @@ -397,7 +397,7 @@ public final class CraftMagicNumbers implements UnsafeValues {

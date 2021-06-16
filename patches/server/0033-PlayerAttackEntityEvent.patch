@@ -6,16 +6,25 @@ Subject: [PATCH] PlayerAttackEntityEvent
 Added per request
 
 diff --git a/src/main/java/net/minecraft/world/entity/player/EntityHuman.java b/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
-index d6bc9ec6321c8b5ff0706096c0af4ae78a390e9f..587eb3a9fd8a155fcb8acc6c5850cfa4de77d626 100644
+index f099d0c551b24da747e4f0e5eae1b6823235a981..057109a9971795e8ddcfb455ca32f2d03d381b9b 100644
 --- a/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
 +++ b/src/main/java/net/minecraft/world/entity/player/EntityHuman.java
-@@ -1165,8 +1165,38 @@ public abstract class EntityHuman extends EntityLiving {
+@@ -1191,12 +1191,50 @@ public abstract class EntityHuman extends EntityLiving {
  
                      flag2 = flag2 && !world.paperConfig.disablePlayerCrits; // Paper
                      flag2 = flag2 && !this.isSprinting();
 -                    if (flag2) {
--                        f *= 1.5F;
+-                        this.isCritical = true; // Purpur
+-                        f *= this.world.purpurConfig.playerCriticalDamageMultiplier; // Purpur
 +                    // Yatopia start - PlayerAttackEntityEvent
++                    /*
++                     if (flag2) {
++                         this.isCritical = true; // Purpur
++                         f *= this.world.purpurConfig.playerCriticalDamageMultiplier; // Purpur
++                     }
++
++                     f += f1;
++                     */
 +                    net.yatopia.api.event.PlayerAttackEntityEvent playerAttackEntityEvent =
 +                            new net.yatopia.api.event.PlayerAttackEntityEvent(
 +                                    getBukkitEntity(),
@@ -31,7 +40,8 @@ index d6bc9ec6321c8b5ff0706096c0af4ae78a390e9f..587eb3a9fd8a155fcb8acc6c5850cfa4
 +                    flag2 = playerAttackEntityEvent.isCritical() && !world.paperConfig.disablePlayerCrits;
 +                    if (playerAttackEntityEvent.getDamage() == totalDamage) {
 +                        if (flag2) {
-+                            f *= 1.5F;
++                            this.isCritical = true; // Purpur
++                            f *= this.world.purpurConfig.playerCriticalDamageMultiplier;
 +                        }
 +                        f += f1;
 +                    } else {
@@ -43,10 +53,15 @@ index d6bc9ec6321c8b5ff0706096c0af4ae78a390e9f..587eb3a9fd8a155fcb8acc6c5850cfa4
 +                           return;
 +                        }
 +                        if (flag2) {
-+                            damage *= 1.5F;
++                            this.isCritical = true; // Purpur
++                            damage *= this.world.purpurConfig.playerCriticalDamageMultiplier;
 +                        }
 +                        damage += f1;
 +                        f = damage;
                      }
+-
+-                    f += f1;
++                    // Yatopia end
+                     boolean flag3 = false;
+                     double d0 = (double) (this.A - this.z);
  
-                     f += f1;

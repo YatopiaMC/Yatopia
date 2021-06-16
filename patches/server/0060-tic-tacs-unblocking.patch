@@ -42,10 +42,10 @@ index 0000000000000000000000000000000000000000..0d99f3b4930045632d88fa4acb3b8159
 +}
 \ No newline at end of file
 diff --git a/src/main/java/net/minecraft/server/level/EntityPlayer.java b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-index 742d802d63963778454e41e5b19a3d889c544efc..13264b642a065dbbf908cef0a0f086ee666b24c7 100644
+index c2e41f856eb1bd948bfa2597a15c6494cf7dbb7c..130363bfb773550fc7f8d80f6ee120f8684b3e96 100644
 --- a/src/main/java/net/minecraft/server/level/EntityPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/EntityPlayer.java
-@@ -654,6 +654,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
+@@ -663,6 +663,8 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
      }
  
      public void playerTick() {
@@ -55,10 +55,10 @@ index 742d802d63963778454e41e5b19a3d889c544efc..13264b642a065dbbf908cef0a0f086ee
              if (valid && !this.isSpectator() || this.world.isLoaded(this.getChunkCoordinates())) { // Paper - don't tick dead players that are not in the world currently (pending respawn)
                  super.tick();
 diff --git a/src/main/java/net/minecraft/server/level/WorldServer.java b/src/main/java/net/minecraft/server/level/WorldServer.java
-index 13b00ae4e2a9fd2714b9bfd6ca9015f27b492399..9e9ecd78a0c1803449d44df680fd19c0f6bc1154 100644
+index f78cb4d6ec1ae77f01bad4b2339b955fa5014263..4ea9767e57f05f73ea6d8e66da7c5b4c36b4dede 100644
 --- a/src/main/java/net/minecraft/server/level/WorldServer.java
 +++ b/src/main/java/net/minecraft/server/level/WorldServer.java
-@@ -169,8 +169,9 @@ import org.bukkit.event.weather.LightningStrikeEvent;
+@@ -176,8 +176,9 @@ import org.bukkit.event.weather.LightningStrikeEvent;
  import org.bukkit.event.world.TimeSkipEvent;
  // CraftBukkit end
  import it.unimi.dsi.fastutil.ints.IntArrayList; // Tuinity
@@ -70,7 +70,7 @@ index 13b00ae4e2a9fd2714b9bfd6ca9015f27b492399..9e9ecd78a0c1803449d44df680fd19c0
      public static final BlockPosition a = new BlockPosition(100, 50, 0);
      private static final Logger LOGGER = LogManager.getLogger();
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8d33daf5b 100644
+index a83e0fd5fc895bf1b27c5d12ccd7616eff6773c0..c80698dc000eb9ef5d3710894c21c0020b329e65 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -141,9 +141,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
@@ -86,7 +86,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
      // CraftBukkit start
      private static final int CURRENT_LEVEL = 2;
      public boolean preserveMotion = true; // Paper - keep initial motion on first setPositionRotation
-@@ -827,6 +830,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -833,6 +836,12 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
      // Tuinity end - detailed watchdog information
      public void move(EnumMoveType enummovetype, Vec3D vec3d) {
@@ -99,7 +99,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
          // Tuinity start - detailed watchdog information
          com.tuinity.tuinity.util.TickThread.ensureTickThread("Cannot move an entity off-main");
          synchronized (this.posLock) {
-@@ -877,7 +886,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -883,7 +892,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
              this.v = vec3d.y != vec3d1.y;
              this.onGround = this.v && vec3d.y < 0.0D;
              BlockPosition blockposition = this.ap();
@@ -108,7 +108,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
  
              this.a(vec3d1.y, this.onGround, iblockdata, blockposition);
              Vec3D vec3d2 = this.getMot();
-@@ -991,9 +1000,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -997,9 +1006,9 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          int k = MathHelper.floor(this.loc.z);
          BlockPosition blockposition = new BlockPosition(i, j, k);
  
@@ -120,7 +120,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
              Block block = iblockdata.getBlock();
  
              if (block.a((Tag) TagsBlock.FENCES) || block.a((Tag) TagsBlock.WALLS) || block instanceof BlockFenceGate) {
-@@ -1005,17 +1014,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1011,17 +1020,21 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      protected float getBlockJumpFactor() {
@@ -146,7 +146,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
      }
  
      protected BlockPosition as() {
-@@ -1360,7 +1373,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1366,7 +1379,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                      for (int i = blockposition.getX(); i <= blockposition1.getX(); ++i) {
                          // Tuinity end - reorder iteration to more cache aware
                          blockposition_mutableblockposition.d(i, j, k);
@@ -155,7 +155,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
  
                          // Tuinity start - move fire checking in here - reuse getType from this method
                          if (checkFire) {
-@@ -1396,7 +1409,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1402,7 +1415,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      protected void b(BlockPosition blockposition, IBlockData iblockdata) {
          if (!iblockdata.getMaterial().isLiquid()) {
@@ -164,7 +164,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
              SoundEffectType soundeffecttype = iblockdata1.a(Blocks.SNOW) ? iblockdata1.getStepSound() : iblockdata.getStepSound();
  
              this.playSound(soundeffecttype.getStepSound(), soundeffecttype.getVolume() * 0.15F, soundeffecttype.getPitch());
-@@ -1487,7 +1500,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1493,7 +1506,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
      public final boolean isInBubbleColumn() { return k(); } // Paper - OBFHELPER
      private boolean k() {
@@ -173,7 +173,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
      }
  
      public boolean isInWaterOrRain() {
-@@ -1558,7 +1571,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1564,7 +1577,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          }
  
          BlockPosition blockposition = new BlockPosition(this.locX(), d0, this.locZ());
@@ -182,7 +182,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
          Iterator iterator = TagsFluid.b().iterator();
  
          Tag tag;
-@@ -1616,7 +1629,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1622,7 +1635,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      protected IBlockData aN() {
@@ -191,7 +191,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
      }
  
      public boolean aO() {
-@@ -1628,7 +1641,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -1634,7 +1647,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
          int j = MathHelper.floor(this.locY() - 0.20000000298023224D);
          int k = MathHelper.floor(this.locZ());
          BlockPosition blockposition = new BlockPosition(i, j, k);
@@ -200,7 +200,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
  
          if (iblockdata.h() != EnumRenderType.INVISIBLE) {
              Vec3D vec3d = this.getMot();
-@@ -2867,7 +2880,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -2894,7 +2907,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
              EnumDirection enumdirection1 = aenumdirection[j];
  
              blockposition_mutableblockposition.a((BaseBlockPosition) blockposition, enumdirection1);
@@ -209,7 +209,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
                  double d4 = vec3d.a(enumdirection1.n());
                  double d5 = enumdirection1.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0D - d4 : d4;
  
-@@ -3081,14 +3094,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3110,14 +3123,14 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
  
                  return (ShapeDetectorShape) this.findOrCreatePortal(worldserver, blockposition, flag2, event.getSearchRadius(), event.getCanCreatePortal(), event.getCreationRadius()).map((blockutil_rectangle) -> {
                      // CraftBukkit end
@@ -226,7 +226,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
                          });
  
                          vec3d = this.a(enumdirection_enumaxis, blockutil_rectangle1);
-@@ -3443,6 +3456,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3484,6 +3497,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
      }
  
      public boolean cl() {
@@ -234,7 +234,7 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
          boolean flag = this.au;
  
          this.au = false;
-@@ -3641,7 +3655,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
+@@ -3687,7 +3701,7 @@ public abstract class Entity implements INamableTileEntity, ICommandListener, ne
                  for (int i2 = k; i2 < l; ++i2) {
                      for (int j2 = i1; j2 < j1; ++j2) {
                          blockposition_mutableblockposition.d(l1, i2, j2);
@@ -244,10 +244,10 @@ index b742f457d72eee4f00f5df7a2b5b3cfdeb917a86..c4d3f716dda0e33b444de6caa6f336d8
                          if (fluid.a(tag)) {
                              double d2 = (double) ((float) i2 + fluid.getHeight(this.world, blockposition_mutableblockposition));
 diff --git a/src/main/java/net/minecraft/world/entity/EntityLiving.java b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b4ce1334b 100644
+index 2f84f10a3f811b415b62291b91bca7728b163f1e..ce9f7b13d22dd616d94fb251cfd8b136a5d7371a 100644
 --- a/src/main/java/net/minecraft/world/entity/EntityLiving.java
 +++ b/src/main/java/net/minecraft/world/entity/EntityLiving.java
-@@ -139,6 +139,7 @@ import org.bukkit.event.entity.EntityTeleportEvent;
+@@ -140,6 +140,7 @@ import org.bukkit.event.entity.EntityTeleportEvent;
  import org.bukkit.event.player.PlayerItemConsumeEvent;
  // CraftBukkit end
  
@@ -255,7 +255,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
  
  public abstract class EntityLiving extends Entity {
  
-@@ -387,7 +388,7 @@ public abstract class EntityLiving extends Entity {
+@@ -396,7 +397,7 @@ public abstract class EntityLiving extends Entity {
          boolean flag1 = flag && ((EntityHuman) this).abilities.isInvulnerable;
  
          if (this.isAlive()) {
@@ -263,8 +263,8 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
 +            if (this.a((Tag) TagsFluid.WATER) && !this.world.getBlockStateIfLoaded(new BlockPosition(this.locX(), this.getHeadY(), this.locZ())).a(Blocks.BUBBLE_COLUMN)) { // Yatopia
                  if (!this.canBreatheUnderwater() && !MobEffectUtil.c(this) && !flag1) {  // Paper - use OBFHELPER so it can be overridden
                      this.setAirTicks(this.l(this.getAirTicks()));
-                     if (this.getAirTicks() == -20) {
-@@ -480,7 +481,7 @@ public abstract class EntityLiving extends Entity {
+                     if (this.getAirTicks() == -this.world.purpurConfig.drowningDamageInterval) { // Purpur
+@@ -489,7 +490,7 @@ public abstract class EntityLiving extends Entity {
      }
  
      protected boolean cP() {
@@ -273,7 +273,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
      }
  
      @Override
-@@ -528,6 +529,8 @@ public abstract class EntityLiving extends Entity {
+@@ -537,6 +538,8 @@ public abstract class EntityLiving extends Entity {
      }
  
      protected void c(BlockPosition blockposition) {
@@ -282,7 +282,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
          int i = EnchantmentManager.a(Enchantments.FROST_WALKER, this);
  
          if (i > 0) {
-@@ -1561,7 +1564,7 @@ public abstract class EntityLiving extends Entity {
+@@ -1604,7 +1607,7 @@ public abstract class EntityLiving extends Entity {
                      BlockPosition blockposition = this.getChunkCoordinates();
                      IBlockData iblockdata = Blocks.WITHER_ROSE.getBlockData();
  
@@ -291,7 +291,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
                          this.world.setTypeAndData(blockposition, iblockdata, 3);
                          flag = true;
                      }
-@@ -1764,12 +1767,12 @@ public abstract class EntityLiving extends Entity {
+@@ -1809,12 +1812,12 @@ public abstract class EntityLiving extends Entity {
      // Airplane end
  
      public IBlockData ds() {
@@ -306,7 +306,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
  
              if (iblockdata1.a(Blocks.LADDER) && iblockdata1.get(BlockLadder.FACING) == iblockdata.get(BlockTrapdoor.FACING)) {
                  return true;
-@@ -1816,7 +1819,7 @@ public abstract class EntityLiving extends Entity {
+@@ -1861,7 +1864,7 @@ public abstract class EntityLiving extends Entity {
              int i = MathHelper.floor(this.locX());
              int j = MathHelper.floor(this.locY() - 0.20000000298023224D);
              int k = MathHelper.floor(this.locZ());
@@ -315,7 +315,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
  
              if (!iblockdata.isAir()) {
                  SoundEffectType soundeffecttype = iblockdata.getStepSound();
-@@ -2289,7 +2292,7 @@ public abstract class EntityLiving extends Entity {
+@@ -2358,7 +2361,7 @@ public abstract class EntityLiving extends Entity {
      private void a(Entity entity) {
          Vec3D vec3d;
  
@@ -324,7 +324,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
              vec3d = entity.b(this);
          } else {
              vec3d = new Vec3D(entity.locX(), entity.locY() + (double) entity.getHeight(), entity.locZ());
-@@ -2343,7 +2346,7 @@ public abstract class EntityLiving extends Entity {
+@@ -2412,7 +2415,7 @@ public abstract class EntityLiving extends Entity {
                  this.fallDistance = 0.0F;
              }
  
@@ -333,7 +333,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
              double d1;
              float f;
  
-@@ -2459,7 +2462,7 @@ public abstract class EntityLiving extends Entity {
+@@ -2528,7 +2531,7 @@ public abstract class EntityLiving extends Entity {
                  }
              } else {
                  BlockPosition blockposition = this.as();
@@ -342,7 +342,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
  
                  f = this.onGround ? f5 * 0.91F : 0.91F;
                  Vec3D vec3d6 = this.a(vec3d, f5);
-@@ -3505,7 +3508,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3628,7 +3631,7 @@ public abstract class EntityLiving extends Entity {
  
              while (!flag2 && blockposition.getY() > 0) {
                  BlockPosition blockposition1 = blockposition.down();
@@ -351,7 +351,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
  
                  if (iblockdata.getMaterial().isSolid()) {
                      flag2 = true;
-@@ -3617,7 +3620,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3740,7 +3743,7 @@ public abstract class EntityLiving extends Entity {
              this.stopRiding();
          }
  
@@ -360,7 +360,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
  
          if (iblockdata.getBlock() instanceof BlockBed) {
              this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, true), 3);
-@@ -3636,7 +3639,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3759,7 +3762,7 @@ public abstract class EntityLiving extends Entity {
  
      private boolean x() {
          return (Boolean) this.getBedPosition().map((blockposition) -> {
@@ -369,7 +369,7 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
          }).orElse(false);
      }
  
-@@ -3646,7 +3649,7 @@ public abstract class EntityLiving extends Entity {
+@@ -3769,7 +3772,7 @@ public abstract class EntityLiving extends Entity {
  
          this.world.getClass();
          optional.filter(world::isLoaded).ifPresent((blockposition) -> {
@@ -379,10 +379,10 @@ index 6132c711836908569006a8993973526275c9fb7c..02f7a588f883c0ed8b5daef6839e385b
              if (iblockdata.getBlock() instanceof BlockBed) {
                  this.world.setTypeAndData(blockposition, (IBlockData) iblockdata.set(BlockBed.OCCUPIED, false), 3);
 diff --git a/src/main/java/net/minecraft/world/level/World.java b/src/main/java/net/minecraft/world/level/World.java
-index d571624244bf3db54ec266cb760407889fc33bf4..b04a785c70126ad3cc60eff47dffc4a913e0dd87 100644
+index f8a647c68342f7e0a936637cb674d66b6a714fe4..e90ce5f608236bb5a4758e04a9eb2e29e93069e2 100644
 --- a/src/main/java/net/minecraft/world/level/World.java
 +++ b/src/main/java/net/minecraft/world/level/World.java
-@@ -96,7 +96,9 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
+@@ -97,7 +97,9 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
  import org.bukkit.event.block.BlockPhysicsEvent;
  // CraftBukkit end
  
