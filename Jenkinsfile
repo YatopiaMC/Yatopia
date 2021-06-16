@@ -15,13 +15,6 @@ pipeline {
                 scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
                 sh 'git config --global gc.auto 0'
                 sh 'rm -rf ./target'
-                sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server'
-
-                // sh 'mv ./Paper/work/Minecraft ./ || true' 
-                sh 'rm -fr ./Paper/work/*'
-                // sh 'mv ./Minecraft ./Paper/work/ || true'
-
-
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
                 sh 'chmod +x ./gradlew'
                 sh './gradlew clean'
@@ -37,7 +30,7 @@ pipeline {
                     mavenLocalRepo: '.repository',
                     publisherStrategy: 'EXPLICIT',
                 ) {
-                    sh './gradlew initGitSubmodules'
+                    sh './gradlew initSubmodules'
                 }
             }
         }
@@ -52,7 +45,6 @@ pipeline {
                     publisherStrategy: 'EXPLICIT',
                 ) {
                     sh '''
-                    ./gradlew setupUpstream
                     ./gradlew applyPatches
                     '''
                 }
@@ -69,34 +61,9 @@ pipeline {
                     publisherStrategy: 'EXPLICIT'
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
-                        sh '''
-                        ./gradlew build publish
-                        mkdir -p "./target"
-                        basedir=$(pwd)
-                        paperworkdir="$basedir/Paper/work"
-                        mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
-                        
-                        patchedJarPath="$basedir/Yatopia-Server/build/libs/yatopia-server-$mcver-R0.1-SNAPSHOT.jar"
-                        vanillaJarPath="$paperworkdir/Minecraft/$mcver/$mcver.jar"
-
-                        cd "$paperworkdir/Paperclip"
-                        mvn -T 2C clean package -Dmcver="$mcver" -Dpaperjar="$patchedJarPath" -Dvanillajar="$vanillaJarPath" -Dstyle.color=never
-                        cd "$basedir"
-
-                        cp -v "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
-                        '''
+                        sh './gradlew generatePaperclipPatch publish' // when paper fixes paperclip for forks then use - ./gradlew paperclipJar publish  
+                        // cp -v "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar" - this code needs to be reworked
                     }
-                }
-            }
-        }
-            
-        stage('Archive Jars') {
-            steps {
-                archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
-            }
-            post {
-                always {
-                    cleanWs()
                 }
             }
         }
@@ -105,6 +72,11 @@ pipeline {
             steps {
                 script {
                     discordSend description: "Yatopia Jenkins Build", footer: "Yatopia", link: env.BUILD_URL, result: currentBuild.currentResult, title: JOB_NAME, webhookURL: discord_webhook1
+                }
+            }
+           post {
+                always {
+                    cleanWs()
                 }
             }
         }
