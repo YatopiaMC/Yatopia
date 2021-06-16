@@ -1,0 +1,147 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Toffikk <slodkitofik@gmail.com>
+Date: Thu, 17 Jun 2021 01:00:29 +0200
+Subject: [PATCH] Optimised halloween checker
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 893a992156efb7b01b13efe9637704ac99c19baa..576969b5543c20a844a5db9eb742352c58ed34af 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1442,6 +1442,8 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         }
+         // Paper end
+ 
++        org.yatopiamc.yatopia.server.util.entity.HalloweenChecker.tick(); // Yatopia
++
+         // Paper start
+         long endTime = System.nanoTime();
+         long remaining = (TICK_TIME - (endTime - lastTick)) - catchupTime;
+diff --git a/src/main/java/net/minecraft/world/entity/ambient/Bat.java b/src/main/java/net/minecraft/world/entity/ambient/Bat.java
+index 153194d937d210e2e4fd8864e4a3c000f85d7e2e..8b62bc462257aa67ad49bac699a889966fc05bed 100644
+--- a/src/main/java/net/minecraft/world/entity/ambient/Bat.java
++++ b/src/main/java/net/minecraft/world/entity/ambient/Bat.java
+@@ -255,11 +255,16 @@ public class Bat extends AmbientCreature {
+     }
+ 
+     private static boolean isHalloween() {
++        // Yatopia start - optimised halloween checker
++        /*
+         LocalDate localdate = LocalDate.now();
+         int i = localdate.get(ChronoField.DAY_OF_MONTH);
+         int j = localdate.get(ChronoField.MONTH_OF_YEAR);
+ 
+         return j == 10 && i >= 20 || j == 11 && i <= 3;
++        */
++        return org.yatopiamc.yatopia.server.util.entity.HalloweenChecker.isHalloweenSeason();
++        // Yatopia end
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/world/entity/monster/AbstractSkeleton.java b/src/main/java/net/minecraft/world/entity/monster/AbstractSkeleton.java
+index c54a37516ef1d8a76f7161917bf448127cd98603..65aa3d2bb10c9cf09f3d3a01b0088c6caaa569bd 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/AbstractSkeleton.java
++++ b/src/main/java/net/minecraft/world/entity/monster/AbstractSkeleton.java
+@@ -156,11 +156,16 @@ public abstract class AbstractSkeleton extends Monster implements RangedAttackMo
+         this.reassessWeaponGoal();
+         this.setCanPickUpLoot(this.level.paperConfig.skeletonsAlwaysCanPickUpLoot || this.random.nextFloat() < 0.55F * difficulty.getSpecialMultiplier()); // Paper
+         if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
++            // Yatopia start - optimised halloween checker
++            /*
+             LocalDate localdate = LocalDate.now();
+             int i = localdate.get(ChronoField.DAY_OF_MONTH);
+             int j = localdate.get(ChronoField.MONTH_OF_YEAR);
+ 
+             if (j == 10 && i == 31 && this.random.nextFloat() < 0.25F) {
++             */
++            if (org.yatopiamc.yatopia.server.util.entity.HalloweenChecker.isHalloweenDay() && this.random.nextFloat() < 0.25F) {
++                // Yatopia end
+                 this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(this.random.nextFloat() < 0.1F ? Blocks.JACK_O_LANTERN : Blocks.CARVED_PUMPKIN));
+                 this.armorDropChances[EquipmentSlot.HEAD.getIndex()] = 0.0F;
+             }
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Zombie.java b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
+index bb3b932c57fd1e5b1517940c7602c7f4aeeaf17e..e57d06b6eb605de1d40edb6459f651203b8c8a06 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Zombie.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
+@@ -534,11 +534,16 @@ public class Zombie extends Monster {
+         }
+ 
+         if (this.getItemBySlot(EquipmentSlot.HEAD).isEmpty()) {
++            // Yatopia start - optimised halloween checker
++            /*
+             LocalDate localdate = LocalDate.now();
+             int i = localdate.get(ChronoField.DAY_OF_MONTH);
+             int j = localdate.get(ChronoField.MONTH_OF_YEAR);
+ 
+             if (j == 10 && i == 31 && this.random.nextFloat() < 0.25F) {
++             */
++            if (org.yatopiamc.yatopia.server.util.entity.HalloweenChecker.isHalloweenDay() && this.random.nextFloat() < 0.25F) {
++                // Yatopia end
+                 this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(this.random.nextFloat() < 0.1F ? Blocks.JACK_O_LANTERN : Blocks.CARVED_PUMPKIN));
+                 this.armorDropChances[EquipmentSlot.HEAD.getIndex()] = 0.0F;
+             }
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/entity/HalloweenChecker.java b/src/main/java/org/yatopiamc/yatopia/server/util/entity/HalloweenChecker.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..6e18c9b7bb738ac7d4f0da2fab265877f093b914
+--- /dev/null
++++ b/src/main/java/org/yatopiamc/yatopia/server/util/entity/HalloweenChecker.java
+@@ -0,0 +1,59 @@
++package org.yatopiamc.yatopia.server.util.entity;
++
++import java.time.LocalDate;
++import java.time.temporal.ChronoField;
++import net.minecraft.server.MinecraftServer;
++
++/**
++ * Entity halloween checker
++ * <p>
++ * Checks whether or not it is halloween at a specific rate rather than every time when
++ * a entity is being spawned.
++ * <p>
++ * The rate changes depending on how much TPS the server has. By default, the rate is every
++ * 2 hours, or every 144k ticks (if the server has _that_ much uptime)
++ *
++ * @author MrIvanPlays
++ */
++public class HalloweenChecker {
++
++    private static boolean halloweenSeason = false;
++    private static boolean halloweenDay = false;
++
++    private static int delay = (20 * 60 * 60) * 2;
++    private static int lastCheckTick = -delay;
++
++    public static void tick() {
++        if (MinecraftServer.currentTick % 100 == 0) {
++            // update the delay every 100 ticks
++            if (MinecraftServer.TPS >= 20) {
++                delay = (20 * 60 * 60) * 2;
++            }
++            if (MinecraftServer.TPS < 15) {
++                delay = delay + (20 * 60 * 15);
++            }
++            if (MinecraftServer.TPS < 10) {
++                delay = delay + (20 * 60 * 30);
++            }
++        }
++        if (MinecraftServer.currentTick - lastCheckTick > delay) {
++            LocalDate now = LocalDate.now();
++            int day = now.getDayOfMonth();
++            int month = now.get(ChronoField.MONTH_OF_YEAR);
++
++            halloweenDay = (month == 10) && (day == 31);
++            halloweenSeason = ((month == 10) && (day >= 20)) || ((month == 11) && (day <= 3));
++
++            lastCheckTick = MinecraftServer.currentTick;
++        }
++    }
++
++    public static boolean isHalloweenSeason() {
++        return halloweenSeason;
++    }
++
++    public static boolean isHalloweenDay() {
++        return halloweenDay;
++    }
++
++}

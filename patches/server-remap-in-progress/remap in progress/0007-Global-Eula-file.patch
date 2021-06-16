@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Toffikk <slodkitofik@gmail.com>
+Date: Thu, 17 Jun 2021 01:17:52 +0200
+Subject: [PATCH] Global Eula file
+
+
+diff --git a/src/main/java/net/minecraft/server/Eula.java b/src/main/java/net/minecraft/server/Eula.java
+index a1d5c0f8fe2adb2ee56f3217e089211ec7c61eb0..a3535d688c6e20a0e17383d6e5696bded0390fac 100644
+--- a/src/main/java/net/minecraft/server/Eula.java
++++ b/src/main/java/net/minecraft/server/Eula.java
+@@ -16,9 +16,21 @@ public class Eula {
+ 
+     public Eula(Path eulaFile) {
+         this.file = eulaFile;
+-        this.agreed = SharedConstants.IS_RUNNING_IN_IDE || this.readFile();
++        this.agreed = SharedConstants.IS_RUNNING_IN_IDE || globalEula() || this.readFile(); // Yatopia
+     }
+ 
++    private boolean globalEula() {
++        java.io.File globalEula = new java.io.File(System.getProperty("user.home"), "eula.txt");
++
++        if (globalEula.exists()) {
++            return this.readFile();
++        } else {
++            LOGGER.info("No global eula found at " + globalEula.getAbsolutePath());
++        }
++        return false;
++    }
++    // Yatopia end
++
+     private boolean readFile() {
+         try {
+             InputStream inputStream = Files.newInputStream(this.file);

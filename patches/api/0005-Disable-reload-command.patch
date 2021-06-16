@@ -5,14 +5,14 @@ Subject: [PATCH] Disable reload command
 
 
 diff --git a/src/main/java/org/bukkit/command/defaults/ReloadCommand.java b/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
-index 0c7ba0718de2b93d013968ca0fec34ffd423990f..3a726fd145e5bbb1513b74eaae7d768ae6ab4a9f 100644
+index 0c7ba0718de2b93d013968ca0fec34ffd423990f..b40705f9eb92b740d19b893b0f0e4882c328ed6b 100644
 --- a/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
 +++ b/src/main/java/org/bukkit/command/defaults/ReloadCommand.java
 @@ -21,6 +21,19 @@ public class ReloadCommand extends BukkitCommand {
      @Override
      public boolean execute(@NotNull CommandSender sender, @NotNull String currentAlias, @NotNull String[] args) { // Paper
          if (!testPermission(sender)) return true;
-+        // Yatopia start - fix lag
++        // Yatopia start - disable reload command
 +        if (Boolean.parseBoolean(System.getProperty("Yatopia.DisableReloadCommand", "true"))) {
 +            sender.sendMessage(ChatColor.RED + "Operation denied.");
 +            sender.sendMessage(ChatColor.RED + "Reload command SHOULD NEVER EVER EVER be used in whatever circumstances.");
