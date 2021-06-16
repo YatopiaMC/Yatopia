@@ -20,20 +20,6 @@ pipeline {
                 sh './gradlew clean'
             }
         }
-        stage('Init project & submodules') {
-            tools {
-                jdk "OpenJDK 16"
-            }
-            steps {
-                withMaven(
-                    maven: '3',
-                    mavenLocalRepo: '.repository',
-                    publisherStrategy: 'EXPLICIT',
-                ) {
-                    sh './gradlew initSubmodules'
-                }
-            }
-        }
         stage('Decompile & apply patches') {
             tools {
                 jdk "OpenJDK 16"
