@@ -1,0 +1,67 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 1 Sep 2020 19:21:52 +0300
+Subject: [PATCH] Nuke streams off SectionPosition
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java
+index 30d14b559f49d8fcaaf519500a6eeeba3d2ce649..e1cfed99747f7220bc2eb306e0eab0106cfe1b0d 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java
++++ b/src/main/java/net/minecraft/world/entity/ai/behavior/BehaviorUtil.java
+@@ -100,12 +100,25 @@ public class BehaviorUtil {
+ 
+     public static SectionPosition a(WorldServer worldserver, SectionPosition sectionposition, int i) {
+         int j = worldserver.b(sectionposition);
++        // Yatopia start - replace stream
++        SectionPosition best = null;
++        for (SectionPosition pos : SectionPosition.getPosList(sectionposition, i)) {
++            if (worldserver.b(pos) < j) {
++                if (best == null || worldserver.b(pos) < worldserver.b(best)) {
++                    best = pos;
++                }
++            }
++        }
++        if (best == null) best = sectionposition;
++        return best;
++        /*
+         Stream<SectionPosition> stream = SectionPosition.a(sectionposition, i).filter((sectionposition1) -> { // CraftBukkit - decompile error
+             return worldserver.b(sectionposition1) < j;
+         });
+ 
+         worldserver.getClass();
+         return (SectionPosition) stream.min(Comparator.comparingInt(worldserver::b)).orElse(sectionposition);
++         */ // Yatopia end
+     }
+ 
+     public static boolean a(EntityInsentient entityinsentient, EntityLiving entityliving, int i) {
+diff --git a/src/main/java/net/minecraft/world/entity/raid/Raid.java b/src/main/java/net/minecraft/world/entity/raid/Raid.java
+index 457cbdab3fa96fdf7fad1b0206bec9c0aa7847d8..f9d03b6d11ad5ffbfe5be072e8631f046bcd1646 100644
+--- a/src/main/java/net/minecraft/world/entity/raid/Raid.java
++++ b/src/main/java/net/minecraft/world/entity/raid/Raid.java
+@@ -397,6 +397,18 @@ public class Raid {
+     }
+ 
+     private void z() {
++        // Yatopia start - replace impl
++        BlockPosition best = null;
++        for (SectionPosition pos : SectionPosition.getPosList(SectionPosition.a(center), 2)) {
++            if (world.a(pos)) {
++                BlockPosition asBlockPos = pos.q();
++                if (best == null || asBlockPos.distanceSquared(center) < best.distanceSquared(center)) {
++                    best = asBlockPos;
++                }
++            }
++        }
++        if (best != null) this.c(best);
++        /*
+         Stream<SectionPosition> stream = SectionPosition.a(SectionPosition.a(this.center), 2);
+         WorldServer worldserver = this.world;
+ 
+@@ -404,6 +416,7 @@ public class Raid {
+         stream.filter(worldserver::a).map(SectionPosition::q).min(Comparator.comparingDouble((blockposition) -> {
+             return blockposition.j(this.center);
+         })).ifPresent(this::c);
++         */ // Yatopia end
+     }
+ 
+     private Optional<BlockPosition> d(int i) {

@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Zoe <duplexsys@protonmail.com>
+Date: Sun, 25 Oct 2020 11:45:38 -0500
+Subject: [PATCH] Custom Locale Support
+
+All Server Jars Come with a pre-baked, usually English, locale file. This patch allows you to change the locale file by creating a locale.json file in the root directory of your server. Note that while custom locale files are supported by the server no support will be given for non-official Mojang locale files.
+
+diff --git a/src/main/java/net/minecraft/locale/LocaleLanguage.java b/src/main/java/net/minecraft/locale/LocaleLanguage.java
+index 5218214225b50ac4059ab704086a457318e93e00..9b25594c612ec335bebb7178dd6e56861556ae6c 100644
+--- a/src/main/java/net/minecraft/locale/LocaleLanguage.java
++++ b/src/main/java/net/minecraft/locale/LocaleLanguage.java
+@@ -31,9 +31,19 @@ public abstract class LocaleLanguage {
+     private static LocaleLanguage c() {
+         Builder<String, String> builder = ImmutableMap.builder();
+         BiConsumer<String, String> biconsumer = builder::put; // Paper - decompile fix
++        boolean usingCustomLocale = false; // Yatopia
+ 
+         try {
+-            InputStream inputstream = LocaleLanguage.class.getResourceAsStream("/assets/minecraft/lang/en_us.json");
++            // Yatopia Start - Custom Locale
++            InputStream inputstream;
++            java.io.File file = new java.io.File("./locale.json");
++            if (file.isFile() && file.canRead()) {
++                usingCustomLocale = true;
++                inputstream = new java.io.FileInputStream(file);
++            } else {
++                inputstream = LocaleLanguage.class.getResourceAsStream("/assets/minecraft/lang/en_us.json");
++            }
++            // Yatopia End
+             Throwable throwable = null;
+ 
+             try {
+@@ -56,7 +66,11 @@ public abstract class LocaleLanguage {
+ 
+             }
+         } catch (JsonParseException | IOException ioexception) {
++            if (!usingCustomLocale) { // Yatopia
+             LocaleLanguage.LOGGER.error("Couldn't read strings from /assets/minecraft/lang/en_us.json", ioexception);
++            } else { // Yatopia start
++                LocaleLanguage.LOGGER.error("Couldn't read strings from custom locale file. Please check that your custom Locale File is formatted correctly", ioexception);
++            } // Yatopia end
+         }
+ 
+         final Map<String, String> map = builder.build();
