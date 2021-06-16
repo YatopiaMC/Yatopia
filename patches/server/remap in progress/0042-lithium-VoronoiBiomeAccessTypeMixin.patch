@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: JellySquid <jellysquid+atwork@protonmail.com>
+Date: Sat, 26 Sep 2020 15:45:09 -0500
+Subject: [PATCH] lithium VoronoiBiomeAccessTypeMixin
+
+Original code by JellySquid, licensed under LGPLv3
+you can find the original code on https://github.com/CaffeineMC/lithium-fabric/ (Yarn mappings)
+
+diff --git a/src/main/java/net/minecraft/world/level/biome/GenLayerZoomVoronoi.java b/src/main/java/net/minecraft/world/level/biome/GenLayerZoomVoronoi.java
+index 821adbf2c7c32ab659d23974b3871e2d11762ee6..715d6a21d1a1a84dd92b375cce13834f0eff3dbb 100644
+--- a/src/main/java/net/minecraft/world/level/biome/GenLayerZoomVoronoi.java
++++ b/src/main/java/net/minecraft/world/level/biome/GenLayerZoomVoronoi.java
+@@ -10,6 +10,8 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+ 
+     @Override
+     public BiomeBase a(long i, int j, int k, int l, BiomeManager.Provider biomemanager_provider) {
++        // Yatopia start - replaced logic
++        /*
+         int i1 = j - 2;
+         int j1 = k - 2;
+         int k1 = l - 2;
+@@ -56,6 +58,75 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+         l2 = (k2 & 2) == 0 ? i2 : i2 + 1;
+         i3 = (k2 & 1) == 0 ? j2 : j2 + 1;
+         return biomemanager_provider.getBiome(k3, l2, i3);
++         */
++        int x1 = j - 2;
++        int y1 = k - 2;
++        int z1 = l - 2;
++
++        int x2 = x1 >> 2;
++        int y2 = y1 >> 2;
++        int z2 = z1 >> 2;
++
++        double x3 = (double) (x1 & 3) / 4.0D;
++        double y3 = (double) (y1 & 3) / 4.0D;
++        double z3 = (double) (z1 & 3) / 4.0D;
++
++        int retX = Integer.MIN_VALUE;
++        int retY = Integer.MIN_VALUE;
++        int retZ = Integer.MIN_VALUE;
++
++        // This code would normally allocate an array to store each iteration's results, then scan back over it
++        // to determine the closest one. We can avoid the unnecessary step and simply keep track of the nearest one.
++        double minDist = Double.POSITIVE_INFINITY;
++
++        for (int i1 = 0; i1 < 8; i1++) {
++            // Block sample positions
++            int bX;
++            int bY;
++            int bZ;
++
++            // Sample positions
++            double sX;
++            double sY;
++            double sZ;
++
++            if ((i1 & 0b100) == 0) {
++                bX = x2;
++                sX = x3;
++            } else {
++                bX = x2 + 1;
++                sX = x3 - 1.0D;
++            }
++
++            if ((i1 & 0b010) == 0) {
++                bY = y2;
++                sY = y3;
++            } else {
++                bY = y2 + 1;
++                sY = y3 - 1.0D;
++            }
++
++            if ((i1 & 0b001) == 0) {
++                bZ = z2;
++                sZ = z3;
++            } else {
++                bZ = z2 + 1;
++                sZ = z3 - 1.0D;
++            }
++
++            double dist = a(i, bX, bY, bZ, sX, sY, sZ);
++
++            if (minDist > dist) {
++                minDist = dist;
++
++                retX = bX;
++                retY = bY;
++                retZ = bZ;
++            }
++        }
++
++        return biomemanager_provider.getBiome(retX, retY, retZ);
++        // Yatopia end
+     }
+ 
+     private static double a(long i, int j, int k, int l, double d0, double d1, double d2) {
+@@ -78,9 +149,14 @@ public enum GenLayerZoomVoronoi implements GenLayerZoomer {
+     }
+ 
+     private static double a(long i) {
++        // Yatopia start - replaced logic
++        /*
+         double d0 = (double) ((int) Math.floorMod(i >> 24, 1024L)) / 1024.0D;
+ 
+         return (d0 - 0.5D) * 0.9D;
++         */
++        return (((i >> 24) & 1023L) - 512) * 0.00087890625; // * 0.9 / 1024.0d
++        // Yatopia end
+     }
+ 
+     private static double a(double d0) {

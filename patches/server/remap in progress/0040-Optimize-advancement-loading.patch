@@ -1,0 +1,107 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Tue, 6 Oct 2020 15:10:12 +0300
+Subject: [PATCH] Optimize advancement loading
+
+Removed some object allocations and reduced loops
+
+diff --git a/src/main/java/net/minecraft/advancements/Advancement.java b/src/main/java/net/minecraft/advancements/Advancement.java
+index 23567430901284ab9d4d4873e53a1c8a06da6862..33771338bbf7e409da7210dc096c63b74a2d215f 100644
+--- a/src/main/java/net/minecraft/advancements/Advancement.java
++++ b/src/main/java/net/minecraft/advancements/Advancement.java
+@@ -82,6 +82,7 @@ public class Advancement {
+         return this.display;
+     }
+ 
++    public final AdvancementRewards getRewards() { return d(); } // Yatopia - OBFHELPER
+     public AdvancementRewards d() {
+         return this.rewards;
+     }
+diff --git a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+index 4720644ae82f76f835f14c0b3a00e7b7874fb1e2..9d1879e2fd502c939b9f5caeab8a47ed9ced90d8 100644
+--- a/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
++++ b/src/main/java/net/minecraft/server/AdvancementDataPlayer.java
+@@ -180,11 +180,16 @@ public class AdvancementDataPlayer {
+                         throw new JsonParseException("Found null for advancements");
+                     }
+ 
++                    /* // Yatopia start - streams no good
+                     Stream<Entry<MinecraftKey, AdvancementProgress>> stream = map.entrySet().stream().sorted(Comparator.comparing(Entry::getValue));
+                     Iterator iterator = ((List) stream.collect(Collectors.toList())).iterator();
+ 
+                     while (iterator.hasNext()) {
+                         Entry<MinecraftKey, AdvancementProgress> entry = (Entry) iterator.next();
++                     */
++                    Entry<MinecraftKey, AdvancementProgress>[] entries = map.entrySet().toArray(new Entry[0]);
++                    java.util.Arrays.sort(entries, Entry.comparingByValue());
++                    for (Entry<MinecraftKey, AdvancementProgress> entry : entries) { // Yatopia end
+                         Advancement advancement = advancementdataworld.a((MinecraftKey) entry.getKey());
+ 
+                         if (advancement == null) {
+@@ -222,11 +227,37 @@ public class AdvancementDataPlayer {
+             }
+         }
+ 
++        /* // Yatopia start
+         this.c(advancementdataworld);
+         this.c();
+         this.b(advancementdataworld);
++         */
++        loadAdvancements(advancementdataworld);
++        // Yatopia end
+     }
+ 
++    // Yatopia start - reduce overload by post io load of advancements
++    // this combines c(AdvancementDataWorld), c() and b(AdvancementDataWorld) into 1 method
++    // the changes done: loops thru all the advancements only once, does not create an additional list
++    // and does not loop thru the additional list, does not create an additional set when checking for progress and
++    // does not additionally loop thru it
++    private void loadAdvancements(AdvancementDataWorld serverAdvancementManager) {
++        for (Advancement advancement : serverAdvancementManager.getAdvancements()) {
++            if (advancement.getCriteria().isEmpty()) {
++                grantCriteria(advancement, "");
++                advancement.getRewards().a(player); // todo: too lazy to import AdvancementRewards for an obfhelper
++            }
++            AdvancementProgress progress = getProgress(advancement);
++            if (progress.isDone()) {
++                this.j.add(advancement);
++                updateVisibility(advancement);
++                continue; // Do not double check isDone
++            }
++            beginTrackingNoIsDone(advancement, progress);
++        }
++    }
++    // Yatopia end
++
+     public void b() {
+         if (org.spigotmc.SpigotConfig.disableAdvancementSaving) return; // Spigot
+         Map<MinecraftKey, AdvancementProgress> map = Maps.newHashMap();
+@@ -365,6 +396,11 @@ public class AdvancementDataPlayer {
+         AdvancementProgress advancementprogress = this.getProgress(advancement);
+ 
+         if (!advancementprogress.isDone()) {
++            // Yatopia start - beginTrackig with no isDone check
++            beginTrackingNoIsDone(advancement, advancementprogress);
++        }
++    }
++    private void beginTrackingNoIsDone(Advancement advancement, AdvancementProgress advancementprogress) {
+             Iterator iterator = advancement.getCriteria().entrySet().iterator();
+ 
+             while (iterator.hasNext()) {
+@@ -384,7 +420,7 @@ public class AdvancementDataPlayer {
+                 }
+             }
+ 
+-        }
++        //} // Yatopia end
+     }
+ 
+     private void d(Advancement advancement) {
+@@ -479,6 +515,7 @@ public class AdvancementDataPlayer {
+         this.data.put(advancement, advancementprogress);
+     }
+ 
++    private final void updateVisibility(Advancement advancement) { e(advancement); } // Yatopia
+     private void e(Advancement advancement) {
+         // Paper start
+         e(advancement, IterationEntryPoint.ROOT);

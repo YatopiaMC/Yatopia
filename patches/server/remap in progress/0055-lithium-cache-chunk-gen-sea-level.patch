@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: SuperCoder7979 <25208576+SuperCoder7979@users.noreply.github.com>
+Date: Fri, 22 Jan 2021 16:38:19 -0500
+Subject: [PATCH] lithium: cache chunk gen sea level
+
+Chunk generator settings are passed to the noise chunk generator through a supplier, which retrieves a given chunk generator settings registry key from the registry. The problem arises as this setting is retrieved from the supplier to get the sea level, which is called every single time a block is placed by the generator, for a total of 65536 registry lookups per chunk. As you can imagine this isn't all that fast and removing it speeds up the chunk generation time by a moderate amount (13% of CPU time spent in populateNoise without the patch vs 10% with the patch). My solution to this was to stick the supplier into a Lazy<> so it's computed once and then cached, but I'm open to suggestions. (The sea level can't be computed ahead of time due to a quirk in the new registry system, which would have been the best option here.)
+
+This code was originally made by SuperCoder7979 in a Pull Request to lithium (https://github.com/CaffeineMC/lithium-fabric/pull/179)
+
+This code was orignally licensed under the LGPL-3.0 license.
+
+diff --git a/src/main/java/net/minecraft/world/level/levelgen/ChunkGeneratorAbstract.java b/src/main/java/net/minecraft/world/level/levelgen/ChunkGeneratorAbstract.java
+index 916e893cf771a2ea825d60104115282295529119..f39b0b2b259cf9cecf460331b789bd8009090677 100644
+--- a/src/main/java/net/minecraft/world/level/levelgen/ChunkGeneratorAbstract.java
++++ b/src/main/java/net/minecraft/world/level/levelgen/ChunkGeneratorAbstract.java
+@@ -52,6 +52,7 @@ import net.minecraft.world.level.levelgen.synth.NoiseGeneratorPerlin;
+ 
+ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+ 
++    private int cachedSeaLevel; // Yatopia - lithium cache chunk gen settings
+     public static final Codec<ChunkGeneratorAbstract> d = RecordCodecBuilder.create((instance) -> {
+         return instance.group(WorldChunkManager.a.fieldOf("biome_source").forGetter((chunkgeneratorabstract) -> {
+             return chunkgeneratorabstract.b;
+@@ -136,6 +137,7 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+         } else {
+             this.v = null;
+         }
++        this.cachedSeaLevel = ((GeneratorSettingBase) this.h.get()).g(); // Yatopia - lithium cache chunk gen settings
+ 
+     }
+ 
+@@ -723,10 +725,18 @@ public final class ChunkGeneratorAbstract extends ChunkGenerator {
+         return this.x;
+     }
+ 
++    // Yatopia start - lithium cache chunk gen settings
++    /**
++     * Use cached sea level instead of retrieving from the registry every time.
++     * This method is called for every block in the chunk so this will save a lot of registry lookups.
++     *
++     * @author SuperCoder79
++     */
+     @Override
+-    public int getSeaLevel() {
+-        return ((GeneratorSettingBase) this.h.get()).g();
++    public int getSeaLevel() { // Cached method of getting sealevel
++        return this.cachedSeaLevel;
+     }
++    // Yatopia end
+ 
+     @Override
+     public List<BiomeSettingsMobs.c> getMobsFor(BiomeBase biomebase, StructureManager structuremanager, EnumCreatureType enumcreaturetype, BlockPosition blockposition) {

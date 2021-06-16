@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Tue, 21 Apr 2020 16:14:10 +0200
+Subject: [PATCH] Modify default configs
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/PaperConfig.java b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+index a0ed8ed1d6b89a4f10dff645e09eaff303fb3f8a..3115c6b308c1371f065dcbb60d9443f439e24560 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperConfig.java
+@@ -206,7 +206,7 @@ public class PaperConfig {
+ 
+     public static String timingsServerName;
+     private static void timings() {
+-        boolean timings = getBoolean("timings.enabled", true);
++        boolean timings = getBoolean("timings.enabled", false); // Yatopia don't profile by default
+         boolean verboseTimings = getBoolean("timings.verbose", true);
+         TimingsManager.privacy = getBoolean("timings.server-name-privacy", false);
+         TimingsManager.hiddenConfigs = getList("timings.hidden-config-entries", Lists.newArrayList("database", "settings.bungeecord-addresses", "settings.velocity-support.secret"));
+diff --git a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
+index 577ed19fa8875ab37433b1061f055521a4245434..c3b31fd44abb1a8731fecc8587d581f4a1efa2e3 100644
+--- a/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
++++ b/src/main/java/com/destroystokyo/paper/PaperWorldConfig.java
+@@ -633,7 +633,7 @@ public class PaperWorldConfig {
+     }
+ 
+     public boolean cooldownHopperWhenFull = true;
+-    public boolean disableHopperMoveEvents = false;
++    public boolean disableHopperMoveEvents = true; // Yatopia disable by default
+     private void hopperOptimizations() {
+         cooldownHopperWhenFull = getBoolean("hopper.cooldown-when-full", cooldownHopperWhenFull);
+         log("Cooldown Hoppers when Full: " + (cooldownHopperWhenFull ? "enabled" : "disabled"));

@@ -1,0 +1,109 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MrIvanPlays <ivan@mrivanplays.com>
+Date: Sun, 9 Aug 2020 22:27:52 +0300
+Subject: [PATCH] Optimize BehaviorController
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java b/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java
+index fc4216cafbd3a81cac319b11ee093bec38827742..e38cdf81e3f3ba1a2ee86c3a202e5643dd9c0fd1 100644
+--- a/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java
++++ b/src/main/java/net/minecraft/world/entity/ai/BehaviorController.java
+@@ -65,13 +65,16 @@ public class BehaviorController<E extends EntityLiving> {
+ 
+         mutableobject.setValue((new MapCodec<BehaviorController<E>>() {
+             public <T> Stream<T> keys(DynamicOps<T> dynamicops) {
+-                return collection.stream().flatMap((memorymoduletype) -> {
+-                    return SystemUtils.a(memorymoduletype.getSerializer().map((codec) -> {
+-                        return IRegistry.MEMORY_MODULE_TYPE.getKey(memorymoduletype);
+-                    }));
+-                }).map((minecraftkey) -> {
+-                    return dynamicops.createString(minecraftkey.toString());
+-                });
++                // Yatopia start
++                // about previous impl: WHY ? WHO DID THIS TO YOU?
++                Collection<T> candidates = new java.util.ArrayList<>();
++                for (MemoryModuleType<?> moduleType : collection) {
++                    moduleType.getSerializer()
++                            .map(c -> IRegistry.MEMORY_MODULE_TYPE.getKey(moduleType))
++                            .ifPresent(key -> candidates.add(dynamicops.createString(key.toString())));
++                }
++                return candidates.stream();
++                // Yatopia end
+             }
+ 
+             public <T> DataResult<BehaviorController<E>> decode(DynamicOps<T> dynamicops, MapLike<T> maplike) {
+@@ -83,23 +86,17 @@ public class BehaviorController<E extends EntityLiving> {
+                         return this.a(memorymoduletype, dynamicops, pair.getSecond());
+                     });
+ 
+-                    mutableobject1.setValue(((DataResult) mutableobject1.getValue()).apply2(Builder::add, dataresult1));
++                    mutableobject1.setValue((mutableobject1.getValue()).apply2(Builder::add, dataresult1)); // Yatopia - decompile fix
+                 });
+-                DataResult dataresult = (DataResult) mutableobject1.getValue();
+-                Logger logger = BehaviorController.LOGGER;
++                DataResult<ImmutableList.Builder<BehaviorController.a<?>>> dataresult = mutableobject1.getValue(); // Yatopia - decompile fix
+ 
+-                logger.getClass();
+-                ImmutableList<BehaviorController.a<?>> immutablelist = (ImmutableList) dataresult.resultOrPartial(logger::error).map(Builder::build).orElseGet(ImmutableList::of);
+-                Collection collection2 = collection;
+-                Collection collection3 = collection1;
+-                MutableObject mutableobject2 = mutableobject;
++                ImmutableList<BehaviorController.a<?>> immutablelist = dataresult.resultOrPartial(BehaviorController.LOGGER::error).map(Builder::build).orElseGet(ImmutableList::of); // Yatopia - decompile fix
+ 
+-                mutableobject.getClass();
+-                return DataResult.success(new BehaviorController<>(collection2, collection3, immutablelist, mutableobject2::getValue));
++                return DataResult.success(new BehaviorController<>(collection, collection1, immutablelist, mutableobject::getValue)); // Yatopia - decompile fix
+             }
+ 
+             private <T, U> DataResult<BehaviorController.a<U>> a(MemoryModuleType<U> memorymoduletype, DynamicOps<T> dynamicops, T t0) {
+-                return ((DataResult) memorymoduletype.getSerializer().map(DataResult::success).orElseGet(() -> {
++                return (memorymoduletype.getSerializer().map(DataResult::success).orElseGet(() -> { // Yatopia - decompile fix
+                     return DataResult.error("No codec for memory: " + memorymoduletype);
+                 })).flatMap((codec) -> {
+                     return codec.parse(dynamicops, t0);
+@@ -109,9 +106,9 @@ public class BehaviorController<E extends EntityLiving> {
+             }
+ 
+             public <T> RecordBuilder<T> encode(BehaviorController<E> behaviorcontroller, DynamicOps<T> dynamicops, RecordBuilder<T> recordbuilder) {
+-                behaviorcontroller.j().forEach((behaviorcontroller_a) -> {
++                for (BehaviorController.a<?> behaviorcontroller_a : behaviorcontroller.memoriesList()) { // Yatopia
+                     behaviorcontroller_a.a(dynamicops, recordbuilder);
+-                });
++                } // Yatopia
+                 return recordbuilder;
+             }
+         }).fieldOf("memories").codec());
+@@ -170,6 +167,15 @@ public class BehaviorController<E extends EntityLiving> {
+         return ((Codec) this.b.get()).encodeStart(dynamicops, this);
+     }
+ 
++    // Yatopia start
++    private List<BehaviorController.a<?>> memoriesList() {
++        List<BehaviorController.a<?>> ret = new java.util.ArrayList<>();
++        for (Map.Entry<MemoryModuleType<?>, Optional<? extends ExpirableMemory<?>>> entry : memories.entrySet()) {
++            ret.add(BehaviorController.a.b(entry.getKey(), (Optional) entry.getValue()));
++        }
++        return ret;
++    }
++    // Yatopia end
+     private Stream<BehaviorController.a<?>> j() {
+         return this.memories.entrySet().stream().map((entry) -> {
+             return BehaviorController.a.b((MemoryModuleType) entry.getKey(), (Optional) entry.getValue());
+@@ -208,7 +214,7 @@ public class BehaviorController<E extends EntityLiving> {
+     }
+ 
+     public <U> Optional<U> getMemory(MemoryModuleType<U> memorymoduletype) {
+-        return ((Optional) this.memories.get(memorymoduletype)).map(ExpirableMemory::c);
++        return (Optional<U>) this.memories.get(memorymoduletype).map(ExpirableMemory::c); // Yatopia - Decompile fix
+     }
+ 
+     public <U> boolean b(MemoryModuleType<U> memorymoduletype, U u0) {
+@@ -547,7 +553,7 @@ public class BehaviorController<E extends EntityLiving> {
+         private final MemoryModuleType<U> a;
+         private final Optional<? extends ExpirableMemory<U>> b;
+ 
+-        private static <U> BehaviorController.a<U> b(MemoryModuleType<U> memorymoduletype, Optional<? extends ExpirableMemory<?>> optional) {
++        private static <U> BehaviorController.a<U> b(MemoryModuleType<U> memorymoduletype, Optional<? extends ExpirableMemory<U>> optional) { // Yatopia - decompile fix
+             return new BehaviorController.a<>(memorymoduletype, optional);
+         }
+ 
