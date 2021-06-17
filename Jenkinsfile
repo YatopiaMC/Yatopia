@@ -50,7 +50,7 @@ pipeline {
                         sh'''
                         ./gradlew build publish
                         mkdir -p "./target"
-                        paperworkdir="$basedir/.gradle/caches/paperweight/upstreams/paper/work"
+                        paperworkdir=".gradle/caches/paperweight/upstreams/paper/work"
                         mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
                         cp -v "build/libs/Yatopia-$mcver-R0.1-SNAPSHOT.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
                         '''
