@@ -37,7 +37,10 @@ Run the following commands in the root directory:
 ./gradlew applyPatches
 ./gradlew build
 ```
-If You are using windows cmd , then remove the `./` before `gradlew` , if You are using powershell , You don't need to change anything.
+
+The paperclip jar should be located in `build/libs` and it's name should be `Yatopia-1.17-R0.1-SNAPSHOT.jar`
+
+If You are using windows cmd , then remove the `./` before `gradlew` , and change `/` in paths to `\`, if You are using powershell , You only need to change `/` in paths to `\`
 
 ## Using Yatopia-API
 
