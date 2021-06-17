@@ -20,6 +20,9 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
 * [Tic-Tacs](https://github.com/Gegy/tic-tacs)
 
+Keep in mind this comes with a lot of unexpected side effects (bugs may arise between all the patches we use).
+If you happen to run into any of these, please do create or upvote an [issue](https://github.com/YatopiaMC/Yatopia/issues) instead of spreading hate.
+Thank you for your understanding!
 
 ## Try it out 
 The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopiamc.org/download.html). You can also download the latest development build [here](https://api.yatopiamc.org/v2/latestBuild/download?branch=ver/1.16.5).
