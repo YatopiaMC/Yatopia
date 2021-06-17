@@ -1,0 +1,53 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Toffikk <slodkitofik@gmail.com>
+Date: Thu, 17 Jun 2021 20:57:02 +0200
+Subject: [PATCH] pls merge into nspt command patch uwu baka owo kwiii awooo
+
+
+diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+index 2fc78f7cee379e690e846a3ab91eab01869f3346..3c6d2606f12519c844214b32b2ac42aa356fb986 100644
+--- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
++++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
+@@ -6,11 +6,14 @@ import java.io.IOException;
+ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
+ import java.lang.reflect.Modifier;
++import java.util.HashMap;
+ import java.util.List;
++import java.util.Map;
+ import java.util.concurrent.TimeUnit;
+ import java.util.logging.Level;
+ import java.util.regex.Pattern;
+ import org.bukkit.Bukkit;
++import org.bukkit.command.Command;
+ import org.bukkit.configuration.InvalidConfigurationException;
+ import org.bukkit.configuration.file.YamlConfiguration;
+ public class YatopiaConfig {
+@@ -22,8 +25,14 @@ public class YatopiaConfig {
+ 	public static YamlConfiguration config;
+     public static int version; // since we're remapping sidestreams' configs we need this public
+     public static boolean verbose; // since we're remapping sidestreams' configs we need this public
++	private static Map<String, Command> commands;
+     /*========================================================================*/
+ 
++	static {
++		commands = new HashMap<>();
++		commands.put("nspt", new NSPTCommand("nspt"));
++	}
++
+ 	public static void init(File configFile) {
+ 		CONFIG_FILE = configFile;
+ 		config = new YamlConfiguration();
+@@ -43,6 +52,12 @@ public class YatopiaConfig {
+ 		readConfig(YatopiaConfig.class, null);
+ 	}
+ 
++	public static void registerCommands() {
++		for (Map.Entry<String, Command> entry : commands.entrySet()) {
++			net.minecraft.server.MinecraftServer.getServer().server.getCommandMap().register(entry.getKey(), "Yatopia", entry.getValue());
++		}
++	}
++
+ 	private static void removeLeftovers() {
+ 		// this method is only to remove non-used values in the config
+ 

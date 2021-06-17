@@ -94,7 +94,7 @@ index 0000000000000000000000000000000000000000..e6eaa07c57e04bbfba9e4aa8e0e939f8
 +    }
 +}
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index 2fc78f7cee379e690e846a3ab91eab01869f3346..a6bf616de510ba54d025e87eeaa2a71c0fb3edc6 100644
+index 2fc78f7cee379e690e846a3ab91eab01869f3346..3c6d2606f12519c844214b32b2ac42aa356fb986 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -6,11 +6,14 @@ import java.io.IOException;
@@ -112,23 +112,22 @@ index 2fc78f7cee379e690e846a3ab91eab01869f3346..a6bf616de510ba54d025e87eeaa2a71c
  import org.bukkit.configuration.InvalidConfigurationException;
  import org.bukkit.configuration.file.YamlConfiguration;
  public class YatopiaConfig {
-@@ -22,6 +25,7 @@ public class YatopiaConfig {
+@@ -22,8 +25,14 @@ public class YatopiaConfig {
  	public static YamlConfiguration config;
      public static int version; // since we're remapping sidestreams' configs we need this public
      public static boolean verbose; // since we're remapping sidestreams' configs we need this public
 +	private static Map<String, Command> commands;
      /*========================================================================*/
  
- 	public static void init(File configFile) {
-@@ -37,12 +41,20 @@ public class YatopiaConfig {
- 		config.options().header(HEADER);
- 		config.options().copyDefaults(true);
- 		verbose = getBoolean("verbose", false);
++	static {
 +		commands = new HashMap<>();
 +		commands.put("nspt", new NSPTCommand("nspt"));
- 		version = getInt("config-version", 1);
- 		set("config-version", 1);
- 		removeLeftovers();
++	}
++
+ 	public static void init(File configFile) {
+ 		CONFIG_FILE = configFile;
+ 		config = new YamlConfiguration();
+@@ -43,6 +52,12 @@ public class YatopiaConfig {
  		readConfig(YatopiaConfig.class, null);
  	}
  
