@@ -1,20 +1,17 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
-From: Ivan Pekov <ivan@mrivanplays.com>
-Date: Sun, 27 Sep 2020 18:01:50 +0300
+From: Toffikk <slodkitofik@gmail.com>
+Date: Thu, 17 Jun 2021 15:48:51 +0200
 Subject: [PATCH] Add last tick time API
 
-Original patch by:
-Co-authored-by: tr7zw <tr7zw@live.de>
 
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index 8036c66af0bc6b11ffd0f716138901bcfea007e1..5c11d5203491d120356098c14c0069874b2eaadf 100644
+index e8414592b3afeb1e5db2b817b8fb7c13e073b9aa..2b9bcd008030a496244f5cfc1e0503f7e50ea479 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
-@@ -1971,4 +1971,14 @@ public final class Bukkit {
-         return server.isLagging();
+@@ -1940,6 +1940,16 @@ public final class Bukkit {
+         return server.isStopping();
      }
-     // Purpur end
-+
+ 
 +    // Yatopia start
 +    @Deprecated
 +    public static long getLastTickMs() {
@@ -24,16 +21,18 @@ index 8036c66af0bc6b11ffd0f716138901bcfea007e1..5c11d5203491d120356098c14c006987
 +        return server.getLastTickTime();
 +    }
 +    // Yatopia end
- }
++
+     /**
+      * Returns the {@link com.destroystokyo.paper.entity.ai.MobGoals} manager
+      *
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index a69bf7aae1e9d6b658b079431d23ca0f28c871d1..423e94f44cd62eaa270ac44b1e3f49acc5fcce9d 100644
+index 55fdb9a506e88441c4888cc48520bd931870aa50..435b1a59639be04db6d664af8603d0440260f744 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -1760,4 +1760,24 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+@@ -1718,6 +1718,26 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
       */
-     boolean isLagging();
-     // Purpur end
-+
+     boolean isStopping();
+ 
 +    // Yatopia start
 +    /**
 +     * Returns the time the last tick took in milliseconds.
@@ -53,4 +52,7 @@ index a69bf7aae1e9d6b658b079431d23ca0f28c871d1..423e94f44cd62eaa270ac44b1e3f49ac
 +    @NotNull
 +    java.time.Duration getLastTickTime();
 +    // Yatopia end
- }
++
+     /**
+      * Returns the {@link com.destroystokyo.paper.entity.ai.MobGoals} manager
+      *

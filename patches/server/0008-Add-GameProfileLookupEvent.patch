@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Toffikk <slodkitofik@gmail.com>
+Date: Thu, 17 Jun 2021 16:01:50 +0200
+Subject: [PATCH] Add GameProfileLookupEvent
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+index ef6aab69daa7ab952408b573bff6c6996cbc349a..47f3a64566751296686161a5cea46c0d2496134b 100644
+--- a/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
++++ b/src/main/java/com/destroystokyo/paper/profile/CraftPlayerProfile.java
+@@ -189,9 +189,17 @@ public class CraftPlayerProfile implements PlayerProfile {
+ 
+         boolean isCompleteFromCache = this.completeFromCache(true, onlineMode);
+         if (onlineMode && (!isCompleteFromCache || textures && !hasTextures())) {
+-            GameProfile result = server.getSessionService().fillProfileProperties(profile, true);
+-            if (result != null) {
+-                copyProfileProperties(result, this.profile, true);
++            // Yatopia start
++            org.yatopiamc.yatopia.server.events.GameProfileLookupEvent event = new org.yatopiamc.yatopia.server.events.GameProfileLookupEvent(!org.bukkit.Bukkit.isPrimaryThread(), profile.getId(), profile.getName());
++            org.bukkit.Bukkit.getPluginManager().callEvent(event);
++            GameProfile eventProfile = event.getGameProfile();
++            if (eventProfile != null) {
++                GameProfile result = eventProfile;
++            } else {
++                GameProfile result = server.getSessionService().fillProfileProperties(profile, true);
++                if (result != null) {
++                    copyProfileProperties(result, this.profile, true);
++                }
+             }
+             if (this.profile.isComplete()) {
+                 server.getProfileCache().add(this.profile);
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/SkullBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/SkullBlockEntity.java
+index f0192a009f6a21d1781ce709624a9187048d9a08..1eedb0c18834e6fd30b80ee77bc151af7f82fe8b 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/SkullBlockEntity.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/SkullBlockEntity.java
+@@ -149,7 +149,15 @@ public class SkullBlockEntity extends BlockEntity {
+                 Property property = (Property) Iterables.getFirst(gameprofile1.getProperties().get("textures"), (Object) null);
+ 
+                 if (property == null) {
+-                    gameprofile1 = SkullBlockEntity.sessionService.fillProfileProperties(gameprofile1, true);
++                    // Yatopia start
++                    org.yatopiamc.yatopia.server.events.GameProfileLookupEvent event = new org.yatopiamc.yatopia.server.events.GameProfileLookupEvent(!org.bukkit.Bukkit.isPrimaryThread(), gameprofile1.getId(), gameprofile1.getName());
++                    org.bukkit.Bukkit.getPluginManager().callEvent(event);
++                    GameProfile eventProfile = event.getGameProfile();
++                    if (eventProfile != null) {
++                        gameprofile1 = eventProfile;
++                    } else {
++                        gameprofile1 = SkullBlockEntity.sessionService.fillProfileProperties(gameprofile1, true);
++                    }
+                 }
+ 
+                 SkullBlockEntity.profileCache.add(gameprofile1);
