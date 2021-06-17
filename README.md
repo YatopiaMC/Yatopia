@@ -3,9 +3,9 @@
 <h1>Yatopia</h1>
 
 [![Github-CI](https://github.com/YatopiaMC/Yatopia/workflows/CI/badge.svg)](https://github.com/YatopiaMC/Yatopia/actions?query=workflow%3ACI)
-[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.16.5)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.16.5/)
+[![CodeMC](https://ci.codemc.io/buildStatus/icon?job=YatopiaMC%2FYatopia%2Fver%252F1.17)](https://ci.codemc.io/job/YatopiaMC/job/Yatopia/job/ver%252F1.17/)
 [![Discord](https://img.shields.io/discord/342814924310970398?color=%237289DA&label=Discord&logo=discord&logoColor=white)](https://discord.gg/YatopiaMC)
-[![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopiamc.org%2F)](https://api.yatopiamc.org/v2/latestBuild?branch=ver/1.16.5)
+[![API](https://img.shields.io/website?down_color=lightgrey&down_message=offline&label=API&up_color=green&up_message=online&url=http%3A%2F%2Fapi.yatopiamc.org%2F)](https://api.yatopiamc.org/v2/latestBuild?branch=ver/1.17)
 <h3>Blazing fast <a href="https://github.com/Spottedleaf/Tuinity">Tuinity</a> fork with best in class performance.</h3>
 </div>
 
@@ -23,7 +23,7 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 
 
 ## Try it out 
-The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopiamc.org/download.html). You can also download the latest development build [here](https://api.yatopiamc.org/v2/latestBuild/download?branch=ver/1.16.5).
+The latest stable builds of Yatopia are always available over at our [downloads page](https://yatopiamc.org/download.html). You can also download the latest development build [here](https://api.yatopiamc.org/v2/latestBuild/download?branch=ver/1.17).
 
 ## Documentation
 
@@ -34,12 +34,10 @@ The latest stable builds of Yatopia are always available over at our [downloads 
 Run the following commands in the root directory:
 
 ```shell
-./gradlew initGitSubmodules
-./gradlew setupUpstream
 ./gradlew applyPatches
 ./gradlew paperclip
 ```
-
+If You are using windows cmd , then remove the `./` before `gradlew` , if You are using powershell , You don't need to change anything.
 
 ## Using Yatopia-API
 
@@ -62,7 +60,7 @@ And then add the Yatopia-API dependency:
     <dependency>
         <groupId>org.yatopiamc</groupId>
         <artifactId>yatopia-api</artifactId>
-        <version>1.16.5-R0.1-SNAPSHOT</version>
+        <version>1.17-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -84,7 +82,7 @@ repositories {
 And then add the Yatopia-API dependency:
 ```groovy
 dependencies {
-    compileOnly 'org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'org.yatopiamc:yatopia-api:1.17-R0.1-SNAPSHOT'
 }
 ```
 
@@ -100,7 +98,7 @@ repositories {
 And then add the Yatopia-API dependency:
 ```kotlin
 dependencies {
-    compileOnly("org.yatopiamc:yatopia-api:1.16.5-R0.1-SNAPSHOT")
+    compileOnly("org.yatopiamc:yatopia-api:1.17-R0.1-SNAPSHOT")
 }
 ```
 
