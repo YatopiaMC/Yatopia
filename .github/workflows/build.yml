@@ -46,6 +46,10 @@ jobs:
          git config --global user.name "Github CI"
          git config --global gc.auto 0
         
+    - name: Get MC Version
+      run: echo "::set-output name=mcver::$(cat ".gradle/caches/paperweight/upstreams/paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
+      id: mcver
+      
     - name: Apply Patches
       run: |
         ./gradlew applyPatches
@@ -59,11 +63,14 @@ jobs:
 
     - name: Build Yatopia
       run: |
-        ./gradlew generatePaperclipPatch
+        ./gradlew build
         
+    - name: Rename Paperclip
+      run:  cp -v "build/libs/Yatopia-${{ steps.mcver.outputs.mcver }}-R0.1-SNAPSHOT.jar" "yatopia-${{ steps.mcver.outputs.mcver }}-paperclip.jar"
+      
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: Yatopia-${{ matrix.java }}
-        path: yatopia-1.17-paperclip.jar
+        path: yatopia-${{ steps.mcver.outputs.mcver }}-paperclip.jar
       
