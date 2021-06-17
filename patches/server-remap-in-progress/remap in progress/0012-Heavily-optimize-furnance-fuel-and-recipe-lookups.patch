@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: tr7zw <tr7zw@live.de>
+Date: Thu, 25 Jun 2020 23:40:12 +0200
+Subject: [PATCH] Heavily optimize furnance fuel and recipe lookups
+
+Co-authored-by: Mykyta Komarn <nkomarn@hotmail.com>
+
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java
+index de53c9652fd6103c4ee5bdb9304979b675cb2bd7..3b6dbe90ace6b476297b3d70038e955a379eb23a 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity.java
+@@ -321,7 +321,10 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
+                 blockEntity.cookingProgress = Mth.clamp(blockEntity.cookingProgress - 2, 0, blockEntity.cookingTotalTime);
+             }
+         } else {
+-            Recipe<?> irecipe = (Recipe) world.getRecipeManager().getRecipeFor((RecipeType<AbstractCookingRecipe>) blockEntity.recipeType, blockEntity, world).orElse(null); // CraftBukkit - decompile error // Eclipse fail
++            // Recipe<?> irecipe = (Recipe) world.getRecipeManager().getRecipeFor((RecipeType<AbstractCookingRecipe>) blockEntity.recipeType, blockEntity, world).orElse(null); // CraftBukkit - decompile error // Eclipse fail
++            // Yatopia start - used cached recipe if possible, otherwise look up
++            Recipe<?> irecipe = getCurrentRecipe();
++            if (irecipe == null) irecipe = (Recipe) world.getRecipeManager().getRecipeFor((RecipeType<AbstractCookingRecipe>) blockEntity.recipeType, blockEntity, world).orElse(null); // CraftBukkit - decompile error // Eclipse fail
+             int i = blockEntity.getMaxStackSize();
+ 
+             if (!blockEntity.isLit() && AbstractFurnaceBlockEntity.canBurn(irecipe, blockEntity.items, i)) {
+@@ -638,6 +641,18 @@ public abstract class AbstractFurnaceBlockEntity extends BaseContainerBlockEntit
+ 
+             finder.accountStack(itemstack);
+         }
++    }
++    // Yatopia start - cache recipe
++    private Recipe<?> cachedRecipe = null;
+ 
++    @Override
++    public Recipe<?> getCurrentRecipe() {
++        return cachedRecipe;
++    }
++
++    @Override
++    public void setCurrentRecipe(Recipe<?> recipe) {
++        cachedRecipe = recipe;
+     }
++    // Yatopia end
+ }

@@ -3,34 +3,59 @@ From: ishland <ishlandmc@yeah.net>
 Date: Wed, 27 Jan 2021 20:16:47 +0800
 Subject: [PATCH] Preload ProtocolLib EnumWrappers
 
-Currently, ProtocolLib load EnumWrappers lazily and causing memory effects issues. This patch preloads EnumWrappers to prevent further NPE.
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 5392a9bc509008ecfcdad44189c903fd5b57285c..cda0f9bf15fead921ced0e984dc9cf80ead88286 100644
+index 1113777e6e212cb0245141826d11bd3a571216cf..685220edb6690d2d560a7153d5eb9877238b57c0 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1092,6 +1092,7 @@ public abstract class MinecraftServer extends IAsyncTaskHandlerReentrant<TickTas
+@@ -1135,6 +1135,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+                 LOGGER.info("Done ({})! For help, type \"help\"", doneTime);
                  // Paper end
  
-                 PaperJvmChecker.checkJvm(); // Paper jvm version nag
-+                if (org.yatopiamc.yatopia.server.YatopiaConfig.fixProtocolLib) org.yatopiamc.yatopia.server.util.YatopiaPreloadProtocolLib.run(); // Yatopia
-                 com.tuinity.tuinity.config.TuinityConfig.createWorldSections = false; // Tuinity - don't let plugin created worlds fill our config
++                if (org.yatopiamc.yatopia.server.YatopiaConfig.fixProtocolLib) org.yatopiamc.yatopia.server.util.YatopiaPreloadProtocolLib.run(); // Yatopia - Preload ProtocolLib's Enum Wrappers
                  org.spigotmc.WatchdogThread.tick(); // Paper
                  org.spigotmc.WatchdogThread.hasStarted = true; // Paper
+                 Arrays.fill( recentTps, 20 );
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index b246e6450130964cf91d0be81fbddae6598d9d8c..fce7ce0efca340cf5820cdcbe010c9fdeae7cafc 100644
+index eb6786fa040ede035b649d3f9c2c117afe390406..f3d0daca99a9a80fec99c44c32318e98d162979f 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-@@ -266,4 +266,9 @@ public class YatopiaConfig {
-         logPlayerLoginLoc = getBoolean("settings.log-player-login-location", logPlayerLoginLoc);
-     }
- 
-+    public static boolean fixProtocolLib = true;
-+    private static void protocolLib() {
-+        fixProtocolLib = getBoolean("settings.fix-protocollib", fixProtocolLib);
-+    }
-+
+@@ -108,18 +108,11 @@ public class YatopiaConfig {
+ 			num = 0D;
+ 		}
+ 		switch (unit) {
+-			case 'd':
+-				num *= (double) 60 * 60 * 24;
+-				break;
+-				case 'h':
+-				num *= (double) 60 * 60;
+-				break;
+-				case 'm':
+-				num *= 60;
+-				break;
+-				default:
+-				case 's':
+-					break;
++			case 'd':  num *= (double) 60 * 60 * 24;
++			case 'h':  num *= (double) 60 * 60;
++			case 'm':  num *= 60;
++			case 's':  break;
++			default: break;
+ 		}
+ 		return (int) num;
  }
+@@ -177,5 +171,10 @@ public class YatopiaConfig {
+ 		return config.getString(path, config.getString(path));
+ }
+ 
++	public static boolean fixProtocolLib = true;
++	private static void protocolLib() {
++		fixProtocolLib = getBoolean("settings.fix-protocollib", fixProtocolLib);
++	}
++
+ 	public static boolean disableEntityStuckChecks = false;
+ private static void disableEntityStuckChecks() {
+ 	disableEntityStuckChecks = getBoolean("settings.disableEntityStuckChecks", false);
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/util/YatopiaPreloadProtocolLib.java b/src/main/java/org/yatopiamc/yatopia/server/util/YatopiaPreloadProtocolLib.java
 new file mode 100644
 index 0000000000000000000000000000000000000000..85906aa00163a4626b16190e2e48385bc5eba801
