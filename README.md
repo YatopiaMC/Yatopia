@@ -20,7 +20,7 @@ Yatopia combines the code from many [Paper](https://github.com/PaperMC/Paper) fo
 * [Cadmium](https://github.com/LucilleTea/cadmium-fabric)
 * [Tic-Tacs](https://github.com/Gegy/tic-tacs)
 
-Keep in mind this comes with a lot of unexpected side effects (bugs may arise between all the patches we use).
+Keep in mind this, whilst rare, can cause issues.
 If you happen to run into any of these, please do create or upvote an [issue](https://github.com/YatopiaMC/Yatopia/issues) instead of spreading hate.
 Thank you for your understanding!
 
