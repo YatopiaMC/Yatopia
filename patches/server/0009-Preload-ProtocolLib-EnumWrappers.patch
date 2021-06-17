@@ -3,7 +3,6 @@ From: ishland <ishlandmc@yeah.net>
 Date: Wed, 27 Jan 2021 20:16:47 +0800
 Subject: [PATCH] Preload ProtocolLib EnumWrappers
 
-Currently, ProtocolLib load EnumWrappers lazily and causing memory effects issues. This patch preloads EnumWrappers to prevent further NPE.
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
 index 1113777e6e212cb0245141826d11bd3a571216cf..685220edb6690d2d560a7153d5eb9877238b57c0 100644
@@ -18,7 +17,7 @@ index 1113777e6e212cb0245141826d11bd3a571216cf..685220edb6690d2d560a7153d5eb9877
                  org.spigotmc.WatchdogThread.hasStarted = true; // Paper
                  Arrays.fill( recentTps, 20 );
 diff --git a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
-index eb6786fa040ede035b649d3f9c2c117afe390406..f3d0daca99a9a80fec99c44c32318e98d162979f 100644
+index eb6786fa040ede035b649d3f9c2c117afe390406..538c98c0a237503eeadcf6c783e377249f0ba4a1 100644
 --- a/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 +++ b/src/main/java/org/yatopiamc/yatopia/server/YatopiaConfig.java
 @@ -108,18 +108,11 @@ public class YatopiaConfig {
@@ -45,7 +44,7 @@ index eb6786fa040ede035b649d3f9c2c117afe390406..f3d0daca99a9a80fec99c44c32318e98
  		}
  		return (int) num;
  }
-@@ -177,5 +171,10 @@ public class YatopiaConfig {
+@@ -177,6 +170,11 @@ public class YatopiaConfig {
  		return config.getString(path, config.getString(path));
  }
  

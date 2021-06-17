@@ -1,0 +1,59 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ivan Pekov <ivan@mrivanplays.com>
+Date: Fri, 4 Sep 2020 10:07:42 +0300
+Subject: [PATCH] Stop wasting resources on JsonList#get
+
+Previously, when a banned player attempted to join the server was removing all the stale entries.
+This caused a resource waste, which was unnoticeable to users that use ban plugins which doesn't
+use the ban list. Akarin's changes for saving it async lowered the pressure, however it was
+still pretty high.
+
+Our changes are the following:
+1. Stop removing all stale entries when JsonList#get is called.
+2. Only if a player joins and his ban has expired, remove his ban which triggers a save which then
+   triggers removing of all stale entries.
+
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 4dd7747e2daff8648b3452c833863d1917d6e61a..af31b1c40b835a4b8cb291579f7fd9f5826d1e6a 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -731,14 +731,18 @@ public abstract class PlayerList {
+         UserBanListEntry gameprofilebanentry;
+         if (getBans().isBanned(gameprofile) && (gameprofilebanentry = getBans().get(gameprofile)) != null) {
+             // Paper end
+-
++            if (!gameprofilebanentry.hasExpired()) { // Yatopia
+             chatmessage = new TranslatableComponent("multiplayer.disconnect.banned.reason", new Object[]{gameprofilebanentry.getReason()});
+             if (gameprofilebanentry.getExpires() != null) {
+                 chatmessage.append(new TranslatableComponent("multiplayer.disconnect.banned.expiration", new Object[]{PlayerList.BAN_DATE_FORMAT.format(gameprofilebanentry.getExpires())}));
+             }
+ 
+             // return chatmessage;
+-            if (!gameprofilebanentry.hasExpired()) event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Spigot // Paper - Adventure
++            // Yatopia start
++            /* if (!gameprofilebanentry.hasExpired()) */ event.disallow(PlayerLoginEvent.Result.KICK_BANNED, PaperAdventure.asAdventure(chatmessage)); // Spigot // Paper - Adventure
++        } else {
++            getBans().remove(gameprofile);
++        } // Yatopia end
+         } else if (!this.isWhitelisted(gameprofile, event)) { // Paper
+             //chatmessage = new ChatMessage("multiplayer.disconnect.not_whitelisted"); // Paper
+             //event.disallow(PlayerLoginEvent.Result.KICK_WHITELIST, org.spigotmc.SpigotConfig.whitelistMessage); // Spigot // Paper - moved to isWhitelisted
+diff --git a/src/main/java/net/minecraft/server/players/StoredUserList.java b/src/main/java/net/minecraft/server/players/StoredUserList.java
+index bfac2eb1ad06e82fed92574c1dd07e33f1440db7..d34affdb32dcfa2b33bea7fd7028bc08a22d423f 100644
+--- a/src/main/java/net/minecraft/server/players/StoredUserList.java
++++ b/src/main/java/net/minecraft/server/players/StoredUserList.java
+@@ -73,9 +73,14 @@ public abstract class StoredUserList<K, V extends StoredUserEntry<K>> {
+         // Paper start
+         // this.g();
+         // return (V) this.d.get(this.a(k0)); // CraftBukkit - fix decompile error
++        // Yatopia start - only remove if it expires and has been requested
++        return this.getBackingMap().get(this.getMappingKey(key));
++        /*
+         return (V) this.getBackingMap().computeIfPresent(this.getMappingKey(key), (k, v) -> {
+             return v.hasExpired() ? null : v;
+         });
++         */ // Yatopia end
++
+         // Paper end
+     }
+ 
