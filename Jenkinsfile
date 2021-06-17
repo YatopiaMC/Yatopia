@@ -47,12 +47,21 @@ pipeline {
                     publisherStrategy: 'EXPLICIT'
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
-                        sh './gradlew generatePaperclipPatch publish' // when paper fixes paperclip for forks then use - ./gradlew paperclipJar publish  
-                        // cp -v "$paperworkdir/Paperclip/assembly/target/paperclip-$mcver.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar" - this code needs to be reworked
+                        sh './gradlew build publish'
+                        sh 'mkdir -p "./target"'
+                        sh 'paperworkdir="$basedir/.gradle/caches/paperweight/upstreams/paper/work"'
+                        sh 'mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)'
+                        sh 'cp -v "build/libs/Yatopia-$mcver-R0.1-SNAPSHOT.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"'  
                     }
                 }
             }
         }
+
+        stage('Archive Jars') {
+            steps {
+                archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
+            }
+    }
 
         stage('Discord Webhook') {
             steps {

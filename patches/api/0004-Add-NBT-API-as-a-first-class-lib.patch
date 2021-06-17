@@ -5,7 +5,7 @@ Subject: [PATCH] Add NBT API as a first-class lib
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index dffd42fa0862a04fbb63dbc2c378d41eac2aafb5..ffae74d0cb80624cae6ec2b42d1cdec66768b5dd 100644
+index 24820ac11fd70d4f0db3fd7d51a4e48fbd6ee184..ffae74d0cb80624cae6ec2b42d1cdec66768b5dd 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
 @@ -3,6 +3,7 @@ import java.util.Locale
@@ -24,7 +24,7 @@ index dffd42fa0862a04fbb63dbc2c378d41eac2aafb5..ffae74d0cb80624cae6ec2b42d1cdec6
  
      compileOnly("org.apache.maven:maven-resolver-provider:3.8.1")
      compileOnly("org.apache.maven.resolver:maven-resolver-connector-basic:1.7.0")
-@@ -68,6 +70,9 @@ tasks.jar {
+@@ -74,6 +76,9 @@ tasks.jar {
      }
  }
  
@@ -32,8 +32,8 @@ index dffd42fa0862a04fbb63dbc2c378d41eac2aafb5..ffae74d0cb80624cae6ec2b42d1cdec6
 +    relocate("de.tr7zw.changeme.nbtapi", "de.tr7zw.nbtapi")
 +}
  tasks.withType<Javadoc>().configureEach {
-     (options as StandardJavadocDocletOptions).links(
-         "https://guava.dev/releases/21.0/api/docs/",
+    (options as StandardJavadocDocletOptions).encoding = "UTF-8"
+    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
 diff --git a/src/main/java/org/bukkit/Chunk.java b/src/main/java/org/bukkit/Chunk.java
 index 98263d896f316983609432c45b85401a2692432d..44a649d8dc97c7b271b1000bff893edd7be46360 100644
 --- a/src/main/java/org/bukkit/Chunk.java

@@ -35,7 +35,7 @@ Run the following commands in the root directory:
 
 ```shell
 ./gradlew applyPatches
-./gradlew paperclipJar
+./gradlew build
 ```
 If You are using windows cmd , then remove the `./` before `gradlew` , if You are using powershell , You don't need to change anything.
 
