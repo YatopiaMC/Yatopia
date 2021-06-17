@@ -47,11 +47,13 @@ pipeline {
                     publisherStrategy: 'EXPLICIT'
                 ) {
                     withCredentials([usernamePassword(credentialsId: 'jenkins-deploy', usernameVariable: 'ORG_GRADLE_PROJECT_mavenUsername', passwordVariable: 'ORG_GRADLE_PROJECT_mavenPassword')]) {
-                        sh './gradlew build publish'
-                        sh 'mkdir -p "./target"'
-                        sh 'paperworkdir="$basedir/.gradle/caches/paperweight/upstreams/paper/work"'
-                        sh 'mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)'
-                        sh 'cp -v "build/libs/Yatopia-$mcver-R0.1-SNAPSHOT.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"'  
+                        sh'''
+                        ./gradlew build publish
+                        mkdir -p "./target"
+                        paperworkdir="$basedir/.gradle/caches/paperweight/upstreams/paper/work"
+                        mcver=$(cat "$paperworkdir/BuildData/info.json" | grep minecraftVersion | cut -d '"' -f 4)
+                        cp -v "build/libs/Yatopia-$mcver-R0.1-SNAPSHOT.jar" "./target/yatopia-$mcver-paperclip-b$BUILD_NUMBER.jar"
+                        '''
                     }
                 }
             }
