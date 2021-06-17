@@ -46,14 +46,14 @@ jobs:
          git config --global user.name "Github CI"
          git config --global gc.auto 0
         
-    - name: Get MC Version
-      run: echo "::set-output name=mcver::$(cat ".gradle/caches/paperweight/upstreams/paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
-      id: mcver
-      
     - name: Apply Patches
       run: |
         ./gradlew applyPatches
                  
+    - name: Get MC Version
+      run: echo "::set-output name=mcver::$(cat ".gradle/caches/paperweight/upstreams/paper/work/BuildData/info.json"  | grep minecraftVersion | cut -d '"' -f 4)" 
+      id: mcver
+      
     - name: Pull Maven Cache
       uses: actions/cache@v2
       id: maven-cache
