@@ -5,14 +5,16 @@ Subject: [PATCH] Add NBT API as a first-class lib
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index fe3c36ba8d5982a5382997cd6ba2abd40f3cc2d1..a23e3461572b34d73ac697532b6af9115b51e4c5 100644
+index 73d15170e361e9f7de3cfc66e4c193cdcc596b89..086426fa989f4dd11d3297b06730f51d8cdbed63 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -111,6 +111,7 @@ tasks.shadowJar {
+@@ -103,6 +103,9 @@ tasks.shadowJar {
      relocate("org.bukkit.craftbukkit", "org.bukkit.craftbukkit.v$packageVersion") {
          exclude("org.bukkit.craftbukkit.Main*")
      }
++
 +    relocate("de.tr7zw.changeme.nbtapi", "de.tr7zw.nbtapi")
-     mergeServiceFiles()
-     transform(ModifiedLog4j2PluginsCacheFileTransformer::class.java)
- }
++
+     listOf(
+         "jline", "org.apache.commons.codec", "org.apache.commons.io", // Paper - don't relocate fastutil
+         "org.apache.commons.lang3", "org.apache.http", "org.apache.maven", "org.codehaus.plexus",
