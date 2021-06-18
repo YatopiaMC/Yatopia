@@ -16,6 +16,7 @@ pipeline {
                 sh 'git config --global gc.auto 0'
                 sh 'rm -rf ./target'
                 sh 'rm -rf ./Yatopia-API ./Yatopia-Server'
+                sh 'rm -rf .gradle'
                 sh 'chmod +x ./gradlew'
                 sh './gradlew clean'
             }
