@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Simon Gardling <titaniumtown@gmail.com>
+Date: Fri, 18 Jun 2021 17:23:19 -0400
+Subject: [PATCH] lithium: entity.fast_retrieval
+
+
+diff --git a/src/main/java/net/minecraft/world/level/entity/EntitySectionStorage.java b/src/main/java/net/minecraft/world/level/entity/EntitySectionStorage.java
+index 24552500307c42f9f3dc5c4d9ba73a84a787423a..48a16dd572f73d9803e05036b263073ae321f18c 100644
+--- a/src/main/java/net/minecraft/world/level/entity/EntitySectionStorage.java
++++ b/src/main/java/net/minecraft/world/level/entity/EntitySectionStorage.java
+@@ -34,31 +34,25 @@ public class EntitySectionStorage<T extends EntityAccess> {
+     }
+ 
+     public void forEachAccessibleSection(AABB box, Consumer<EntitySection<T>> action) {
+-        int i = SectionPos.posToSectionCoord(box.minX - 2.0D);
+-        int j = SectionPos.posToSectionCoord(box.minY - 2.0D);
+-        int k = SectionPos.posToSectionCoord(box.minZ - 2.0D);
+-        int l = SectionPos.posToSectionCoord(box.maxX + 2.0D);
+-        int m = SectionPos.posToSectionCoord(box.maxY + 2.0D);
+-        int n = SectionPos.posToSectionCoord(box.maxZ + 2.0D);
+-
+-        for(int o = i; o <= l; ++o) {
+-            long p = SectionPos.asLong(o, 0, 0);
+-            long q = SectionPos.asLong(o, -1, -1);
+-            LongIterator longIterator = this.sectionIds.subSet(p, q + 1L).iterator();
+-
+-            while(longIterator.hasNext()) {
+-                long r = longIterator.nextLong();
+-                int s = SectionPos.y(r);
+-                int t = SectionPos.z(r);
+-                if (s >= j && s <= m && t >= k && t <= n) {
+-                    EntitySection<T> entitySection = this.sections.get(r);
+-                    if (entitySection != null && entitySection.getStatus().isAccessible()) {
+-                        action.accept(entitySection);
++        // Yatopia start - port lithium
++        int minX = SectionPos.posToSectionCoord(box.minX - 2.0D);
++        int minY = SectionPos.posToSectionCoord(box.minY - 2.0D);
++        int minZ = SectionPos.posToSectionCoord(box.minZ - 2.0D);
++        int maxX = SectionPos.posToSectionCoord(box.maxX + 2.0D);
++        int maxY = SectionPos.posToSectionCoord(box.maxY + 2.0D);
++        int maxZ = SectionPos.posToSectionCoord(box.maxZ + 2.0D);
++
++        for (int x = minX; x <= maxX; x++) {
++            for (int z = minZ; z <= maxZ; z++) {
++                for (int y = minY; y <= maxY; y++) {
++                    EntitySection<T> section = this.getSection(SectionPos.asLong(x, y, z));
++                    if (section != null && section.getStatus().isAccessible()) {
++                        action.accept(section);
+                     }
+                 }
+             }
+         }
+-
++        // Yatopia end
+     }
+ 
+     public LongStream getExistingSectionPositionsInChunk(long chunkPos) {
