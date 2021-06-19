@@ -12,7 +12,7 @@ pipeline {
                 jdk "OpenJDK 8"
             }
             steps {
-                scmSkip(deleteBuild: true, skipPattern:'.*\\[CI-SKIP\\].*')
+                scmSkip(deleteBuild: true, skipPattern:'.*\\[(ci-skip|CI-SKIP)\\].*')
                 sh 'git config --global gc.auto 0'
                 sh 'rm -rf ./target'
                 sh 'rm -rf ./Paper/Paper-API ./Paper/Paper-Server'
